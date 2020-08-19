@@ -1,7 +1,7 @@
 # go-gpt3
 [![GoDoc](http://img.shields.io/badge/GoDoc-Reference-blue.svg)](https://godoc.org/github.com/sashabaranov/go-gpt3)
 
-[OpenAI GPT-3](https://beta.openai.com/) API for Go
+[OpenAI GPT-3](https://beta.openai.com/) API wrapper for Go
 
 
 Example usage:

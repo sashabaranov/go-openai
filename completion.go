@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// CompletionRequest represents a request structure for competion API
+// CompletionRequest represents a request structure for completion API
 type CompletionRequest struct {
 	Prompt    string `json:"prompt,omitempty"`
 	MaxTokens int    `json:"max_tokens,omitempty"`
@@ -43,7 +43,7 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
-// CompletionResponse represents a response structure for competion API
+// CompletionResponse represents a response structure for completion API
 type CompletionResponse struct {
 	ID      string   `json:"id"`
 	Object  string   `json:"object"`

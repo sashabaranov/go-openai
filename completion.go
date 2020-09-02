@@ -17,19 +17,27 @@ type CompletionRequest struct {
 
 	N int `json:"n,omitempty"`
 
-	LogProbs int `json:"logobs,omitempty"`
+	LogProbs int `json:"logprobs,omitempty"`
 
-	Echo bool   `json:"echo,omitempty"`
-	Stop string `json:"stop,omitempty"`
+	Echo bool     `json:"echo,omitempty"`
+	Stop []string `json:"stop,omitempty"`
 
 	PresencePenalty  float32 `json:"presence_penalty,omitempty"`
 	FrequencyPenalty float32 `json:"frequency_penalty,omitempty"`
 }
 
 type Choice struct {
-	Text         string `json:"text"`
-	Index        int    `json:"index"`
-	FinishReason string `json:"finish_reason"`
+	Text         string        `json:"text"`
+	Index        int           `json:"index"`
+	FinishReason string        `json:"finish_reason"`
+	LogProbs     LogprobResult `json:"logprobs"`
+}
+
+type LogprobResult struct {
+	Tokens        []string             `json:"tokens"`
+	TokenLogprobs []float32            `json:"token_logprobs"`
+	TopLogprobs   []map[string]float32 `json:"top_logprobs"`
+	TextOffset    []int                `json:"text_offset"`
 }
 
 type CompletionResponse struct {

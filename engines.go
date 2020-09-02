@@ -6,6 +6,7 @@ import (
 	"net/http"
 )
 
+// Engine struct represents engine from OpenAPI API
 type Engine struct {
 	ID     string `json:"id"`
 	Object string `json:"object"`
@@ -13,6 +14,7 @@ type Engine struct {
 	Ready  bool   `json:"ready"`
 }
 
+// EnginesList is a list of engines
 type EnginesList struct {
 	Engines []Engine `json:"data"`
 }

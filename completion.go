@@ -8,6 +8,7 @@ import (
 	"net/http"
 )
 
+// CompletionRequest represents a request structure for competion API
 type CompletionRequest struct {
 	Prompt    string `json:"prompt,omitempty"`
 	MaxTokens int    `json:"max_tokens,omitempty"`
@@ -26,6 +27,7 @@ type CompletionRequest struct {
 	FrequencyPenalty float32 `json:"frequency_penalty,omitempty"`
 }
 
+// Choice represents one of possible completions
 type Choice struct {
 	Text         string        `json:"text"`
 	Index        int           `json:"index"`
@@ -33,6 +35,7 @@ type Choice struct {
 	LogProbs     LogprobResult `json:"logprobs"`
 }
 
+// LogprobResult represents logprob result of Choice
 type LogprobResult struct {
 	Tokens        []string             `json:"tokens"`
 	TokenLogprobs []float32            `json:"token_logprobs"`
@@ -40,6 +43,7 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
+// CompletionResponse represents a response structure for competion API
 type CompletionResponse struct {
 	ID      string   `json:"id"`
 	Object  string   `json:"object"`

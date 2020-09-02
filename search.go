@@ -8,16 +8,19 @@ import (
 	"net/http"
 )
 
+// SearchRequest represents a request structure for search API
 type SearchRequest struct {
 	Documents []string `json:"documents"`
 	Query     string   `json:"query"`
 }
 
+// SearchResult represents single result from search API
 type SearchResult struct {
 	Document int     `json:"document"`
 	Score    float32 `json:"score"`
 }
 
+// SearchResponse represents a response structure for search API
 type SearchResponse struct {
 	SearchResults []SearchResult `json:"data"`
 }

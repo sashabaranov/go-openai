@@ -49,7 +49,7 @@ type CompletionResponse struct {
 	Object  string   `json:"object"`
 	Created uint64   `json:"created"`
 	Model   string   `json:"model"`
-	Сhoices []Choice `json:"choices"`
+	Choices []Choice `json:"choices"`
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well as, if requested, the probabilities over each alternative token at each position.

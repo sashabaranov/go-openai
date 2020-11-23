@@ -29,7 +29,7 @@ func main() {
 	if err != nil {
 		return
 	}
-	fmt.Println(resp.Сhoices[0].Text)
+	fmt.Println(resp.Choices[0].Text)
 
 	searchReq := gogpt.SearchRequest{
 		Documents: []string{"White House", "hospital", "school"},

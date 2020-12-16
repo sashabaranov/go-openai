@@ -5,6 +5,11 @@
 
 [OpenAI GPT-3](https://beta.openai.com/) API wrapper for Go
 
+Installation:
+```
+go get github.com/sashabaranov/go-gpt3
+```
+
 
 Example usage:
 

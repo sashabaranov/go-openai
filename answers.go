@@ -8,7 +8,7 @@ import (
 )
 
 type AnswerRequest struct {
-	Documents       []string   `json:"documents"`
+	Documents       [][]string `json:"documents"`
 	Question        string     `json:"question"`
 	SearchModel     string     `json:"search_model"`
 	Model           string     `json:"model"`
@@ -38,7 +38,7 @@ func (c *Client) Answers(ctx context.Context, request AnswerRequest) (response A
 		return
 	}
 
-	req, err := http.NewRequest("POST", c.fullURL("answers"), bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequest("POST", c.fullURL("/answers"), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return
 	}

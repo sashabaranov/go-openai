@@ -59,7 +59,12 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		return fmt.Errorf("error, status code: %d", res.StatusCode)
+		var errRes ErrorResponse
+		err = json.NewDecoder(res.Body).Decode(&errRes)
+		if err != nil || errRes.Error == nil {
+			return fmt.Errorf("error, status code: %d", res.StatusCode)
+		}
+		return fmt.Errorf("error, status code: %d, message: %s", res.StatusCode, errRes.Error.Message)
 	}
 
 	if err = json.NewDecoder(res.Body).Decode(&v); err != nil {

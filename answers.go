@@ -8,7 +8,7 @@ import (
 )
 
 type AnswerRequest struct {
-	Documents       [][]string `json:"documents"`
+	Documents       []string   `json:"documents"`
 	Question        string     `json:"question"`
 	SearchModel     string     `json:"search_model"`
 	Model           string     `json:"model"`

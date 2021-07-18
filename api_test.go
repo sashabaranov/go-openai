@@ -24,6 +24,18 @@ func TestAPI(t *testing.T) {
 		t.Fatalf("GetEngine error: %v", err)
 	}
 
+	fileRes, err := c.ListFiles(ctx)
+	if err != nil {
+		t.Fatalf("ListFiles error: %v", err)
+	}
+
+	if len(fileRes.Files) > 0 {
+		_, err = c.GetFile(ctx, fileRes.Files[0].ID)
+		if err != nil {
+			t.Fatalf("GetFile error: %v", err)
+		}
+	} // else skip
+
 	req := CompletionRequest{MaxTokens: 5}
 	req.Prompt = "Lorem ipsum"
 	_, err = c.CreateCompletion(ctx, "ada", req)

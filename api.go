@@ -46,7 +46,14 @@ func NewOrgClient(authToken, org string) *Client {
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
-	req.Header.Set("Content-Type", "application/json; charset=utf-8")
+
+	// Check whether Content-Type is already set, Upload Files API requires
+	// Content-Type == multipart/form-data
+	contentType := req.Header.Get("Content-Type")
+	if contentType == "" {
+		req.Header.Set("Content-Type", "application/json; charset=utf-8")
+	}
+
 	if len(c.idOrg) > 0 {
 		req.Header.Set("OpenAI-Organization", c.idOrg)
 	}

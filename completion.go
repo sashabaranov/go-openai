@@ -20,6 +20,8 @@ type CompletionRequest struct {
 
 	LogProbs int `json:"logprobs,omitempty"`
 
+	Model *string `json:"model,omitempty"`
+
 	Echo bool     `json:"echo,omitempty"`
 	Stop []string `json:"stop,omitempty"`
 

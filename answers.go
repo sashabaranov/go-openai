@@ -9,6 +9,7 @@ import (
 
 type AnswerRequest struct {
 	Documents       []string   `json:"documents"`
+	File            string     `json:"file"`
 	Question        string     `json:"question"`
 	SearchModel     string     `json:"search_model"`
 	Model           string     `json:"model"`
@@ -16,6 +17,7 @@ type AnswerRequest struct {
 	Examples        [][]string `json:"examples"`
 	MaxTokens       int        `json:"max_tokens"`
 	Stop            []string   `json:"stop"`
+	Temperature     *float64   `json:"temperature,omitempty"`
 }
 
 type AnswerResponse struct {

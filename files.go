@@ -1,10 +1,22 @@
 package gogpt
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"net/url"
+	"os"
+	"strings"
 )
+
+type FileRequest struct {
+	FileName string `json:"file"`
+	FilePath string `json:"-"`
+	Purpose  string `json:"purpose"`
+}
 
 // File struct represents an OpenAPI file
 type File struct {
@@ -20,6 +32,88 @@ type File struct {
 // FilesList is a list of files that belong to the user or organization
 type FilesList struct {
 	Files []File `json:"data"`
+}
+
+// isUrl is a helper function that determines whether the given FilePath
+// is a remote URL or a local file path
+func isURL(path string) bool {
+	_, err := url.ParseRequestURI(path)
+	if err != nil {
+		return false
+	}
+
+	u, err := url.Parse(path)
+	if err != nil || u.Scheme == "" || u.Host == "" {
+		return false
+	}
+
+	return true
+}
+
+// CreateFile uploads a jsonl file to GPT3
+// FilePath can be either a local file path or a URL
+func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
+	var b bytes.Buffer
+	w := multipart.NewWriter(&b)
+
+	var fw, pw io.Writer
+	pw, err = w.CreateFormField("purpose")
+	if err != nil {
+		return
+	}
+
+	_, err = io.Copy(pw, strings.NewReader(request.Purpose))
+	if err != nil {
+		return
+	}
+
+	fw, err = w.CreateFormFile("file", request.FileName)
+	if err != nil {
+		return
+	}
+
+	var fileData io.ReadCloser
+	if isURL(request.FilePath) {
+		var remoteFile *http.Response
+		remoteFile, err = http.Get(request.FilePath)
+		if err != nil {
+			return
+		}
+
+		defer remoteFile.Body.Close()
+
+		// Check server response
+		if remoteFile.StatusCode != http.StatusOK {
+			err = fmt.Errorf("error, status code: %d, message: failed to fetch file", remoteFile.StatusCode)
+			return
+		}
+
+		fileData = remoteFile.Body
+	} else {
+		fileData, err = os.Open(request.FilePath)
+		if err != nil {
+			return
+		}
+	}
+
+	_, err = io.Copy(fw, fileData)
+	if err != nil {
+		return
+	}
+
+	w.Close()
+
+	req, err := http.NewRequest("POST", c.fullURL("/files"), &b)
+	if err != nil {
+		return
+	}
+
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", w.FormDataContentType())
+
+	err = c.sendRequest(req, &file)
+
+	return
 }
 
 // ListFiles Lists the currently available files,

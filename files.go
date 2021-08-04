@@ -116,6 +116,18 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	return
 }
 
+// DeleteFile deletes an existing file
+func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
+	req, err := http.NewRequest("DELETE", c.fullURL("/files/"+fileID), nil)
+	if err != nil {
+		return
+	}
+
+	req = req.WithContext(ctx)
+	err = c.sendRequest(req, nil)
+	return
+}
+
 // ListFiles Lists the currently available files,
 // and provides basic information about each file such as the file name and purpose.
 func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {

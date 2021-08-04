@@ -74,8 +74,10 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 		return fmt.Errorf("error, status code: %d, message: %s", res.StatusCode, errRes.Error.Message)
 	}
 
-	if err = json.NewDecoder(res.Body).Decode(&v); err != nil {
-		return err
+	if v != nil {
+		if err = json.NewDecoder(res.Body).Decode(&v); err != nil {
+			return err
+		}
 	}
 
 	return nil

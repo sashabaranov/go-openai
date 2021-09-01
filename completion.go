@@ -73,3 +73,21 @@ func (c *Client) CreateCompletion(ctx context.Context, engineID string, request 
 	err = c.sendRequest(req, &response)
 	return
 }
+
+func (c *Client) CreateCompletionWithFineTunedModel(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
+	var reqBytes []byte
+	reqBytes, err = json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	urlSuffix := "/completions"
+	req, err := http.NewRequest("POST", c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return
+	}
+
+	req = req.WithContext(ctx)
+	err = c.sendRequest(req, &response)
+	return
+}

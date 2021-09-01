@@ -74,6 +74,9 @@ func (c *Client) CreateCompletion(ctx context.Context, engineID string, request 
 	return
 }
 
+// CreateCompletionWithFineTunedModel - API call to create a completion with a fine tuned model
+// See https://beta.openai.com/docs/guides/fine-tuning/use-a-fine-tuned-model
+// In this case, the model is specified in the CompletionRequest object.
 func (c *Client) CreateCompletionWithFineTunedModel(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)

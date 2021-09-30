@@ -8,15 +8,15 @@ import (
 )
 
 type AnswerRequest struct {
-	Documents       []string   `json:"documents"`
-	File            string     `json:"file"`
+	Documents       []string   `json:"documents,omitempty"`
+	File            string     `json:"file,omitempty"`
 	Question        string     `json:"question"`
-	SearchModel     string     `json:"search_model"`
+	SearchModel     string     `json:"search_model,omitempty"`
 	Model           string     `json:"model"`
 	ExamplesContext string     `json:"examples_context"`
 	Examples        [][]string `json:"examples"`
-	MaxTokens       int        `json:"max_tokens"`
-	Stop            []string   `json:"stop"`
+	MaxTokens       int        `json:"max_tokens,omitempty"`
+	Stop            []string   `json:"stop,omitempty"`
 	Temperature     *float64   `json:"temperature,omitempty"`
 }
 

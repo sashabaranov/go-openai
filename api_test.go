@@ -51,4 +51,15 @@ func TestAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Search error: %v", err)
 	}
+
+	embeddingReq := EmbeddingRequest{
+		Input: []string{
+			"The food was delicious and the waiter",
+			"Other examples of embedding request",
+		},
+	}
+	_, err = c.CreateEmbeddings(ctx, embeddingReq, AdaSearchQuery)
+	if err != nil {
+		t.Fatalf("Embedding error: %v", err)
+	}
 }

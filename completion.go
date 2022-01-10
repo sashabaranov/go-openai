@@ -25,9 +25,10 @@ type CompletionRequest struct {
 	Echo bool     `json:"echo,omitempty"`
 	Stop []string `json:"stop,omitempty"`
 
-	PresencePenalty  float32 `json:"presence_penalty,omitempty"`
-	FrequencyPenalty float32 `json:"frequency_penalty,omitempty"`
-	BestOf           int     `json:"best_of,omitempty"`
+	PresencePenalty  float32        `json:"presence_penalty,omitempty"`
+	FrequencyPenalty float32        `json:"frequency_penalty,omitempty"`
+	BestOf           int            `json:"best_of,omitempty"`
+	LogitBias        map[string]int `json:"logit_bias,omitempty"`
 }
 
 // Choice represents one of possible completions

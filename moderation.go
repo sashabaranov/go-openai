@@ -15,9 +15,9 @@ type ModerationRequest struct {
 
 // Result represents one of possible moderation results
 type Result struct {
-	Categories     []ResultCategories     `json:"categories"`
-	CategoryScores []ResultCategoryScores `json:"category_scores"`
-	Flagged        int                    `json:"flagged"`
+	Categories     ResultCategories     `json:"categories"`
+	CategoryScores ResultCategoryScores `json:"category_scores"`
+	Flagged        int                  `json:"flagged"`
 }
 
 // ResultCategories represents Categories of Result

@@ -9,37 +9,37 @@ import (
 
 // ModerationRequest represents a request structure for moderation API
 type ModerationRequest struct {
-	Input    string `json:"input,omitempty"`
+	Input string  `json:"input,omitempty"`
 	Model *string `json:"model,omitempty"`
 }
 
 // Result represents one of possible moderation results
 type Result struct {
-	Categories []ResultCategories `json:"categories"`
+	Categories     []ResultCategories     `json:"categories"`
 	CategoryScores []ResultCategoryScores `json:"category_scores"`
-	Flagged        int           `json:"flagged"`
+	Flagged        int                    `json:"flagged"`
 }
 
 // ResultCategories represents Categories of Result
 type ResultCategories struct {
-	Hate        int           `json:"hate"`
-	HateThreatening        int           `json:"hate/threatening"`
-	SelfHarm        int           `json:"self-harm"`
-	Sexual        int           `json:"sexual"`
-	SexualMinors        int           `json:"sexual/minors"`
-	Violence        int           `json:"violence"`
-	ViolenceGraphic        int           `json:"violence/graphic"`
+	Hate            int `json:"hate"`
+	HateThreatening int `json:"hate/threatening"`
+	SelfHarm        int `json:"self-harm"`
+	Sexual          int `json:"sexual"`
+	SexualMinors    int `json:"sexual/minors"`
+	Violence        int `json:"violence"`
+	ViolenceGraphic int `json:"violence/graphic"`
 }
 
 // ResultCategoryScores represents CategoryScores of Result
 type ResultCategoryScores struct {
-	Hate        float32           `json:"hate"`
-	HateThreatening        float32           `json:"hate/threatening"`
-	SelfHarm        float32           `json:"self-harm"`
-	Sexual        float32           `json:"sexual"`
-	SexualMinors        float32           `json:"sexual/minors"`
-	Violence        float32           `json:"violence"`
-	ViolenceGraphic        float32           `json:"violence/graphic"`
+	Hate            float32 `json:"hate"`
+	HateThreatening float32 `json:"hate/threatening"`
+	SelfHarm        float32 `json:"self-harm"`
+	Sexual          float32 `json:"sexual"`
+	SexualMinors    float32 `json:"sexual/minors"`
+	Violence        float32 `json:"violence"`
+	ViolenceGraphic float32 `json:"violence/graphic"`
 }
 
 // ModerationResponse represents a response structure for moderation API

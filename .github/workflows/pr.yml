@@ -22,9 +22,9 @@ jobs:
         go vet .
         golint .
     - name: golangci-lint
-        uses: golangci/golangci-lint-action@v3
-        with:
-          version: latest
+      uses: golangci/golangci-lint-action@v3
+      with:
+        version: latest
     # # Run testing on the code
     # - name: Run testing
     #   run: cd test && go test -v

@@ -10,25 +10,21 @@ import (
 
 // CompletionRequest represents a request structure for completion API
 type CompletionRequest struct {
-	Prompt    string `json:"prompt,omitempty"`
-	MaxTokens int    `json:"max_tokens,omitempty"`
-
-	Temperature float32 `json:"temperature,omitempty"`
-	TopP        float32 `json:"top_p,omitempty"`
-
-	N int `json:"n,omitempty"`
-
-	LogProbs int `json:"logprobs,omitempty"`
-
-	Model *string `json:"model,omitempty"`
-
-	Echo bool     `json:"echo,omitempty"`
-	Stop []string `json:"stop,omitempty"`
-
+	Model            *string        `json:"model,omitempty"`
+	Prompt           string         `json:"prompt,omitempty"`
+	MaxTokens        int            `json:"max_tokens,omitempty"`
+	Temperature      float32        `json:"temperature,omitempty"`
+	TopP             float32        `json:"top_p,omitempty"`
+	N                int            `json:"n,omitempty"`
+	Stream           bool           `json:"stream,omitempty"`
+	LogProbs         int            `json:"logprobs,omitempty"`
+	Echo             bool           `json:"echo,omitempty"`
+	Stop             []string       `json:"stop,omitempty"`
 	PresencePenalty  float32        `json:"presence_penalty,omitempty"`
 	FrequencyPenalty float32        `json:"frequency_penalty,omitempty"`
 	BestOf           int            `json:"best_of,omitempty"`
 	LogitBias        map[string]int `json:"logit_bias,omitempty"`
+	User             string         `json:"user,omitempty"`
 }
 
 // Choice represents one of possible completions
@@ -47,13 +43,21 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
+// CompletionUsage represents Usage of CompletionResponse
+type CompletionUsage struct {
+	PromptTokens     int `json:"prompt_tokens"`
+	CompletionTokens int `json:"completion_tokens"`
+	TotalTokens      int `json:"total_tokens"`
+}
+
 // CompletionResponse represents a response structure for completion API
 type CompletionResponse struct {
-	ID      string   `json:"id"`
-	Object  string   `json:"object"`
-	Created uint64   `json:"created"`
-	Model   string   `json:"model"`
-	Choices []Choice `json:"choices"`
+	ID      string          `json:"id"`
+	Object  string          `json:"object"`
+	Created uint64          `json:"created"`
+	Model   string          `json:"model"`
+	Choices []Choice        `json:"choices"`
+	Usage   CompletionUsage `json:"usage"`
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well as, if requested, the probabilities over each alternative token at each position.

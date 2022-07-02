@@ -24,18 +24,18 @@ type EditsUsage struct {
 	TotalTokens      int `json:"total_tokens"`
 }
 
-// Choice represents one of possible edits
-type Choice struct {
+// EditsChoice represents one of possible edits
+type EditsChoice struct {
 	Text  string `json:"text"`
 	Index int    `json:"index"`
 }
 
 // EditsResponse represents a response structure for Edits API
 type EditsResponse struct {
-	Object  string     `json:"object"`
-	Created uint64     `json:"created"`
-	Usage   EditsUsage `json:"usage"`
-	Choices []Choice   `json:"choices"`
+	Object  string        `json:"object"`
+	Created uint64        `json:"created"`
+	Usage   EditsUsage    `json:"usage"`
+	Choices []EditsChoice `json:"choices"`
 }
 
 // Perform an API call to the Edits endpoint.

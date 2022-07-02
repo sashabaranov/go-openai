@@ -8,21 +8,34 @@ import (
 	"net/http"
 )
 
-// SearchRequest represents a request structure for search API
+/*
+- SearchRequest represents a request structure for search API.
+
+- Info (*):
+- 1*) You should specify either 'documents' or a 'file', but not both.
+- 2*) This flag only takes effect when file is set.
+*/
 type SearchRequest struct {
-	Documents []string `json:"documents"`
-	Query     string   `json:"query"`
+	Query          string   `json:"query"`
+	Documents      []string `json:"documents"`  // 1*
+	FileID         string   `json:"file"`       // 1*
+	MaxRerank      int      `json:"max_rerank"` // 2*
+	ReturnMetadata bool     `json:"return_metadata"`
+	User           string   `json:"user"`
 }
 
 // SearchResult represents single result from search API
 type SearchResult struct {
 	Document int     `json:"document"`
+	Object   string  `json:"object"`
 	Score    float32 `json:"score"`
+	Metadata string  `json:"metadata"` // 2*
 }
 
 // SearchResponse represents a response structure for search API
 type SearchResponse struct {
 	SearchResults []SearchResult `json:"data"`
+	Object        string         `json:"object"`
 }
 
 // Search — perform a semantic search api call over a list of documents.

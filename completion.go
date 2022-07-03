@@ -27,8 +27,8 @@ type CompletionRequest struct {
 	User             string         `json:"user,omitempty"`
 }
 
-// Choice represents one of possible completions
-type Choice struct {
+// CompletionChoice represents one of possible completions
+type CompletionChoice struct {
 	Text         string        `json:"text"`
 	Index        int           `json:"index"`
 	FinishReason string        `json:"finish_reason"`
@@ -52,12 +52,12 @@ type CompletionUsage struct {
 
 // CompletionResponse represents a response structure for completion API
 type CompletionResponse struct {
-	ID      string          `json:"id"`
-	Object  string          `json:"object"`
-	Created uint64          `json:"created"`
-	Model   string          `json:"model"`
-	Choices []Choice        `json:"choices"`
-	Usage   CompletionUsage `json:"usage"`
+	ID      string             `json:"id"`
+	Object  string             `json:"object"`
+	Created uint64             `json:"created"`
+	Model   string             `json:"model"`
+	Choices []CompletionChoice `json:"choices"`
+	Usage   CompletionUsage    `json:"usage"`
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well as, if requested, the probabilities over each alternative token at each position.

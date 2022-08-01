@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
@@ -120,18 +119,23 @@ type EmbeddingRequest struct {
 	// E.g.
 	//	"The food was delicious and the waiter..."
 	Input []string `json:"input"`
+	// ID of the model to use. You can use the List models API to see all of your available models,
+	// or see our Model overview for descriptions of them.
+	Model EmbeddingModel `json:"model"`
+	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
+	User string `json:"user"`
 }
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest, model EmbeddingModel) (resp EmbeddingResponse, err error) {
+func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {
 		return
 	}
 
-	urlSuffix := fmt.Sprintf("/engines/%s/embeddings", model)
+	urlSuffix := "/embeddings"
 	req, err := http.NewRequest(http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return

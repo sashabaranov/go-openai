@@ -17,11 +17,11 @@ import (
 */
 type SearchRequest struct {
 	Query          string   `json:"query"`
-	Documents      []string `json:"documents"`  // 1*
-	FileID         string   `json:"file"`       // 1*
-	MaxRerank      int      `json:"max_rerank"` // 2*
-	ReturnMetadata bool     `json:"return_metadata"`
-	User           string   `json:"user"`
+	Documents      []string `json:"documents"`            // 1*
+	FileID         string   `json:"file,omitempty"`       // 1*
+	MaxRerank      int      `json:"max_rerank,omitempty"` // 2*
+	ReturnMetadata bool     `json:"return_metadata,omitempty"`
+	User           string   `json:"user,omitempty"`
 }
 
 // SearchResult represents single result from search API

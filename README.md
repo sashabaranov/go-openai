@@ -27,10 +27,11 @@ func main() {
 	ctx := context.Background()
 
 	req := gogpt.CompletionRequest{
+		Model: "ada",
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 	}
-	resp, err := c.CreateCompletion(ctx, "ada", req)
+	resp, err := c.CreateCompletion(ctx, req)
 	if err != nil {
 		return
 	}

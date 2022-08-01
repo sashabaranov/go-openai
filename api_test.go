@@ -36,9 +36,12 @@ func TestAPI(t *testing.T) {
 		}
 	} // else skip
 
-	req := CompletionRequest{MaxTokens: 5}
+	req := CompletionRequest{
+		MaxTokens: 5,
+		Model:     "ada",
+	}
 	req.Prompt = "Lorem ipsum"
-	_, err = c.CreateCompletion(ctx, "ada", req)
+	_, err = c.CreateCompletion(ctx, req)
 	if err != nil {
 		t.Fatalf("CreateCompletion error: %v", err)
 	}
@@ -57,8 +60,9 @@ func TestAPI(t *testing.T) {
 			"The food was delicious and the waiter",
 			"Other examples of embedding request",
 		},
+		Model: AdaSearchQuery,
 	}
-	_, err = c.CreateEmbeddings(ctx, embeddingReq, AdaSearchQuery)
+	_, err = c.CreateEmbeddings(ctx, embeddingReq)
 	if err != nil {
 		t.Fatalf("Embedding error: %v", err)
 	}

@@ -7,6 +7,33 @@ import (
 	"net/http"
 )
 
+// GPT3 Defines the models provided by OpenAI to use when generating
+// completions from OpenAI.
+// GPT3 Models are designed for text-based tasks. For code-specific
+// tasks, please refer to the Codex series of models.
+const (
+	GPT3TextDavinci002      = "text-davinci-002"
+	GPT3TextCurie001        = "text-curie-001"
+	GPT3TextBabbage001      = "text-babbage-001"
+	GPT3TextAda001          = "text-ada-001"
+	GPT3TextDavinci001      = "text-davinci-001"
+	GPT3DavinciInstructBeta = "davinci-instruct-beta"
+	GPT3Davinci             = "davinci"
+	GPT3CurieInstructBeta   = "curie-instruct-beta"
+	GPT3Curie               = "curie"
+	GPT3Ada                 = "ada"
+	GPT3Babbage             = "babbage"
+)
+
+// Codex Defines the models provided by OpenAI.
+// These models are designed for code-specific tasks, and use
+// a different tokenizer which optimizes for whitespace.
+const (
+	CodexCodeDavinci002 = "code-davinci-002"
+	CodexCodeCushman001 = "code-cushman-001"
+	CodexCodeDavinci001 = "code-davinci-001"
+)
+
 // CompletionRequest represents a request structure for completion API
 type CompletionRequest struct {
 	Model            string         `json:"model"`
@@ -42,13 +69,6 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
-// CompletionUsage represents Usage of CompletionResponse
-type CompletionUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
-}
-
 // CompletionResponse represents a response structure for completion API
 type CompletionResponse struct {
 	ID      string             `json:"id"`
@@ -56,7 +76,7 @@ type CompletionResponse struct {
 	Created uint64             `json:"created"`
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
-	Usage   CompletionUsage    `json:"usage"`
+	Usage   Usage              `json:"usage"`
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well

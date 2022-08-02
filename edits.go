@@ -17,13 +17,6 @@ type EditsRequest struct {
 	TopP        float32 `json:"top_p,omitempty"`
 }
 
-// EditsUsage represents Usage of EditsResponse
-type EditsUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
-}
-
 // EditsChoice represents one of possible edits
 type EditsChoice struct {
 	Text  string `json:"text"`
@@ -34,7 +27,7 @@ type EditsChoice struct {
 type EditsResponse struct {
 	Object  string        `json:"object"`
 	Created uint64        `json:"created"`
-	Usage   EditsUsage    `json:"usage"`
+	Usage   Usage         `json:"usage"`
 	Choices []EditsChoice `json:"choices"`
 }
 

@@ -17,18 +17,18 @@ type ModerationRequest struct {
 type Result struct {
 	Categories     ResultCategories     `json:"categories"`
 	CategoryScores ResultCategoryScores `json:"category_scores"`
-	Flagged        int                  `json:"flagged"`
+	Flagged        bool                 `json:"flagged"`
 }
 
 // ResultCategories represents Categories of Result
 type ResultCategories struct {
-	Hate            int `json:"hate"`
-	HateThreatening int `json:"hate/threatening"`
-	SelfHarm        int `json:"self-harm"`
-	Sexual          int `json:"sexual"`
-	SexualMinors    int `json:"sexual/minors"`
-	Violence        int `json:"violence"`
-	ViolenceGraphic int `json:"violence/graphic"`
+	Hate            bool `json:"hate"`
+	HateThreatening bool `json:"hate/threatening"`
+	SelfHarm        bool `json:"self-harm"`
+	Sexual          bool `json:"sexual"`
+	SexualMinors    bool `json:"sexual/minors"`
+	Violence        bool `json:"violence"`
+	ViolenceGraphic bool `json:"violence/graphic"`
 }
 
 // ResultCategoryScores represents CategoryScores of Result

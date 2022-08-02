@@ -70,13 +70,10 @@ func TestAPI(t *testing.T) {
 		t.Fatalf("Embedding error: %v", err)
 	}
 
-	// test edits and completions using the mocked server
-	testEdits(t)
-	testCompletions(t)
 }
 
-// testCompletions Tests the completions endpoint of the API using the mocked server.
-func testCompletions(t *testing.T) {
+// TestCompletions Tests the completions endpoint of the API using the mocked server.
+func TestCompletions(t *testing.T) {
 	// create the test server
 	var err error
 	ts := OpenAITestServer()
@@ -85,7 +82,7 @@ func testCompletions(t *testing.T) {
 
 	client := NewClient(testAPIToken)
 	ctx := context.Background()
-	client.BaseURL = ts.URL
+	client.BaseURL = ts.URL + "/v1"
 
 	req := CompletionRequest{
 		MaxTokens: 5,
@@ -98,8 +95,8 @@ func testCompletions(t *testing.T) {
 	}
 }
 
-// testEdits Tests the edits endpoint of the API using the mocked server.
-func testEdits(t *testing.T) {
+// TestEdits Tests the edits endpoint of the API using the mocked server.
+func TestEdits(t *testing.T) {
 	// create the test server
 	var err error
 	ts := OpenAITestServer()
@@ -108,7 +105,7 @@ func testEdits(t *testing.T) {
 
 	client := NewClient(testAPIToken)
 	ctx := context.Background()
-	client.BaseURL = ts.URL
+	client.BaseURL = ts.URL + "/v1"
 
 	// create an edit request
 	model := "ada"
@@ -165,8 +162,6 @@ func TestEmbedding(t *testing.T) {
 	}
 }
 
-func testEditsEndpoint(t *testing.T)
-
 // getEditBody Returns the body of the request to create an edit.
 func getEditBody(r *http.Request) (EditsRequest, error) {
 	edit := EditsRequest{}
@@ -211,7 +206,7 @@ func OpenAITestServer() *httptest.Server {
 	return httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var resBytes []byte
 		var err error
-		log.Println("received request at path '", r.URL.Path, "'")
+		log.Printf("received request at path %q\n", r.URL.Path)
 
 		// check auth
 		if r.Header.Get("Authorization") != "Bearer "+testAPIToken {

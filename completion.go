@@ -4,13 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
 )
 
 // CompletionRequest represents a request structure for completion API
 type CompletionRequest struct {
-	Model            *string        `json:"model,omitempty"`
+	Model            string         `json:"model"`
 	Prompt           string         `json:"prompt,omitempty"`
 	MaxTokens        int            `json:"max_tokens,omitempty"`
 	Temperature      float32        `json:"temperature,omitempty"`
@@ -60,29 +59,12 @@ type CompletionResponse struct {
 	Usage   CompletionUsage    `json:"usage"`
 }
 
-// CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well as, if requested, the probabilities over each alternative token at each position.
-func (c *Client) CreateCompletion(ctx context.Context, engineID string, request CompletionRequest) (response CompletionResponse, err error) {
-	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
-	if err != nil {
-		return
-	}
-
-	urlSuffix := fmt.Sprintf("/engines/%s/completions", engineID)
-	req, err := http.NewRequest("POST", c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
-	if err != nil {
-		return
-	}
-
-	req = req.WithContext(ctx)
-	err = c.sendRequest(req, &response)
-	return
-}
-
-// CreateCompletionWithFineTunedModel - API call to create a completion with a fine tuned model
-// See https://beta.openai.com/docs/guides/fine-tuning/use-a-fine-tuned-model
-// In this case, the model is specified in the CompletionRequest object.
-func (c *Client) CreateCompletionWithFineTunedModel(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
+// CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well
+// as, if requested, the probabilities over each alternative token at each position.
+//
+// If using a fine-tuned model, simply provide the model's ID in the CompletionRequest object,
+// and the server will use the model's parameters to generate the completion.
+func (c *Client) CreateCompletion(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {

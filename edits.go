@@ -7,7 +7,7 @@ import (
 	"net/http"
 )
 
-// EditsRequest represents a request structure for Edits API
+// EditsRequest represents a request structure for Edits API.
 type EditsRequest struct {
 	Model       *string `json:"model,omitempty"`
 	Input       string  `json:"input,omitempty"`
@@ -17,13 +17,13 @@ type EditsRequest struct {
 	TopP        float32 `json:"top_p,omitempty"`
 }
 
-// EditsChoice represents one of possible edits
+// EditsChoice represents one of possible edits.
 type EditsChoice struct {
 	Text  string `json:"text"`
 	Index int    `json:"index"`
 }
 
-// EditsResponse represents a response structure for Edits API
+// EditsResponse represents a response structure for Edits API.
 type EditsResponse struct {
 	Object  string        `json:"object"`
 	Created uint64        `json:"created"`

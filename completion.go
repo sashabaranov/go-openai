@@ -34,7 +34,7 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
-// CompletionRequest represents a request structure for completion API
+// CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
 	Model            string         `json:"model"`
 	Prompt           string         `json:"prompt,omitempty"`
@@ -53,7 +53,7 @@ type CompletionRequest struct {
 	User             string         `json:"user,omitempty"`
 }
 
-// CompletionChoice represents one of possible completions
+// CompletionChoice represents one of possible completions.
 type CompletionChoice struct {
 	Text         string        `json:"text"`
 	Index        int           `json:"index"`
@@ -61,7 +61,7 @@ type CompletionChoice struct {
 	LogProbs     LogprobResult `json:"logprobs"`
 }
 
-// LogprobResult represents logprob result of Choice
+// LogprobResult represents logprob result of Choice.
 type LogprobResult struct {
 	Tokens        []string             `json:"tokens"`
 	TokenLogprobs []float32            `json:"token_logprobs"`
@@ -69,7 +69,7 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
-// CompletionResponse represents a response structure for completion API
+// CompletionResponse represents a response structure for completion API.
 type CompletionResponse struct {
 	ID      string             `json:"id"`
 	Object  string             `json:"object"`
@@ -84,7 +84,10 @@ type CompletionResponse struct {
 //
 // If using a fine-tuned model, simply provide the model's ID in the CompletionRequest object,
 // and the server will use the model's parameters to generate the completion.
-func (c *Client) CreateCompletion(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
+func (c *Client) CreateCompletion(
+	ctx context.Context,
+	request CompletionRequest,
+) (response CompletionResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {

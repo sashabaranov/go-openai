@@ -92,11 +92,12 @@ var stringToEnum = map[string]EmbeddingModel{
 	"code-search-babbage-text-001":  BabbageCodeSearchText,
 }
 
-// Embedding is a special format of data representation that can be easily utilized by machine learning models and algorithms.
-// The embedding is an information dense representation of the semantic meaning of a piece of text. Each embedding is a vector of
-// floating point numbers, such that the distance between two embeddings in the vector space is correlated with semantic similarity
-// between two inputs in the original format. For example, if two texts are similar, then their vector representations should
-// also be similar.
+// Embedding is a special format of data representation that can be easily utilized by machine
+// learning models and algorithms. The embedding is an information dense representation of the
+// semantic meaning of a piece of text. Each embedding is a vector of floating point numbers,
+// such that the distance between two embeddings in the vector space is correlated with semantic similarity
+// between two inputs in the original format. For example, if two texts are similar,
+// then their vector representations should also be similar.
 type Embedding struct {
 	Object    string    `json:"object"`
 	Embedding []float64 `json:"embedding"`
@@ -128,21 +129,25 @@ type EmbeddingRequest struct {
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
+func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (EmbeddingResponse, error) {
+	var resp EmbeddingResponse
+	var err error
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {
-		return
+		return EmbeddingResponse{}, err
 	}
 
 	urlSuffix := "/embeddings"
 	req, err := http.NewRequest(http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
 	if err != nil {
-		return
+		return EmbeddingResponse{}, err
 	}
 
 	req = req.WithContext(ctx)
-	err = c.sendRequest(req, &resp)
+	if err = c.sendRequest(req, &resp); err != nil {
+		return EmbeddingResponse{}, err
+	}
 
-	return
+	return resp, nil
 }

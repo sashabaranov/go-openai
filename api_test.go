@@ -295,7 +295,6 @@ func OpenAITestServer() *httptest.Server {
 		// TODO: implement the other endpoints
 		default:
 			// the endpoint doesn't exist
-			log.Println("test server was accessed, but no endpoint was found")
 			http.Error(w, "the resource path doesn't exist", http.StatusNotFound)
 			return
 		}

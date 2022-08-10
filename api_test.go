@@ -22,6 +22,9 @@ const (
 )
 
 func TestAPI(t *testing.T) {
+	if testing.Short() {
+		t.Skip("skipping test in short mode")
+	}
 	tokenBytes, err := ioutil.ReadFile(".openai-token")
 	if err != nil {
 		t.Fatalf("Could not load auth token from .openai-token file")

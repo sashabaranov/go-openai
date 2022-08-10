@@ -129,25 +129,21 @@ type EmbeddingRequest struct {
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (EmbeddingResponse, error) {
-	var resp EmbeddingResponse
-	var err error
+func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {
-		return EmbeddingResponse{}, err
+		return
 	}
 
 	urlSuffix := "/embeddings"
 	req, err := http.NewRequest(http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
 	if err != nil {
-		return EmbeddingResponse{}, err
+		return
 	}
 
 	req = req.WithContext(ctx)
-	if err = c.sendRequest(req, &resp); err != nil {
-		return EmbeddingResponse{}, err
-	}
+	err = c.sendRequest(req, &resp)
 
-	return resp, nil
+	return
 }

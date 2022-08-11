@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strconv"
 	"strings"
 	"testing"
@@ -22,15 +23,13 @@ const (
 )
 
 func TestAPI(t *testing.T) {
-	if testing.Short() {
-		t.Skip("skipping test in short mode")
-	}
-	tokenBytes, err := ioutil.ReadFile(".openai-token")
-	if err != nil {
-		t.Fatalf("Could not load auth token from .openai-token file")
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
 	}
 
-	c := NewClient(string(tokenBytes))
+	var err error
+	c := NewClient(apiToken)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
 	if err != nil {

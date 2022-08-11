@@ -15,7 +15,7 @@ func newTransport() *http.Client {
 	}
 }
 
-// Client is OpenAI GPT-3 API client
+// Client is OpenAI GPT-3 API client.
 type Client struct {
 	BaseURL    string
 	HTTPClient *http.Client
@@ -23,7 +23,7 @@ type Client struct {
 	idOrg      string
 }
 
-// NewClient creates new OpenAI API client
+// NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	return &Client{
 		BaseURL:    apiURLv1,
@@ -33,7 +33,7 @@ func NewClient(authToken string) *Client {
 	}
 }
 
-// NewOrgClient creates new OpenAI API client for specified Organization ID
+// NewOrgClient creates new OpenAI API client for specified Organization ID.
 func NewOrgClient(authToken, org string) *Client {
 	return &Client{
 		BaseURL:    apiURLv1,

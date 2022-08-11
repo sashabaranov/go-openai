@@ -24,7 +24,7 @@ type SearchRequest struct {
 	User           string   `json:"user,omitempty"`
 }
 
-// SearchResult represents single result from search API
+// SearchResult represents single result from search API.
 type SearchResult struct {
 	Document int     `json:"document"`
 	Object   string  `json:"object"`
@@ -32,14 +32,18 @@ type SearchResult struct {
 	Metadata string  `json:"metadata"` // 2*
 }
 
-// SearchResponse represents a response structure for search API
+// SearchResponse represents a response structure for search API.
 type SearchResponse struct {
 	SearchResults []SearchResult `json:"data"`
 	Object        string         `json:"object"`
 }
 
 // Search — perform a semantic search api call over a list of documents.
-func (c *Client) Search(ctx context.Context, engineID string, request SearchRequest) (response SearchResponse, err error) {
+func (c *Client) Search(
+	ctx context.Context,
+	engineID string,
+	request SearchRequest,
+) (response SearchResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {

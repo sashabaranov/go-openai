@@ -18,7 +18,7 @@ type FileRequest struct {
 	Purpose  string `json:"purpose"`
 }
 
-// File struct represents an OpenAPI file
+// File struct represents an OpenAPI file.
 type File struct {
 	Bytes     int    `json:"bytes"`
 	CreatedAt int    `json:"created_at"`
@@ -29,13 +29,13 @@ type File struct {
 	Purpose   string `json:"purpose"`
 }
 
-// FilesList is a list of files that belong to the user or organization
+// FilesList is a list of files that belong to the user or organization.
 type FilesList struct {
 	Files []File `json:"data"`
 }
 
 // isUrl is a helper function that determines whether the given FilePath
-// is a remote URL or a local file path
+// is a remote URL or a local file path.
 func isURL(path string) bool {
 	_, err := url.ParseRequestURI(path)
 	if err != nil {
@@ -51,7 +51,7 @@ func isURL(path string) bool {
 }
 
 // CreateFile uploads a jsonl file to GPT3
-// FilePath can be either a local file path or a URL
+// FilePath can be either a local file path or a URL.
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
@@ -116,7 +116,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	return
 }
 
-// DeleteFile deletes an existing file
+// DeleteFile deletes an existing file.
 func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
 	req, err := http.NewRequest("DELETE", c.fullURL("/files/"+fileID), nil)
 	if err != nil {

@@ -7,7 +7,34 @@ import (
 	"net/http"
 )
 
-// CompletionRequest represents a request structure for completion API
+// GPT3 Defines the models provided by OpenAI to use when generating
+// completions from OpenAI.
+// GPT3 Models are designed for text-based tasks. For code-specific
+// tasks, please refer to the Codex series of models.
+const (
+	GPT3TextDavinci002      = "text-davinci-002"
+	GPT3TextCurie001        = "text-curie-001"
+	GPT3TextBabbage001      = "text-babbage-001"
+	GPT3TextAda001          = "text-ada-001"
+	GPT3TextDavinci001      = "text-davinci-001"
+	GPT3DavinciInstructBeta = "davinci-instruct-beta"
+	GPT3Davinci             = "davinci"
+	GPT3CurieInstructBeta   = "curie-instruct-beta"
+	GPT3Curie               = "curie"
+	GPT3Ada                 = "ada"
+	GPT3Babbage             = "babbage"
+)
+
+// Codex Defines the models provided by OpenAI.
+// These models are designed for code-specific tasks, and use
+// a different tokenizer which optimizes for whitespace.
+const (
+	CodexCodeDavinci002 = "code-davinci-002"
+	CodexCodeCushman001 = "code-cushman-001"
+	CodexCodeDavinci001 = "code-davinci-001"
+)
+
+// CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
 	Model            string         `json:"model"`
 	Prompt           string         `json:"prompt,omitempty"`
@@ -26,7 +53,7 @@ type CompletionRequest struct {
 	User             string         `json:"user,omitempty"`
 }
 
-// CompletionChoice represents one of possible completions
+// CompletionChoice represents one of possible completions.
 type CompletionChoice struct {
 	Text         string        `json:"text"`
 	Index        int           `json:"index"`
@@ -34,7 +61,7 @@ type CompletionChoice struct {
 	LogProbs     LogprobResult `json:"logprobs"`
 }
 
-// LogprobResult represents logprob result of Choice
+// LogprobResult represents logprob result of Choice.
 type LogprobResult struct {
 	Tokens        []string             `json:"tokens"`
 	TokenLogprobs []float32            `json:"token_logprobs"`
@@ -42,21 +69,14 @@ type LogprobResult struct {
 	TextOffset    []int                `json:"text_offset"`
 }
 
-// CompletionUsage represents Usage of CompletionResponse
-type CompletionUsage struct {
-	PromptTokens     int `json:"prompt_tokens"`
-	CompletionTokens int `json:"completion_tokens"`
-	TotalTokens      int `json:"total_tokens"`
-}
-
-// CompletionResponse represents a response structure for completion API
+// CompletionResponse represents a response structure for completion API.
 type CompletionResponse struct {
 	ID      string             `json:"id"`
 	Object  string             `json:"object"`
 	Created uint64             `json:"created"`
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
-	Usage   CompletionUsage    `json:"usage"`
+	Usage   Usage              `json:"usage"`
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well
@@ -64,7 +84,10 @@ type CompletionResponse struct {
 //
 // If using a fine-tuned model, simply provide the model's ID in the CompletionRequest object,
 // and the server will use the model's parameters to generate the completion.
-func (c *Client) CreateCompletion(ctx context.Context, request CompletionRequest) (response CompletionResponse, err error) {
+func (c *Client) CreateCompletion(
+	ctx context.Context,
+	request CompletionRequest,
+) (response CompletionResponse, err error) {
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {

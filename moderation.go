@@ -7,20 +7,20 @@ import (
 	"net/http"
 )
 
-// ModerationRequest represents a request structure for moderation API
+// ModerationRequest represents a request structure for moderation API.
 type ModerationRequest struct {
 	Input string  `json:"input,omitempty"`
 	Model *string `json:"model,omitempty"`
 }
 
-// Result represents one of possible moderation results
+// Result represents one of possible moderation results.
 type Result struct {
 	Categories     ResultCategories     `json:"categories"`
 	CategoryScores ResultCategoryScores `json:"category_scores"`
 	Flagged        bool                 `json:"flagged"`
 }
 
-// ResultCategories represents Categories of Result
+// ResultCategories represents Categories of Result.
 type ResultCategories struct {
 	Hate            bool `json:"hate"`
 	HateThreatening bool `json:"hate/threatening"`
@@ -31,7 +31,7 @@ type ResultCategories struct {
 	ViolenceGraphic bool `json:"violence/graphic"`
 }
 
-// ResultCategoryScores represents CategoryScores of Result
+// ResultCategoryScores represents CategoryScores of Result.
 type ResultCategoryScores struct {
 	Hate            float32 `json:"hate"`
 	HateThreatening float32 `json:"hate/threatening"`
@@ -42,7 +42,7 @@ type ResultCategoryScores struct {
 	ViolenceGraphic float32 `json:"violence/graphic"`
 }
 
-// ModerationResponse represents a response structure for moderation API
+// ModerationResponse represents a response structure for moderation API.
 type ModerationResponse struct {
 	ID      string   `json:"id"`
 	Model   string   `json:"model"`

@@ -39,6 +39,7 @@ const (
 type CompletionRequest struct {
 	Model            string         `json:"model"`
 	Prompt           string         `json:"prompt,omitempty"`
+	Suffix           string         `json:"suffix,omitempty"`
 	MaxTokens        int            `json:"max_tokens,omitempty"`
 	Temperature      float32        `json:"temperature,omitempty"`
 	TopP             float32        `json:"top_p,omitempty"`

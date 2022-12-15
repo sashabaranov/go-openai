@@ -36,15 +36,5 @@ func main() {
 		return
 	}
 	fmt.Println(resp.Choices[0].Text)
-
-	searchReq := gogpt.SearchRequest{
-		Documents: []string{"White House", "hospital", "school"},
-		Query:     "the president",
-	}
-	searchResp, err := c.Search(ctx, "ada", searchReq)
-	if err != nil {
-		return
-	}
-	fmt.Println(searchResp.SearchResults)
 }
 ```

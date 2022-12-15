@@ -109,6 +109,7 @@ type EmbeddingResponse struct {
 	Object string         `json:"object"`
 	Data   []Embedding    `json:"data"`
 	Model  EmbeddingModel `json:"model"`
+	Usage  Usage          `json:"usage"`
 }
 
 // EmbeddingRequest is the input to a Create embeddings request.

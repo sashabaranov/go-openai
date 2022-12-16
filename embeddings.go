@@ -52,7 +52,7 @@ const (
 	AdaCodeSearchText
 	BabbageCodeSearchCode
 	BabbageCodeSearchText
-	AdaSimilarityV2
+	AdaEmbeddingV2
 )
 
 var enumToString = map[EmbeddingModel]string{
@@ -72,7 +72,7 @@ var enumToString = map[EmbeddingModel]string{
 	AdaCodeSearchText:     "code-search-ada-text-001",
 	BabbageCodeSearchCode: "code-search-babbage-code-001",
 	BabbageCodeSearchText: "code-search-babbage-text-001",
-	AdaSimilarityV2:       "text-similarity-ada-002",
+	AdaEmbeddingV2:        "text-embedding-ada-002",
 }
 
 var stringToEnum = map[string]EmbeddingModel{
@@ -92,7 +92,7 @@ var stringToEnum = map[string]EmbeddingModel{
 	"code-search-ada-text-001":      AdaCodeSearchText,
 	"code-search-babbage-code-001":  BabbageCodeSearchCode,
 	"code-search-babbage-text-001":  BabbageCodeSearchText,
-	"text-similarity-ada-002":       AdaSimilarityV2,
+	"text-embedding-ada-002":        AdaEmbeddingV2,
 }
 
 // Embedding is a special format of data representation that can be easily utilized by machine

@@ -4,15 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"time"
 )
 
 const apiURLv1 = "https://api.openai.com/v1"
 
 func newTransport() *http.Client {
-	return &http.Client{
-		Timeout: time.Minute,
-	}
+	return &http.Client{}
 }
 
 // Client is OpenAI GPT-3 API client.

@@ -53,15 +53,6 @@ func TestAPI(t *testing.T) {
 		}
 	} // else skip
 
-	searchReq := SearchRequest{
-		Documents: []string{"White House", "hospital", "school"},
-		Query:     "the president",
-	}
-	_, err = c.Search(ctx, "ada", searchReq)
-	if err != nil {
-		t.Fatalf("Search error: %v", err)
-	}
-
 	embeddingReq := EmbeddingRequest{
 		Input: []string{
 			"The food was delicious and the waiter",

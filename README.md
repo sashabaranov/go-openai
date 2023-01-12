@@ -27,7 +27,7 @@ func main() {
 	ctx := context.Background()
 
 	req := gogpt.CompletionRequest{
-		Model: "ada",
+		Model:     gogpt.GPT3Ada,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 	}

@@ -1,9 +1,13 @@
 package gogpt
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"io"
+	"log"
 	"net/http"
 )
 
@@ -104,5 +108,70 @@ func (c *Client) CreateCompletion(
 
 	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &response)
+	return
+}
+
+// CreateCompletionStream — API call to create a completion w/ streaming
+// support. It sets whether to stream back partial progress. If set, tokens will be
+// sent as data-only server-sent events as they become available, with the
+// stream terminated by a data: [DONE] message.
+func (c *Client) CreateCompletionStream(
+	ctx context.Context,
+	request CompletionRequest,
+) (ch chan string, err error) {
+	var headerData = []byte("data: ")
+	var done = []byte("[DONE]")
+	var reqBytes []byte
+
+	request.Stream = true
+	reqBytes, err = json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	urlSuffix := "/completions"
+	req, err := http.NewRequest("POST", c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	if err != nil {
+		return
+	}
+
+	req = req.WithContext(ctx)
+	res, err := c.HTTPClient.Do(req)
+	if err != nil {
+		return
+	}
+	defer res.Body.Close()
+
+	reader := bufio.NewReader(req.Body)
+	var line []byte
+
+	ch = make(chan string)
+
+	go func() {
+		defer close(ch)
+		for {
+			line, _, err = reader.ReadLine()
+			if err != nil {
+				if errors.Is(err, io.EOF) {
+					break
+				}
+				log.Printf("error: %s", err)
+				break
+			}
+
+			line = bytes.TrimSpace(line)
+			if !bytes.HasPrefix(line, headerData) {
+				continue
+			}
+
+			line = bytes.TrimPrefix(line, headerData)
+			// terminate == "[DONE]"
+			if !bytes.HasPrefix(line, done) {
+				break
+			}
+			ch <- string(line)
+		}
+	}()
+
 	return
 }

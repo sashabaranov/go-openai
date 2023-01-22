@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testAPIToken = "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"
+	testAPIToken = "this-is-my-secure-token-do-not-steal!"
 )
 
 func TestAPI(t *testing.T) {

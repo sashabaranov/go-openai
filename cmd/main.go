@@ -6,7 +6,7 @@ import (
 	"log"
 	"os"
 
-	. "github.com/sashabaranov/go-gpt3"
+	gogpt "github.com/sashabaranov/go-gpt3"
 )
 
 func main() {
@@ -15,11 +15,11 @@ func main() {
 		log.Fatalln("Missing API KEY")
 	}
 
-	client := NewClient(apiKey)
+	client := gogpt.NewClient(apiKey)
 
-	fmt.Print("\n\nstarting stream:\n")
+	fmt.Println("starting stream:")
 
-	request := CompletionRequest{
+	request := gogpt.CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 20,

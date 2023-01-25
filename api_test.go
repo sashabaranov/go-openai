@@ -89,47 +89,6 @@ func TestCompletions(t *testing.T) {
 	}
 }
 
-// TestCompletionsStream Tests the completions endpoint of the API using the mocked server.
-func TestCompletionsStream(t *testing.T) {
-	// create the test server
-	var err error
-	ts := OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	client := NewClient(testAPIToken)
-	ctx := context.Background()
-	client.BaseURL = ts.URL + "/v1"
-
-	req := CompletionRequest{
-		MaxTokens: 20,
-		Model:     "ada",
-		Prompt:    "Lorem ipsum",
-	}
-	_, err = client.CreateCompletionStream(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateCompletion error: %v", err)
-	}
-	// defer close(ch)
-	//
-	// completions := []string{}
-	// for completion := range ch {
-	// 	completions = append(completions, completion)
-	// }
-	//
-	// expected := []string{
-	// 	"data: test 0",
-	// 	"data: test 1",
-	// 	"data: test 2",
-	// 	"data: test 3",
-	// 	"data: test 4",
-	// 	"data: [DONE]",
-	// }
-	// if !reflect.DeepEqual(completions, expected) {
-	// 	t.Fatalf("completions = %v, expected %v", completions, expected)
-	// }
-}
-
 // TestEdits Tests the edits endpoint of the API using the mocked server.
 func TestEdits(t *testing.T) {
 	// create the test server
@@ -300,6 +259,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
+
 	res := CompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
@@ -309,6 +269,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// would be required / wouldn't make much sense
 		Model: completionReq.Model,
 	}
+
 	// create completions
 	for i := 0; i < completionReq.N; i++ {
 		// generate a random string of length completionReq.Length
@@ -316,51 +277,6 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		if completionReq.Echo {
 			completionStr = completionReq.Prompt + completionStr
 		}
-		res.Choices = append(res.Choices, CompletionChoice{
-			Text:  completionStr,
-			Index: i,
-		})
-	}
-	inputTokens := numTokens(completionReq.Prompt) * completionReq.N
-	completionTokens := completionReq.MaxTokens * completionReq.N
-	res.Usage = Usage{
-		PromptTokens:     inputTokens,
-		CompletionTokens: completionTokens,
-		TotalTokens:      inputTokens + completionTokens,
-	}
-	resBytes, _ = json.Marshal(res)
-	fmt.Fprintln(w, string(resBytes))
-}
-
-// handleCompletionStream Handles the completion endpoint for streaming support.
-func handleCompletionStream(w http.ResponseWriter, r *http.Request) {
-	var err error
-	var resBytes []byte
-
-	if r.Method != "POST" {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-		return
-	}
-	if r.URL.Query().Get("stream") != "1" {
-		http.Error(w, "invalid query param", http.StatusBadRequest)
-		return
-	}
-	var completionReq CompletionRequest
-	if completionReq, err = getCompletionBody(r); err != nil {
-		http.Error(w, "could not read request", http.StatusInternalServerError)
-		return
-	}
-	res := CompletionResponse{
-		Object: "test-object",
-		Model:  completionReq.Model,
-	}
-	// create completions
-	for i := 0; i < 5; i++ {
-		// generate a random string of length completionReq.Length
-		completionStr := fmt.Sprintf("data: testing %d", i+1)
-		// if completionReq.Echo {
-		// 	completionStr = completionReq.Prompt + completionStr
-		// }
 		res.Choices = append(res.Choices, CompletionChoice{
 			Text:  completionStr,
 			Index: i,
@@ -479,12 +395,8 @@ func OpenAITestServer() *httptest.Server {
 			handleEditEndpoint(w, r)
 			return
 		case "/v1/completions":
-			if r.URL.Query().Get("stream") == "1" {
-				handleCompletionStream(w, r)
-			} else {
-				handleCompletionEndpoint(w, r)
-				return
-			}
+			handleCompletionEndpoint(w, r)
+			return
 		case "/v1/images/generations":
 			handleImageEndpoint(w, r)
 		// TODO: implement the other endpoints

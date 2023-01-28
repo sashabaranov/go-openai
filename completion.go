@@ -75,7 +75,7 @@ type LogprobResult struct {
 type CompletionResponse struct {
 	ID      string             `json:"id"`
 	Object  string             `json:"object"`
-	Created uint64             `json:"created"`
+	Created int64              `json:"created"`
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
 	Usage   Usage              `json:"usage"`

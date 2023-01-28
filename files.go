@@ -21,7 +21,7 @@ type FileRequest struct {
 // File struct represents an OpenAPI file.
 type File struct {
 	Bytes     int    `json:"bytes"`
-	CreatedAt int    `json:"created_at"`
+	CreatedAt int64  `json:"created_at"`
 	ID        string `json:"id"`
 	FileName  string `json:"filename"`
 	Object    string `json:"object"`

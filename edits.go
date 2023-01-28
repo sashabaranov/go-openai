@@ -26,7 +26,7 @@ type EditsChoice struct {
 // EditsResponse represents a response structure for Edits API.
 type EditsResponse struct {
 	Object  string        `json:"object"`
-	Created uint64        `json:"created"`
+	Created int64         `json:"created"`
 	Usage   Usage         `json:"usage"`
 	Choices []EditsChoice `json:"choices"`
 }

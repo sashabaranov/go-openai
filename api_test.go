@@ -5,7 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -207,7 +207,7 @@ func TestImages(t *testing.T) {
 func getEditBody(r *http.Request) (EditsRequest, error) {
 	edit := EditsRequest{}
 	// read the request body
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return EditsRequest{}, err
 	}
@@ -308,7 +308,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 func getCompletionBody(r *http.Request) (CompletionRequest, error) {
 	completion := CompletionRequest{}
 	// read the request body
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return CompletionRequest{}, err
 	}
@@ -358,7 +358,7 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 func getImageBody(r *http.Request) (ImageRequest, error) {
 	image := ImageRequest{}
 	// read the request body
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return ImageRequest{}, err
 	}
@@ -417,7 +417,7 @@ func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 func getModerationBody(r *http.Request) (ModerationRequest, error) {
 	moderation := ModerationRequest{}
 	// read the request body
-	reqBody, err := ioutil.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		return ModerationRequest{}, err
 	}

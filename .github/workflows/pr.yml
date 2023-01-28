@@ -11,7 +11,7 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v2
       with:
-        go-version: '1.18'
+        go-version: '1.19'
     - name: Run vet
       run: |
         go vet .
@@ -19,6 +19,5 @@ jobs:
       uses: golangci/golangci-lint-action@v3
       with:
         version: latest
-    # # Run testing on the code
-    # - name: Run testing
-    #   run: cd test && go test -v
+    - name: Run tests
+      run: go test -v .

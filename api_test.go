@@ -236,7 +236,7 @@ func handleEditEndpoint(w http.ResponseWriter, r *http.Request) {
 	// create a response
 	res := EditsResponse{
 		Object:  "test-object",
-		Created: uint64(time.Now().Unix()),
+		Created: time.Now().Unix(),
 	}
 	// edit and calculate token usage
 	editString := "edited by mocked OpenAI server :)"
@@ -275,7 +275,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	res := CompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
-		Created: uint64(time.Now().Unix()),
+		Created: time.Now().Unix(),
 		// would be nice to validate Model during testing, but
 		// this may not be possible with how much upkeep
 		// would be required / wouldn't make much sense
@@ -334,7 +334,7 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	res := ImageResponse{
-		Created: uint64(time.Now().Unix()),
+		Created: time.Now().Unix(),
 	}
 	for i := 0; i < imageReq.N; i++ {
 		imageData := ImageResponseDataInner{}

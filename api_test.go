@@ -19,7 +19,7 @@ import (
 )
 
 const (
-	testAPIToken = "this-is-my-secure-token-do-not-steal!!"
+	testAPIToken = "this-is-my-secure-token-do-not-steal!"
 )
 
 func TestAPI(t *testing.T) {
@@ -258,6 +258,28 @@ func handleEditEndpoint(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(w, string(resBytes))
 }
 
+// getCompletionBody Returns the body of the request to create a completion.
+func getCompletionBody(r *http.Request) (CompletionRequest, error) {
+	completion := CompletionRequest{}
+	// fix linting error SA1019 regarding ioutil.ReadAll()
+	length, err := strconv.Atoi(r.Header.Get("Content-Length"))
+	if err != nil {
+		return CompletionRequest{}, err
+	}
+	buf := make([]byte, length)
+
+	// read the request body
+	_, err = io.ReadFull(r.Body, buf)
+	if err != nil {
+		return CompletionRequest{}, err
+	}
+	err = json.Unmarshal(buf, &completion)
+	if err != nil {
+		return CompletionRequest{}, err
+	}
+	return completion, nil
+}
+
 // handleCompletionEndpoint Handles the completion endpoint by the test server.
 func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -272,6 +294,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
+
 	res := CompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
@@ -281,6 +304,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// would be required / wouldn't make much sense
 		Model: completionReq.Model,
 	}
+
 	// create completions
 	for i := 0; i < completionReq.N; i++ {
 		// generate a random string of length completionReq.Length

@@ -45,6 +45,7 @@ Streaming response example:
 package main
 
 import (
+	"errors"
 	"context"
 	"fmt"
 	"io"
@@ -69,7 +70,7 @@ func main() {
 
 	for {
 		response, err := stream.Recv()
-		if err == io.EOF {
+		if errors.Is(err, io.EOF) {
 			fmt.Println("Stream finished")
 			return
 		}

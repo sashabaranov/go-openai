@@ -16,10 +16,6 @@ type CompletionStream struct {
 	response *http.Response
 }
 
-var (
-	StreamUnknownDataError = errors.New("Received unknown data in stream")
-)
-
 func (stream *CompletionStream) Recv() (response CompletionResponse, err error) {
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
@@ -74,7 +70,7 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	req = req.WithContext(ctx)
-	resp, err := c.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return
 	}

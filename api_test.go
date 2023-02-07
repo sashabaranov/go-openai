@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -78,14 +79,14 @@ func TestAPI(t *testing.T) {
 
 	counter := 0
 	for {
-		_, err := stream.Recv()
+		_, err = stream.Recv()
 		if err != nil {
-			if err == io.EOF {
+			if errors.Is(err, io.EOF) {
 				break
 			}
 			t.Errorf("Stream error: %v", err)
 		} else {
-			counter += 1
+			counter++
 		}
 	}
 	if counter == 0 {

@@ -79,9 +79,9 @@ func TestCreateCompletionStream(t *testing.T) {
 	}
 
 	for ix, expectedResponse := range expectedResponses {
-		receivedResponse, err := stream.Recv()
-		if err != nil {
-			t.Errorf("stream.Recv() failed: %v", err)
+		receivedResponse, streamErr := stream.Recv()
+		if streamErr != nil {
+			t.Errorf("stream.Recv() failed: %v", streamErr)
 		}
 		if !compareResponses(expectedResponse, receivedResponse) {
 			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)

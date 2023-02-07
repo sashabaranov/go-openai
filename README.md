@@ -82,7 +82,6 @@ func main() {
 
 
 		fmt.Printf("Stream response: %v\n", response)
-
 	}
 }
 ```

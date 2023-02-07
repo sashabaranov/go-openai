@@ -61,14 +61,14 @@ func TestCreateCompletionStream(t *testing.T) {
 		{
 			ID:      "1",
 			Object:  "completion",
-			Created: uint64(1598069254),
+			Created: 1598069254,
 			Model:   "text-davinci-002",
 			Choices: []CompletionChoice{{Text: "response1", FinishReason: "max_tokens"}},
 		},
 		{
 			ID:      "2",
 			Object:  "completion",
-			Created: uint64(1598069255),
+			Created: 1598069255,
 			Model:   "text-davinci-002",
 			Choices: []CompletionChoice{{Text: "response2", FinishReason: "max_tokens"}},
 		},

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -19,7 +20,7 @@ import (
 )
 
 const (
-	testAPIToken = "this-is-my-secure-token-do-not-steal!!"
+	testAPIToken = "this-is-my-secure-token-do-not-steal!"
 )
 
 func TestAPI(t *testing.T) {
@@ -63,6 +64,33 @@ func TestAPI(t *testing.T) {
 	_, err = c.CreateEmbeddings(ctx, embeddingReq)
 	if err != nil {
 		t.Fatalf("Embedding error: %v", err)
+	}
+
+	stream, err := c.CreateCompletionStream(ctx, CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     GPT3Ada,
+		MaxTokens: 5,
+		Stream:    true,
+	})
+	if err != nil {
+		t.Errorf("CreateCompletionStream returned error: %v", err)
+	}
+	defer stream.Close()
+
+	counter := 0
+	for {
+		_, err = stream.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			t.Errorf("Stream error: %v", err)
+		} else {
+			counter++
+		}
+	}
+	if counter == 0 {
+		t.Error("Stream did not return any responses")
 	}
 }
 
@@ -272,6 +300,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
+
 	res := CompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
@@ -281,6 +310,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// would be required / wouldn't make much sense
 		Model: completionReq.Model,
 	}
+
 	// create completions
 	for i := 0; i < completionReq.N; i++ {
 		// generate a random string of length completionReq.Length

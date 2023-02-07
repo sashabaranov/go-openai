@@ -73,9 +73,7 @@ func TestCreateCompletionStream(t *testing.T) {
 			Model:   "text-davinci-002",
 			Choices: []CompletionChoice{{Text: "response2", FinishReason: "max_tokens"}},
 		},
-		{
-			ID: "[DONE]",
-		},
+		{},
 	}
 
 	for ix, expectedResponse := range expectedResponses {

@@ -64,6 +64,33 @@ func TestAPI(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Embedding error: %v", err)
 	}
+
+	stream, err := c.CreateCompletionStream(ctx, CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     GPT3Ada,
+		MaxTokens: 5,
+		Stream:    true,
+	})
+	if err != nil {
+		t.Errorf("CreateCompletionStream returned error: %v", err)
+	}
+	defer stream.Close()
+
+	counter := 0
+	for {
+		_, err := stream.Recv()
+		if err != nil {
+			if err == io.EOF {
+				break
+			}
+			t.Errorf("Stream error: %v", err)
+		} else {
+			counter += 1
+		}
+	}
+	if counter == 0 {
+		t.Error("Stream did not return any responses")
+	}
 }
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.

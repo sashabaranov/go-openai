@@ -6,10 +6,47 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
-	"log"
 	"net/http"
 )
+
+type CompletionStream struct {
+	reader   *bufio.Reader
+	response *http.Response
+}
+
+var (
+	StreamUnknownDataError = errors.New("Received unknown data in stream")
+)
+
+func (stream *CompletionStream) Recv() (response CompletionResponse, err error) {
+waitForData:
+	line, err := stream.reader.ReadBytes('\n')
+	if err != nil {
+		if errors.Is(err, io.EOF) {
+			return
+		}
+	}
+
+	var headerData = []byte("data: ")
+	line = bytes.TrimSpace(line)
+	if !bytes.HasPrefix(line, headerData) {
+		goto waitForData
+	}
+
+	line = bytes.TrimPrefix(line, headerData)
+	if string(line) == "[DONE]" {
+		return
+	}
+
+	err = json.Unmarshal(line, &response)
+	return
+}
+
+func (stream *CompletionStream) Close() {
+	stream.response.Body.Close()
+}
 
 // CreateCompletionStream — API call to create a completion w/ streaming
 // support. It sets whether to stream back partial progress. If set, tokens will be
@@ -18,11 +55,11 @@ import (
 func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,
-) ([]CompletionResponse, error) {
+) (stream *CompletionStream, err error) {
 	request.Stream = true
 	reqBytes, err := json.Marshal(request)
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	urlSuffix := "/completions"
@@ -31,48 +68,20 @@ func (c *Client) CreateCompletionStream(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
 	if err != nil {
-		return nil, err
+		return
 	}
 
 	req = req.WithContext(ctx)
-	res, err := c.HTTPClient.Do(req)
+	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
-		return nil, err
+		return
 	}
-	defer res.Body.Close()
 
-	reader := bufio.NewReader(res.Body)
-	var line []byte
-	var headerData = []byte("data: ")
-
-	var responses []CompletionResponse
-	for {
-		line, err = reader.ReadBytes('\n')
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			log.Printf("error: %s", err)
-		}
-
-		line = bytes.TrimSpace(line)
-		if !bytes.HasPrefix(line, headerData) {
-			continue
-		}
-
-		line = bytes.TrimPrefix(line, headerData)
-		if string(line) == "[DONE]" {
-			responses = append(responses, CompletionResponse{ID: "[DONE]"})
-			break
-		}
-
-		response := CompletionResponse{}
-		err = json.Unmarshal(line, &response)
-		if err != nil {
-			log.Printf("invalid json stream data: %v", err)
-		}
-		responses = append(responses, response)
+	stream = &CompletionStream{
+		reader:   bufio.NewReader(resp.Body),
+		response: resp,
 	}
-	return responses, nil
+	return
 }

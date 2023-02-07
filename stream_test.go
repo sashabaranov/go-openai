@@ -52,10 +52,11 @@ func TestCreateCompletionStream(t *testing.T) {
 		http.DefaultTransport,
 	}
 
-	responses, err := client.CreateCompletionStream(ctx, request)
+	stream, err := client.CreateCompletionStream(ctx, request)
 	if err != nil {
 		t.Errorf("CreateCompletionStream returned error: %v", err)
 	}
+	defer stream.Close()
 
 	expectedResponses := []CompletionResponse{
 		{
@@ -77,13 +78,13 @@ func TestCreateCompletionStream(t *testing.T) {
 		},
 	}
 
-	if len(responses) != len(expectedResponses) {
-		t.Errorf("CreateCompletionStream returned %v responses, expected %v", len(responses), len(expectedResponses))
-	}
-
-	for i := range responses {
-		if !compareResponses(responses[i], expectedResponses[i]) {
-			t.Errorf("CreateCompletionStream response %v is %v, expected %v", i, responses[i], expectedResponses[i])
+	for ix, expectedResponse := range expectedResponses {
+		receivedResponse, err := stream.Recv()
+		if err != nil {
+			t.Errorf("stream.Recv() failed: %v", err)
+		}
+		if !compareResponses(expectedResponse, receivedResponse) {
+			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
 		}
 	}
 }

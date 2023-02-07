@@ -30,7 +30,7 @@ type ImageRequest struct {
 
 // ImageResponse represents a response structure for image API.
 type ImageResponse struct {
-	Created uint64                   `json:"created,omitempty"`
+	Created int64                    `json:"created,omitempty"`
 	Data    []ImageResponseDataInner `json:"data,omitempty"`
 }
 

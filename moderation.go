@@ -49,7 +49,7 @@ type ModerationResponse struct {
 	Results []Result `json:"results"`
 }
 
-// Moderations — perform a moderation api call over a string.
+// Moderations — perform a moderation test call over a string.
 // Input can be an array or slice but a string will reduce the complexity.
 func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (response ModerationResponse, err error) {
 	var reqBytes []byte

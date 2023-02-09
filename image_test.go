@@ -2,7 +2,7 @@ package gogpt_test
 
 import (
 	. "github.com/sashabaranov/go-gpt3"
-	"github.com/sashabaranov/go-gpt3/internal/api"
+	"github.com/sashabaranov/go-gpt3/internal/test"
 
 	"context"
 	"encoding/json"
@@ -15,14 +15,14 @@ import (
 )
 
 func TestImages(t *testing.T) {
-	api.RegisterHandler("/v1/images/generations", handleImageEndpoint)
+	test.RegisterHandler("/v1/images/generations", handleImageEndpoint)
 	// create the test server
 	var err error
-	ts := api.OpenAITestServer()
+	ts := test.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(api.GetTestToken())
+	client := NewClient(test.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = ts.URL + "/v1"
 
@@ -85,24 +85,24 @@ func getImageBody(r *http.Request) (ImageRequest, error) {
 }
 
 func TestImageEdit(t *testing.T) {
-	api.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
+	test.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
 	// create the test server
 	var err error
-	ts := api.OpenAITestServer()
+	ts := test.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(api.GetTestToken())
+	client := NewClient(test.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = ts.URL + "/v1"
 
-	origin, err := os.Open("./static/image_edit_original.png")
+	origin, err := os.Create("image.png")
 	if err != nil {
 		t.Error("open origin file error")
 		return
 	}
 
-	mask, err := os.Open("./static/image_edit_mask.png")
+	mask, err := os.Create("mask.png")
 	if err != nil {
 		t.Error("open mask file error")
 		return
@@ -111,6 +111,8 @@ func TestImageEdit(t *testing.T) {
 	defer func() {
 		mask.Close()
 		origin.Close()
+		os.Remove("mask.png")
+		os.Remove("image.png")
 	}()
 
 	req := ImageEditRequest{

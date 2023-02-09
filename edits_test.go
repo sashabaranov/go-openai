@@ -2,7 +2,7 @@ package gogpt_test
 
 import (
 	. "github.com/sashabaranov/go-gpt3"
-	"github.com/sashabaranov/go-gpt3/internal/api"
+	"github.com/sashabaranov/go-gpt3/internal/test"
 
 	"context"
 	"encoding/json"
@@ -15,14 +15,14 @@ import (
 
 // TestEdits Tests the edits endpoint of the API using the mocked server.
 func TestEdits(t *testing.T) {
-	api.RegisterHandler("/v1/edits", handleEditEndpoint)
+	test.RegisterHandler("/v1/edits", handleEditEndpoint)
 	// create the test server
 	var err error
-	ts := api.OpenAITestServer()
+	ts := test.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(api.GetTestToken())
+	client := NewClient(test.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = ts.URL + "/v1"
 

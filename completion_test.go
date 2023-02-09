@@ -1,11 +1,12 @@
 package gogpt_test
 
 import (
+	. "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-gpt3/internal/api"
+
 	"context"
 	"encoding/json"
 	"fmt"
-	. "github.com/sashabaranov/go-gpt3"
-	"github.com/sashabaranov/go-gpt3/internal/api"
 	"io"
 	"net/http"
 	"strconv"

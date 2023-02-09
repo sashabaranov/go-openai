@@ -57,7 +57,10 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 	var fw io.Writer
 
-	w.WriteField("purpose", request.Purpose)
+	err = w.WriteField("purpose", request.Purpose)
+	if err != nil {
+		return
+	}
 
 	fw, err = w.CreateFormFile("file", request.FileName)
 	if err != nil {

@@ -1,17 +1,17 @@
 package gogpt_test
 
 import (
-	"encoding/json"
 	. "github.com/sashabaranov/go-gpt3"
 	"github.com/sashabaranov/go-gpt3/internal/api"
+
+	"context"
+	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
-	"time"
-
-	"context"
-	"fmt"
 	"testing"
+	"time"
 )
 
 func TestImages(t *testing.T) {
@@ -124,7 +124,6 @@ func TestImageEdit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("CreateImage error: %v", err)
 	}
-
 }
 
 // handleEditImageEndpoint Handles the images endpoint by the test server.

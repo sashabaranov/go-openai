@@ -1,16 +1,16 @@
 package gogpt_test
 
 import (
-	"encoding/json"
-	"fmt"
 	. "github.com/sashabaranov/go-gpt3"
-	"io"
-	"net/http"
-	"time"
+	"github.com/sashabaranov/go-gpt3/internal/api"
 
 	"context"
-	"github.com/sashabaranov/go-gpt3/internal/api"
+	"encoding/json"
+	"fmt"
+	"io"
+	"net/http"
 	"testing"
+	"time"
 )
 
 // TestEdits Tests the edits endpoint of the API using the mocked server.

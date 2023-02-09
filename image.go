@@ -97,10 +97,18 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	writer.WriteField("prompt", request.Prompt)
-	writer.WriteField("n", strconv.Itoa(request.N))
-	writer.WriteField("size", request.Size)
-
+	err = writer.WriteField("prompt", request.Prompt)
+	if err != nil {
+		return
+	}
+	err = writer.WriteField("n", strconv.Itoa(request.N))
+	if err != nil {
+		return
+	}
+	err = writer.WriteField("size", request.Size)
+	if err != nil {
+		return
+	}
 	writer.Close()
 	urlSuffix := "/images/edits"
 	req, err := http.NewRequest(http.MethodPost, c.fullURL(urlSuffix), body)

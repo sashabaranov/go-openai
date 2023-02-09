@@ -2,11 +2,11 @@ package gogpt_test
 
 import (
 	. "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-gpt3/internal/api"
 
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sashabaranov/go-gpt3/internal/api"
 	"net/http"
 	"strconv"
 	"testing"
@@ -76,5 +76,4 @@ func handleCreateFile(w http.ResponseWriter, r *http.Request) {
 
 	resBytes, _ = json.Marshal(fileReq)
 	fmt.Fprint(w, string(resBytes))
-
 }

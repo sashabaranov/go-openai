@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"net/url"
 	"os"
-	"strings"
 )
 
 type FileRequest struct {
@@ -56,16 +55,9 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	var b bytes.Buffer
 	w := multipart.NewWriter(&b)
 
-	var fw, pw io.Writer
-	pw, err = w.CreateFormField("purpose")
-	if err != nil {
-		return
-	}
+	var fw io.Writer
 
-	_, err = io.Copy(pw, strings.NewReader(request.Purpose))
-	if err != nil {
-		return
-	}
+	w.WriteField("purpose", request.Purpose)
 
 	fw, err = w.CreateFormFile("file", request.FileName)
 	if err != nil {

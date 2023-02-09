@@ -16,3 +16,4 @@
 
 # Auth token for tests
 .openai-token
+.idea

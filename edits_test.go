@@ -22,7 +22,7 @@ func TestEdits(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(api.TestAPIToken)
+	client := NewClient(api.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = ts.URL + "/v1"
 

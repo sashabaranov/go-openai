@@ -1,20 +1,15 @@
 package api
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"net/http/httptest"
 )
 
-const (
-	TestAPIToken = "this-is-my-secure-token-do-not-steal!!"
-)
+const testAPI = "this-is-my-secure-token-do-not-steal!!"
 
-func init() {
-	if serverMap == nil {
-		serverMap = make(map[string]Handler)
-	}
+func GetTestToken() string {
+	return testAPI
 }
 
 // OpenAITestServer Creates a mocked OpenAI server which can pretend to handle requests during testing.
@@ -23,7 +18,7 @@ func OpenAITestServer() *httptest.Server {
 		log.Printf("received request at path %q\n", r.URL.Path)
 
 		// check auth
-		if r.Header.Get("Authorization") != "Bearer "+TestAPIToken {
+		if r.Header.Get("Authorization") != "Bearer "+GetTestToken() {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}
@@ -39,13 +34,10 @@ func OpenAITestServer() *httptest.Server {
 
 type Handler func(w http.ResponseWriter, r *http.Request)
 
-// serverMap
-var serverMap map[string]Handler
+// serverMap.
+var serverMap = make(map[string]Handler)
 
-// RegisterHandler Register handler
+// RegisterHandler Register handler.
 func RegisterHandler(path string, handler Handler) {
-	if _, ok := serverMap[path]; ok {
-		fmt.Println("This path already has a processing function. Skip this registration")
-	}
 	serverMap[path] = handler
 }

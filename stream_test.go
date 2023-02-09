@@ -37,7 +37,7 @@ func TestCreateCompletionStream(t *testing.T) {
 	defer server.Close()
 
 	// Client portion of the test
-	client := NewClient(api.TestAPIToken)
+	client := NewClient(api.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = server.URL + "/v1"
 
@@ -49,7 +49,7 @@ func TestCreateCompletionStream(t *testing.T) {
 	}
 
 	client.HTTPClient.Transport = &tokenRoundTripper{
-		api.TestAPIToken,
+		api.GetTestToken(),
 		http.DefaultTransport,
 	}
 

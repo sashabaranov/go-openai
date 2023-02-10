@@ -12,8 +12,21 @@ func GetTestToken() string {
 	return testAPI
 }
 
+type ServerTest struct {
+	handlers map[string]handler
+}
+type handler func(w http.ResponseWriter, r *http.Request)
+
+func NewTestServer() *ServerTest {
+	return &ServerTest{handlers: make(map[string]handler)}
+}
+
+func (ts *ServerTest) RegisterHandler(path string, handler handler) {
+	ts.handlers[path] = handler
+}
+
 // OpenAITestServer Creates a mocked OpenAI server which can pretend to handle requests during testing.
-func OpenAITestServer() *httptest.Server {
+func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 	return httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		log.Printf("received request at path %q\n", r.URL.Path)
 
@@ -23,21 +36,11 @@ func OpenAITestServer() *httptest.Server {
 			return
 		}
 
-		handler, ok := serverMap[r.URL.Path]
+		handlerCall, ok := ts.handlers[r.URL.Path]
 		if !ok {
 			http.Error(w, "the resource path doesn't exist", http.StatusNotFound)
 			return
 		}
-		handler(w, r)
+		handlerCall(w, r)
 	}))
-}
-
-type Handler func(w http.ResponseWriter, r *http.Request)
-
-// serverMap.
-var serverMap = make(map[string]Handler)
-
-// RegisterHandler Register handler.
-func RegisterHandler(path string, handler Handler) {
-	serverMap[path] = handler
 }

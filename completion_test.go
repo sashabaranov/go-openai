@@ -17,10 +17,11 @@ import (
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestCompletions(t *testing.T) {
-	test.RegisterHandler("/v1/completions", handleCompletionEndpoint)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/completions", handleCompletionEndpoint)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

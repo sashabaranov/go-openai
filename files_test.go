@@ -14,10 +14,11 @@ import (
 )
 
 func TestFileUpload(t *testing.T) {
-	test.RegisterHandler("/v1/files", handleCreateFile)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/files", handleCreateFile)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

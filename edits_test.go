@@ -15,10 +15,11 @@ import (
 
 // TestEdits Tests the edits endpoint of the API using the mocked server.
 func TestEdits(t *testing.T) {
-	test.RegisterHandler("/v1/edits", handleEditEndpoint)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/edits", handleEditEndpoint)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

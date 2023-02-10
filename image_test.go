@@ -15,10 +15,11 @@ import (
 )
 
 func TestImages(t *testing.T) {
-	test.RegisterHandler("/v1/images/generations", handleImageEndpoint)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/images/generations", handleImageEndpoint)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 
@@ -85,10 +86,11 @@ func getImageBody(r *http.Request) (ImageRequest, error) {
 }
 
 func TestImageEdit(t *testing.T) {
-	test.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

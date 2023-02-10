@@ -17,10 +17,11 @@ import (
 
 // TestModeration Tests the moderations endpoint of the API using the mocked server.
 func TestModerations(t *testing.T) {
-	test.RegisterHandler("/v1/moderations", handleModerationEndpoint)
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
 	// create the test server
 	var err error
-	ts := test.OpenAITestServer()
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

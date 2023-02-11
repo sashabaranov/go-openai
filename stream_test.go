@@ -1,12 +1,13 @@
 package gogpt_test
 
 import (
+	. "github.com/sashabaranov/go-gpt3"
+	"github.com/sashabaranov/go-gpt3/internal/test"
+
 	"context"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-
-	. "github.com/sashabaranov/go-gpt3"
 )
 
 func TestCreateCompletionStream(t *testing.T) {
@@ -36,7 +37,7 @@ func TestCreateCompletionStream(t *testing.T) {
 	defer server.Close()
 
 	// Client portion of the test
-	client := NewClient(testAPIToken)
+	client := NewClient(test.GetTestToken())
 	ctx := context.Background()
 	client.BaseURL = server.URL + "/v1"
 
@@ -48,7 +49,7 @@ func TestCreateCompletionStream(t *testing.T) {
 	}
 
 	client.HTTPClient.Transport = &tokenRoundTripper{
-		testAPIToken,
+		test.GetTestToken(),
 		http.DefaultTransport,
 	}
 

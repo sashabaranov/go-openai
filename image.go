@@ -4,7 +4,11 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"strconv"
 )
 
 // Image sizes defined by the OpenAI API.
@@ -55,6 +59,65 @@ func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (respons
 	}
 
 	req = req.WithContext(ctx)
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// ImageEditRequest represents the request structure for the image API.
+type ImageEditRequest struct {
+	Image  *os.File `json:"image,omitempty"`
+	Mask   *os.File `json:"mask,omitempty"`
+	Prompt string   `json:"prompt,omitempty"`
+	N      int      `json:"n,omitempty"`
+	Size   string   `json:"size,omitempty"`
+}
+
+// CreateEditImage - API call to create an image. This is the main endpoint of the DALL-E API.
+func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) (response ImageResponse, err error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// image
+	image, err := writer.CreateFormFile("image", request.Image.Name())
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(image, request.Image)
+	if err != nil {
+		return
+	}
+
+	// mask
+	mask, err := writer.CreateFormFile("mask", request.Mask.Name())
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(mask, request.Mask)
+	if err != nil {
+		return
+	}
+
+	err = writer.WriteField("prompt", request.Prompt)
+	if err != nil {
+		return
+	}
+	err = writer.WriteField("n", strconv.Itoa(request.N))
+	if err != nil {
+		return
+	}
+	err = writer.WriteField("size", request.Size)
+	if err != nil {
+		return
+	}
+	writer.Close()
+	urlSuffix := "/images/edits"
+	req, err := http.NewRequest(http.MethodPost, c.fullURL(urlSuffix), body)
+	if err != nil {
+		return
+	}
+
+	req = req.WithContext(ctx)
+	req.Header.Set("Content-Type", writer.FormDataContentType())
 	err = c.sendRequest(req, &response)
 	return
 }

@@ -13,7 +13,7 @@ import (
 
 var (
 	emptyMessagesLimit            = 100
-	ErrTooManyEmptyStreamMessages = errors.New("Stream has sent too many empty messages")
+	ErrTooManyEmptyStreamMessages = errors.New("stream has sent too many empty messages")
 )
 
 type CompletionStream struct {
@@ -35,7 +35,7 @@ waitForData:
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
-		emptyMessagesCount += 1
+		emptyMessagesCount++
 		if emptyMessagesCount > emptyMessagesLimit {
 			err = ErrTooManyEmptyStreamMessages
 			return

@@ -81,6 +81,53 @@ func TestAPI(t *testing.T) {
 	}
 }
 
+func TestAPIError(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	var err error
+	c := NewClient(apiToken + "_invalid")
+	ctx := context.Background()
+	_, err = c.ListEngines(ctx)
+	if err == nil {
+		t.Fatal("ListEngines did not fail")
+	}
+
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("Error is not an APIError: %+v", err)
+	}
+
+	if apiErr.StatusCode != 401 {
+		t.Fatalf("Unexpected API error status code: %d", apiErr.StatusCode)
+	}
+	if *apiErr.Code != "invalid_api_key" {
+		t.Fatalf("Unexpected API error code: %s", *apiErr.Code)
+	}
+}
+
+func TestRequestError(t *testing.T) {
+	var err error
+	c := NewClient("dummy")
+	c.BaseURL = "https://httpbin.org/status/418?"
+	ctx := context.Background()
+	_, err = c.ListEngines(ctx)
+	if err == nil {
+		t.Fatal("ListEngines request did not fail")
+	}
+
+	var reqErr *RequestError
+	if !errors.As(err, &reqErr) {
+		t.Fatalf("Error is not a RequestError: %+v", err)
+	}
+
+	if reqErr.StatusCode != 418 {
+		t.Fatalf("Unexpected request error status code: %d", reqErr.StatusCode)
+	}
+}
+
 // numTokens Returns the number of GPT-3 encoded tokens in the given text.
 // This function approximates based on the rule of thumb stated by OpenAI:
 // https://beta.openai.com/tokenizer

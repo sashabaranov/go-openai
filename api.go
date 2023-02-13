@@ -66,7 +66,11 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 		var errRes ErrorResponse
 		err = json.NewDecoder(res.Body).Decode(&errRes)
 		if err != nil || errRes.Error == nil {
-			return fmt.Errorf("error, status code: %d", res.StatusCode)
+			reqErr := RequestError {
+				StatusCode: res.StatusCode,
+				Err: err,
+			}
+			return fmt.Errorf("error, %w", &reqErr)
 		}
 		errRes.Error.StatusCode = res.StatusCode
 		return fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)

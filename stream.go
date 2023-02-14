@@ -12,7 +12,7 @@ import (
 )
 
 var (
-	emptyMessagesLimit            = 100
+	emptyMessagesLimit            = 300
 	ErrTooManyEmptyStreamMessages = errors.New("stream has sent too many empty messages")
 )
 

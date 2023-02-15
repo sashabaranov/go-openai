@@ -50,7 +50,7 @@ func NewOrgClient(authToken, org string) *Client {
 	}
 }
 
-// NewOrgClient creates new OpenAI API client for specified Organization ID with the provided http.Client.
+// NewOrgClientWithTransport creates new OpenAI API client for specified Organization ID with the provided http.Client.
 func NewOrgClientWithTransport(authToken, org string, transport *http.Client) *Client {
 	return &Client{
 		BaseURL:    apiURLv1,

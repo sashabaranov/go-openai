@@ -1,3 +1,3 @@
-module github.com/sashabaranov/go-gpt3
+module github.com/amplify-security/go-gpt3
 
 go 1.17

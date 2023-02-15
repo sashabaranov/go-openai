@@ -30,6 +30,16 @@ func NewClient(authToken string) *Client {
 	}
 }
 
+// NewClientWithTransport creates new OpenAI API client with the provided http.Client.
+func NewClientWithTransport(authToken string, transport *http.Client) *Client {
+	return &Client{
+		BaseURL:    apiURLv1,
+		HTTPClient: transport,
+		authToken:  authToken,
+		idOrg:      "",
+	}
+}
+
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
 func NewOrgClient(authToken, org string) *Client {
 	return &Client{
@@ -38,6 +48,22 @@ func NewOrgClient(authToken, org string) *Client {
 		authToken:  authToken,
 		idOrg:      org,
 	}
+}
+
+// NewOrgClient creates new OpenAI API client for specified Organization ID with the provided http.Client.
+func NewOrgClientWithTransport(authToken, org string, transport *http.Client) *Client {
+	return &Client{
+		BaseURL:    apiURLv1,
+		HTTPClient: transport,
+		authToken:  authToken,
+		idOrg:      org,
+	}
+}
+
+// WithTransport returns the OpenAI API client configured to use the provided http.Client.
+func (c *Client) WithTransport(transport *http.Client) *Client {
+	c.HTTPClient = transport
+	return c
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {

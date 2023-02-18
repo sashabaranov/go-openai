@@ -7,7 +7,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 )
 
@@ -27,9 +26,7 @@ func (stream *CompletionStream) Recv() (response CompletionResponse, err error) 
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		if errors.Is(err, io.EOF) {
-			return
-		}
+		return
 	}
 
 	var headerData = []byte("data: ")

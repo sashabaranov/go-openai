@@ -23,9 +23,10 @@ func TestImages(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(test.GetTestToken())
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
 	ctx := context.Background()
-	client.BaseURL = ts.URL + "/v1"
 
 	req := ImageRequest{}
 	req.Prompt = "Lorem ipsum"
@@ -94,9 +95,10 @@ func TestImageEdit(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(test.GetTestToken())
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
 	ctx := context.Background()
-	client.BaseURL = ts.URL + "/v1"
 
 	origin, err := os.Create("image.png")
 	if err != nil {

@@ -74,13 +74,13 @@ func (c *Client) CreateCompletionStream(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
 	if err != nil {
 		return
 	}
 
 	req = req.WithContext(ctx)
-	resp, err := c.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
+	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return
 	}

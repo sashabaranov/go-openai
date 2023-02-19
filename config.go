@@ -12,6 +12,8 @@ type ClientConfig struct {
 	BaseURL   string
 	OrgID     string
 	AuthToken string
+
+	EmptyMessagesLimit uint
 }
 
 func DefaultConfig(authToken string) ClientConfig {
@@ -20,5 +22,7 @@ func DefaultConfig(authToken string) ClientConfig {
 		BaseURL:    apiURLv1,
 		OrgID:      "",
 		AuthToken:  authToken,
+
+		EmptyMessagesLimit: 300,
 	}
 }

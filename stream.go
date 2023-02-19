@@ -11,17 +11,18 @@ import (
 )
 
 var (
-	emptyMessagesLimit            = 300
 	ErrTooManyEmptyStreamMessages = errors.New("stream has sent too many empty messages")
 )
 
 type CompletionStream struct {
+	emptyMessagesLimit uint
+
 	reader   *bufio.Reader
 	response *http.Response
 }
 
 func (stream *CompletionStream) Recv() (response CompletionResponse, err error) {
-	emptyMessagesCount := 0
+	var emptyMessagesCount uint
 
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
@@ -33,7 +34,7 @@ waitForData:
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
 		emptyMessagesCount++
-		if emptyMessagesCount > emptyMessagesLimit {
+		if emptyMessagesCount > stream.emptyMessagesLimit {
 			err = ErrTooManyEmptyStreamMessages
 			return
 		}
@@ -86,6 +87,8 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	stream = &CompletionStream{
+		emptyMessagesLimit: c.config.EmptyMessagesLimit,
+
 		reader:   bufio.NewReader(resp.Body),
 		response: resp,
 	}

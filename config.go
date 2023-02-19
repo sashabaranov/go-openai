@@ -7,11 +7,12 @@ import (
 const apiURLv1 = "https://api.openai.com/v1"
 
 type ClientConfig struct {
+	authToken string
+
 	HTTPClient *http.Client
 
-	BaseURL   string
-	OrgID     string
-	AuthToken string
+	BaseURL string
+	OrgID   string
 
 	EmptyMessagesLimit uint
 }
@@ -21,7 +22,7 @@ func DefaultConfig(authToken string) ClientConfig {
 		HTTPClient: &http.Client{},
 		BaseURL:    apiURLv1,
 		OrgID:      "",
-		AuthToken:  authToken,
+		authToken:  authToken,
 
 		EmptyMessagesLimit: 300,
 	}

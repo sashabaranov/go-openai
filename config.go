@@ -4,7 +4,10 @@ import (
 	"net/http"
 )
 
-const apiURLv1 = "https://api.openai.com/v1"
+const (
+	apiURLv1                       = "https://api.openai.com/v1"
+	defaultEmptyMessagesLimit uint = 300
+)
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
@@ -25,6 +28,6 @@ func DefaultConfig(authToken string) ClientConfig {
 		OrgID:      "",
 		authToken:  authToken,
 
-		EmptyMessagesLimit: 300,
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
 }

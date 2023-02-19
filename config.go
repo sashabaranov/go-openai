@@ -6,6 +6,7 @@ import (
 
 const apiURLv1 = "https://api.openai.com/v1"
 
+// ClientConfig is a configuration of a client.
 type ClientConfig struct {
 	authToken string
 

@@ -110,8 +110,10 @@ func TestAPIError(t *testing.T) {
 
 func TestRequestError(t *testing.T) {
 	var err error
-	c := NewClient("dummy")
-	c.BaseURL = "https://httpbin.org/status/418?"
+
+	config := DefaultConfig("dummy")
+	config.BaseURL = "https://httpbin.org/status/418?"
+	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
 	if err == nil {

@@ -25,9 +25,10 @@ func TestCompletions(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	client := NewClient(test.GetTestToken())
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
 	ctx := context.Background()
-	client.BaseURL = ts.URL + "/v1"
 
 	req := CompletionRequest{
 		MaxTokens: 5,

@@ -6,43 +6,34 @@ import (
 	"net/http"
 )
 
-const apiURLv1 = "https://api.openai.com/v1"
-
-func newTransport() *http.Client {
-	return &http.Client{}
-}
-
 // Client is OpenAI GPT-3 API client.
 type Client struct {
-	BaseURL    string
-	HTTPClient *http.Client
-	authToken  string
-	idOrg      string
+	config ClientConfig
 }
 
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
-	return &Client{
-		BaseURL:    apiURLv1,
-		HTTPClient: newTransport(),
-		authToken:  authToken,
-		idOrg:      "",
-	}
+	config := DefaultConfig(authToken)
+	return &Client{config}
+}
+
+// NewClientWithConfig creates new OpenAI API client for specified config.
+func NewClientWithConfig(config ClientConfig) *Client {
+	return &Client{config}
 }
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
+//
+// Deprecated: Please use NewClientWithConfig.
 func NewOrgClient(authToken, org string) *Client {
-	return &Client{
-		BaseURL:    apiURLv1,
-		HTTPClient: newTransport(),
-		authToken:  authToken,
-		idOrg:      org,
-	}
+	config := DefaultConfig(authToken)
+	config.OrgID = org
+	return &Client{config}
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.authToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data
@@ -51,11 +42,11 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
 
-	if len(c.idOrg) > 0 {
-		req.Header.Set("OpenAI-Organization", c.idOrg)
+	if len(c.config.OrgID) > 0 {
+		req.Header.Set("OpenAI-Organization", c.config.OrgID)
 	}
 
-	res, err := c.HTTPClient.Do(req)
+	res, err := c.config.HTTPClient.Do(req)
 	if err != nil {
 		return err
 	}
@@ -86,5 +77,5 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 }
 
 func (c *Client) fullURL(suffix string) string {
-	return fmt.Sprintf("%s%s", c.BaseURL, suffix)
+	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }

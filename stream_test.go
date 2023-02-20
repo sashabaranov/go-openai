@@ -37,20 +37,21 @@ func TestCreateCompletionStream(t *testing.T) {
 	defer server.Close()
 
 	// Client portion of the test
-	client := NewClient(test.GetTestToken())
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &tokenRoundTripper{
+		test.GetTestToken(),
+		http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
 	ctx := context.Background()
-	client.BaseURL = server.URL + "/v1"
 
 	request := CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	}
-
-	client.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
 	}
 
 	stream, err := client.CreateCompletionStream(ctx, request)

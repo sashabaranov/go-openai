@@ -5,6 +5,8 @@ import (
 	"github.com/sashabaranov/go-gpt3/internal/test"
 
 	"context"
+	"errors"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -75,7 +77,6 @@ func TestCreateCompletionStream(t *testing.T) {
 			Model:   "text-davinci-002",
 			Choices: []CompletionChoice{{Text: "response2", FinishReason: "max_tokens"}},
 		},
-		{},
 	}
 
 	for ix, expectedResponse := range expectedResponses {
@@ -86,6 +87,11 @@ func TestCreateCompletionStream(t *testing.T) {
 		if !compareResponses(expectedResponse, receivedResponse) {
 			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
 		}
+	}
+
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
 	}
 }
 

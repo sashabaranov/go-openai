@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 )
 
@@ -16,12 +17,18 @@ var (
 
 type CompletionStream struct {
 	emptyMessagesLimit uint
+	isFinished         bool
 
 	reader   *bufio.Reader
 	response *http.Response
 }
 
 func (stream *CompletionStream) Recv() (response CompletionResponse, err error) {
+	if stream.isFinished {
+		err = io.EOF
+		return
+	}
+
 	var emptyMessagesCount uint
 
 waitForData:
@@ -44,6 +51,8 @@ waitForData:
 
 	line = bytes.TrimPrefix(line, headerData)
 	if string(line) == "[DONE]" {
+		stream.isFinished = true
+		err = io.EOF
 		return
 	}
 

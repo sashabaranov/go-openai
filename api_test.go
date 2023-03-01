@@ -53,6 +53,23 @@ func TestAPI(t *testing.T) {
 		t.Fatalf("Embedding error: %v", err)
 	}
 
+	_, err = c.CreateChatCompletion(
+		ctx,
+		ChatCompletionRequest{
+			Model: GPT3Dot5Turbo,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    "user",
+					Content: "Hello!",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		t.Errorf("CreateChatCompletion returned error: %v", err)
+	}
+
 	stream, err := c.CreateCompletionStream(ctx, CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     GPT3Ada,

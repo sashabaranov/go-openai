@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/sashabaranov/go-gpt3)](https://goreportcard.com/report/github.com/sashabaranov/go-gpt3)
 
 
-[OpenAI GPT-3](https://beta.openai.com/) API wrapper for Go
+[OpenAI ChatGPT and GPT-3]([https://beta.openai.com/](https://platform.openai.com/)) API wrapper for Go
 
 Installation:
 ```

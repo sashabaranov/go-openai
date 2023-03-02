@@ -67,12 +67,11 @@ func (c *Client) CreateChatCompletion(
 	}
 
 	urlSuffix := "/chat/completions"
-	req, err := http.NewRequest("POST", c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &response)
 	return
 }

@@ -40,12 +40,11 @@ func (c *Client) Answers(ctx context.Context, request AnswerRequest) (response A
 		return
 	}
 
-	req, err := http.NewRequest("POST", c.fullURL("/answers"), bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/answers"), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &response)
 	return
 }

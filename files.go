@@ -98,12 +98,11 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 	w.Close()
 
-	req, err := http.NewRequest("POST", c.fullURL("/files"), &b)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/files"), &b)
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	req.Header.Set("Content-Type", w.FormDataContentType())
 
 	err = c.sendRequest(req, &file)
@@ -113,12 +112,11 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 // DeleteFile deletes an existing file.
 func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
-	req, err := http.NewRequest("DELETE", c.fullURL("/files/"+fileID), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodDelete, c.fullURL("/files/"+fileID), nil)
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, nil)
 	return
 }
@@ -126,12 +124,11 @@ func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
 // ListFiles Lists the currently available files,
 // and provides basic information about each file such as the file name and purpose.
 func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
-	req, err := http.NewRequest("GET", c.fullURL("/files"), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.fullURL("/files"), nil)
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &files)
 	return
 }
@@ -140,12 +137,11 @@ func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
 // such as the file name and purpose.
 func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s", fileID)
-	req, err := http.NewRequest("GET", c.fullURL(urlSuffix), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &file)
 	return
 }

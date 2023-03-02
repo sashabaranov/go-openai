@@ -79,7 +79,7 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	urlSuffix := "/completions"
-	req, err := http.NewRequest("POST", c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
@@ -89,7 +89,6 @@ func (c *Client) CreateCompletionStream(
 		return
 	}
 
-	req = req.WithContext(ctx)
 	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return

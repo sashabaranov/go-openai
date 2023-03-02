@@ -58,12 +58,11 @@ func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (re
 		return
 	}
 
-	req, err := http.NewRequest("POST", c.fullURL("/moderations"), bytes.NewBuffer(reqBytes))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/moderations"), bytes.NewBuffer(reqBytes))
 	if err != nil {
 		return
 	}
 
-	req = req.WithContext(ctx)
 	err = c.sendRequest(req, &response)
 	return
 }

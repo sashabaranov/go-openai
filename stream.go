@@ -6,7 +6,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 )
@@ -73,18 +72,7 @@ func (c *Client) CreateCompletionStream(
 	request CompletionRequest,
 ) (stream *CompletionStream, err error) {
 	request.Stream = true
-	reqBytes, err := json.Marshal(request)
-	if err != nil {
-		return
-	}
-
-	urlSuffix := "/completions"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "text/event-stream")
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	req, err := c.newStreamRequest(ctx, "POST", "/completions", request)
 	if err != nil {
 		return
 	}

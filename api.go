@@ -1,6 +1,8 @@
 package gogpt
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -78,4 +80,32 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 
 func (c *Client) fullURL(suffix string) string {
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
+}
+
+func (c *Client) newStreamRequest(
+	ctx context.Context,
+	method string,
+	urlSuffix string,
+	body interface{}) (*http.Request, error) {
+	var reqBody []byte
+	if body != nil {
+		var err error
+		reqBody, err = json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	req, err := http.NewRequestWithContext(ctx, method, c.fullURL(urlSuffix), bytes.NewBuffer(reqBody))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+
+	return req, nil
 }

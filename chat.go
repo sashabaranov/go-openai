@@ -49,7 +49,7 @@ type ChatCompletionResponse struct {
 	Usage   Usage                  `json:"usage"`
 }
 
-// CreateChatCompletion — API call to Creates a completion for the chat message.
+// CreateChatCompletion — API call to Create a completion for the chat message.
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,

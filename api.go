@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -31,6 +32,18 @@ func NewOrgClient(authToken, org string) *Client {
 	config := DefaultConfig(authToken)
 	config.OrgID = org
 	return &Client{config}
+}
+
+//Http Client Transport Support
+func (c *Client) SetProxyURL(proxyURL string) error {
+	proxyUrl, err := url.Parse(proxyURL)
+	if err != nil {
+		return err
+	}
+	c.config.HTTPClient.Transport = &http.Transport{
+		Proxy: http.ProxyURL(proxyUrl),
+	}
+	return nil
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {

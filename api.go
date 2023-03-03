@@ -70,7 +70,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	}
 
 	if v != nil {
-		if err = json.NewDecoder(res.Body).Decode(&v); err != nil {
+		if err = json.NewDecoder(res.Body).Decode(v); err != nil {
 			return err
 		}
 	}

@@ -34,14 +34,14 @@ func NewOrgClient(authToken, org string) *Client {
 	return &Client{config}
 }
 
-//Http Client Transport Support
+// Http Client Transport Support
 func (c *Client) SetProxyURL(proxyURL string) error {
-	proxyUrl, err := url.Parse(proxyURL)
+	parseURL, err := url.Parse(proxyURL)
 	if err != nil {
 		return err
 	}
 	c.config.HTTPClient.Transport = &http.Transport{
-		Proxy: http.ProxyURL(proxyUrl),
+		Proxy: http.ProxyURL(parseURL),
 	}
 	return nil
 }

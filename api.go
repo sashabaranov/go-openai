@@ -82,7 +82,11 @@ func (c *Client) fullURL(suffix string) string {
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }
 
-func (c *Client) newStreamRequest(ctx context.Context, method string, urlSuffix string, body interface{}) (*http.Request, error) {
+func (c *Client) newStreamRequest(
+	ctx context.Context,
+	method string,
+	urlSuffix string,
+	body interface{}) (*http.Request, error) {
 	var reqBody []byte
 	if body != nil {
 		var err error

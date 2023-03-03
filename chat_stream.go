@@ -28,7 +28,7 @@ type ChatCompletionStreamResponse struct {
 }
 
 // ChatCompletionStream
-// Note: Perhaps it is more elegant to abstract Stream using generics
+// Note: Perhaps it is more elegant to abstract Stream using generics.
 type ChatCompletionStream struct {
 	emptyMessagesLimit uint
 	isFinished         bool

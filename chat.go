@@ -8,6 +8,13 @@ import (
 	"net/http"
 )
 
+// Chat message role defined by the OpenAI API.
+const (
+	ChatMessageRoleSystem    = "system"
+	ChatMessageRoleUser      = "user"
+	ChatMessageRoleAssistant = "assistant"
+)
+
 var (
 	ErrChatCompletionInvalidModel = errors.New("currently, only gpt-3.5-turbo and gpt-3.5-turbo-0301 are supported")
 )

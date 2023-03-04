@@ -24,18 +24,18 @@ package main
 import (
 	"context"
 	"fmt"
-	gogpt "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
-	client := gogpt.NewClient("your token")
+	client := openai.NewClient("your token")
 	resp, err := c.CreateChatCompletion(
 		context.Background(),
-		gogpt.ChatCompletionRequest{
-			Model: gogpt.GPT3Dot5Turbo,
-			Messages: []gogpt.ChatCompletionMessage{
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
 				{
-					Role:    "user",
+					Role:    openai.ChatMessageRoleUser,
 					Content: "Hello!",
 				},
 			},
@@ -64,15 +64,15 @@ package main
 import (
 	"context"
 	"fmt"
-	gogpt "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
-	c := gogpt.NewClient("your token")
+	c := openai.NewClient("your token")
 	ctx := context.Background()
 
-	req := gogpt.CompletionRequest{
-		Model:     gogpt.GPT3Ada,
+	req := openai.CompletionRequest{
+		Model:     openai.GPT3Ada,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 	}
@@ -96,15 +96,15 @@ import (
 	"context"
 	"fmt"
 	"io"
-	gogpt "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
-	c := gogpt.NewClient("your token")
+	c := openai.NewClient("your token")
 	ctx := context.Background()
 
-	req := gogpt.CompletionRequest{
-		Model:     gogpt.GPT3Ada,
+	req := openai.CompletionRequest{
+		Model:     openai.GPT3Ada,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 		Stream:    true,
@@ -146,15 +146,15 @@ import (
 	"context"
 	"fmt"
 	"io"
-	gogpt "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {
-	c := gogpt.NewClient("your token")
+	c := openai.NewClient("your token")
 	ctx := context.Background()
 
-	req := gogpt.CompletionRequest{
-		Model:     gogpt.GPT3Ada,
+	req := openai.CompletionRequest{
+		Model:     openai.GPT3Ada,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 		Stream:    true,

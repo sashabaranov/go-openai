@@ -2,6 +2,7 @@
 [![GoDoc](http://img.shields.io/badge/GoDoc-Reference-blue.svg)](https://godoc.org/github.com/sashabaranov/go-openai)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sashabaranov/go-openai)](https://goreportcard.com/report/github.com/sashabaranov/go-openai)
 
+> **Note**: the repository was recently renamed from `go-gpt3` to `go-openai`
 
 This library provides Go clients for [OpenAI API](https://platform.openai.com/). We support:
 

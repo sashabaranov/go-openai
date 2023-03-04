@@ -28,11 +28,9 @@ import (
 )
 
 func main() {
-	c := gogpt.NewClient("your token")
-	ctx := context.Background()
-
+	client := gogpt.NewClient("your token")
 	resp, err := c.CreateChatCompletion(
-		ctx,
+		context.Background(),
 		gogpt.ChatCompletionRequest{
 			Model: gogpt.GPT3Dot5Turbo,
 			Messages: []gogpt.ChatCompletionMessage{

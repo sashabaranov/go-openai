@@ -1,7 +1,7 @@
 package gogpt_test
 
 import (
-	. "github.com/sashabaranov/go-gpt3"
+	. "github.com/sashabaranov/go-openai"
 
 	"context"
 	"errors"

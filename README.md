@@ -30,7 +30,7 @@ import (
 
 func main() {
 	client := openai.NewClient("your token")
-	resp, err := c.CreateChatCompletion(
+	resp, err := client.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
 			Model: openai.GPT3Dot5Turbo,

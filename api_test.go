@@ -59,7 +59,7 @@ func TestAPI(t *testing.T) {
 			Model: GPT3Dot5Turbo,
 			Messages: []ChatCompletionMessage{
 				{
-					Role:    "user",
+					Role:    ChatMessageRoleUser,
 					Content: "Hello!",
 				},
 			},
@@ -67,7 +67,25 @@ func TestAPI(t *testing.T) {
 	)
 
 	if err != nil {
-		t.Errorf("CreateChatCompletion returned error: %v", err)
+		t.Errorf("CreateChatCompletion (without name) returned error: %v", err)
+	}
+
+	_, err = c.CreateChatCompletion(
+		ctx,
+		ChatCompletionRequest{
+			Model: GPT3Dot5Turbo,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Name:    "John_Doe",
+					Content: "Hello!",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		t.Errorf("CreateChatCompletion (with name) returned error: %v", err)
 	}
 
 	stream, err := c.CreateCompletionStream(ctx, CompletionRequest{

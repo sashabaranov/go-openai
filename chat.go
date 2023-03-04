@@ -21,6 +21,7 @@ var (
 
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
+	Name    string `json:"name,omitempty"`
 	Content string `json:"content"`
 }
 

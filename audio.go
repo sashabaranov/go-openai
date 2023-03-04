@@ -81,7 +81,7 @@ func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
 		return fmt.Errorf("creating form file: %w", err)
 	}
 
-	if _, err := io.Copy(fw, f); err != nil {
+	if _, err = io.Copy(fw, f); err != nil {
 		return fmt.Errorf("reading from opened audio file: %w", err)
 	}
 
@@ -91,7 +91,7 @@ func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
 	}
 
 	modelName := bytes.NewReader([]byte(request.Model))
-	if _, err := io.Copy(fw, modelName); err != nil {
+	if _, err = io.Copy(fw, modelName); err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
 	w.Close()

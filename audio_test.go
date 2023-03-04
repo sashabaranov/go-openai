@@ -20,7 +20,6 @@ import (
 
 // TestAudio Tests the transcription and translation endpoints of the API using the mocked server.
 func TestAudio(t *testing.T) {
-
 	server := test.NewTestServer()
 	server.RegisterHandler("/v1/audio/transcriptions", handleAudioEndpoint)
 	server.RegisterHandler("/v1/audio/translations", handleAudioEndpoint)
@@ -55,7 +54,6 @@ func TestAudio(t *testing.T) {
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-
 			path := filepath.Join(dir, "fake.mp3")
 			createTestFile(t, path)
 
@@ -116,22 +114,30 @@ func handleAudioEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	boundary, ok := params["boundary"]
 	if !ok {
+		http.Error(w, "no boundary in params", http.StatusBadRequest)
 		return
 	}
 
 	fileData := &bytes.Buffer{}
 	mr := multipart.NewReader(r.Body, boundary)
 	part, err := mr.NextPart()
-	if err != nil && errors.Unwrap(err) != io.EOF {
+	if err != nil && errors.Is(err, io.EOF) {
+		http.Error(w, "error accessing file", http.StatusBadRequest)
 		return
 	}
-	if _, err := io.Copy(fileData, part); err != nil {
+	if _, err = io.Copy(fileData, part); err != nil {
+		http.Error(w, "failed to copy file", http.StatusInternalServerError)
 		return
 	}
 
 	if len(fileData.Bytes()) == 0 {
+		w.WriteHeader(http.StatusInternalServerError)
+		http.Error(w, "received empty file data", http.StatusBadRequest)
 		return
 	}
 
-	w.Write([]byte(`{"body": "hello"}`))
+	if _, err = w.Write([]byte(`{"body": "hello"}`)); err != nil {
+		http.Error(w, "failed to write body", http.StatusInternalServerError)
+		return
+	}
 }

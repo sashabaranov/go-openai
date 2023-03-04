@@ -7,7 +7,7 @@ import (
 
 // Model struct represents an OpenAPI model.
 type Model struct {
-	CreatedAt  int64        `json:"created_at"`
+	CreatedAt  int64        `json:"created"`
 	ID         string       `json:"id"`
 	Object     string       `json:"object"`
 	OwnedBy    string       `json:"owned_by"`
@@ -18,7 +18,7 @@ type Model struct {
 
 // Permission struct represents an OpenAPI permission.
 type Permission struct {
-	CreatedAt          int64       `json:"created_at"`
+	CreatedAt          int64       `json:"created"`
 	ID                 string      `json:"id"`
 	Object             string      `json:"object"`
 	AllowCreateEngine  bool        `json:"allow_create_engine"`

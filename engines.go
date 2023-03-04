@@ -1,4 +1,4 @@
-package gogpt
+package openai
 
 import (
 	"context"

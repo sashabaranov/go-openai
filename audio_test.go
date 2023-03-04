@@ -1,4 +1,4 @@
-package gogpt_test
+package openai_test
 
 import (
 	"bytes"

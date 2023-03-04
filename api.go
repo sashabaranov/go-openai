@@ -33,6 +33,11 @@ func NewOrgClient(authToken, org string) *Client {
 	return &Client{config}
 }
 
+// SetAuthToken sets the authentication token in the client's configuration.
+func (c *Client) SetAuthToken(token string) {
+	c.config.authToken = token
+}
+
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))

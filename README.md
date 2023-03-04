@@ -3,7 +3,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/sashabaranov/go-gpt3)](https://goreportcard.com/report/github.com/sashabaranov/go-gpt3)
 
 
-[OpenAI ChatGPT and GPT-3](https://platform.openai.com/) API client for Go
+[OpenAI ChatGPT](https://platform.openai.com/), GPT-3, DALL·E 2, and Whisper API client for Go
 
 Installation:
 ```

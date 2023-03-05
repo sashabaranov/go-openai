@@ -21,8 +21,13 @@ var (
 
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
-	Name    string `json:"name,omitempty"`
 	Content string `json:"content"`
+
+	// This property isn't in the official documentation, but it's in
+	// the documentation for the official library for python:
+	// - https://github.com/openai/openai-python/blob/main/chatml.md
+	// - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+	Name string `json:"name,omitempty"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

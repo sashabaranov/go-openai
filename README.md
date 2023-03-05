@@ -165,3 +165,25 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>Configuring proxy</summary>
+
+```go
+config := openai.DefaultConfig("token")
+proxyUrl, err := url.Parse("http://localhost:{port}")
+if err != nil {
+	panic(err)
+}
+transport := &http.Transport{
+	Proxy: http.ProxyURL(proxyUrl),
+}
+config.HTTPClient = &http.Client{
+	Transport: transport,
+}
+
+c := openai.NewClientWithConfig(config)
+```
+
+See also: https://pkg.go.dev/github.com/sashabaranov/go-openai#ClientConfig
+</details>

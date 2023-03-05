@@ -134,3 +134,56 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>Audio Speech-To-Text</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	c := openai.NewClient("your token")
+	ctx := context.Background()
+
+	req := openai.AudioRequest{
+		Model:    openai.Whisper1,
+		FilePath: "recording.mp3",
+	}
+	resp, err := c.CreateTranscription(ctx, req)
+	if err != nil {
+		fmt.Printf("Transcription error: %v\n", err)
+		return
+	}
+	fmt.Println(resp.Text)
+}
+```
+</details>
+
+<details>
+<summary>Configuring proxy</summary>
+
+```go
+config := openai.DefaultConfig("token")
+proxyUrl, err := url.Parse("http://localhost:{port}")
+if err != nil {
+	panic(err)
+}
+transport := &http.Transport{
+	Proxy: http.ProxyURL(proxyUrl),
+}
+config.HTTPClient = &http.Client{
+	Transport: transport,
+}
+
+c := openai.NewClientWithConfig(config)
+```
+
+See also: https://pkg.go.dev/github.com/sashabaranov/go-openai#ClientConfig
+</details>

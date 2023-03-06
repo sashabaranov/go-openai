@@ -98,7 +98,7 @@ func (c *Client) CreateCompletion(
 	request CompletionRequest,
 ) (response CompletionResponse, err error) {
 	if request.Model == GPT3Dot5Turbo0301 || request.Model == GPT3Dot5Turbo {
-		err = ErrUnsupportedModel
+		err = ErrCompletionUnsupportedModel
 		return
 	}
 

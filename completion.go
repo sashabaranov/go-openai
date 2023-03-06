@@ -9,7 +9,7 @@ import (
 )
 
 var (
-	ErrUnsupportedModel = errors.New("please use CreateCompletion client method")
+	ErrUnsupportedModel = errors.New("please use CreateChatCompletion client method")
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating

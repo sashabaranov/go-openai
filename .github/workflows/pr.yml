@@ -1,7 +1,6 @@
 name: PR sanity check
 
 on:
-  - pull_request
   - push
 
 jobs:

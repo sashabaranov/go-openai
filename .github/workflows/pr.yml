@@ -20,4 +20,6 @@ jobs:
       with:
         version: latest
     - name: Run tests
-      run: go test -v .
+      run: go test -race -covermode=atomic -coverprofile=coverage.out -v .
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3

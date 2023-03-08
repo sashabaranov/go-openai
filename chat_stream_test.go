@@ -74,14 +74,28 @@ func TestCreateChatCompletionStream(t *testing.T) {
 			Object:  "completion",
 			Created: 1598069254,
 			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{{Delta: ChatCompletionStreamChoiceDelta{"response1"}, FinishReason: "max_tokens"}},
+			Choices: []ChatCompletionStreamChoice{
+				{
+					Delta: ChatCompletionStreamChoiceDelta{
+						Content: "response1",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
 		},
 		{
 			ID:      "2",
 			Object:  "completion",
 			Created: 1598069255,
 			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{{Delta: ChatCompletionStreamChoiceDelta{"response2"}, FinishReason: "max_tokens"}},
+			Choices: []ChatCompletionStreamChoice{
+				{
+					Delta: ChatCompletionStreamChoiceDelta{
+						Content: "response2",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
 		},
 	}
 

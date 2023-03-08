@@ -6,6 +6,7 @@ import (
 
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -32,7 +33,7 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 		},
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
-	if err != ErrChatCompletionInvalidModel {
+	if !errors.Is(err, ErrChatCompletionInvalidModel) {
 		t.Fatalf("CreateChatCompletion should return wrong model error, but returned: %v", err)
 	}
 }

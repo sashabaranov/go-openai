@@ -103,7 +103,7 @@ var stringToEnum = map[string]EmbeddingModel{
 // then their vector representations should also be similar.
 type Embedding struct {
 	Object    string    `json:"object"`
-	Embedding []float64 `json:"embedding"`
+	Embedding []float32 `json:"embedding"`
 	Index     int       `json:"index"`
 }
 

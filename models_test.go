@@ -34,13 +34,6 @@ func TestListModels(t *testing.T) {
 
 // handleModelsEndpoint Handles the models endpoint by the test server.
 func handleModelsEndpoint(w http.ResponseWriter, r *http.Request) {
-	var resBytes []byte
-
-	// completions only accepts POST requests
-	if r.Method != http.MethodGet {
-		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-
-	resBytes, _ = json.Marshal(ModelsList{})
+	resBytes, _ := json.Marshal(ModelsList{})
 	fmt.Fprintln(w, string(resBytes))
 }

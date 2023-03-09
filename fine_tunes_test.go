@@ -99,3 +99,47 @@ func TestFineTunes(t *testing.T) {
 		t.Fatalf("ListFineTuneEvents error: %v", err)
 	}
 }
+
+// TestFineTunes Tests the fine tunes endpoint of the API using the mocked server.
+func TestFineTunesFailures(t *testing.T) {
+	// create the test server
+	var err error
+	ts := test.NewTestServer().OpenAIFailingTestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err = client.ListFineTunes(ctx)
+	if err == nil {
+		t.Fatalf("ListFineTunes should return error")
+	}
+
+	_, err = client.CreateFineTune(ctx, FineTuneRequest{})
+	if err == nil {
+		t.Fatalf("CreateFineTune should return error")
+	}
+
+	_, err = client.CancelFineTune(ctx, testFineTuneID)
+	if err == nil {
+		t.Fatalf("CancelFineTune should return error")
+	}
+
+	_, err = client.GetFineTune(ctx, testFineTuneID)
+	if err == nil {
+		t.Fatalf("GetFineTune should return error")
+	}
+
+	_, err = client.DeleteFineTune(ctx, testFineTuneID)
+	if err == nil {
+		t.Fatalf("DeleteFineTune should return error")
+	}
+
+	_, err = client.ListFineTuneEvents(ctx, testFineTuneID)
+	if err == nil {
+		t.Fatalf("ListFineTuneEvents should return error")
+	}
+}

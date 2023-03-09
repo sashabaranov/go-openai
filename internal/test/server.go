@@ -44,3 +44,11 @@ func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 		handlerCall(w, r)
 	}))
 }
+
+// OpenAIFailingTestServer Creates a mocked OpenAI server which can fails every request.
+func (ts *ServerTest) OpenAIFailingTestServer() *httptest.Server {
+	return httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}))
+}

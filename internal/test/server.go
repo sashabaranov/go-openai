@@ -49,6 +49,5 @@ func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 func (ts *ServerTest) OpenAIFailingTestServer() *httptest.Server {
 	return httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
-		return
 	}))
 }

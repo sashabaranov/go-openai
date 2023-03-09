@@ -28,7 +28,7 @@ func TestListModels(t *testing.T) {
 
 	_, err = client.ListModels(ctx)
 	if err != nil {
-		t.Fatalf("CreateCompletion error: %v", err)
+		t.Fatalf("ListModels error: %v", err)
 	}
 }
 

@@ -24,23 +24,24 @@ type FineTuneRequest struct {
 }
 
 type FineTune struct {
-	ID              string              `json:"id"`
-	Object          string              `json:"object"`
-	Model           string              `json:"model"`
-	CreatedAt       int                 `json:"created_at"`
-	FineTunedModel  string              `json:"fine_tuned_model"`
-	Hyperparams     FineTuneHyperParams `json:"hyperparams"`
-	OrganizationID  string              `json:"organization_id"`
-	ResultFiles     []File              `json:"result_files"`
-	Status          string              `json:"status"`
-	ValidationFiles []File              `json:"validation_files"`
-	TrainingFiles   []File              `json:"training_files"`
-	UpdatedAt       int                 `json:"updated_at"`
+	ID                string              `json:"id"`
+	Object            string              `json:"object"`
+	Model             string              `json:"model"`
+	CreatedAt         int64               `json:"created_at"`
+	FineTuneEventList []FineTuneEvent     `json:"events,omitempty"`
+	FineTunedModel    string              `json:"fine_tuned_model"`
+	HyperParams       FineTuneHyperParams `json:"hyperparams"`
+	OrganizationID    string              `json:"organization_id"`
+	ResultFiles       []File              `json:"result_files"`
+	Status            string              `json:"status"`
+	ValidationFiles   []File              `json:"validation_files"`
+	TrainingFiles     []File              `json:"training_files"`
+	UpdatedAt         int64               `json:"updated_at"`
 }
 
 type FineTuneEvent struct {
 	Object    string `json:"object"`
-	CreatedAt int    `json:"created_at"`
+	CreatedAt int64  `json:"created_at"`
 	Level     string `json:"level"`
 	Message   string `json:"message"`
 }
@@ -84,7 +85,7 @@ func (c *Client) CreateFineTune(ctx context.Context, request FineTuneRequest) (r
 	return
 }
 
-// Cancel a fine-tune job.
+// CancelFineTune cancel a fine-tune job.
 func (c *Client) CancelFineTune(ctx context.Context, fineTuneID string) (response FineTune, err error) {
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/fine-tunes/"+fineTuneID+"/cancel"), nil)
 	if err != nil {

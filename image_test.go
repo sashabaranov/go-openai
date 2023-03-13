@@ -154,7 +154,6 @@ func TestImageEditWithoutMask(t *testing.T) {
 
 	defer func() {
 		origin.Close()
-		os.Remove("mask.png")
 		os.Remove("image.png")
 	}()
 

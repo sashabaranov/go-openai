@@ -4,7 +4,12 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
+)
+
+var (
+	ErrCompletionUnsupportedModel = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -92,6 +97,11 @@ func (c *Client) CreateCompletion(
 	ctx context.Context,
 	request CompletionRequest,
 ) (response CompletionResponse, err error) {
+	if request.Model == GPT3Dot5Turbo0301 || request.Model == GPT3Dot5Turbo {
+		err = ErrCompletionUnsupportedModel
+		return
+	}
+
 	var reqBytes []byte
 	reqBytes, err = json.Marshal(request)
 	if err != nil {

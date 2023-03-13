@@ -35,7 +35,7 @@ func (c *Client) CreateTranscription(
 	return
 }
 
-// CreateTranscription — API call to create a transcription. Returns transcribed text.
+// CreateTranslation — API call to translate audio into English.
 func (c *Client) CreateTranslation(
 	ctx context.Context,
 	request AudioRequest,

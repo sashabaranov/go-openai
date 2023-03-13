@@ -86,14 +86,16 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	// mask
-	mask, err := writer.CreateFormFile("mask", request.Mask.Name())
-	if err != nil {
-		return
-	}
-	_, err = io.Copy(mask, request.Mask)
-	if err != nil {
-		return
+	// mask, it is optional
+	if request.Mask != nil {
+		mask, err2 := writer.CreateFormFile("mask", request.Mask.Name())
+		if err2 != nil {
+			return
+		}
+		_, err = io.Copy(mask, request.Mask)
+		if err != nil {
+			return
+		}
 	}
 
 	err = writer.WriteField("prompt", request.Prompt)

@@ -132,8 +132,113 @@ func TestImageEdit(t *testing.T) {
 	}
 }
 
+func TestImageEditWithoutMask(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	origin, err := os.Create("image.png")
+	if err != nil {
+		t.Error("open origin file error")
+		return
+	}
+
+	defer func() {
+		origin.Close()
+		os.Remove("image.png")
+	}()
+
+	req := ImageEditRequest{
+		Image:  origin,
+		Prompt: "There is a turtle in the pool",
+		N:      3,
+		Size:   CreateImageSize1024x1024,
+	}
+	_, err = client.CreateEditImage(ctx, req)
+	if err != nil {
+		t.Fatalf("CreateImage error: %v", err)
+	}
+}
+
 // handleEditImageEndpoint Handles the images endpoint by the test server.
 func handleEditImageEndpoint(w http.ResponseWriter, r *http.Request) {
+	var resBytes []byte
+
+	// imagess only accepts POST requests
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+
+	responses := ImageResponse{
+		Created: time.Now().Unix(),
+		Data: []ImageResponseDataInner{
+			{
+				URL:     "test-url1",
+				B64JSON: "",
+			},
+			{
+				URL:     "test-url2",
+				B64JSON: "",
+			},
+			{
+				URL:     "test-url3",
+				B64JSON: "",
+			},
+		},
+	}
+
+	resBytes, _ = json.Marshal(responses)
+	fmt.Fprintln(w, string(resBytes))
+}
+
+
+func TestImageVariation(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/images/edits", handleVariateImageEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	origin, err := os.Create("image.png")
+	if err != nil {
+		t.Error("open origin file error")
+		return
+	}
+
+	defer func() {
+		origin.Close()
+		os.Remove("image.png")
+	}()
+
+	req := ImageVariationRequest{
+		Image:  origin,
+		N:      3,
+		Size:   CreateImageSize1024x1024,
+	}
+	_, err = client.CreateVariateImage(ctx, req)
+	if err != nil {
+		t.Fatalf("CreateImage error: %v", err)
+	}
+}
+
+// handleVariateImageEndpoint Handles the images endpoint by the test server.
+func handleVariateImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var resBytes []byte
 
 	// imagess only accepts POST requests

@@ -2,7 +2,7 @@ name: PR sanity check
 
 on:
   - push
-  - pr
+  - pull_request
 
 jobs:
   prcheck:

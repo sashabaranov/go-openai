@@ -2,6 +2,7 @@ name: PR sanity check
 
 on:
   - push
+  - pr
 
 jobs:
   prcheck:

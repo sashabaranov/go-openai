@@ -200,10 +200,9 @@ func handleEditImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(resBytes))
 }
 
-
 func TestImageVariation(t *testing.T) {
 	server := test.NewTestServer()
-	server.RegisterHandler("/v1/images/edits", handleVariateImageEndpoint)
+	server.RegisterHandler("/v1/images/variations", handleVariateImageEndpoint)
 	// create the test server
 	var err error
 	ts := server.OpenAITestServer()
@@ -227,9 +226,9 @@ func TestImageVariation(t *testing.T) {
 	}()
 
 	req := ImageVariationRequest{
-		Image:  origin,
-		N:      3,
-		Size:   CreateImageSize1024x1024,
+		Image: origin,
+		N:     3,
+		Size:  CreateImageSize1024x1024,
 	}
 	_, err = client.CreateVariateImage(ctx, req)
 	if err != nil {

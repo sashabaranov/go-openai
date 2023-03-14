@@ -153,7 +153,7 @@ func (c *Client) CreateVariateImage(ctx context.Context, request ImageVariationR
 		return
 	}
 	writer.Close()
-	urlSuffix := "/images/edits"
+	urlSuffix := "/images/variations"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return

@@ -45,6 +45,7 @@ func main() {
 	)
 
 	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
 		return
 	}
 
@@ -80,6 +81,7 @@ func main() {
 	}
 	resp, err := c.CreateCompletion(ctx, req)
 	if err != nil {
+		fmt.Printf("Completion error: %v\n", err)
 		return
 	}
 	fmt.Println(resp.Choices[0].Text)
@@ -113,6 +115,7 @@ func main() {
 	}
 	stream, err := c.CreateCompletionStream(ctx, req)
 	if err != nil {
+		fmt.Printf("CompletionStream error: %v\n", err)
 		return
 	}
 	defer stream.Close()

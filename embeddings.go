@@ -1,7 +1,6 @@
 package openai
 
 import (
-	"bytes"
 	"context"
 	"net/http"
 )
@@ -133,14 +132,7 @@ type EmbeddingRequest struct {
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
 func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
-	var reqBytes []byte
-	reqBytes, err = c.marshaller.marshal(request)
-	if err != nil {
-		return
-	}
-
-	urlSuffix := "/embeddings"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL("/embeddings"), request)
 	if err != nil {
 		return
 	}

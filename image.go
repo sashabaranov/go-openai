@@ -122,15 +122,16 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	return
 }
 
-// ImageVariationRequest represents the request structure for the image API.
-type ImageVariationRequest struct {
+// ImageVariRequest represents the request structure for the image API.
+type ImageVariRequest struct {
 	Image *os.File `json:"image,omitempty"`
 	N     int      `json:"n,omitempty"`
 	Size  string   `json:"size,omitempty"`
 }
 
-// ImageVariationRequest - API call to create an image variation. This is the main endpoint of the DALL-E API.
-func (c *Client) CreateVariateImage(ctx context.Context, request ImageVariationRequest) (response ImageResponse, err error) {
+// CreateVariImage - API call to create an image variation. This is the main endpoint of the DALL-E API.
+// Use abbreviations(vari for variation) because ci-lint has a single-line length limit ...
+func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) (response ImageResponse, err error) {
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
 

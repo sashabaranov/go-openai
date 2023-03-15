@@ -225,12 +225,12 @@ func TestImageVariation(t *testing.T) {
 		os.Remove("image.png")
 	}()
 
-	req := ImageVariationRequest{
+	req := ImageVariRequest{
 		Image: origin,
 		N:     3,
 		Size:  CreateImageSize1024x1024,
 	}
-	_, err = client.CreateVariateImage(ctx, req)
+	_, err = client.CreateVariImage(ctx, req)
 	if err != nil {
 		t.Fatalf("CreateImage error: %v", err)
 	}

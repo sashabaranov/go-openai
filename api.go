@@ -23,10 +23,8 @@ func NewClient(authToken string) *Client {
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
-		config: config,
-		requestBuilder: &httpRequestBuilder{
-			marshaller: &jsonMarshaller{},
-		},
+		config:         config,
+		requestBuilder: newRequestBuilder(),
 	}
 }
 

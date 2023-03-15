@@ -86,14 +86,16 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	// mask
-	mask, err := writer.CreateFormFile("mask", request.Mask.Name())
-	if err != nil {
-		return
-	}
-	_, err = io.Copy(mask, request.Mask)
-	if err != nil {
-		return
+	// mask, it is optional
+	if request.Mask != nil {
+		mask, err2 := writer.CreateFormFile("mask", request.Mask.Name())
+		if err2 != nil {
+			return
+		}
+		_, err = io.Copy(mask, request.Mask)
+		if err != nil {
+			return
+		}
 	}
 
 	err = writer.WriteField("prompt", request.Prompt)
@@ -110,6 +112,50 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	}
 	writer.Close()
 	urlSuffix := "/images/edits"
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
+	if err != nil {
+		return
+	}
+
+	req.Header.Set("Content-Type", writer.FormDataContentType())
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// ImageVariRequest represents the request structure for the image API.
+type ImageVariRequest struct {
+	Image *os.File `json:"image,omitempty"`
+	N     int      `json:"n,omitempty"`
+	Size  string   `json:"size,omitempty"`
+}
+
+// CreateVariImage - API call to create an image variation. This is the main endpoint of the DALL-E API.
+// Use abbreviations(vari for variation) because ci-lint has a single-line length limit ...
+func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) (response ImageResponse, err error) {
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
+
+	// image
+	image, err := writer.CreateFormFile("image", request.Image.Name())
+	if err != nil {
+		return
+	}
+	_, err = io.Copy(image, request.Image)
+	if err != nil {
+		return
+	}
+
+	err = writer.WriteField("n", strconv.Itoa(request.N))
+	if err != nil {
+		return
+	}
+	err = writer.WriteField("size", request.Size)
+	if err != nil {
+		return
+	}
+	writer.Close()
+	//https://platform.openai.com/docs/api-reference/images/create-variation
+	urlSuffix := "/images/variations"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return

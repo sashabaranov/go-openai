@@ -8,7 +8,7 @@
 This library provides Go clients for [OpenAI API](https://platform.openai.com/). We support:
 
 * ChatGPT
-* GPT-3
+* GPT-3, GPT-4
 * DALL·E 2
 * Whisper
 

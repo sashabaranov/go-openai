@@ -154,6 +154,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 		return
 	}
 	writer.Close()
+	//https://platform.openai.com/docs/api-reference/images/create-variation
 	urlSuffix := "/images/variations"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {

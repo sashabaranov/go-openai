@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 )
 
@@ -34,7 +33,7 @@ type EditsResponse struct {
 // Perform an API call to the Edits endpoint.
 func (c *Client) Edits(ctx context.Context, request EditsRequest) (response EditsResponse, err error) {
 	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
+	reqBytes, err = c.marshaller.marshal(request)
 	if err != nil {
 		return
 	}

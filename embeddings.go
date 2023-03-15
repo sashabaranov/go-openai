@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 )
 
@@ -135,7 +134,7 @@ type EmbeddingRequest struct {
 // https://beta.openai.com/docs/api-reference/embeddings/create
 func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
 	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
+	reqBytes, err = c.marshaller.marshal(request)
 	if err != nil {
 		return
 	}

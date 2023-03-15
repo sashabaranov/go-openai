@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -107,7 +106,7 @@ func (c *Client) CreateCompletion(
 	}
 
 	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
+	reqBytes, err = c.marshaller.marshal(request)
 	if err != nil {
 		return
 	}

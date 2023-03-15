@@ -11,17 +11,22 @@ import (
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
+
+	marshaller marshaller
 }
 
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)
-	return &Client{config}
+	return NewClientWithConfig(config)
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
-	return &Client{config}
+	return &Client{
+		config:     config,
+		marshaller: &jsonMarshaller{},
+	}
 }
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
@@ -30,7 +35,7 @@ func NewClientWithConfig(config ClientConfig) *Client {
 func NewOrgClient(authToken, org string) *Client {
 	config := DefaultConfig(authToken)
 	config.OrgID = org
-	return &Client{config}
+	return NewClientWithConfig(config)
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
@@ -90,7 +95,7 @@ func (c *Client) newStreamRequest(
 	var reqBody []byte
 	if body != nil {
 		var err error
-		reqBody, err = json.Marshal(body)
+		reqBody, err = c.marshaller.marshal(body)
 		if err != nil {
 			return nil, err
 		}

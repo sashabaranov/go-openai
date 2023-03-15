@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -70,7 +69,7 @@ type FineTuneDeleteResponse struct {
 
 func (c *Client) CreateFineTune(ctx context.Context, request FineTuneRequest) (response FineTune, err error) {
 	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
+	reqBytes, err = c.marshaller.marshal(request)
 	if err != nil {
 		return
 	}

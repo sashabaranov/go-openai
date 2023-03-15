@@ -3,7 +3,6 @@ package openai
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 )
 
@@ -53,7 +52,7 @@ type ModerationResponse struct {
 // Input can be an array or slice but a string will reduce the complexity.
 func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (response ModerationResponse, err error) {
 	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
+	reqBytes, err = c.marshaller.marshal(request)
 	if err != nil {
 		return
 	}

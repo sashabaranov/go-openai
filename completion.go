@@ -1,9 +1,7 @@
 package openai
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -17,6 +15,10 @@ var (
 // GPT3 Models are designed for text-based tasks. For code-specific
 // tasks, please refer to the Codex series of models.
 const (
+	GPT432K0314             = "gpt-4-32k-0314"
+	GPT432K                 = "gpt-4-32k"
+	GPT40314                = "gpt-4-0314"
+	GPT4                    = "gpt-4"
 	GPT3Dot5Turbo0301       = "gpt-3.5-turbo-0301"
 	GPT3Dot5Turbo           = "gpt-3.5-turbo"
 	GPT3TextDavinci003      = "text-davinci-003"
@@ -102,14 +104,8 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
-	if err != nil {
-		return
-	}
-
 	urlSuffix := "/completions"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return
 	}

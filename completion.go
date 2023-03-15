@@ -1,7 +1,6 @@
 package openai
 
 import (
-	"bytes"
 	"context"
 	"errors"
 	"net/http"
@@ -105,14 +104,8 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	var reqBytes []byte
-	reqBytes, err = c.marshaller.marshal(request)
-	if err != nil {
-		return
-	}
-
 	urlSuffix := "/completions"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), bytes.NewBuffer(reqBytes))
+	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return
 	}

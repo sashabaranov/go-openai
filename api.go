@@ -1,7 +1,6 @@
 package openai
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -12,7 +11,7 @@ import (
 type Client struct {
 	config ClientConfig
 
-	marshaller marshaller
+	requestBuilder requestBuilder
 }
 
 // NewClient creates new OpenAI API client.
@@ -24,8 +23,8 @@ func NewClient(authToken string) *Client {
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
-		config:     config,
-		marshaller: &jsonMarshaller{},
+		config:         config,
+		requestBuilder: newRequestBuilder(),
 	}
 }
 
@@ -91,17 +90,8 @@ func (c *Client) newStreamRequest(
 	ctx context.Context,
 	method string,
 	urlSuffix string,
-	body interface{}) (*http.Request, error) {
-	var reqBody []byte
-	if body != nil {
-		var err error
-		reqBody, err = c.marshaller.marshal(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, c.fullURL(urlSuffix), bytes.NewBuffer(reqBody))
+	body any) (*http.Request, error) {
+	req, err := c.requestBuilder.build(ctx, method, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return nil, err
 	}

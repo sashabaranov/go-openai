@@ -122,7 +122,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	return
 }
 
-//just for codeball test
+// just for codeball test
 // ImageVariRequest represents the request structure for the image API.
 type ImageVariRequest struct {
 	Image *os.File `json:"image,omitempty"`

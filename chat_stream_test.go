@@ -119,7 +119,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 
 	_, streamErr = stream.Recv()
 	if !errors.Is(streamErr, io.EOF) {
-		t.Errorf("stream.Recv() did not return EOF due to stream end: %v", streamErr)
+		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
 	}
 }
 

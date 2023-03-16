@@ -40,7 +40,7 @@ type ModelsList struct {
 // ListModels Lists the currently available models,
 // and provides basic information about each model such as the model id and parent.
 func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, c.fullURL("/models"), nil)
+	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/models"), nil)
 	if err != nil {
 		return
 	}

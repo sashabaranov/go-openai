@@ -6,6 +6,7 @@ import (
 
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -14,6 +15,23 @@ import (
 	"testing"
 	"time"
 )
+
+func TestCompletionsWrongModel(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		CompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo,
+		},
+	)
+	if !errors.Is(err, ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
+	}
+}
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestCompletions(t *testing.T) {

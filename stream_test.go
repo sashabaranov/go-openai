@@ -94,7 +94,7 @@ func TestCreateCompletionStream(t *testing.T) {
 		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
 	}
 
-	_, streamErr := stream.Recv()
+	_, streamErr = stream.Recv()
 	if !errors.Is(streamErr, io.EOF) {
 		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
 	}

@@ -141,6 +141,9 @@ func TestAPIError(t *testing.T) {
 	if *apiErr.Code != "invalid_api_key" {
 		t.Fatalf("Unexpected API error code: %s", *apiErr.Code)
 	}
+	if apiErr.Error() == "" {
+		t.Fatal("Empty error message occured")
+	}
 }
 
 func TestRequestError(t *testing.T) {
@@ -162,6 +165,10 @@ func TestRequestError(t *testing.T) {
 
 	if reqErr.StatusCode != 418 {
 		t.Fatalf("Unexpected request error status code: %d", reqErr.StatusCode)
+	}
+
+	if reqErr.Unwrap() == nil {
+		t.Fatalf("Empty request error occured")
 	}
 }
 

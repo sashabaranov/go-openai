@@ -3,9 +3,11 @@ package openai
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
+	"net/textproto"
 	"os"
 	"strconv"
 )
@@ -70,7 +72,10 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	writer := multipart.NewWriter(body)
 
 	// image
-	image, err := writer.CreateFormFile("image", request.Image.Name())
+	imageHeader := make(textproto.MIMEHeader)
+	imageHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "image", request.Image.Name()))
+	imageHeader.Set("Content-Type", "image/png")
+	image, err := writer.CreatePart(imageHeader)
 	if err != nil {
 		return
 	}
@@ -81,7 +86,10 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 
 	// mask, it is optional
 	if request.Mask != nil {
-		mask, err2 := writer.CreateFormFile("mask", request.Mask.Name())
+		maskHeader := make(textproto.MIMEHeader)
+		maskHeader.Set("Content-Disposition", fmt.Sprintf(`form-data; name="%s"; filename="%s"`, "mask", request.Mask.Name()))
+		maskHeader.Set("Content-Type", "image/png")
+		mask, err2 := writer.CreatePart(maskHeader)
 		if err2 != nil {
 			return
 		}

@@ -140,4 +140,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
+
+	_, err = client.ListModels(ctx)
+	if !errors.Is(err, errTestRequestBuilderFailed) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
 }

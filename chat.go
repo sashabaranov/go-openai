@@ -66,7 +66,9 @@ func (c *Client) CreateChatCompletion(
 	request ChatCompletionRequest,
 ) (response ChatCompletionResponse, err error) {
 	model := request.Model
-	if model != GPT3Dot5Turbo0301 && model != GPT3Dot5Turbo {
+	switch model {
+	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
+	default:
 		err = ErrChatCompletionInvalidModel
 		return
 	}

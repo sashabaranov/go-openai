@@ -142,7 +142,7 @@ func TestAPIError(t *testing.T) {
 		t.Fatalf("Unexpected API error code: %s", *apiErr.Code)
 	}
 	if apiErr.Error() == "" {
-		t.Fatal("Empty error message occured")
+		t.Fatal("Empty error message occurred")
 	}
 }
 
@@ -168,7 +168,7 @@ func TestRequestError(t *testing.T) {
 	}
 
 	if reqErr.Unwrap() == nil {
-		t.Fatalf("Empty request error occured")
+		t.Fatalf("Empty request error occurred")
 	}
 }
 

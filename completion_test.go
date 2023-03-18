@@ -33,6 +33,18 @@ func TestCompletionsWrongModel(t *testing.T) {
 	}
 }
 
+func TestCompletionWithStream(t *testing.T) {
+	config := DefaultConfig("whatever")
+	client := NewClientWithConfig(config)
+
+	ctx := context.Background()
+	req := CompletionRequest{Stream: true}
+	_, err := client.CreateCompletion(ctx, req)
+	if !errors.Is(err, ErrCompletionStreamNotSupported) {
+		t.Fatalf("CreateCompletion didn't return ErrCompletionStreamNotSupported")
+	}
+}
+
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestCompletions(t *testing.T) {
 	server := test.NewTestServer()

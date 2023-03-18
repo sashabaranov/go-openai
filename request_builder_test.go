@@ -19,11 +19,11 @@ type (
 	failingMarshaller     struct{}
 )
 
-func (*failingMarshaller) marshal(value any) ([]byte, error) {
+func (*failingMarshaller) marshal(_ any) ([]byte, error) {
 	return []byte{}, errTestMarshallerFailed
 }
 
-func (*failingRequestBuilder) build(ctx context.Context, method, url string, requset any) (*http.Request, error) {
+func (*failingRequestBuilder) build(_ context.Context, _, _ string, _ any) (*http.Request, error) {
 	return nil, errTestRequestBuilderFailed
 }
 

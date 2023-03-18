@@ -7,7 +7,8 @@ import (
 )
 
 var (
-	ErrCompletionUnsupportedModel = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
+	ErrCompletionUnsupportedModel   = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
+	ErrCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -99,6 +100,11 @@ func (c *Client) CreateCompletion(
 	ctx context.Context,
 	request CompletionRequest,
 ) (response CompletionResponse, err error) {
+	if request.Stream {
+		err = ErrCompletionStreamNotSupported
+		return
+	}
+
 	if request.Model == GPT3Dot5Turbo0301 || request.Model == GPT3Dot5Turbo {
 		err = ErrCompletionUnsupportedModel
 		return

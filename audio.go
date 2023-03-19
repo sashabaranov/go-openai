@@ -8,6 +8,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
@@ -17,8 +18,11 @@ const (
 
 // AudioRequest represents a request structure for audio API.
 type AudioRequest struct {
-	Model    string
-	FilePath string
+	Model       string
+	FilePath    string
+	Prompt      *string
+	Temperature *float64
+	Language    *string
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -31,6 +35,14 @@ func (c *Client) CreateTranscription(
 	ctx context.Context,
 	request AudioRequest,
 ) (response AudioResponse, err error) {
+	if request.Language != nil {
+		// assert it is lower case and 2 letters long
+		*request.Language = strings.ToLower(*request.Language)
+		if len(*request.Language) != 2 {
+			err = fmt.Errorf("language code must be 2 letters long")
+			return
+		}
+	}
 	response, err = c.callAudioAPI(ctx, request, "transcriptions")
 	return
 }
@@ -94,6 +106,43 @@ func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
 	if _, err = io.Copy(fw, modelName); err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
+
+	if request.Prompt != nil {
+		fw, err = w.CreateFormField("prompt")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		prompt := bytes.NewReader([]byte(*request.Prompt))
+		if _, err = io.Copy(fw, prompt); err != nil {
+			return fmt.Errorf("writing prompt: %w", err)
+		}
+	}
+
+	if request.Temperature != nil {
+		fw, err = w.CreateFormField("temperature")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		temperature := bytes.NewReader([]byte(fmt.Sprintf("%f", *request.Temperature)))
+		if _, err = io.Copy(fw, temperature); err != nil {
+			return fmt.Errorf("writing temperature: %w", err)
+		}
+	}
+
+	if request.Language != nil {
+		fw, err = w.CreateFormField("language")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		language := bytes.NewReader([]byte(*request.Language))
+		if _, err = io.Copy(fw, language); err != nil {
+			return fmt.Errorf("writing language: %w", err)
+		}
+	}
+
 	w.Close()
 
 	return nil

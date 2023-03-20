@@ -36,7 +36,7 @@ func (stream *CompletionStream) Recv() (response CompletionResponse, err error) 
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		if errRes, marshalErr := stream.errAccumulator.unmarshalError(); marshalErr == nil {
+		if errRes, _ := stream.errAccumulator.unmarshalError(); errRes != nil {
 			err = fmt.Errorf("error, %w", errRes.Error)
 		}
 		return

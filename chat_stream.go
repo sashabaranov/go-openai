@@ -51,7 +51,7 @@ func (stream *ChatCompletionStream) Recv() (response ChatCompletionStreamRespons
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		if errRes, unmarshalErr := stream.errAccumulator.unmarshalError(); unmarshalErr == nil {
+		if errRes, _ := stream.errAccumulator.unmarshalError(); errRes != nil {
 			err = fmt.Errorf("error, %w", errRes.Error)
 		}
 		return

@@ -24,11 +24,15 @@ func (e *errorAccumulator) write(p []byte) error {
 	return nil
 }
 
-func (e *errorAccumulator) unmarshalError() (errRes *ErrorResponse, err error) {
+func (e *errorAccumulator) unmarshalError() (*ErrorResponse, error) {
+	var err error
 	if e.buffer.Len() > 0 {
-		errRes = &ErrorResponse{}
-		err = e.unmarshaler.unmarshal(e.buffer.Bytes(), errRes)
-		return
+		var errRes ErrorResponse
+		err = e.unmarshaler.unmarshal(e.buffer.Bytes(), &errRes)
+		if err != nil {
+			return nil, err
+		}
+		return &errRes, nil
 	}
-	return
+	return nil, err
 }

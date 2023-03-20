@@ -20,9 +20,9 @@ const (
 type AudioRequest struct {
 	Model       string
 	FilePath    string
-	Prompt      string
+	Prompt      string // For translation, it should be in English
 	Temperature float32
-	Language    string
+	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
 }
 
 // AudioResponse represents a response structure for audio API.

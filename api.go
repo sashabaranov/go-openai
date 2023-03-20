@@ -1,7 +1,6 @@
 package openai
 
 import (
-	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -11,17 +10,22 @@ import (
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
+
+	requestBuilder requestBuilder
 }
 
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)
-	return &Client{config}
+	return NewClientWithConfig(config)
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
-	return &Client{config}
+	return &Client{
+		config:         config,
+		requestBuilder: newRequestBuilder(),
+	}
 }
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
@@ -30,7 +34,7 @@ func NewClientWithConfig(config ClientConfig) *Client {
 func NewOrgClient(authToken, org string) *Client {
 	config := DefaultConfig(authToken)
 	config.OrgID = org
-	return &Client{config}
+	return NewClientWithConfig(config)
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
@@ -86,17 +90,8 @@ func (c *Client) newStreamRequest(
 	ctx context.Context,
 	method string,
 	urlSuffix string,
-	body interface{}) (*http.Request, error) {
-	var reqBody []byte
-	if body != nil {
-		var err error
-		reqBody, err = json.Marshal(body)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	req, err := http.NewRequestWithContext(ctx, method, c.fullURL(urlSuffix), bytes.NewBuffer(reqBody))
+	body any) (*http.Request, error) {
+	req, err := c.requestBuilder.build(ctx, method, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return nil, err
 	}

@@ -1,9 +1,7 @@
 package openai
 
 import (
-	"bytes"
 	"context"
-	"encoding/json"
 	"net/http"
 )
 
@@ -52,13 +50,7 @@ type ModerationResponse struct {
 // Moderations — perform a moderation api call over a string.
 // Input can be an array or slice but a string will reduce the complexity.
 func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (response ModerationResponse, err error) {
-	var reqBytes []byte
-	reqBytes, err = json.Marshal(request)
-	if err != nil {
-		return
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/moderations"), bytes.NewBuffer(reqBytes))
+	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL("/moderations"), request)
 	if err != nil {
 		return
 	}

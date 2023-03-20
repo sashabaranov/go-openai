@@ -38,6 +38,21 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	}
 }
 
+func TestChatCompletionsWithStream(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := ChatCompletionRequest{
+		Stream: true,
+	}
+	_, err := client.CreateChatCompletion(ctx, req)
+	if !errors.Is(err, ErrChatCompletionStreamNotSupported) {
+		t.Fatalf("CreateChatCompletion didn't return ErrChatCompletionStreamNotSupported error")
+	}
+}
+
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestChatCompletions(t *testing.T) {
 	server := test.NewTestServer()

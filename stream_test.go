@@ -93,6 +93,11 @@ func TestCreateCompletionStream(t *testing.T) {
 	if !errors.Is(streamErr, io.EOF) {
 		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
 	}
+
+	_, streamErr = stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
+	}
 }
 
 // A "tokenRoundTripper" is a struct that implements the RoundTripper

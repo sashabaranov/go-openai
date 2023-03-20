@@ -33,7 +33,7 @@ func TestListModels(t *testing.T) {
 }
 
 // handleModelsEndpoint Handles the models endpoint by the test server.
-func handleModelsEndpoint(w http.ResponseWriter, r *http.Request) {
+func handleModelsEndpoint(w http.ResponseWriter, _ *http.Request) {
 	resBytes, _ := json.Marshal(ModelsList{})
 	fmt.Fprintln(w, string(resBytes))
 }

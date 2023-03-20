@@ -39,7 +39,7 @@ type ChatCompletionStream struct {
 	errAccumulator *errorAccumulator
 }
 
-//nolint:duplicate
+//nolint:dupl // stream repetition code needs to be optimized
 func (stream *ChatCompletionStream) Recv() (response ChatCompletionStreamResponse, err error) {
 	if stream.isFinished {
 		err = io.EOF
@@ -60,7 +60,7 @@ waitForData:
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
-		if _, writeErr := stream.errAccumulator.write(line); writeErr != nil {
+		if writeErr := stream.errAccumulator.write(line); writeErr != nil {
 			err = writeErr
 			return
 		}

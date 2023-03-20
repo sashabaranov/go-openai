@@ -16,22 +16,19 @@ func newErrorAccumulator() *errorAccumulator {
 	}
 }
 
-func (e *errorAccumulator) write(p []byte) (int, error) {
-	n, err := e.buffer.Write(p)
+func (e *errorAccumulator) write(p []byte) error {
+	_, err := e.buffer.Write(p)
 	if err != nil {
-		return n, fmt.Errorf("error accumulator write error, %w", err)
+		return fmt.Errorf("error accumulator write error, %w", err)
 	}
-	return n, nil
+	return nil
 }
 
-func (e *errorAccumulator) unmarshalError() (*ErrorResponse, error) {
+func (e *errorAccumulator) unmarshalError() (errRes *ErrorResponse, err error) {
 	if e.buffer.Len() > 0 {
-		var errRes ErrorResponse
-		err := e.unmarshaler.unmarshal(e.buffer.Bytes(), &errRes)
-		if err != nil {
-			return nil, err
-		}
-		return &errRes, nil
+		errRes = &ErrorResponse{}
+		err = e.unmarshaler.unmarshal(e.buffer.Bytes(), errRes)
+		return
 	}
-	return nil, nil
+	return
 }

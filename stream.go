@@ -21,7 +21,7 @@ type CompletionStream struct {
 
 	reader         *bufio.Reader
 	response       *http.Response
-	errAccumulator *errorAccumulator
+	errAccumulator errorAccumulator
 }
 
 //nolint:dupl // stream repetition code needs to be optimized

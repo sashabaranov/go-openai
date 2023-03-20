@@ -3,20 +3,33 @@ package openai
 import (
 	"bytes"
 	"fmt"
+	"io"
 )
 
-type errorAccumulator struct {
-	buffer      bytes.Buffer
+type errorAccumulator interface {
+	write(p []byte) error
+	unmarshalError() (*ErrorResponse, error)
+}
+
+type errorBuffer interface {
+	io.Writer
+	Len() int
+	Bytes() []byte
+}
+
+type errorAccumulate struct {
+	buffer      errorBuffer
 	unmarshaler unmarshaler
 }
 
-func newErrorAccumulator() *errorAccumulator {
-	return &errorAccumulator{
+func newErrorAccumulator() errorAccumulator {
+	return &errorAccumulate{
+		buffer:      &bytes.Buffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}
 }
 
-func (e *errorAccumulator) write(p []byte) error {
+func (e *errorAccumulate) write(p []byte) error {
 	_, err := e.buffer.Write(p)
 	if err != nil {
 		return fmt.Errorf("error accumulator write error, %w", err)
@@ -24,7 +37,7 @@ func (e *errorAccumulator) write(p []byte) error {
 	return nil
 }
 
-func (e *errorAccumulator) unmarshalError() (*ErrorResponse, error) {
+func (e *errorAccumulate) unmarshalError() (*ErrorResponse, error) {
 	var err error
 	if e.buffer.Len() > 0 {
 		var errRes ErrorResponse

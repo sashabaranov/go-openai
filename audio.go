@@ -16,9 +16,13 @@ const (
 )
 
 // AudioRequest represents a request structure for audio API.
+// ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
-	Model    string
-	FilePath string
+	Model       string
+	FilePath    string
+	Prompt      string // For translation, it should be in English
+	Temperature float32
+	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -94,6 +98,47 @@ func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
 	if _, err = io.Copy(fw, modelName); err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
+
+	// Create a form field for the prompt (if provided)
+	if request.Prompt != "" {
+		fw, err = w.CreateFormField("prompt")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		prompt := bytes.NewReader([]byte(request.Prompt))
+		if _, err = io.Copy(fw, prompt); err != nil {
+			return fmt.Errorf("writing prompt: %w", err)
+		}
+	}
+
+	// Create a form field for the temperature (if provided)
+	if request.Temperature != 0 {
+		fw, err = w.CreateFormField("temperature")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		temperature := bytes.NewReader([]byte(fmt.Sprintf("%.2f", request.Temperature)))
+		if _, err = io.Copy(fw, temperature); err != nil {
+			return fmt.Errorf("writing temperature: %w", err)
+		}
+	}
+
+	// Create a form field for the language (if provided)
+	if request.Language != "" {
+		fw, err = w.CreateFormField("language")
+		if err != nil {
+			return fmt.Errorf("creating form field: %w", err)
+		}
+
+		language := bytes.NewReader([]byte(request.Language))
+		if _, err = io.Copy(fw, language); err != nil {
+			return fmt.Errorf("writing language: %w", err)
+		}
+	}
+
+	// Close the multipart writer
 	w.Close()
 
 	return nil

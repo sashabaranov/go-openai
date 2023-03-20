@@ -13,7 +13,7 @@ import (
 	"testing"
 )
 
-func TestChatCompletionsStringWrongModel(t *testing.T) {
+func TestChatCompletionsStreamWrongModel(t *testing.T) {
 	config := DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
 	client := NewClientWithConfig(config)

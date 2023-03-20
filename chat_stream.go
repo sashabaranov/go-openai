@@ -34,10 +34,12 @@ type ChatCompletionStream struct {
 	emptyMessagesLimit uint
 	isFinished         bool
 
-	reader   *bufio.Reader
-	response *http.Response
+	reader         *bufio.Reader
+	response       *http.Response
+	errAccumulator *errorAccumulator
 }
 
+//nolint:duplicate
 func (stream *ChatCompletionStream) Recv() (response ChatCompletionStreamResponse, err error) {
 	if stream.isFinished {
 		err = io.EOF
@@ -45,16 +47,12 @@ func (stream *ChatCompletionStream) Recv() (response ChatCompletionStreamRespons
 	}
 
 	var emptyMessagesCount uint
-	var errBytes bytes.Buffer
 
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		if errBytes.Len() > 0 {
-			var errRes ErrorResponse
-			if jsonErr := json.Unmarshal(errBytes.Bytes(), &errRes); jsonErr == nil {
-				err = fmt.Errorf("error, %w", errRes.Error)
-			}
+		if errRes, _ := stream.errAccumulator.unmarshalError(); errRes != nil {
+			err = fmt.Errorf("error, %w", errRes.Error)
 		}
 		return
 	}
@@ -62,7 +60,10 @@ waitForData:
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
-		errBytes.Write(line)
+		if _, writeErr := stream.errAccumulator.write(line); writeErr != nil {
+			err = writeErr
+			return
+		}
 		emptyMessagesCount++
 		if emptyMessagesCount > stream.emptyMessagesLimit {
 			err = ErrTooManyEmptyStreamMessages
@@ -110,6 +111,7 @@ func (c *Client) CreateChatCompletionStream(
 		emptyMessagesLimit: c.config.EmptyMessagesLimit,
 		reader:             bufio.NewReader(resp.Body),
 		response:           resp,
+		errAccumulator:     newErrorAccumulator(),
 	}
 	return
 }

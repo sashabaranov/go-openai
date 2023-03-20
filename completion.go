@@ -105,7 +105,9 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	if request.Model == GPT3Dot5Turbo0301 || request.Model == GPT3Dot5Turbo {
+	switch request.Model {
+	default:
+	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
 		err = ErrCompletionUnsupportedModel
 		return
 	}

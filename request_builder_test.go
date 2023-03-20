@@ -61,7 +61,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 
-	_, err = client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
+	_, err = client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}

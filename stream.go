@@ -6,6 +6,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 )
@@ -29,16 +30,24 @@ func (stream *CompletionStream) Recv() (response CompletionResponse, err error) 
 	}
 
 	var emptyMessagesCount uint
+	var errBytes bytes.Buffer
 
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
+		if errBytes.Len() > 0 {
+			var errRes ErrorResponse
+			if jsonErr := json.Unmarshal(errBytes.Bytes(), &errRes); jsonErr == nil {
+				err = fmt.Errorf("error, %w", errRes.Error)
+			}
+		}
 		return
 	}
 
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
+		errBytes.Write(line)
 		emptyMessagesCount++
 		if emptyMessagesCount > stream.emptyMessagesLimit {
 			err = ErrTooManyEmptyStreamMessages

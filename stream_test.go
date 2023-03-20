@@ -17,7 +17,7 @@ func TestCompletionsStreamWrongModel(t *testing.T) {
 	config.BaseURL = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 
-	_, err := client.CreateCompletion(
+	_, err := client.CreateCompletionStream(
 		context.Background(),
 		CompletionRequest{
 			MaxTokens: 5,

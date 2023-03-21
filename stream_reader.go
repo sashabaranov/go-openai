@@ -8,16 +8,21 @@ import (
 	"net/http"
 )
 
-type streamReader struct {
+type streamable interface {
+	ChatCompletionStreamResponse | CompletionResponse
+}
+
+type streamReader[T streamable] struct {
 	emptyMessagesLimit uint
 	isFinished         bool
 
 	reader         *bufio.Reader
 	response       *http.Response
 	errAccumulator errorAccumulator
+	unmarshaler    unmarshaler
 }
 
-func (stream *streamReader) Recv() (line []byte, err error) {
+func (stream *streamReader[T]) Recv() (response T, err error) {
 	if stream.isFinished {
 		err = io.EOF
 		return
@@ -26,7 +31,7 @@ func (stream *streamReader) Recv() (line []byte, err error) {
 	var emptyMessagesCount uint
 
 waitForData:
-	line, err = stream.reader.ReadBytes('\n')
+	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
 		if errRes, _ := stream.errAccumulator.unmarshalError(); errRes != nil {
 			err = fmt.Errorf("error, %w", errRes.Error)
@@ -57,9 +62,10 @@ waitForData:
 		return
 	}
 
+	err = stream.unmarshaler.unmarshal(line, &response)
 	return
 }
 
-func (stream *streamReader) Close() {
+func (stream *streamReader[T]) Close() {
 	stream.response.Body.Close()
 }

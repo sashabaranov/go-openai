@@ -3,7 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"errors"
 )
 
@@ -12,21 +11,7 @@ var (
 )
 
 type CompletionStream struct {
-	*streamReader
-}
-
-func (stream *CompletionStream) Recv() (response CompletionResponse, err error) {
-	line, err := stream.streamReader.Recv()
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(line, &response)
-	return
-}
-
-func (stream *CompletionStream) Close() {
-	stream.streamReader.Close()
+	*streamReader[CompletionResponse]
 }
 
 // CreateCompletionStream — API call to create a completion w/ streaming
@@ -49,11 +34,12 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	stream = &CompletionStream{
-		streamReader: &streamReader{
+		streamReader: &streamReader[CompletionResponse]{
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
 			errAccumulator:     newErrorAccumulator(),
+			unmarshaler:        &jsonUnmarshaler{},
 		},
 	}
 	return

@@ -3,7 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
@@ -27,21 +26,7 @@ type ChatCompletionStreamResponse struct {
 // ChatCompletionStream
 // Note: Perhaps it is more elegant to abstract Stream using generics.
 type ChatCompletionStream struct {
-	*streamReader
-}
-
-func (stream *ChatCompletionStream) Recv() (response ChatCompletionStreamResponse, err error) {
-	line, err := stream.streamReader.Recv()
-	if err != nil {
-		return
-	}
-
-	err = json.Unmarshal(line, &response)
-	return
-}
-
-func (stream *ChatCompletionStream) Close() {
-	stream.streamReader.Close()
+	*streamReader[ChatCompletionStreamResponse]
 }
 
 // CreateChatCompletionStream — API call to create a chat completion w/ streaming
@@ -64,11 +49,12 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	stream = &ChatCompletionStream{
-		streamReader: &streamReader{
+		streamReader: &streamReader[ChatCompletionStreamResponse]{
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
 			errAccumulator:     newErrorAccumulator(),
+			unmarshaler:        &jsonUnmarshaler{},
 		},
 	}
 	return

@@ -136,9 +136,7 @@ func TestRequestError(t *testing.T) {
 	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
-	if err == nil {
-		t.Fatal("ListEngines did not fail")
-	}
+	checks.HasError(t, err, "ListEngines did not fail")
 
 	var reqErr *RequestError
 	if !errors.As(err, &reqErr) {

@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -66,9 +67,7 @@ func TestCompletions(t *testing.T) {
 	}
 	req.Prompt = "Lorem ipsum"
 	_, err = client.CreateCompletion(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateCompletion error: %v", err)
-	}
+	checks.NoError(t, err, "CreateCompletion error")
 }
 
 // handleCompletionEndpoint Handles the completion endpoint by the test server.

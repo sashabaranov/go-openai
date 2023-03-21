@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -79,9 +80,7 @@ func TestChatCompletions(t *testing.T) {
 		},
 	}
 	_, err = client.CreateChatCompletion(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateChatCompletion error: %v", err)
-	}
+	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
 // handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.

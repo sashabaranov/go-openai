@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -33,9 +34,7 @@ func TestFileUpload(t *testing.T) {
 		Purpose:  "fine-tune",
 	}
 	_, err = client.CreateFile(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateFile error: %v", err)
-	}
+	checks.NoError(t, err, "CreateFile erro")
 }
 
 // handleCreateFile Handles the images endpoint by the test server.

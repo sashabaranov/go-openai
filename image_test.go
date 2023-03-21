@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -31,9 +32,7 @@ func TestImages(t *testing.T) {
 	req := ImageRequest{}
 	req.Prompt = "Lorem ipsum"
 	_, err = client.CreateImage(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateImage error: %v", err)
-	}
+	checks.NoError(t, err, "CreateImage error")
 }
 
 // handleImageEndpoint Handles the images endpoint by the test server.
@@ -127,9 +126,7 @@ func TestImageEdit(t *testing.T) {
 		Size:   CreateImageSize1024x1024,
 	}
 	_, err = client.CreateEditImage(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateImage error: %v", err)
-	}
+	checks.NoError(t, err, "CreateImage error")
 }
 
 func TestImageEditWithoutMask(t *testing.T) {
@@ -164,9 +161,7 @@ func TestImageEditWithoutMask(t *testing.T) {
 		Size:   CreateImageSize1024x1024,
 	}
 	_, err = client.CreateEditImage(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateImage error: %v", err)
-	}
+	checks.NoError(t, err, "CreateImage error")
 }
 
 // handleEditImageEndpoint Handles the images endpoint by the test server.
@@ -231,9 +226,7 @@ func TestImageVariation(t *testing.T) {
 		Size:  CreateImageSize1024x1024,
 	}
 	_, err = client.CreateVariImage(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateImage error: %v", err)
-	}
+	checks.NoError(t, err, "CreateImage error")
 }
 
 // handleVariateImageEndpoint Handles the images endpoint by the test server.

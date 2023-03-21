@@ -2,8 +2,11 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"testing"
+
+	"github.com/sashabaranov/go-openai/internal/test"
 )
 
 var (
@@ -48,12 +51,39 @@ func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
 	}
 }
 
-func TestErrorAccumulatorWriteErrors(t *testing.T) {
+func TestErrorByteWriteErrors(t *testing.T) {
 	accumulator := &errorAccumulate{
 		buffer:      &failingErrorBuffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}
 	err := accumulator.write([]byte("{"))
+	if !errors.Is(err, errTestErrorAccumulatorWriteFailed) {
+		t.Fatalf("Did not return error when write failed: %v", err)
+	}
+}
+
+func TestErrorAccumulatorWriteErrors(t *testing.T) {
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+
+	ctx := context.Background()
+
+	stream, err := client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	stream.errAccumulator = &errorAccumulate{
+		buffer:      &failingErrorBuffer{},
+		unmarshaler: &jsonUnmarshaler{},
+	}
+
+	_, err = stream.Recv()
 	if !errors.Is(err, errTestErrorAccumulatorWriteFailed) {
 		t.Fatalf("Did not return error when write failed: %v", err)
 	}

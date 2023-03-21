@@ -7,7 +7,6 @@ import (
 
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -34,9 +33,7 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 		},
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
-	if !errors.Is(err, ErrChatCompletionInvalidModel) {
-		t.Fatalf("CreateChatCompletion should return wrong model error, but returned: %v", err)
-	}
+	checks.ErrorIs(t, err, ErrChatCompletionInvalidModel, "CreateChatCompletion should return wrong model error, but returned: "+err.Error())
 }
 
 func TestChatCompletionsWithStream(t *testing.T) {
@@ -49,9 +46,7 @@ func TestChatCompletionsWithStream(t *testing.T) {
 		Stream: true,
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
-	if !errors.Is(err, ErrChatCompletionStreamNotSupported) {
-		t.Fatalf("CreateChatCompletion didn't return ErrChatCompletionStreamNotSupported error")
-	}
+	checks.ErrorIs(t, err, ErrChatCompletionStreamNotSupported, "CreateChatCompletion didn't return ErrChatCompletionStreamNotSupported error")
 }
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.

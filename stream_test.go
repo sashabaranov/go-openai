@@ -157,7 +157,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 
 	request := CompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
+		Model:     GPT3TextDavinci003,
 		Prompt:    "Hello!",
 		Stream:    true,
 	}

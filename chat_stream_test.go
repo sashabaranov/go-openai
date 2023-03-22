@@ -123,6 +123,73 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	}
 }
 
+func TestCreateChatCompletionStreamError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataStr := []string{
+			`{`,
+			`"error": {`,
+			`"message": "Incorrect API key provided: sk-***************************************",`,
+			`"type": "invalid_request_error",`,
+			`"param": null,`,
+			`"code": "invalid_api_key"`,
+			`}`,
+			`}`,
+		}
+		for _, str := range dataStr {
+			dataBytes = append(dataBytes, []byte(str+"\n")...)
+		}
+
+		_, err := w.Write(dataBytes)
+		if err != nil {
+			t.Errorf("Write error: %s", err)
+		}
+	}))
+	defer server.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &tokenRoundTripper{
+		test.GetTestToken(),
+		http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	}
+
+	stream, err := client.CreateChatCompletionStream(ctx, request)
+	if err != nil {
+		t.Errorf("CreateCompletionStream returned error: %v", err)
+	}
+	defer stream.Close()
+
+	_, streamErr := stream.Recv()
+	if streamErr == nil {
+		t.Errorf("stream.Recv() did not return error")
+	}
+	var apiErr *APIError
+	if !errors.As(streamErr, &apiErr) {
+		t.Errorf("stream.Recv() did not return APIError")
+	}
+	t.Logf("%+v\n", apiErr)
+}
+
 // Helper funcs.
 func compareChatResponses(r1, r2 ChatCompletionStreamResponse) bool {
 	if r1.ID != r2.ID || r1.Object != r2.Object || r1.Created != r2.Created || r1.Model != r2.Model {

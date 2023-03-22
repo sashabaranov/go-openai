@@ -72,7 +72,7 @@ func (c *Client) CreateCompletionStream(
 	request CompletionRequest,
 ) (stream *CompletionStream, err error) {
 	urlSuffix := "/completions"
-	if checkEndpointSupportsModel(urlSuffix, request.Model) {
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrCompletionUnsupportedModel
 		return
 	}

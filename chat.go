@@ -72,7 +72,7 @@ func (c *Client) CreateChatCompletion(
 	}
 
 	urlSuffix := "/chat/completions"
-	if checkEndpointSupportsModel(urlSuffix, request.Model) {
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
 	}

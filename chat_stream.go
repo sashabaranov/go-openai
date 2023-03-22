@@ -87,7 +87,7 @@ func (c *Client) CreateChatCompletionStream(
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
 	urlSuffix := "/chat/completions"
-	if checkEndpointSupportsModel(urlSuffix, request.Model) {
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
 	}

@@ -46,7 +46,7 @@ const (
 )
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
-	"/completions": map[string]bool{
+	"/completions": {
 		GPT3Dot5Turbo:     true,
 		GPT3Dot5Turbo0301: true,
 		GPT4:              true,
@@ -54,7 +54,7 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT432K:           true,
 		GPT432K0314:       true,
 	},
-	"/chat/completions": map[string]bool{
+	"/chat/completions": {
 		CodexCodeDavinci002:     true,
 		CodexCodeCushman001:     true,
 		CodexCodeDavinci001:     true,
@@ -74,7 +74,7 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 }
 
 func checkEndpointSupportsModel(endpoint, model string) bool {
-	return disabledModelsForEndpoints[endpoint][model]
+	return !disabledModelsForEndpoints[endpoint][model]
 }
 
 // CompletionRequest represents a request structure for completion API.
@@ -138,7 +138,7 @@ func (c *Client) CreateCompletion(
 	}
 
 	urlSuffix := "/completions"
-	if checkEndpointSupportsModel(urlSuffix, request.Model) {
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrCompletionUnsupportedModel
 		return
 	}

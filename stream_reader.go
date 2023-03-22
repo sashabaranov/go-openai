@@ -33,8 +33,9 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		if errRes, _ := stream.errAccumulator.unmarshalError(); errRes != nil {
-			err = fmt.Errorf("error, %w", errRes.Error)
+		respErr := stream.errAccumulator.unmarshalError()
+		if respErr != nil {
+			err = fmt.Errorf("error, %w", respErr.Error)
 		}
 		return
 	}

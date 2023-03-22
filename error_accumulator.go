@@ -8,7 +8,7 @@ import (
 
 type errorAccumulator interface {
 	write(p []byte) error
-	unmarshalError() (*ErrorResponse, error)
+	unmarshalError() *ErrorResponse
 }
 
 type errorBuffer interface {
@@ -37,15 +37,15 @@ func (e *errorAccumulate) write(p []byte) error {
 	return nil
 }
 
-func (e *errorAccumulate) unmarshalError() (*ErrorResponse, error) {
+func (e *errorAccumulate) unmarshalError() (errResp *ErrorResponse) {
 	if e.buffer.Len() == 0 {
-		return nil, nil
+		return
 	}
 
-	var errRes ErrorResponse
-	err := e.unmarshaler.unmarshal(e.buffer.Bytes(), &errRes)
+	err := e.unmarshaler.unmarshal(e.buffer.Bytes(), &errResp)
 	if err != nil {
-		return nil, err
+		errResp = nil
 	}
-	return &errRes, nil
+
+	return
 }

@@ -45,9 +45,10 @@ func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
-	_, err = accumulator.unmarshalError()
-	if !errors.Is(err, errTestUnmarshalerFailed) {
-		t.Fatalf("Did not return error when unmarshaler failed: %v", err)
+
+	respErr := accumulator.unmarshalError()
+	if respErr != nil {
+		t.Fatalf("Did not return nil when unmarshaler failed: %v", err)
 	}
 }
 

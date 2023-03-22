@@ -29,7 +29,7 @@ func TestCompletionsWrongModel(t *testing.T) {
 		},
 	)
 	if !errors.Is(err, ErrCompletionUnsupportedModel) {
-		t.Fatalf("CreateCompletion should return ErrCompletionStreamNotSupported, but returned: %v", err)
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
 	}
 }
 

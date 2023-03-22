@@ -36,7 +36,7 @@ func (*failingUnMarshaller) unmarshal(_ []byte, _ any) error {
 }
 
 func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
-	accumulator := &errorAccumulate{
+	accumulator := &defaultErrorAccumulator{
 		buffer:      &bytes.Buffer{},
 		unmarshaler: &failingUnMarshaller{},
 	}
@@ -53,7 +53,7 @@ func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
 }
 
 func TestErrorByteWriteErrors(t *testing.T) {
-	accumulator := &errorAccumulate{
+	accumulator := &defaultErrorAccumulator{
 		buffer:      &failingErrorBuffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}
@@ -79,7 +79,7 @@ func TestErrorAccumulatorWriteErrors(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	stream.errAccumulator = &errorAccumulate{
+	stream.errAccumulator = &defaultErrorAccumulator{
 		buffer:      &failingErrorBuffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}

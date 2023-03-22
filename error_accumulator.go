@@ -17,19 +17,19 @@ type errorBuffer interface {
 	Bytes() []byte
 }
 
-type errorAccumulate struct {
+type defaultErrorAccumulator struct {
 	buffer      errorBuffer
 	unmarshaler unmarshaler
 }
 
 func newErrorAccumulator() errorAccumulator {
-	return &errorAccumulate{
+	return &defaultErrorAccumulator{
 		buffer:      &bytes.Buffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}
 }
 
-func (e *errorAccumulate) write(p []byte) error {
+func (e *defaultErrorAccumulator) write(p []byte) error {
 	_, err := e.buffer.Write(p)
 	if err != nil {
 		return fmt.Errorf("error accumulator write error, %w", err)
@@ -37,7 +37,7 @@ func (e *errorAccumulate) write(p []byte) error {
 	return nil
 }
 
-func (e *errorAccumulate) unmarshalError() (errResp *ErrorResponse) {
+func (e *defaultErrorAccumulator) unmarshalError() (errResp *ErrorResponse) {
 	if e.buffer.Len() == 0 {
 		return
 	}

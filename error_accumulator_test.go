@@ -41,14 +41,19 @@ func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
 		unmarshaler: &failingUnMarshaller{},
 	}
 
+	respErr := accumulator.unmarshalError()
+	if respErr != nil {
+		t.Fatalf("Did not return nil with empty buffer: %v", respErr)
+	}
+
 	err := accumulator.write([]byte("{"))
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
 
-	respErr := accumulator.unmarshalError()
+	respErr = accumulator.unmarshalError()
 	if respErr != nil {
-		t.Fatalf("Did not return nil when unmarshaler failed: %v", err)
+		t.Fatalf("Did not return nil when unmarshaler failed: %v", respErr)
 	}
 }
 

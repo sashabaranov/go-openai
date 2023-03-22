@@ -38,14 +38,14 @@ func (e *errorAccumulate) write(p []byte) error {
 }
 
 func (e *errorAccumulate) unmarshalError() (*ErrorResponse, error) {
-	var err error
-	if e.buffer.Len() > 0 {
-		var errRes ErrorResponse
-		err = e.unmarshaler.unmarshal(e.buffer.Bytes(), &errRes)
-		if err != nil {
-			return nil, err
-		}
-		return &errRes, nil
+	if e.buffer.Len() == 0 {
+		return nil, nil
 	}
-	return nil, err
+
+	var errRes ErrorResponse
+	err := e.unmarshaler.unmarshal(e.buffer.Bytes(), &errRes)
+	if err != nil {
+		return nil, err
+	}
+	return &errRes, nil
 }

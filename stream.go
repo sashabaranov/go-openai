@@ -71,15 +71,14 @@ func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,
 ) (stream *CompletionStream, err error) {
-	switch request.Model {
-	default:
-	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
-		err = ErrCompletionUnsupportedModel
+	urlSuffix := "/completions"
+	err = checkEndpointSupportsModel(urlSuffix, request.Model)
+	if err != nil {
 		return
 	}
 
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", "/completions", request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
 	if err != nil {
 		return
 	}

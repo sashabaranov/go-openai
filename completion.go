@@ -7,8 +7,8 @@ import (
 )
 
 var (
-	ErrCompletionUnsupportedModel   = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
-	ErrCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
+	ErrUnsupportedModel             = errors.New("this model is not supported with this method")                                   //nolint:lll
+	ErrCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateCompletionStream") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -44,6 +44,42 @@ const (
 	CodexCodeCushman001 = "code-cushman-001"
 	CodexCodeDavinci001 = "code-davinci-001"
 )
+
+type endpointModelPair struct {
+	endpoint string
+	model    string
+}
+
+var disabledPairs = map[endpointModelPair]bool{
+	{"/completions", GPT3Dot5Turbo}:                true,
+	{"/completions", GPT3Dot5Turbo0301}:            true,
+	{"/completions", GPT4}:                         true,
+	{"/completions", GPT40314}:                     true,
+	{"/completions", GPT432K}:                      true,
+	{"/completions", GPT432K0314}:                  true,
+	{"/chat/completions", CodexCodeDavinci002}:     true,
+	{"/chat/completions", CodexCodeCushman001}:     true,
+	{"/chat/completions", CodexCodeDavinci001}:     true,
+	{"/chat/completions", GPT3TextDavinci003}:      true,
+	{"/chat/completions", GPT3TextDavinci002}:      true,
+	{"/chat/completions", GPT3TextCurie001}:        true,
+	{"/chat/completions", GPT3TextBabbage001}:      true,
+	{"/chat/completions", GPT3TextAda001}:          true,
+	{"/chat/completions", GPT3TextDavinci001}:      true,
+	{"/chat/completions", GPT3DavinciInstructBeta}: true,
+	{"/chat/completions", GPT3Davinci}:             true,
+	{"/chat/completions", GPT3CurieInstructBeta}:   true,
+	{"/chat/completions", GPT3Curie}:               true,
+	{"/chat/completions", GPT3Ada}:                 true,
+	{"/chat/completions", GPT3Babbage}:             true,
+}
+
+func checkEndpointSupportsModel(endpoint, model string) error {
+	if disabledPairs[endpointModelPair{endpoint, model}] {
+		return ErrUnsupportedModel
+	}
+	return nil
+}
 
 // CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
@@ -105,14 +141,12 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	switch request.Model {
-	default:
-	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
-		err = ErrCompletionUnsupportedModel
+	urlSuffix := "/completions"
+	err = checkEndpointSupportsModel(urlSuffix, request.Model)
+	if err != nil {
 		return
 	}
 
-	urlSuffix := "/completions"
 	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return

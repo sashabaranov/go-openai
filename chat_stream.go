@@ -86,15 +86,14 @@ func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
-	switch request.Model {
-	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
-	default:
-		err = ErrChatCompletionInvalidModel
+	urlSuffix := "/chat/completions"
+	err = checkEndpointSupportsModel(urlSuffix, request.Model)
+	if err != nil {
 		return
 	}
 
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", "/chat/completions", request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
 	if err != nil {
 		return
 	}

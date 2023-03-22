@@ -69,6 +69,59 @@ func TestAudio(t *testing.T) {
 	}
 }
 
+func TestAudioWithOptionalArgs(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/audio/transcriptions", handleAudioEndpoint)
+	server.RegisterHandler("/v1/audio/translations", handleAudioEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+
+	testcases := []struct {
+		name     string
+		createFn func(context.Context, AudioRequest) (AudioResponse, error)
+	}{
+		{
+			"transcribe",
+			client.CreateTranscription,
+		},
+		{
+			"translate",
+			client.CreateTranslation,
+		},
+	}
+
+	ctx := context.Background()
+
+	dir, cleanup := createTestDirectory(t)
+	defer cleanup()
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(dir, "fake.mp3")
+			createTestFile(t, path)
+
+			req := AudioRequest{
+				FilePath:    path,
+				Model:       "whisper-3",
+				Prompt:      "用简体中文",
+				Temperature: 0.5,
+				Language:    "zh",
+			}
+			_, err = tc.createFn(ctx, req)
+			if err != nil {
+				t.Fatalf("audio API error: %v", err)
+			}
+		})
+	}
+}
+
 // createTestFile creates a fake file with "hello" as the content.
 func createTestFile(t *testing.T, path string) {
 	file, err := os.Create(path)

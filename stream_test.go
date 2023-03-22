@@ -24,8 +24,8 @@ func TestCompletionsStreamWrongModel(t *testing.T) {
 			Model:     GPT3Dot5Turbo,
 		},
 	)
-	if !errors.Is(err, ErrUnsupportedModel) {
-		t.Fatalf("CreateCompletion should return ErrUnsupportedModel, but returned: %v", err)
+	if !errors.Is(err, ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
 	}
 }
 

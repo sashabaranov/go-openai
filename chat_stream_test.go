@@ -30,8 +30,8 @@ func TestChatCompletionsStreamWrongModel(t *testing.T) {
 		},
 	}
 	_, err := client.CreateChatCompletionStream(ctx, req)
-	if !errors.Is(err, ErrUnsupportedModel) {
-		t.Fatalf("CreateChatCompletion should return ErrUnsupportedModel, but returned: %v", err)
+	if !errors.Is(err, ErrChatCompletionInvalidModel) {
+		t.Fatalf("CreateChatCompletion should return ErrChatCompletionInvalidModel, but returned: %v", err)
 	}
 }
 

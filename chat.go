@@ -13,7 +13,10 @@ const (
 	ChatMessageRoleAssistant = "assistant"
 )
 
-var ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream") //nolint:lll
+var (
+	ErrChatCompletionInvalidModel       = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
+	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
+)
 
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
@@ -69,8 +72,8 @@ func (c *Client) CreateChatCompletion(
 	}
 
 	urlSuffix := "/chat/completions"
-	err = checkEndpointSupportsModel(urlSuffix, request.Model)
-	if err != nil {
+	if checkEndpointSupportsModel(urlSuffix, request.Model) {
+		err = ErrChatCompletionInvalidModel
 		return
 	}
 

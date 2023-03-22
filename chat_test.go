@@ -34,7 +34,7 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
 	if !errors.Is(err, ErrChatCompletionInvalidModel) {
-		t.Fatalf("CreateChatCompletion should return wrong model error, but returned: %v", err)
+		t.Fatalf("CreateChatCompletion should return ErrChatCompletionInvalidModel, but returned: %v", err)
 	}
 }
 

@@ -45,6 +45,38 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
+var disabledModelsForEndpoints = map[string]map[string]bool{
+	"/completions": {
+		GPT3Dot5Turbo:     true,
+		GPT3Dot5Turbo0301: true,
+		GPT4:              true,
+		GPT40314:          true,
+		GPT432K:           true,
+		GPT432K0314:       true,
+	},
+	"/chat/completions": {
+		CodexCodeDavinci002:     true,
+		CodexCodeCushman001:     true,
+		CodexCodeDavinci001:     true,
+		GPT3TextDavinci003:      true,
+		GPT3TextDavinci002:      true,
+		GPT3TextCurie001:        true,
+		GPT3TextBabbage001:      true,
+		GPT3TextAda001:          true,
+		GPT3TextDavinci001:      true,
+		GPT3DavinciInstructBeta: true,
+		GPT3Davinci:             true,
+		GPT3CurieInstructBeta:   true,
+		GPT3Curie:               true,
+		GPT3Ada:                 true,
+		GPT3Babbage:             true,
+	},
+}
+
+func checkEndpointSupportsModel(endpoint, model string) bool {
+	return !disabledModelsForEndpoints[endpoint][model]
+}
+
 // CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
 	Model            string         `json:"model"`
@@ -105,12 +137,12 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	if request.Model == GPT3Dot5Turbo0301 || request.Model == GPT3Dot5Turbo {
+	urlSuffix := "/completions"
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrCompletionUnsupportedModel
 		return
 	}
 
-	urlSuffix := "/completions"
 	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return

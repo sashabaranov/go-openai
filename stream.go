@@ -22,8 +22,14 @@ func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,
 ) (stream *CompletionStream, err error) {
+	urlSuffix := "/completions"
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
+		err = ErrCompletionUnsupportedModel
+		return
+	}
+
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", "/completions", request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
 	if err != nil {
 		return
 	}

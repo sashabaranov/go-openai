@@ -37,8 +37,14 @@ func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
+	urlSuffix := "/chat/completions"
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
+		err = ErrChatCompletionInvalidModel
+		return
+	}
+
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", "/chat/completions", request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
 	if err != nil {
 		return
 	}

@@ -12,6 +12,23 @@ import (
 	"testing"
 )
 
+func TestCompletionsStreamWrongModel(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+
+	_, err := client.CreateCompletionStream(
+		context.Background(),
+		CompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo,
+		},
+	)
+	if !errors.Is(err, ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
+	}
+}
+
 func TestCreateCompletionStream(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
@@ -140,7 +157,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 
 	request := CompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
+		Model:     GPT3TextDavinci003,
 		Prompt:    "Hello!",
 		Stream:    true,
 	}

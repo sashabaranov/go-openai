@@ -13,6 +13,28 @@ import (
 	"testing"
 )
 
+func TestChatCompletionsStreamWrongModel(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     "ada",
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	}
+	_, err := client.CreateChatCompletionStream(ctx, req)
+	if !errors.Is(err, ErrChatCompletionInvalidModel) {
+		t.Fatalf("CreateChatCompletion should return ErrChatCompletionInvalidModel, but returned: %v", err)
+	}
+}
+
 func TestCreateChatCompletionStream(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")

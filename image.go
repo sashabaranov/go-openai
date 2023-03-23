@@ -37,7 +37,7 @@ type ImageResponse struct {
 	Data    []ImageResponseDataInner `json:"data,omitempty"`
 }
 
-// ImageResponseData represents a response data structure for image API.
+// ImageResponseDataInner represents a response data structure for image API.
 type ImageResponseDataInner struct {
 	URL     string `json:"url,omitempty"`
 	B64JSON string `json:"b64_json,omitempty"`

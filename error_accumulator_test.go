@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"

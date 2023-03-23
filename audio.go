@@ -79,6 +79,7 @@ func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
 	if err != nil {
 		return fmt.Errorf("opening audio file: %w", err)
 	}
+	defer f.Close()
 
 	fw, err := w.CreateFormFile("file", f.Name())
 	if err != nil {

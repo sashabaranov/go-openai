@@ -135,9 +135,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 		}
 
 		_, err := w.Write(dataBytes)
-		if err != nil {
-			t.Errorf("Write error: %s", err)
-		}
+		checks.NoError(t, err, "Write error")
 	}))
 	defer server.Close()
 
@@ -160,15 +158,12 @@ func TestCreateCompletionStreamError(t *testing.T) {
 	}
 
 	stream, err := client.CreateCompletionStream(ctx, request)
-	if err != nil {
-		t.Errorf("CreateCompletionStream returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
 	_, streamErr := stream.Recv()
-	if streamErr == nil {
-		t.Errorf("stream.Recv() did not return error")
-	}
+	checks.HasError(t, streamErr, "stream.Recv() did not return error")
+
 	var apiErr *APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")

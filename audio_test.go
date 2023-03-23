@@ -3,7 +3,6 @@ package openai_test
 import (
 	"bytes"
 	"errors"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -14,6 +13,7 @@ import (
 
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"testing"

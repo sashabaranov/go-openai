@@ -14,8 +14,8 @@ const (
 )
 
 var (
-	ErrChatCompletionInvalidModel       = errors.New("currently, only gpt-3.5-turbo and gpt-3.5-turbo-0301 are supported")                 //nolint:lll
-	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream") //nolint:lll
+	ErrChatCompletionInvalidModel       = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
+	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
 )
 
 type ChatCompletionMessage struct {
@@ -71,14 +71,12 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	switch request.Model {
-	case GPT3Dot5Turbo0301, GPT3Dot5Turbo, GPT4, GPT40314, GPT432K0314, GPT432K:
-	default:
+	urlSuffix := "/chat/completions"
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
 	}
 
-	urlSuffix := "/chat/completions"
 	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return

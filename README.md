@@ -287,7 +287,7 @@ func main() {
 		return
 	}
 
-	file, err := os.Create("image.png")
+	file, err := os.Create("example.png")
 	if err != nil {
 		fmt.Printf("File creation error: %v\n", err)
 		return

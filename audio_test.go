@@ -13,6 +13,7 @@ import (
 
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"testing"
@@ -62,9 +63,7 @@ func TestAudio(t *testing.T) {
 				Model:    "whisper-3",
 			}
 			_, err = tc.createFn(ctx, req)
-			if err != nil {
-				t.Fatalf("audio API error: %v", err)
-			}
+			checks.NoError(t, err, "audio API error")
 		})
 	}
 }
@@ -115,9 +114,7 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 				Language:    "zh",
 			}
 			_, err = tc.createFn(ctx, req)
-			if err != nil {
-				t.Fatalf("audio API error: %v", err)
-			}
+			checks.NoError(t, err, "audio API error")
 		})
 	}
 }
@@ -125,9 +122,8 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 // createTestFile creates a fake file with "hello" as the content.
 func createTestFile(t *testing.T, path string) {
 	file, err := os.Create(path)
-	if err != nil {
-		t.Fatalf("failed to create file %v", err)
-	}
+	checks.NoError(t, err, "failed to create file")
+
 	if _, err = file.WriteString("hello"); err != nil {
 		t.Fatalf("failed to write to file %v", err)
 	}
@@ -139,9 +135,7 @@ func createTestDirectory(t *testing.T) (path string, cleanup func()) {
 	t.Helper()
 
 	path, err := os.MkdirTemp(os.TempDir(), "")
-	if err != nil {
-		t.Fatal(err)
-	}
+	checks.NoError(t, err)
 
 	return path, func() { os.RemoveAll(path) }
 }

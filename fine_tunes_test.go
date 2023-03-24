@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -70,32 +71,20 @@ func TestFineTunes(t *testing.T) {
 	ctx := context.Background()
 
 	_, err = client.ListFineTunes(ctx)
-	if err != nil {
-		t.Fatalf("ListFineTunes error: %v", err)
-	}
+	checks.NoError(t, err, "ListFineTunes error")
 
 	_, err = client.CreateFineTune(ctx, FineTuneRequest{})
-	if err != nil {
-		t.Fatalf("CreateFineTune error: %v", err)
-	}
+	checks.NoError(t, err, "CreateFineTune error")
 
 	_, err = client.CancelFineTune(ctx, testFineTuneID)
-	if err != nil {
-		t.Fatalf("CancelFineTune error: %v", err)
-	}
+	checks.NoError(t, err, "CancelFineTune error")
 
 	_, err = client.GetFineTune(ctx, testFineTuneID)
-	if err != nil {
-		t.Fatalf("GetFineTune error: %v", err)
-	}
+	checks.NoError(t, err, "GetFineTune error")
 
 	_, err = client.DeleteFineTune(ctx, testFineTuneID)
-	if err != nil {
-		t.Fatalf("DeleteFineTune error: %v", err)
-	}
+	checks.NoError(t, err, "DeleteFineTune error")
 
 	_, err = client.ListFineTuneEvents(ctx, testFineTuneID)
-	if err != nil {
-		t.Fatalf("ListFineTuneEvents error: %v", err)
-	}
+	checks.NoError(t, err, "ListFineTuneEvents error")
 }

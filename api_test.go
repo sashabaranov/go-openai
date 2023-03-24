@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"errors"
@@ -20,25 +21,17 @@ func TestAPI(t *testing.T) {
 	c := NewClient(apiToken)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
-	if err != nil {
-		t.Fatalf("ListEngines error: %v", err)
-	}
+	checks.NoError(t, err, "ListEngines error")
 
 	_, err = c.GetEngine(ctx, "davinci")
-	if err != nil {
-		t.Fatalf("GetEngine error: %v", err)
-	}
+	checks.NoError(t, err, "GetEngine error")
 
 	fileRes, err := c.ListFiles(ctx)
-	if err != nil {
-		t.Fatalf("ListFiles error: %v", err)
-	}
+	checks.NoError(t, err, "ListFiles error")
 
 	if len(fileRes.Files) > 0 {
 		_, err = c.GetFile(ctx, fileRes.Files[0].ID)
-		if err != nil {
-			t.Fatalf("GetFile error: %v", err)
-		}
+		checks.NoError(t, err, "GetFile error")
 	} // else skip
 
 	embeddingReq := EmbeddingRequest{
@@ -49,9 +42,7 @@ func TestAPI(t *testing.T) {
 		Model: AdaSearchQuery,
 	}
 	_, err = c.CreateEmbeddings(ctx, embeddingReq)
-	if err != nil {
-		t.Fatalf("Embedding error: %v", err)
-	}
+	checks.NoError(t, err, "Embedding error")
 
 	_, err = c.CreateChatCompletion(
 		ctx,
@@ -66,9 +57,7 @@ func TestAPI(t *testing.T) {
 		},
 	)
 
-	if err != nil {
-		t.Errorf("CreateChatCompletion (without name) returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateChatCompletion (without name) returned error")
 
 	_, err = c.CreateChatCompletion(
 		ctx,
@@ -83,10 +72,7 @@ func TestAPI(t *testing.T) {
 			},
 		},
 	)
-
-	if err != nil {
-		t.Errorf("CreateChatCompletion (with name) returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateChatCompletion (with name) returned error")
 
 	stream, err := c.CreateCompletionStream(ctx, CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
@@ -94,9 +80,7 @@ func TestAPI(t *testing.T) {
 		MaxTokens: 5,
 		Stream:    true,
 	})
-	if err != nil {
-		t.Errorf("CreateCompletionStream returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
 	counter := 0
@@ -126,9 +110,7 @@ func TestAPIError(t *testing.T) {
 	c := NewClient(apiToken + "_invalid")
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
-	if err == nil {
-		t.Fatal("ListEngines did not fail")
-	}
+	checks.NoError(t, err, "ListEngines did not fail")
 
 	var apiErr *APIError
 	if !errors.As(err, &apiErr) {
@@ -154,9 +136,7 @@ func TestRequestError(t *testing.T) {
 	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
-	if err == nil {
-		t.Fatal("ListEngines request did not fail")
-	}
+	checks.HasError(t, err, "ListEngines did not fail")
 
 	var reqErr *RequestError
 	if !errors.As(err, &reqErr) {

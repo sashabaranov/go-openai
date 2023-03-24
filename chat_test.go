@@ -3,10 +3,10 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -33,9 +33,8 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 		},
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
-	if !errors.Is(err, ErrChatCompletionInvalidModel) {
-		t.Fatalf("CreateChatCompletion should return ErrChatCompletionInvalidModel, but returned: %v", err)
-	}
+	msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+	checks.ErrorIs(t, err, ErrChatCompletionInvalidModel, msg)
 }
 
 func TestChatCompletionsWithStream(t *testing.T) {
@@ -48,9 +47,7 @@ func TestChatCompletionsWithStream(t *testing.T) {
 		Stream: true,
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
-	if !errors.Is(err, ErrChatCompletionStreamNotSupported) {
-		t.Fatalf("CreateChatCompletion didn't return ErrChatCompletionStreamNotSupported error")
-	}
+	checks.ErrorIs(t, err, ErrChatCompletionStreamNotSupported, "unexpected error")
 }
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
@@ -79,9 +76,7 @@ func TestChatCompletions(t *testing.T) {
 		},
 	}
 	_, err = client.CreateChatCompletion(ctx, req)
-	if err != nil {
-		t.Fatalf("CreateChatCompletion error: %v", err)
-	}
+	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
 // handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.

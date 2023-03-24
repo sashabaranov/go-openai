@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -40,9 +41,7 @@ func TestEdits(t *testing.T) {
 		N:           3,
 	}
 	response, err := client.Edits(ctx, editReq)
-	if err != nil {
-		t.Fatalf("Edits error: %v", err)
-	}
+	checks.NoError(t, err, "Edits error")
 	if len(response.Choices) != editReq.N {
 		t.Fatalf("edits does not properly return the correct number of choices")
 	}

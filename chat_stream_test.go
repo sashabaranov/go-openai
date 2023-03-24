@@ -3,6 +3,7 @@ package openai_test
 import (
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"encoding/json"
@@ -55,9 +56,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
 
 		_, err := w.Write(dataBytes)
-		if err != nil {
-			t.Errorf("Write error: %s", err)
-		}
+		checks.NoError(t, err, "Write error")
 	}))
 	defer server.Close()
 
@@ -85,9 +84,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	}
 
 	stream, err := client.CreateChatCompletionStream(ctx, request)
-	if err != nil {
-		t.Errorf("CreateCompletionStream returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
 	expectedResponses := []ChatCompletionStreamResponse{
@@ -126,9 +123,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 		t.Logf("%d: %s", ix, string(b))
 
 		receivedResponse, streamErr := stream.Recv()
-		if streamErr != nil {
-			t.Errorf("stream.Recv() failed: %v", streamErr)
-		}
+		checks.NoError(t, streamErr, "stream.Recv() failed")
 		if !compareChatResponses(expectedResponse, receivedResponse) {
 			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
 		}
@@ -140,6 +135,8 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	}
 
 	_, streamErr = stream.Recv()
+
+	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
 	if !errors.Is(streamErr, io.EOF) {
 		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
 	}
@@ -166,9 +163,7 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 		}
 
 		_, err := w.Write(dataBytes)
-		if err != nil {
-			t.Errorf("Write error: %s", err)
-		}
+		checks.NoError(t, err, "Write error")
 	}))
 	defer server.Close()
 
@@ -196,15 +191,12 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 	}
 
 	stream, err := client.CreateChatCompletionStream(ctx, request)
-	if err != nil {
-		t.Errorf("CreateCompletionStream returned error: %v", err)
-	}
+	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
 	_, streamErr := stream.Recv()
-	if streamErr == nil {
-		t.Errorf("stream.Recv() did not return error")
-	}
+	checks.HasError(t, streamErr, "stream.Recv() did not return error")
+
 	var apiErr *APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")

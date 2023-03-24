@@ -7,6 +7,7 @@ import (
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var (
@@ -81,16 +82,13 @@ func TestErrorAccumulatorWriteErrors(t *testing.T) {
 	ctx := context.Background()
 
 	stream, err := client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
-	if err != nil {
-		t.Fatal(err)
-	}
+	checks.NoError(t, err)
+
 	stream.errAccumulator = &defaultErrorAccumulator{
 		buffer:      &failingErrorBuffer{},
 		unmarshaler: &jsonUnmarshaler{},
 	}
 
 	_, err = stream.Recv()
-	if !errors.Is(err, errTestErrorAccumulatorWriteFailed) {
-		t.Fatalf("Did not return error when write failed: %v", err)
-	}
+	checks.ErrorIs(t, err, errTestErrorAccumulatorWriteFailed, "Did not return error when write failed", err.Error())
 }

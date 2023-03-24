@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"bytes"
 	"encoding/json"
@@ -38,9 +39,7 @@ func TestEmbedding(t *testing.T) {
 		// marshal embeddingReq to JSON and confirm that the model field equals
 		// the AdaSearchQuery type
 		marshaled, err := json.Marshal(embeddingReq)
-		if err != nil {
-			t.Fatalf("Could not marshal embedding request: %v", err)
-		}
+		checks.NoError(t, err, "Could not marshal embedding request")
 		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}

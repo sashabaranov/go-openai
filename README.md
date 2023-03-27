@@ -340,7 +340,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 )
 
 func main() {

@@ -11,7 +11,7 @@ const (
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	authToken string
+	AuthToken string
 
 	HTTPClient *http.Client
 
@@ -26,7 +26,7 @@ func DefaultConfig(authToken string) ClientConfig {
 		HTTPClient: &http.Client{},
 		BaseURL:    apiURLv1,
 		OrgID:      "",
-		authToken:  authToken,
+		AuthToken:  authToken,
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}

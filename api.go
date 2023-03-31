@@ -45,7 +45,13 @@ func NewOrgClient(authToken, org string) (*Client, error) {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.APIKey))
+	// Azure API Key authentication
+	if c.config.APIType == APITypeAzure {
+		req.Header.Set("api-key", c.config.APIKey)
+	} else {
+		// OpenAI or Azure AD authentication
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.APIKey))
+	}
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data

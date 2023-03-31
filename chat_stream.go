@@ -59,7 +59,6 @@ func (c *Client) CreateChatCompletionStream(
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
 		err = fmt.Errorf("error, status code: %d", res.StatusCode)
-		return
 	}
 
 	stream = &ChatCompletionStream{

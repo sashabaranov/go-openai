@@ -39,7 +39,7 @@ func NewOrgClient(authToken, org string) *Client {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.ApiKey))
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data
@@ -86,11 +86,11 @@ func (c *Client) fullURL(suffix string) string {
 	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
 	if c.config.ApiType == ApiTypeAzure || c.config.ApiType == ApiTypeAzureAD {
 		return fmt.Sprintf("%s%s/%s/%s%s?api-version=%s",
-			c.config.BaseURL, azureApiPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.ApiVersion)
+			c.config.ApiBase, azureApiPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.ApiVersion)
 	}
 
 	// c.config.ApiType == ApiTypeOpenAI || c.config.ApiType == ""
-	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
+	return fmt.Sprintf("%s%s", c.config.ApiBase, suffix)
 }
 
 func (c *Client) newStreamRequest(
@@ -111,10 +111,10 @@ func (c *Client) newStreamRequest(
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
 	if c.config.ApiType == ApiTypeAzure {
-		req.Header.Set("api-key", c.config.authToken)
+		req.Header.Set("api-key", c.config.ApiKey)
 	} else {
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.ApiKey))
 	}
 	return req, nil
 }

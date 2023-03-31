@@ -15,7 +15,7 @@ import (
 
 func TestCompletionsStreamWrongModel(t *testing.T) {
 	config := DefaultConfig("whatever")
-	config.BaseURL = "http://localhost/v1"
+	config.ApiBase = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 
 	_, err := client.CreateCompletionStream(
@@ -56,7 +56,7 @@ func TestCreateCompletionStream(t *testing.T) {
 
 	// Client portion of the test
 	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
+	config.ApiBase = server.URL + "/v1"
 	config.HTTPClient.Transport = &tokenRoundTripper{
 		test.GetTestToken(),
 		http.DefaultTransport,
@@ -141,7 +141,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 
 	// Client portion of the test
 	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
+	config.ApiBase = server.URL + "/v1"
 	config.HTTPClient.Transport = &tokenRoundTripper{
 		test.GetTestToken(),
 		http.DefaultTransport,

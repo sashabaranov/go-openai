@@ -31,7 +31,7 @@ func TestAudio(t *testing.T) {
 	defer ts.Close()
 
 	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
+	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 
 	testcases := []struct {
@@ -79,7 +79,7 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 	defer ts.Close()
 
 	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
+	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 
 	testcases := []struct {

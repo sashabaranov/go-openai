@@ -33,43 +33,37 @@ type ClientConfig struct {
 	Engine     string
 	ApiVersion string
 
-	authToken string
+	ApiKey string
 
 	HTTPClient *http.Client
-	BaseURL    string
+	ApiBase    string
 	OrgID      string
 
 	EmptyMessagesLimit uint
 }
 
-func DefaultConfig(authToken string) ClientConfig {
-	return ClientConfig{
-		HTTPClient: &http.Client{},
-		BaseURL:    openaiApiURLv1,
-		OrgID:      "",
-		authToken:  authToken,
-
-		EmptyMessagesLimit: defaultEmptyMessagesLimit,
-	}
+func DefaultConfig(apiKey string) (ClientConfig, error) {
+	return NewConfig(WithApiKey(apiKey))
 }
 
-func NewConfig(authTokenOrKey string, opts ...Option) (ClientConfig, error) {
+func NewConfig(opts ...Option) (ClientConfig, error) {
 	cfg := ClientConfig{
 		ApiType:    ApiTypeOpenAI,
 		Engine:     "",
 		ApiVersion: "",
 		HTTPClient: &http.Client{},
-		BaseURL:    openaiApiURLv1,
+		ApiBase:    openaiApiURLv1,
 		OrgID:      "",
-		authToken:  authTokenOrKey,
+		ApiKey:     "",
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
 	for _, o := range opts {
 		o(&cfg)
 	}
-	if authTokenOrKey == "" {
-		return ClientConfig{}, fmt.Errorf("auth token or key is required")
+
+	if cfg.ApiKey == "" {
+		return ClientConfig{}, fmt.Errorf("api key is required")
 	}
 
 	if _, ok := supportedApiType[cfg.ApiType]; !ok {
@@ -115,9 +109,15 @@ func WithHTTPClient(client *http.Client) Option {
 	}
 }
 
-func WithBaseURL(apiBase string) Option {
+func WithApiBase(apiBase string) Option {
 	return func(o *ClientConfig) {
-		o.BaseURL = apiBase
+		o.ApiBase = apiBase
+	}
+}
+
+func WithApiKey(apiKey string) Option {
+	return func(o *ClientConfig) {
+		o.ApiKey = apiKey
 	}
 }
 

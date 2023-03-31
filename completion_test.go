@@ -19,7 +19,7 @@ import (
 
 func TestCompletionsWrongModel(t *testing.T) {
 	config := DefaultConfig("whatever")
-	config.BaseURL = "http://localhost/v1"
+	config.ApiBase = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 
 	_, err := client.CreateCompletion(
@@ -57,7 +57,7 @@ func TestCompletions(t *testing.T) {
 	defer ts.Close()
 
 	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
+	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 

@@ -3,7 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 )
@@ -59,18 +58,7 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		var errRes ErrorResponse
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		if err != nil || errRes.Error == nil {
-			reqErr := RequestError{
-				StatusCode: res.StatusCode,
-				Err:        err,
-			}
-			err = fmt.Errorf("error, %w", &reqErr)
-			return
-		}
-		errRes.Error.StatusCode = res.StatusCode
-		err = fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)
+		err = fmt.Errorf("error, status code: %d", res.StatusCode)
 		return
 	}
 

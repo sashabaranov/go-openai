@@ -18,7 +18,7 @@ func TestAPI(t *testing.T) {
 	}
 
 	var err error
-	c := NewClient(apiToken)
+	c, _ := NewClient(apiToken)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
 	checks.NoError(t, err, "ListEngines error")
@@ -107,7 +107,7 @@ func TestAPIError(t *testing.T) {
 	}
 
 	var err error
-	c := NewClient(apiToken + "_invalid")
+	c, _ := NewClient(apiToken + "_invalid")
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
 	checks.NoError(t, err, "ListEngines did not fail")
@@ -131,7 +131,7 @@ func TestAPIError(t *testing.T) {
 func TestRequestError(t *testing.T) {
 	var err error
 
-	config := DefaultConfig("dummy")
+	config, _ := DefaultConfig("dummy")
 	config.ApiBase = "https://httpbin.org/status/418?"
 	c := NewClientWithConfig(config)
 	ctx := context.Background()

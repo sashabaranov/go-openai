@@ -24,7 +24,7 @@ func TestImages(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
+	config, _ := DefaultConfig(test.GetTestToken())
 	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
@@ -94,7 +94,7 @@ func TestImageEdit(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
+	config, _ := DefaultConfig(test.GetTestToken())
 	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
@@ -138,7 +138,7 @@ func TestImageEditWithoutMask(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
+	config, _ := DefaultConfig(test.GetTestToken())
 	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
@@ -204,7 +204,7 @@ func TestImageVariation(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
+	config, _ := DefaultConfig(test.GetTestToken())
 	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()

@@ -18,7 +18,7 @@ import (
 )
 
 func TestCompletionsWrongModel(t *testing.T) {
-	config := DefaultConfig("whatever")
+	config, _ := DefaultConfig("whatever")
 	config.ApiBase = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 
@@ -35,7 +35,7 @@ func TestCompletionsWrongModel(t *testing.T) {
 }
 
 func TestCompletionWithStream(t *testing.T) {
-	config := DefaultConfig("whatever")
+	config, _ := DefaultConfig("whatever")
 	client := NewClientWithConfig(config)
 
 	ctx := context.Background()
@@ -56,7 +56,7 @@ func TestCompletions(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
+	config, _ := DefaultConfig(test.GetTestToken())
 	config.ApiBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()

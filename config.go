@@ -6,33 +6,33 @@ import (
 )
 
 const (
-	openaiApiURLv1                 = "https://api.openai.com/v1"
+	openaiAPIURLv1                 = "https://api.openai.com/v1"
 	defaultEmptyMessagesLimit uint = 300
 
-	azureApiPrefix         = "openai"
+	azureAPIPrefix         = "openai"
 	azureDeploymentsPrefix = "deployments"
 )
 
-type ApiType string
+type APIType string
 
 const (
-	ApiTypeOpenAI  ApiType = "OPEN_AI"
-	ApiTypeAzure   ApiType = "AZURE"
-	ApiTypeAzureAD ApiType = "AZURE_AD"
+	APITypeOpenAI  APIType = "OPEN_AI"
+	APITypeAzure   APIType = "AZURE"
+	APITypeAzureAD APIType = "AZURE_AD"
 )
 
-var supportedApiType = map[ApiType]struct{}{
-	ApiTypeOpenAI:  {},
-	ApiTypeAzure:   {},
-	ApiTypeAzureAD: {},
+var supportedAPIType = map[APIType]struct{}{
+	APITypeOpenAI:  {},
+	APITypeAzure:   {},
+	APITypeAzureAD: {},
 }
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	ApiType    ApiType
-	ApiKey     string
-	ApiBase    string
-	ApiVersion string
+	APIType    APIType
+	APIKey     string
+	APIBase    string
+	APIVersion string
 
 	Engine string
 	OrgID  string
@@ -43,15 +43,15 @@ type ClientConfig struct {
 }
 
 func DefaultConfig(apiKey string) (ClientConfig, error) {
-	return NewConfig(WithApiKey(apiKey))
+	return NewConfig(WithAPIKey(apiKey))
 }
 
 func NewConfig(opts ...Option) (ClientConfig, error) {
 	cfg := ClientConfig{
-		ApiType:            ApiTypeOpenAI,
-		ApiKey:             "",
-		ApiBase:            openaiApiURLv1,
-		ApiVersion:         "",
+		APIType:            APITypeOpenAI,
+		APIKey:             "",
+		APIBase:            openaiAPIURLv1,
+		APIVersion:         "",
 		Engine:             "",
 		OrgID:              "",
 		HTTPClient:         &http.Client{},
@@ -61,16 +61,16 @@ func NewConfig(opts ...Option) (ClientConfig, error) {
 		o(&cfg)
 	}
 
-	if cfg.ApiKey == "" {
+	if cfg.APIKey == "" {
 		return ClientConfig{}, fmt.Errorf("api key is required")
 	}
 
-	if _, ok := supportedApiType[cfg.ApiType]; !ok {
-		return ClientConfig{}, fmt.Errorf("unsupported API type %s", cfg.ApiType)
+	if _, ok := supportedAPIType[cfg.APIType]; !ok {
+		return ClientConfig{}, fmt.Errorf("unsupported API type %s", cfg.APIType)
 	}
 
-	if cfg.ApiType == ApiTypeAzure || cfg.ApiType == ApiTypeAzureAD {
-		if cfg.ApiVersion == "" {
+	if cfg.APIType == APITypeAzure || cfg.APIType == APITypeAzureAD {
+		if cfg.APIVersion == "" {
 			return ClientConfig{}, fmt.Errorf("an API version is required for the Azure API type")
 		}
 	}
@@ -80,10 +80,10 @@ func NewConfig(opts ...Option) (ClientConfig, error) {
 
 type Option func(*ClientConfig)
 
-// WithApiType sets the API type to use.
-func WithApiType(apiType ApiType) Option {
+// WithAPIType sets the API type to use.
+func WithAPIType(apiType APIType) Option {
 	return func(o *ClientConfig) {
-		o.ApiType = apiType
+		o.APIType = apiType
 	}
 }
 
@@ -94,10 +94,10 @@ func WithEngine(engine string) Option {
 	}
 }
 
-// WithApiVersion sets the API version to use.
-func WithApiVersion(apiVersion string) Option {
+// WithAPIVersion sets the API version to use.
+func WithAPIVersion(apiVersion string) Option {
 	return func(o *ClientConfig) {
-		o.ApiVersion = apiVersion
+		o.APIVersion = apiVersion
 	}
 }
 
@@ -108,15 +108,15 @@ func WithHTTPClient(client *http.Client) Option {
 	}
 }
 
-func WithApiBase(apiBase string) Option {
+func WithAPIBase(apiBase string) Option {
 	return func(o *ClientConfig) {
-		o.ApiBase = apiBase
+		o.APIBase = apiBase
 	}
 }
 
-func WithApiKey(apiKey string) Option {
+func WithAPIKey(apiKey string) Option {
 	return func(o *ClientConfig) {
-		o.ApiKey = apiKey
+		o.APIKey = apiKey
 	}
 }
 

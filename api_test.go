@@ -132,7 +132,7 @@ func TestRequestError(t *testing.T) {
 	var err error
 
 	config, _ := DefaultConfig("dummy")
-	config.ApiBase = "https://httpbin.org/status/418?"
+	config.APIBase = "https://httpbin.org/status/418?"
 	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)

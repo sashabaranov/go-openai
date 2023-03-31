@@ -18,7 +18,7 @@ import (
 
 func TestChatCompletionsWrongModel(t *testing.T) {
 	config, _ := DefaultConfig("whatever")
-	config.ApiBase = "http://localhost/v1"
+	config.APIBase = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 
@@ -39,7 +39,7 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 
 func TestChatCompletionsWithStream(t *testing.T) {
 	config, _ := DefaultConfig("whatever")
-	config.ApiBase = "http://localhost/v1"
+	config.APIBase = "http://localhost/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 
@@ -61,7 +61,7 @@ func TestChatCompletions(t *testing.T) {
 	defer ts.Close()
 
 	config, _ := DefaultConfig(test.GetTestToken())
-	config.ApiBase = ts.URL + "/v1"
+	config.APIBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 

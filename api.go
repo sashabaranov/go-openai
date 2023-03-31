@@ -45,7 +45,7 @@ func NewOrgClient(authToken, org string) (*Client, error) {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.ApiKey))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.APIKey))
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data
@@ -90,13 +90,13 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 
 func (c *Client) fullURL(suffix string) string {
 	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
-	if c.config.ApiType == ApiTypeAzure || c.config.ApiType == ApiTypeAzureAD {
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		return fmt.Sprintf("%s%s/%s/%s%s?api-version=%s",
-			c.config.ApiBase, azureApiPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.ApiVersion)
+			c.config.APIBase, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
 	}
 
-	// c.config.ApiType == ApiTypeOpenAI || c.config.ApiType == ""
-	return fmt.Sprintf("%s%s", c.config.ApiBase, suffix)
+	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
+	return fmt.Sprintf("%s%s", c.config.APIBase, suffix)
 }
 
 func (c *Client) newStreamRequest(
@@ -116,11 +116,11 @@ func (c *Client) newStreamRequest(
 
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
-	if c.config.ApiType == ApiTypeAzure {
-		req.Header.Set("api-key", c.config.ApiKey)
+	if c.config.APIType == APITypeAzure {
+		req.Header.Set("api-key", c.config.APIKey)
 	} else {
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.ApiKey))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.APIKey))
 	}
 	return req, nil
 }

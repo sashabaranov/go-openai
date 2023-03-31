@@ -23,7 +23,7 @@ func TestListModels(t *testing.T) {
 	defer ts.Close()
 
 	config, _ := DefaultConfig(test.GetTestToken())
-	config.ApiBase = ts.URL + "/v1"
+	config.APIBase = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 

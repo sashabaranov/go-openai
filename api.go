@@ -83,6 +83,13 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 }
 
 func (c *Client) fullURL(suffix string) string {
+	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
+	if c.config.ApiType == ApiTypeAzure || c.config.ApiType == ApiTypeAzureAD {
+		return fmt.Sprintf("%s%s/%s/%s%s?api-version=%s",
+			c.config.BaseURL, azureApiPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.ApiVersion)
+	}
+
+	// c.config.ApiType == ApiTypeOpenAI || c.config.ApiType == ""
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }
 
@@ -100,7 +107,14 @@ func (c *Client) newStreamRequest(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 
+	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
+	// Azure API Key authentication
+	if c.config.ApiType == ApiTypeAzure {
+		req.Header.Set("api-key", c.config.authToken)
+	} else {
+		// OpenAI or Azure AD authentication
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	}
 	return req, nil
 }

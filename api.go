@@ -15,9 +15,12 @@ type Client struct {
 }
 
 // NewClient creates new OpenAI API client.
-func NewClient(authToken string) *Client {
-	config := DefaultConfig(authToken)
-	return NewClientWithConfig(config)
+func NewClient(authToken string) (*Client, error) {
+	config, err := DefaultConfig(authToken)
+	if err != nil {
+		return nil, err
+	}
+	return NewClientWithConfig(config), nil
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
@@ -31,10 +34,13 @@ func NewClientWithConfig(config ClientConfig) *Client {
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
 //
 // Deprecated: Please use NewClientWithConfig.
-func NewOrgClient(authToken, org string) *Client {
-	config := DefaultConfig(authToken)
+func NewOrgClient(authToken, org string) (*Client, error) {
+	config, err := DefaultConfig(authToken)
+	if err != nil {
+		return nil, err
+	}
 	config.OrgID = org
-	return NewClientWithConfig(config)
+	return NewClientWithConfig(config), nil
 }
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {

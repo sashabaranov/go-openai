@@ -30,14 +30,14 @@ var supportedApiType = map[ApiType]struct{}{
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
 	ApiType    ApiType
-	Engine     string
+	ApiKey     string
+	ApiBase    string
 	ApiVersion string
 
-	ApiKey string
+	Engine string
+	OrgID  string
 
 	HTTPClient *http.Client
-	ApiBase    string
-	OrgID      string
 
 	EmptyMessagesLimit uint
 }
@@ -48,14 +48,13 @@ func DefaultConfig(apiKey string) (ClientConfig, error) {
 
 func NewConfig(opts ...Option) (ClientConfig, error) {
 	cfg := ClientConfig{
-		ApiType:    ApiTypeOpenAI,
-		Engine:     "",
-		ApiVersion: "",
-		HTTPClient: &http.Client{},
-		ApiBase:    openaiApiURLv1,
-		OrgID:      "",
-		ApiKey:     "",
-
+		ApiType:            ApiTypeOpenAI,
+		ApiKey:             "",
+		ApiBase:            openaiApiURLv1,
+		ApiVersion:         "",
+		Engine:             "",
+		OrgID:              "",
+		HTTPClient:         &http.Client{},
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
 	for _, o := range opts {

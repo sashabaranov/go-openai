@@ -138,16 +138,16 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
+	urlSuffix := "/completions"
+	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
+		err = ErrCompletionUnsupportedModel
+		return
+	}
+
 	switch request.Prompt.(type) {
 	case string, []string:
 	default:
 		err = ErrCompletionRequestPromptTypeNotSupported
-		return
-	}
-
-	urlSuffix := "/completions"
-	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
-		err = ErrCompletionUnsupportedModel
 		return
 	}
 

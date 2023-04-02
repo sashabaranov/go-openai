@@ -20,13 +20,13 @@ func NewClient(authToken string, proxyAddr ...string) *Client {
 	config := DefaultConfig(authToken)
 
 	if len(proxyAddr) == 1 && proxyAddr[0] != "" {
-		parsedUrl, err := url.Parse(proxyAddr[0])
+		parsedURL, err := url.Parse(proxyAddr[0])
 
 		if err != nil {
 			panic(err)
 		}
 		transport := &http.Transport{
-			Proxy: http.ProxyURL(parsedUrl),
+			Proxy: http.ProxyURL(parsedURL),
 		}
 		config.HTTPClient.Transport = transport
 	}

@@ -27,6 +27,13 @@ func (c *Client) CreateCompletionStream(
 		err = ErrCompletionUnsupportedModel
 		return
 	}
+	
+	switch request.Prompt.(type) {
+	case string, []string:
+	default:
+		err = ErrCompletionRequestPromptTypeNotSupported
+		return
+	}
 
 	request.Stream = true
 	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)

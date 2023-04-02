@@ -7,8 +7,9 @@ import (
 )
 
 var (
-	ErrCompletionUnsupportedModel   = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
-	ErrCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
+	ErrCompletionUnsupportedModel              = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
+	ErrCompletionStreamNotSupported            = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
+	ErrCompletionRequestPromptTypeNotSupported = errors.New("the type of CompletionRequest.Promp only supports string and []string")                               //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -80,7 +81,7 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 // CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
 	Model            string         `json:"model"`
-	Prompt           string         `json:"prompt,omitempty"`
+	Prompt           any            `json:"prompt,omitempty"`
 	Suffix           string         `json:"suffix,omitempty"`
 	MaxTokens        int            `json:"max_tokens,omitempty"`
 	Temperature      float32        `json:"temperature,omitempty"`
@@ -134,6 +135,13 @@ func (c *Client) CreateCompletion(
 ) (response CompletionResponse, err error) {
 	if request.Stream {
 		err = ErrCompletionStreamNotSupported
+		return
+	}
+
+	switch request.Prompt.(type) {
+	case string, []string:
+	default:
+		err = ErrCompletionRequestPromptTypeNotSupported
 		return
 	}
 

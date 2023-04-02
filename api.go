@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -15,8 +16,20 @@ type Client struct {
 }
 
 // NewClient creates new OpenAI API client.
-func NewClient(authToken string) *Client {
+func NewClient(authToken string, proxyAddr ...string) *Client {
 	config := DefaultConfig(authToken)
+
+	if len(proxyAddr) == 1 && proxyAddr[0] != "" {
+		parsedUrl, err := url.Parse(proxyAddr[0])
+
+		if err != nil {
+			panic(err)
+		}
+		transport := &http.Transport{
+			Proxy: http.ProxyURL(parsedUrl),
+		}
+		config.HTTPClient.Transport = transport
+	}
 	return NewClientWithConfig(config)
 }
 

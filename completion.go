@@ -78,6 +78,17 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 	return !disabledModelsForEndpoints[endpoint][model]
 }
 
+func checkPromptType(prompt any) (ok bool) {
+	if prompt != nil {
+		switch prompt.(type) {
+		case string, []string:
+		default:
+			return
+		}
+	}
+	return true
+}
+
 // CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
 	Model            string         `json:"model"`
@@ -144,9 +155,7 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	switch request.Prompt.(type) {
-	case string, []string:
-	default:
+	if !checkPromptType(request.Prompt) {
 		err = ErrCompletionRequestPromptTypeNotSupported
 		return
 	}

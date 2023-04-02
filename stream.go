@@ -28,9 +28,7 @@ func (c *Client) CreateCompletionStream(
 		return
 	}
 
-	switch request.Prompt.(type) {
-	case string, []string:
-	default:
+	if !checkPromptType(request.Prompt) {
 		err = ErrCompletionRequestPromptTypeNotSupported
 		return
 	}

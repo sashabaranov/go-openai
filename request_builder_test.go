@@ -38,7 +38,6 @@ func TestRequestBuilderReturnsMarshallerErrors(t *testing.T) {
 	}
 }
 
-//nolint
 func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	var err error
 	ts := test.NewTestServer().OpenAITestServer()
@@ -56,7 +55,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
-
+	//nolint:lll
 	_, err = client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
@@ -71,7 +70,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
-
+	//nolint:lll
 	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)

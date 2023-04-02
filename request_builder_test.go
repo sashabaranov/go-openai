@@ -55,11 +55,6 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
-	//nolint:lll
-	_, err = client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
-	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
 
 	_, err = client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
 	if !errors.Is(err, errTestRequestBuilderFailed) {
@@ -68,11 +63,6 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 
 	_, err = client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
 	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-	//nolint:lll
-	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
-	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 
@@ -153,6 +143,30 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 
 	_, err = client.ListModels(ctx)
 	if !errors.Is(err, errTestRequestBuilderFailed) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+}
+
+func TestReturnsRequestBuilderErrorsAddtion(t *testing.T) {
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+
+	ctx := context.Background()
+
+	_, err = client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
+	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+
+	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
+	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 }

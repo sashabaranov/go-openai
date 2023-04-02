@@ -27,7 +27,7 @@ func (c *Client) CreateCompletionStream(
 		err = ErrCompletionUnsupportedModel
 		return
 	}
-	
+
 	switch request.Prompt.(type) {
 	case string, []string:
 	default:

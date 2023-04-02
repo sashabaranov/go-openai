@@ -38,6 +38,7 @@ func TestRequestBuilderReturnsMarshallerErrors(t *testing.T) {
 	}
 }
 
+//nolint
 func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	var err error
 	ts := test.NewTestServer().OpenAITestServer()

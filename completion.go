@@ -81,7 +81,7 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 func checkPromptType(prompt any) bool {
 	_, isString := prompt.(string)
 	_, isStringSlice := prompt.([]string)
-	return prompt == nil || isString || isStringSlice
+	return isString || isStringSlice
 }
 
 // CompletionRequest represents a request structure for completion API.

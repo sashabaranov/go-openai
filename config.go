@@ -48,13 +48,13 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzure(apiKey, baseURl, engine, apiVersion string) ClientConfig {
+func DefaultAzure(apiKey, baseURl, engine string) ClientConfig {
 	return ClientConfig{
 		authToken:  apiKey,
 		BaseURL:    baseURl,
 		OrgID:      "",
 		APIType:    APITypeAzure,
-		APIVersion: apiVersion,
+		APIVersion: "2023-03-15-preview",
 		Engine:     engine,
 
 		HTTPClient: &http.Client{},

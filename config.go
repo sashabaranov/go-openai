@@ -20,6 +20,8 @@ const (
 	APITypeAzureAD APIType = "AZURE_AD"
 )
 
+const AzureAPIKeyHeader = "api-key"
+
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
 	authToken string

@@ -3,8 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"fmt"
-	"net/http"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
@@ -52,20 +50,16 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
-	res, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
+	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return
-	}
-
-	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		err = fmt.Errorf("error, status code: %d", res.StatusCode)
 	}
 
 	stream = &ChatCompletionStream{
 		streamReader: &streamReader[ChatCompletionStreamResponse]{
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
-			reader:             bufio.NewReader(res.Body),
-			response:           res,
+			reader:             bufio.NewReader(resp.Body),
+			response:           resp,
 			errAccumulator:     newErrorAccumulator(),
 			unmarshaler:        &jsonUnmarshaler{},
 		},

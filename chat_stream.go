@@ -21,7 +21,7 @@ type ChatCompletionStreamResponse struct {
 	Created int64                        `json:"created"`
 	Model   string                       `json:"model"`
 	Choices []ChatCompletionStreamChoice `json:"choices"`
-	Usage   Usage                        `json:"usage"`
+	Usage   Usage                        `json:"usage,omitempty"`
 }
 
 // ChatCompletionStream

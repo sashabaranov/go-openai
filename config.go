@@ -47,3 +47,18 @@ func DefaultConfig(authToken string) ClientConfig {
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
 }
+
+func DefaultAzure(apiKey, baseURl, engine, apiVersion string) ClientConfig {
+	return ClientConfig{
+		authToken:  apiKey,
+		BaseURL:    baseURl,
+		OrgID:      "",
+		APIType:    APITypeAzure,
+		APIVersion: apiVersion,
+		Engine:     engine,
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}

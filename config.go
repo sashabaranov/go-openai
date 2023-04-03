@@ -50,7 +50,7 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzure(apiKey, baseURL, engine string) ClientConfig {
+func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
 	return ClientConfig{
 		authToken:  apiKey,
 		BaseURL:    baseURL,

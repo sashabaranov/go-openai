@@ -120,7 +120,7 @@ func TestAzureFullURL(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultAzure("dummy", c.BaseURL, c.Engine)
+			az := DefaultAzureConfig("dummy", c.BaseURL, c.Engine)
 			cli := NewClientWithConfig(az)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
 			actual := cli.fullURL("/chat/completions")

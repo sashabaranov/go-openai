@@ -23,9 +23,9 @@ const (
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
 	authToken string
-	BaseURL   string
-	OrgID     string
 
+	BaseURL    string
+	OrgID      string
 	APIType    APIType
 	APIVersion string // required for APITypeAzure or APITypeAzureAD
 	Engine     string // required for APITypeAzure or APITypeAzureAD

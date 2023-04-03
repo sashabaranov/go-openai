@@ -43,6 +43,13 @@ func TestRequestAuthHeader(t *testing.T) {
 		Expect    string
 	}{
 		{
+			"OpenAIDefault",
+			"",
+			"Authorization",
+			"dummy-token-openai",
+			"Bearer dummy-token-openai",
+		},
+		{
 			"OpenAI",
 			APITypeOpenAI,
 			"Authorization",
@@ -68,11 +75,7 @@ func TestRequestAuthHeader(t *testing.T) {
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
 			az := DefaultConfig(c.Token)
-			if c.APIType == APITypeAzureAD {
-				az.APIType = APITypeAzureAD
-			} else if c.APIType == APITypeAzure {
-				az.APIType = APITypeAzure
-			}
+			az.APIType = c.APIType
 
 			cli := NewClientWithConfig(az)
 			req, err := cli.newStreamRequest(context.Background(), "POST", "/chat/completions", nil)

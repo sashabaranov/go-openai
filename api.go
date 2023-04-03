@@ -39,7 +39,7 @@ func NewOrgClient(authToken, org string) *Client {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data
@@ -100,7 +100,7 @@ func (c *Client) newStreamRequest(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
 
 	return req, nil
 }

@@ -75,8 +75,8 @@ func TestErrorAccumulatorWriteErrors(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config, _ := DefaultConfig(test.GetTestToken())
-	config.APIBase = ts.URL + "/v1"
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
 
 	ctx := context.Background()

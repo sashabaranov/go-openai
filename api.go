@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -41,7 +42,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
-		req.Header.Set("api-key", c.config.authToken)
+		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
 	} else {
 		// OpenAI or Azure AD authentication
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
@@ -91,8 +92,10 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 func (c *Client) fullURL(suffix string) string {
 	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
-		return fmt.Sprintf("%s%s/%s/%s%s?api-version=%s",
-			c.config.BaseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
+		baseURL := c.config.BaseURL
+		baseURL = strings.TrimRight(baseURL, "/")
+		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
+			baseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""

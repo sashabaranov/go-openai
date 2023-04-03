@@ -29,8 +29,8 @@ type ClientConfig struct {
 	BaseURL    string
 	OrgID      string
 	APIType    APIType
-	APIVersion string // required for APITypeAzure or APITypeAzureAD
-	Engine     string // required for APITypeAzure or APITypeAzureAD
+	APIVersion string // required when APIType is APITypeAzure or APITypeAzureAD
+	Engine     string // required when APIType is APITypeAzure or APITypeAzureAD
 
 	HTTPClient *http.Client
 

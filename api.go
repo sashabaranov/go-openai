@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -39,7 +40,13 @@ func NewOrgClient(authToken, org string) *Client {
 
 func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	// Azure API Key authentication
+	if c.config.APIType == APITypeAzure {
+		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
+	} else {
+		// OpenAI or Azure AD authentication
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	}
 
 	// Check whether Content-Type is already set, Upload Files API requires
 	// Content-Type == multipart/form-data
@@ -83,6 +90,15 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 }
 
 func (c *Client) fullURL(suffix string) string {
+	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+		baseURL := c.config.BaseURL
+		baseURL = strings.TrimRight(baseURL, "/")
+		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
+			baseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
+	}
+
+	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }
 
@@ -100,7 +116,14 @@ func (c *Client) newStreamRequest(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
-	req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 
+	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
+	// Azure API Key authentication
+	if c.config.APIType == APITypeAzure {
+		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
+	} else {
+		// OpenAI or Azure AD authentication
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	}
 	return req, nil
 }

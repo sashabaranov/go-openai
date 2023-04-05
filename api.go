@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
@@ -19,6 +20,13 @@ type Client struct {
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)
 	return NewClientWithConfig(config)
+}
+
+// Add SetProxy to ClientConfig
+func (c *Client) SetProxy(url url.URL) {
+	c.config.HTTPClient.Transport = &http.Transport{
+		Proxy: http.ProxyURL(&url),
+	}
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.

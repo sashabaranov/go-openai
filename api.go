@@ -22,7 +22,7 @@ func NewClient(authToken string) *Client {
 	return NewClientWithConfig(config)
 }
 
-// Add SetProxy to ClientConfig
+// Add SetProxy to ClientConfig to set proxy for http client
 func (c *Client) SetProxy(url url.URL) {
 	c.config.HTTPClient.Transport = &http.Transport{
 		Proxy: http.ProxyURL(&url),

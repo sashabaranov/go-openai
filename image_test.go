@@ -119,11 +119,12 @@ func TestImageEdit(t *testing.T) {
 	}()
 
 	req := ImageEditRequest{
-		Image:  origin,
-		Mask:   mask,
-		Prompt: "There is a turtle in the pool",
-		N:      3,
-		Size:   CreateImageSize1024x1024,
+		Image:          origin,
+		Mask:           mask,
+		Prompt:         "There is a turtle in the pool",
+		N:              3,
+		Size:           CreateImageSize1024x1024,
+		ResponseFormat: CreateImageResponseFormatURL,
 	}
 	_, err = client.CreateEditImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -221,9 +222,10 @@ func TestImageVariation(t *testing.T) {
 	}()
 
 	req := ImageVariRequest{
-		Image: origin,
-		N:     3,
-		Size:  CreateImageSize1024x1024,
+		Image:          origin,
+		N:              3,
+		Size:           CreateImageSize1024x1024,
+		ResponseFormat: CreateImageResponseFormatURL,
 	}
 	_, err = client.CreateVariImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")

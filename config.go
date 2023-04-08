@@ -64,3 +64,7 @@ func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
 }
+
+func (ClientConfig) String() string {
+	return "<OpenAI API ClientConfig>"
+}

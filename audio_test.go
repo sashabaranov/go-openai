@@ -1,8 +1,9 @@
-package openai_test
+package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -11,7 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -186,5 +186,49 @@ func handleAudioEndpoint(w http.ResponseWriter, r *http.Request) {
 	if _, err = w.Write([]byte(`{"body": "hello"}`)); err != nil {
 		http.Error(w, "failed to write body", http.StatusInternalServerError)
 		return
+	}
+}
+
+func TestAudioWithFailingFormBuilder(t *testing.T) {
+	dir, cleanup := createTestDirectory(t)
+	defer cleanup()
+	path := filepath.Join(dir, "fake.mp3")
+	createTestFile(t, path)
+
+	req := AudioRequest{
+		FilePath:    path,
+		Prompt:      "test",
+		Temperature: 0.5,
+		Language:    "en",
+	}
+
+	mockFailedErr := fmt.Errorf("mock form builder fail")
+	mockBuilder := &mockFormBuilder{}
+
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+		return mockFailedErr
+	}
+	err := audioMultipartForm(req, mockBuilder)
+	checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
+
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+		return nil
+	}
+
+	var failForField string
+	mockBuilder.mockWriteField = func(fieldname, value string) error {
+		if fieldname == failForField {
+			return mockFailedErr
+		}
+		return nil
+	}
+
+	failOn := []string{"model", "prompt", "temperature", "language"}
+	for _, failingField := range failOn {
+		failForField = failingField
+		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)
+
+		err = audioMultipartForm(req, mockBuilder)
+		checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
 	}
 }

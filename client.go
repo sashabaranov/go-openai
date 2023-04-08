@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	"strings"
 )
@@ -12,7 +13,8 @@ import (
 type Client struct {
 	config ClientConfig
 
-	requestBuilder requestBuilder
+	requestBuilder    requestBuilder
+	createFormBuilder func(io.Writer) formBuilder
 }
 
 // NewClient creates new OpenAI API client.
@@ -26,6 +28,9 @@ func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
 		requestBuilder: newRequestBuilder(),
+		createFormBuilder: func(body io.Writer) formBuilder {
+			return newFormBuilder(body)
+		},
 	}
 }
 

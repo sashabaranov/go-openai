@@ -31,7 +31,7 @@ type FilesList struct {
 }
 
 // CreateFile uploads a jsonl file to GPT3
-// FilePath can be either a local file path or a URL.
+// FilePath must be a local file path.
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
 	var b bytes.Buffer
 	builder := c.createFormBuilder(&b)

@@ -30,7 +30,7 @@ func TestFileUpload(t *testing.T) {
 
 	req := FileRequest{
 		FileName: "test.go",
-		FilePath: "api.go",
+		FilePath: "client.go",
 		Purpose:  "fine-tune",
 	}
 	_, err = client.CreateFile(ctx, req)

@@ -344,3 +344,52 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	_, err = client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 }
+
+func TestVariImageFormBuilderFailures(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/images/variations", handleVariateImageEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+
+	mockBuilder := &mockFormBuilder{}
+	client.createFormBuilder = func(io.Writer) formBuilder {
+		return mockBuilder
+	}
+	ctx := context.Background()
+
+	req := ImageVariRequest{}
+
+	mockFailedErr := fmt.Errorf("mock form builder fail")
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+		return mockFailedErr
+	}
+	_, err = client.CreateVariImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
+
+	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {
+		return nil
+	}
+
+	var failForField string
+	mockBuilder.mockWriteField = func(fieldname, value string) error {
+		if fieldname == failForField {
+			return mockFailedErr
+		}
+		return nil
+	}
+
+	failForField = "n"
+	_, err = client.CreateVariImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
+
+	failForField = "size"
+	_, err = client.CreateVariImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
+}

@@ -4,10 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
-	"net/url"
 	"os"
 )
 
@@ -33,77 +30,38 @@ type FilesList struct {
 	Files []File `json:"data"`
 }
 
-// isUrl is a helper function that determines whether the given FilePath
-// is a remote URL or a local file path.
-func isURL(path string) bool {
-	_, err := url.ParseRequestURI(path)
-	if err != nil {
-		return false
-	}
-
-	u, err := url.Parse(path)
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		return false
-	}
-
-	return true
-}
-
 // CreateFile uploads a jsonl file to GPT3
-// FilePath can be either a local file path or a URL.
+// FilePath must be a local file path.
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
 	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
+	builder := c.createFormBuilder(&b)
 
-	var fw io.Writer
-
-	err = w.WriteField("purpose", request.Purpose)
+	err = builder.writeField("purpose", request.Purpose)
 	if err != nil {
 		return
 	}
 
-	fw, err = w.CreateFormFile("file", request.FileName)
+	fileData, err := os.Open(request.FilePath)
 	if err != nil {
 		return
 	}
 
-	var fileData io.ReadCloser
-	if isURL(request.FilePath) {
-		var remoteFile *http.Response
-		remoteFile, err = http.Get(request.FilePath)
-		if err != nil {
-			return
-		}
-
-		defer remoteFile.Body.Close()
-
-		// Check server response
-		if remoteFile.StatusCode != http.StatusOK {
-			err = fmt.Errorf("error, status code: %d, message: failed to fetch file", remoteFile.StatusCode)
-			return
-		}
-
-		fileData = remoteFile.Body
-	} else {
-		fileData, err = os.Open(request.FilePath)
-		if err != nil {
-			return
-		}
-	}
-
-	_, err = io.Copy(fw, fileData)
+	err = builder.createFormFile("file", fileData)
 	if err != nil {
 		return
 	}
 
-	w.Close()
+	err = builder.close()
+	if err != nil {
+		return
+	}
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/files"), &b)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("Content-Type", builder.formDataContentType())
 
 	err = c.sendRequest(req, &file)
 

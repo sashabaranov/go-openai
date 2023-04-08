@@ -282,16 +282,8 @@ func (fb *mockFormBuilder) formDataContentType() string {
 }
 
 func TestImageFormBuilderFailures(t *testing.T) {
-	server := test.NewTestServer()
-	server.RegisterHandler("/v1/images/edits", handleEditImageEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
+	config := DefaultConfig("")
+	config.BaseURL = ""
 	client := NewClientWithConfig(config)
 
 	mockBuilder := &mockFormBuilder{}
@@ -308,7 +300,7 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
 		return mockFailedErr
 	}
-	_, err = client.CreateEditImage(ctx, req)
+	_, err := client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 
 	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {
@@ -353,16 +345,8 @@ func TestImageFormBuilderFailures(t *testing.T) {
 }
 
 func TestVariImageFormBuilderFailures(t *testing.T) {
-	server := test.NewTestServer()
-	server.RegisterHandler("/v1/images/variations", handleVariateImageEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
+	config := DefaultConfig("")
+	config.BaseURL = ""
 	client := NewClientWithConfig(config)
 
 	mockBuilder := &mockFormBuilder{}
@@ -377,7 +361,7 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
 		return mockFailedErr
 	}
-	_, err = client.CreateVariImage(ctx, req)
+	_, err := client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
 
 	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {

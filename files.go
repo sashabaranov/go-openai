@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
 )
@@ -36,40 +34,34 @@ type FilesList struct {
 // FilePath can be either a local file path or a URL.
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
 	var b bytes.Buffer
-	w := multipart.NewWriter(&b)
+	builder := c.createFormBuilder(&b)
 
-	var fw io.Writer
-
-	err = w.WriteField("purpose", request.Purpose)
+	err = builder.writeField("purpose", request.Purpose)
 	if err != nil {
 		return
 	}
 
-	fw, err = w.CreateFormFile("file", request.FileName)
+	fileData, err := os.Open(request.FilePath)
 	if err != nil {
 		return
 	}
 
-	var fileData io.ReadCloser
-
-	fileData, err = os.Open(request.FilePath)
+	err = builder.createFormFile("file", fileData)
 	if err != nil {
 		return
 	}
 
-	_, err = io.Copy(fw, fileData)
+	err = builder.close()
 	if err != nil {
 		return
 	}
-
-	w.Close()
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL("/files"), &b)
 	if err != nil {
 		return
 	}
 
-	req.Header.Set("Content-Type", w.FormDataContentType())
+	req.Header.Set("Content-Type", builder.formDataContentType())
 
 	err = c.sendRequest(req, &file)
 

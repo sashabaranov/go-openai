@@ -7,7 +7,6 @@ import (
 	"io"
 	"mime/multipart"
 	"net/http"
-	"net/url"
 	"os"
 )
 
@@ -33,22 +32,6 @@ type FilesList struct {
 	Files []File `json:"data"`
 }
 
-// isUrl is a helper function that determines whether the given FilePath
-// is a remote URL or a local file path.
-func isURL(path string) bool {
-	_, err := url.ParseRequestURI(path)
-	if err != nil {
-		return false
-	}
-
-	u, err := url.Parse(path)
-	if err != nil || u.Scheme == "" || u.Host == "" {
-		return false
-	}
-
-	return true
-}
-
 // CreateFile uploads a jsonl file to GPT3
 // FilePath can be either a local file path or a URL.
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
@@ -68,27 +51,10 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	}
 
 	var fileData io.ReadCloser
-	if isURL(request.FilePath) {
-		var remoteFile *http.Response
-		remoteFile, err = http.Get(request.FilePath)
-		if err != nil {
-			return
-		}
 
-		defer remoteFile.Body.Close()
-
-		// Check server response
-		if remoteFile.StatusCode != http.StatusOK {
-			err = fmt.Errorf("error, status code: %d, message: failed to fetch file", remoteFile.StatusCode)
-			return
-		}
-
-		fileData = remoteFile.Body
-	} else {
-		fileData, err = os.Open(request.FilePath)
-		if err != nil {
-			return
-		}
+	fileData, err = os.Open(request.FilePath)
+	if err != nil {
+		return
 	}
 
 	_, err = io.Copy(fw, fileData)

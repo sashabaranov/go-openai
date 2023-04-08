@@ -343,6 +343,13 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	failForField = "size"
 	_, err = client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
+
+	failForField = ""
+	mockBuilder.mockClose = func() error {
+		return mockFailedErr
+	}
+	_, err = client.CreateEditImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 }
 
 func TestVariImageFormBuilderFailures(t *testing.T) {
@@ -392,4 +399,11 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	failForField = "size"
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
+
+	failForField = ""
+	mockBuilder.mockClose = func() error {
+		return mockFailedErr
+	}
+	_, err = client.CreateVariImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 }

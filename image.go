@@ -93,7 +93,11 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	if err != nil {
 		return
 	}
-	builder.close()
+	err = builder.close()
+	if err != nil {
+		return
+	}
+
 	urlSuffix := "/images/edits"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {
@@ -132,7 +136,11 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	if err != nil {
 		return
 	}
-	builder.close()
+	err = builder.close()
+	if err != nil {
+		return
+	}
+
 	//https://platform.openai.com/docs/api-reference/images/create-variation
 	urlSuffix := "/images/variations"
 	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)

@@ -28,6 +28,11 @@ func (c *Client) CreateCompletionStream(
 		return
 	}
 
+	if !checkPromptType(request.Prompt) {
+		err = ErrCompletionRequestPromptTypeNotSupported
+		return
+	}
+
 	request.Stream = true
 	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
 	if err != nil {

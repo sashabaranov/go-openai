@@ -19,5 +19,4 @@ func TestClient(t *testing.T) {
 	if client.config.OrgID != mockOrg {
 		t.Errorf("Client does not contain proper orgID")
 	}
-
 }

@@ -126,3 +126,17 @@ func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 	_, err = client.CreateFile(ctx, req)
 	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
 }
+
+func TestFileUploadWithNonExistentPath(t *testing.T) {
+	config := DefaultConfig("")
+	config.BaseURL = ""
+	client := NewClientWithConfig(config)
+
+	ctx := context.Background()
+	req := FileRequest{
+		FilePath: "some non existent file path/F616FD18-589E-44A8-BF0C-891EAE69C455",
+	}
+
+	_, err := client.CreateFile(ctx, req)
+	checks.ErrorIs(t, err, os.ErrNotExist, "CreateFile should return error if file does not exist")
+}

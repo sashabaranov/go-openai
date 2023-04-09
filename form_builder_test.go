@@ -13,10 +13,10 @@ import (
 type failingWriter struct {
 }
 
-var mockFailingWriterError = errors.New("mock writer failed")
+var errMockFailingWriterError = errors.New("mock writer failed")
 
 func (*failingWriter) Write([]byte) (int, error) {
-	return 0, mockFailingWriterError
+	return 0, errMockFailingWriterError
 }
 
 func TestFormBuilderWithFailingWriter(t *testing.T) {
@@ -32,7 +32,7 @@ func TestFormBuilderWithFailingWriter(t *testing.T) {
 
 	builder := newFormBuilder(&failingWriter{})
 	err = builder.createFormFile("file", file)
-	checks.ErrorIs(t, err, mockFailingWriterError, "formbuilder should return error if writer fails")
+	checks.ErrorIs(t, err, errMockFailingWriterError, "formbuilder should return error if writer fails")
 }
 
 func TestFormBuilderWithClosedFile(t *testing.T) {

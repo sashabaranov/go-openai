@@ -7,7 +7,7 @@ import (
 
 // APIError provides error information returned by the OpenAI API.
 type APIError struct {
-	Code       json.RawMessage `json:"code,omitempty"`
+	C          json.RawMessage `json:"code,omitempty"`
 	Message    string          `json:"message"`
 	Param      *string         `json:"param,omitempty"`
 	Type       string          `json:"type"`
@@ -28,20 +28,17 @@ func (e *APIError) Error() string {
 	return e.Message
 }
 
-func (e *APIError) CodeAsStringPtr() (*string, error) {
-	var s string
-	if err := json.Unmarshal(e.Code, &s); err != nil {
-		return nil, err
-	}
-	return &s, nil
-}
-
-func (e *APIError) CodeAsInt() (int, error) {
+// Code returns the error code as an int or string, depending on the API response.
+func (e *APIError) Code() (any, error) {
 	var i int
-	if err := json.Unmarshal(e.Code, &i); err != nil {
-		return 0, err
+	if err := json.Unmarshal(e.C, &i); err == nil {
+		return i, nil
 	}
-	return i, nil
+	var s string
+	if err := json.Unmarshal(e.C, &s); err == nil {
+		return &s, nil
+	}
+	return nil, fmt.Errorf("unknown code type: %s", e.C)
 }
 
 func (e *RequestError) Error() string {

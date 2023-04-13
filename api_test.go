@@ -1,6 +1,8 @@
 package openai_test
 
 import (
+	"encoding/json"
+
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -121,12 +123,20 @@ func TestAPIError(t *testing.T) {
 		t.Fatalf("Unexpected API error status code: %d", apiErr.StatusCode)
 	}
 
-	code, err := apiErr.CodeAsStringPtr()
+	code, err := apiErr.Code()
 	if err != nil {
 		t.Fatalf("Unexpected API error code: %s", err)
 	}
-	if code != nil && *code != "invalid_api_key" {
-		t.Fatalf("Unexpected API error code: %s", *code)
+
+	switch v := code.(type) {
+	case int:
+		t.Fatalf("Unexpected API error code integer: %d; expected string `invalid_api_key`", v)
+	case *string:
+		if *v != "invalid_api_key" {
+			t.Fatalf("Unexpected API error code: %s", *v)
+		}
+	default:
+		t.Fatalf("Unexpected API error code type: %T", v)
 	}
 	if apiErr.Error() == "" {
 		t.Fatal("Empty error message occurred")

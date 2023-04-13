@@ -143,6 +143,51 @@ func TestAPIError(t *testing.T) {
 	}
 }
 
+func TestAPIErrorCode(t *testing.T) {
+	// test integer code
+	response := `{"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+	var apiErr APIError
+	err := json.Unmarshal([]byte(response), &apiErr)
+	checks.NoError(t, err, "Unexpected Unmarshal API response error")
+
+	code, err := apiErr.Code()
+	checks.NoError(t, err, "Unexpected API code error")
+
+	switch v := code.(type) {
+	case int:
+		if v != 418 {
+			t.Fatalf("Unexpected API code integer: %d; expected 418", v)
+		}
+	default:
+		t.Fatalf("Unexpected API error code type: %T", v)
+	}
+
+	// test string code
+	response = `{"code":"teapot","message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+	err = json.Unmarshal([]byte(response), &apiErr)
+	checks.NoError(t, err, "Unexpected Unmarshal API response error")
+
+	code, err = apiErr.Code()
+	checks.NoError(t, err, "Unexpected API code error")
+
+	switch v := code.(type) {
+	case *string:
+		if *v != "teapot" {
+			t.Fatalf("Unexpected API code string: %s; expected `teapot`", *v)
+		}
+	default:
+		t.Fatalf("Unexpected API error code type: %T", v)
+	}
+
+	// test unknown code type
+	response = `{"code":true,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+	err = json.Unmarshal([]byte(response), &apiErr)
+	checks.NoError(t, err, "Unexpected Unmarshal API response error")
+
+	_, err = apiErr.Code()
+	checks.HasError(t, err, "Expected error for unknown API code type")
+}
+
 func TestRequestError(t *testing.T) {
 	var err error
 

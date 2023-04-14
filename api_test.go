@@ -120,9 +120,16 @@ func TestAPIError(t *testing.T) {
 	if apiErr.StatusCode != 401 {
 		t.Fatalf("Unexpected API error status code: %d", apiErr.StatusCode)
 	}
-	if *apiErr.Code != "invalid_api_key" {
-		t.Fatalf("Unexpected API error code: %s", *apiErr.Code)
+
+	switch v := apiErr.Code.(type) {
+	case string:
+		if v != "invalid_api_key" {
+			t.Fatalf("Unexpected API error code: %s", v)
+		}
+	default:
+		t.Fatalf("Unexpected API error code type: %T", v)
 	}
+
 	if apiErr.Error() == "" {
 		t.Fatal("Empty error message occurred")
 	}

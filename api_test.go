@@ -183,6 +183,26 @@ func TestAPIErrorUnmarshalJSONNoCode(t *testing.T) {
 	}
 }
 
+func TestAPIErrorUnmarshalInvalidData(t *testing.T) {
+	apiErr := APIError{}
+	data := []byte(`--- {"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`)
+	err := apiErr.UnmarshalJSON(data)
+	checks.HasError(t, err, "Expected error when unmarshaling invalid data")
+
+	if apiErr.Code != nil {
+		t.Fatalf("Expected nil code, got %q", apiErr.Code)
+	}
+	if apiErr.Message != "" {
+		t.Fatalf("Expected empty message, got %q", apiErr.Message)
+	}
+	if apiErr.Param != nil {
+		t.Fatalf("Expected nil param, got %q", *apiErr.Param)
+	}
+	if apiErr.Type != "" {
+		t.Fatalf("Expected empty type, got %q", apiErr.Type)
+	}
+}
+
 func TestAPIErrorUnmarshalJSONInvalidParam(t *testing.T) {
 	var apiErr APIError
 	response := `{"code":418,"message":"I'm a teapot","param":true,"type":"teapot_error"}`

@@ -110,7 +110,7 @@ func TestAPIError(t *testing.T) {
 	c := NewClient(apiToken + "_invalid")
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
-	checks.NoError(t, err, "ListEngines did not fail")
+	checks.HasError(t, err, "ListEngines should fail with an invalid key")
 
 	var apiErr *APIError
 	if !errors.As(err, &apiErr) {

@@ -137,10 +137,9 @@ func TestAPIError(t *testing.T) {
 	}
 }
 
-func TestAPIErrorUnmarshalJSON(t *testing.T) {
-	// test integer code
-	response := `{"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+func TestAPIErrorUnmarshalJSONInteger(t *testing.T) {
 	var apiErr APIError
+	response := `{"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
 	err := json.Unmarshal([]byte(response), &apiErr)
 	checks.NoError(t, err, "Unexpected Unmarshal API response error")
 
@@ -152,10 +151,12 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 	default:
 		t.Fatalf("Unexpected API error code type: %T", v)
 	}
+}
 
-	// test string code
-	response = `{"code":"teapot","message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
-	err = json.Unmarshal([]byte(response), &apiErr)
+func TestAPIErrorUnmarshalJSONString(t *testing.T) {
+	var apiErr APIError
+	response := `{"code":"teapot","message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+	err := json.Unmarshal([]byte(response), &apiErr)
 	checks.NoError(t, err, "Unexpected Unmarshal API response error")
 
 	switch v := apiErr.Code.(type) {
@@ -166,6 +167,41 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 	default:
 		t.Fatalf("Unexpected API error code type: %T", v)
 	}
+}
+
+func TestAPIErrorUnmarshalJSONNoCode(t *testing.T) {
+	// test integer code
+	response := `{"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`
+	var apiErr APIError
+	err := json.Unmarshal([]byte(response), &apiErr)
+	checks.NoError(t, err, "Unexpected Unmarshal API response error")
+
+	switch v := apiErr.Code.(type) {
+	case nil:
+	default:
+		t.Fatalf("Unexpected API error code type: %T", v)
+	}
+}
+
+func TestAPIErrorUnmarshalJSONInvalidParam(t *testing.T) {
+	var apiErr APIError
+	response := `{"code":418,"message":"I'm a teapot","param":true,"type":"teapot_error"}`
+	err := json.Unmarshal([]byte(response), &apiErr)
+	checks.HasError(t, err, "Param should be a string")
+}
+
+func TestAPIErrorUnmarshalJSONInvalidType(t *testing.T) {
+	var apiErr APIError
+	response := `{"code":418,"message":"I'm a teapot","param":"prompt","type":true}`
+	err := json.Unmarshal([]byte(response), &apiErr)
+	checks.HasError(t, err, "Type should be a string")
+}
+
+func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
+	var apiErr APIError
+	response := `{"code":418,"message":false,"param":"prompt","type":"teapot_error"}`
+	err := json.Unmarshal([]byte(response), &apiErr)
+	checks.HasError(t, err, "Message should be a string")
 }
 
 func TestRequestError(t *testing.T) {

@@ -211,7 +211,11 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		w.WriteHeader(429)
 
 		// Send test responses
-		dataBytes := []byte(`{"error":{"message": "You are sending requests too quickly.","type":"rate_limit_reached","param":null,"code":"rate_limit_reached"}}`)
+		dataBytes := []byte(`{"error":{` +
+			`"message": "You are sending requests too quickly.",` +
+			`"type":"rate_limit_reached",` +
+			`"param":null,` +
+			`"code":"rate_limit_reached"}}`)
 
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")

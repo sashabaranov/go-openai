@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"sync"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -15,6 +16,8 @@ type Client struct {
 
 	requestBuilder    requestBuilder
 	createFormBuilder func(io.Writer) formBuilder
+
+	mu sync.Mutex
 }
 
 // NewClient creates new OpenAI API client.
@@ -31,6 +34,7 @@ func NewClientWithConfig(config ClientConfig) *Client {
 		createFormBuilder: func(body io.Writer) formBuilder {
 			return newFormBuilder(body)
 		},
+		mu: sync.Mutex{},
 	}
 }
 
@@ -131,4 +135,32 @@ func (c *Client) newStreamRequest(
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
 	return req, nil
+}
+
+// SetConfig update client config.
+func (c *Client) SetConfig(config ClientConfig) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.config = config
+}
+
+// SetAuthToken update authToken.
+func (c *Client) SetAuthToken(authToken string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.config.authToken = authToken
+}
+
+// SetOrgID update orgID.
+func (c *Client) SetOrgID(orgID string) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.config.OrgID = orgID
+}
+
+// SetHTTPClient update http client.
+func (c *Client) SetHTTPClient(client *http.Client) {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+	c.config.HTTPClient = client
 }

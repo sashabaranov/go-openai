@@ -22,7 +22,7 @@ type streamReader[T streamable] struct {
 	unmarshaler    unmarshaler
 }
 
-func (stream *streamReader[T]) GetHttpResponse() (*http.Response, error) {
+func (stream *streamReader[T]) GetHTTPResponse() (*http.Response, error) {
 	return stream.response, nil
 }
 

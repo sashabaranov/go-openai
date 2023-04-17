@@ -22,6 +22,10 @@ type streamReader[T streamable] struct {
 	unmarshaler    unmarshaler
 }
 
+func (stream *streamReader[T]) GetHttpResponse() (*http.Response, error) {
+	return stream.response, nil
+}
+
 func (stream *streamReader[T]) Recv() (response T, err error) {
 	if stream.isFinished {
 		err = io.EOF

@@ -126,7 +126,6 @@ func (c *Client) newStreamRequest(
 func (c *Client) handleErrorResp(resp *http.Response) error {
 	var errRes ErrorResponse
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
-	fmt.Println(err)
 	if err != nil || errRes.Error == nil {
 		reqErr := RequestError{
 			StatusCode: resp.StatusCode,

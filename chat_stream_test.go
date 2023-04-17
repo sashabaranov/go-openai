@@ -250,7 +250,7 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 	var apiErr *APIError
 	_, err := client.CreateChatCompletionStream(ctx, request)
 	if !errors.As(err, &apiErr) {
-		t.Errorf("CreateChatCompletionStream did not return APIError")
+		t.Errorf("TestCreateChatCompletionStreamRateLimitError did not return APIError")
 	}
 	t.Logf("%+v\n", apiErr)
 }

@@ -145,6 +145,11 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	if !errors.Is(err, errTestRequestBuilderFailed) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
+
+	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
+	if !errors.Is(err, errTestRequestBuilderFailed) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
 }
 
 func TestReturnsRequestBuilderErrorsAddtion(t *testing.T) {

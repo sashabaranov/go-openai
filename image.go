@@ -86,14 +86,17 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("n", strconv.Itoa(request.N))
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("size", request.Size)
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("response_format", request.ResponseFormat)
 	if err != nil {
 		return
@@ -139,14 +142,17 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("size", request.Size)
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("response_format", request.ResponseFormat)
 	if err != nil {
 		return
 	}
+
 	err = builder.close()
 	if err != nil {
 		return

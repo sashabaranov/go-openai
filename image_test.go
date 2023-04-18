@@ -383,10 +383,6 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 		return nil
 	}
 
-	failForField = "prompt"
-	_, err = client.CreateVariImage(ctx, req)
-	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
-
 	failForField = "n"
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")

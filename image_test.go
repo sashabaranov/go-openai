@@ -118,11 +118,12 @@ func TestImageEdit(t *testing.T) {
 	}()
 
 	req := ImageEditRequest{
-		Image:  origin,
-		Mask:   mask,
-		Prompt: "There is a turtle in the pool",
-		N:      3,
-		Size:   CreateImageSize1024x1024,
+		Image:          origin,
+		Mask:           mask,
+		Prompt:         "There is a turtle in the pool",
+		N:              3,
+		Size:           CreateImageSize1024x1024,
+		ResponseFormat: CreateImageResponseFormatURL,
 	}
 	_, err = client.CreateEditImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -154,10 +155,11 @@ func TestImageEditWithoutMask(t *testing.T) {
 	}()
 
 	req := ImageEditRequest{
-		Image:  origin,
-		Prompt: "There is a turtle in the pool",
-		N:      3,
-		Size:   CreateImageSize1024x1024,
+		Image:          origin,
+		Prompt:         "There is a turtle in the pool",
+		N:              3,
+		Size:           CreateImageSize1024x1024,
+		ResponseFormat: CreateImageResponseFormatURL,
 	}
 	_, err = client.CreateEditImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -220,9 +222,10 @@ func TestImageVariation(t *testing.T) {
 	}()
 
 	req := ImageVariRequest{
-		Image: origin,
-		N:     3,
-		Size:  CreateImageSize1024x1024,
+		Image:          origin,
+		N:              3,
+		Size:           CreateImageSize1024x1024,
+		ResponseFormat: CreateImageResponseFormatURL,
 	}
 	_, err = client.CreateVariImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -336,6 +339,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	_, err = client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 
+	failForField = "response_format"
+	_, err = client.CreateEditImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
+
 	failForField = ""
 	mockBuilder.mockClose = func() error {
 		return mockFailedErr
@@ -381,6 +388,10 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
 
 	failForField = "size"
+	_, err = client.CreateVariImage(ctx, req)
+	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
+
+	failForField = "response_format"
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
 

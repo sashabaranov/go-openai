@@ -55,11 +55,12 @@ func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (respons
 
 // ImageEditRequest represents the request structure for the image API.
 type ImageEditRequest struct {
-	Image  *os.File `json:"image,omitempty"`
-	Mask   *os.File `json:"mask,omitempty"`
-	Prompt string   `json:"prompt,omitempty"`
-	N      int      `json:"n,omitempty"`
-	Size   string   `json:"size,omitempty"`
+	Image          *os.File `json:"image,omitempty"`
+	Mask           *os.File `json:"mask,omitempty"`
+	Prompt         string   `json:"prompt,omitempty"`
+	N              int      `json:"n,omitempty"`
+	Size           string   `json:"size,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
 }
 
 // CreateEditImage - API call to create an image. This is the main endpoint of the DALL-E API.
@@ -85,14 +86,22 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("n", strconv.Itoa(request.N))
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("size", request.Size)
 	if err != nil {
 		return
 	}
+
+	err = builder.writeField("response_format", request.ResponseFormat)
+	if err != nil {
+		return
+	}
+
 	err = builder.close()
 	if err != nil {
 		return
@@ -111,9 +120,10 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 
 // ImageVariRequest represents the request structure for the image API.
 type ImageVariRequest struct {
-	Image *os.File `json:"image,omitempty"`
-	N     int      `json:"n,omitempty"`
-	Size  string   `json:"size,omitempty"`
+	Image          *os.File `json:"image,omitempty"`
+	N              int      `json:"n,omitempty"`
+	Size           string   `json:"size,omitempty"`
+	ResponseFormat string   `json:"response_format,omitempty"`
 }
 
 // CreateVariImage - API call to create an image variation. This is the main endpoint of the DALL-E API.
@@ -132,10 +142,17 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	if err != nil {
 		return
 	}
+
 	err = builder.writeField("size", request.Size)
 	if err != nil {
 		return
 	}
+
+	err = builder.writeField("response_format", request.ResponseFormat)
+	if err != nil {
+		return
+	}
+
 	err = builder.close()
 	if err != nil {
 		return

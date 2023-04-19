@@ -13,11 +13,13 @@ const (
 	Whisper1 = "whisper-1"
 )
 
-// Response formats; Whisper uses JSON by default.
+// Response formats; Whisper uses AudioResponseFormatJSON by default.
+type AudioResponseFormat string
+
 const (
-	AudioResponseFormatJSON = "json"
-	AudioResponseFormatSRT  = "srt"
-	AudioResponseFormatVTT  = "vtt"
+	AudioResponseFormatJSON AudioResponseFormat = "json"
+	AudioResponseFormatSRT  AudioResponseFormat = "srt"
+	AudioResponseFormatVTT  AudioResponseFormat = "vtt"
 )
 
 // AudioRequest represents a request structure for audio API.
@@ -28,7 +30,7 @@ type AudioRequest struct {
 	Prompt      string // For translation, it should be in English
 	Temperature float32
 	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
-	Format      string
+	Format      AudioResponseFormat
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -116,7 +118,7 @@ func audioMultipartForm(request AudioRequest, b formBuilder) error {
 
 	// Create a form field for the format (if provided)
 	if request.Format != "" {
-		err = b.writeField("response_format", request.Format)
+		err = b.writeField("response_format", string(request.Format))
 		if err != nil {
 			return fmt.Errorf("writing format: %w", err)
 		}

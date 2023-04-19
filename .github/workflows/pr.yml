@@ -1,10 +1,12 @@
-name: PR sanity check
+name: Sanity check
 
-on: pull_request
+on:
+  - push
+  - pull_request
 
 jobs:
   prcheck:
-    name: PR sanity check
+    name: Sanity check
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
@@ -20,4 +22,6 @@ jobs:
       with:
         version: latest
     - name: Run tests
-      run: go test -v .
+      run: go test -race -covermode=atomic -coverprofile=coverage.out -v .
+    - name: Upload coverage reports to Codecov
+      uses: codecov/codecov-action@v3

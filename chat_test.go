@@ -7,7 +7,6 @@ import (
 
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -17,39 +16,44 @@ import (
 	"time"
 )
 
-func TestCompletionsWrongModel(t *testing.T) {
+func TestChatCompletionsWrongModel(t *testing.T) {
 	config := DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
 	client := NewClientWithConfig(config)
+	ctx := context.Background()
 
-	_, err := client.CreateCompletion(
-		context.Background(),
-		CompletionRequest{
-			MaxTokens: 5,
-			Model:     GPT3Dot5Turbo,
+	req := ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     "ada",
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
 		},
-	)
-	if !errors.Is(err, ErrCompletionUnsupportedModel) {
-		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
 	}
+	_, err := client.CreateChatCompletion(ctx, req)
+	msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+	checks.ErrorIs(t, err, ErrChatCompletionInvalidModel, msg)
 }
 
-func TestCompletionWithStream(t *testing.T) {
+func TestChatCompletionsWithStream(t *testing.T) {
 	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
 	client := NewClientWithConfig(config)
-
 	ctx := context.Background()
-	req := CompletionRequest{Stream: true}
-	_, err := client.CreateCompletion(ctx, req)
-	if !errors.Is(err, ErrCompletionStreamNotSupported) {
-		t.Fatalf("CreateCompletion didn't return ErrCompletionStreamNotSupported")
+
+	req := ChatCompletionRequest{
+		Stream: true,
 	}
+	_, err := client.CreateChatCompletion(ctx, req)
+	checks.ErrorIs(t, err, ErrChatCompletionStreamNotSupported, "unexpected error")
 }
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
-func TestCompletions(t *testing.T) {
+func TestChatCompletions(t *testing.T) {
 	server := test.NewTestServer()
-	server.RegisterHandler("/v1/completions", handleCompletionEndpoint)
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
 	// create the test server
 	var err error
 	ts := server.OpenAITestServer()
@@ -61,17 +65,22 @@ func TestCompletions(t *testing.T) {
 	client := NewClientWithConfig(config)
 	ctx := context.Background()
 
-	req := CompletionRequest{
+	req := ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     "ada",
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
 	}
-	req.Prompt = "Lorem ipsum"
-	_, err = client.CreateCompletion(ctx, req)
-	checks.NoError(t, err, "CreateCompletion error")
+	_, err = client.CreateChatCompletion(ctx, req)
+	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
-// handleCompletionEndpoint Handles the completion endpoint by the test server.
-func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
+// handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.
+func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resBytes []byte
 
@@ -79,12 +88,12 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-	var completionReq CompletionRequest
-	if completionReq, err = getCompletionBody(r); err != nil {
+	var completionReq ChatCompletionRequest
+	if completionReq, err = getChatCompletionBody(r); err != nil {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
-	res := CompletionResponse{
+	res := ChatCompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
 		Created: time.Now().Unix(),
@@ -97,15 +106,16 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < completionReq.N; i++ {
 		// generate a random string of length completionReq.Length
 		completionStr := strings.Repeat("a", completionReq.MaxTokens)
-		if completionReq.Echo {
-			completionStr = completionReq.Prompt.(string) + completionStr
-		}
-		res.Choices = append(res.Choices, CompletionChoice{
-			Text:  completionStr,
+
+		res.Choices = append(res.Choices, ChatCompletionChoice{
+			Message: ChatCompletionMessage{
+				Role:    ChatMessageRoleAssistant,
+				Content: completionStr,
+			},
 			Index: i,
 		})
 	}
-	inputTokens := numTokens(completionReq.Prompt.(string)) * completionReq.N
+	inputTokens := numTokens(completionReq.Messages[0].Content) * completionReq.N
 	completionTokens := completionReq.MaxTokens * completionReq.N
 	res.Usage = Usage{
 		PromptTokens:     inputTokens,
@@ -116,17 +126,17 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	fmt.Fprintln(w, string(resBytes))
 }
 
-// getCompletionBody Returns the body of the request to create a completion.
-func getCompletionBody(r *http.Request) (CompletionRequest, error) {
-	completion := CompletionRequest{}
+// getChatCompletionBody Returns the body of the request to create a completion.
+func getChatCompletionBody(r *http.Request) (ChatCompletionRequest, error) {
+	completion := ChatCompletionRequest{}
 	// read the request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		return CompletionRequest{}, err
+		return ChatCompletionRequest{}, err
 	}
 	err = json.Unmarshal(reqBody, &completion)
 	if err != nil {
-		return CompletionRequest{}, err
+		return ChatCompletionRequest{}, err
 	}
 	return completion, nil
 }

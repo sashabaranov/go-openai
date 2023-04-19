@@ -1,8 +1,9 @@
-package openai_test
+package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"mime"
 	"mime/multipart"
@@ -11,8 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
 	"testing"
@@ -49,48 +50,73 @@ func TestAudio(t *testing.T) {
 
 	ctx := context.Background()
 
-	dir, cleanup := createTestDirectory(t)
+	dir, cleanup := test.CreateTestDirectory(t)
 	defer cleanup()
 
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
 			path := filepath.Join(dir, "fake.mp3")
-			createTestFile(t, path)
+			test.CreateTestFile(t, path)
 
 			req := AudioRequest{
 				FilePath: path,
 				Model:    "whisper-3",
 			}
 			_, err = tc.createFn(ctx, req)
-			if err != nil {
-				t.Fatalf("audio API error: %v", err)
-			}
+			checks.NoError(t, err, "audio API error")
 		})
 	}
 }
 
-// createTestFile creates a fake file with "hello" as the content.
-func createTestFile(t *testing.T, path string) {
-	file, err := os.Create(path)
-	if err != nil {
-		t.Fatalf("failed to create file %v", err)
-	}
-	if _, err = file.WriteString("hello"); err != nil {
-		t.Fatalf("failed to write to file %v", err)
-	}
-	file.Close()
-}
+func TestAudioWithOptionalArgs(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/audio/transcriptions", handleAudioEndpoint)
+	server.RegisterHandler("/v1/audio/translations", handleAudioEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
 
-// createTestDirectory creates a temporary folder which will be deleted when cleanup is called.
-func createTestDirectory(t *testing.T) (path string, cleanup func()) {
-	t.Helper()
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
 
-	path, err := os.MkdirTemp(os.TempDir(), "")
-	if err != nil {
-		t.Fatal(err)
+	testcases := []struct {
+		name     string
+		createFn func(context.Context, AudioRequest) (AudioResponse, error)
+	}{
+		{
+			"transcribe",
+			client.CreateTranscription,
+		},
+		{
+			"translate",
+			client.CreateTranslation,
+		},
 	}
 
-	return path, func() { os.RemoveAll(path) }
+	ctx := context.Background()
+
+	dir, cleanup := test.CreateTestDirectory(t)
+	defer cleanup()
+
+	for _, tc := range testcases {
+		t.Run(tc.name, func(t *testing.T) {
+			path := filepath.Join(dir, "fake.mp3")
+			test.CreateTestFile(t, path)
+
+			req := AudioRequest{
+				FilePath:    path,
+				Model:       "whisper-3",
+				Prompt:      "用简体中文",
+				Temperature: 0.5,
+				Language:    "zh",
+			}
+			_, err = tc.createFn(ctx, req)
+			checks.NoError(t, err, "audio API error")
+		})
+	}
 }
 
 // handleAudioEndpoint Handles the completion endpoint by the test server.
@@ -139,5 +165,49 @@ func handleAudioEndpoint(w http.ResponseWriter, r *http.Request) {
 	if _, err = w.Write([]byte(`{"body": "hello"}`)); err != nil {
 		http.Error(w, "failed to write body", http.StatusInternalServerError)
 		return
+	}
+}
+
+func TestAudioWithFailingFormBuilder(t *testing.T) {
+	dir, cleanup := test.CreateTestDirectory(t)
+	defer cleanup()
+	path := filepath.Join(dir, "fake.mp3")
+	test.CreateTestFile(t, path)
+
+	req := AudioRequest{
+		FilePath:    path,
+		Prompt:      "test",
+		Temperature: 0.5,
+		Language:    "en",
+	}
+
+	mockFailedErr := fmt.Errorf("mock form builder fail")
+	mockBuilder := &mockFormBuilder{}
+
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+		return mockFailedErr
+	}
+	err := audioMultipartForm(req, mockBuilder)
+	checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
+
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+		return nil
+	}
+
+	var failForField string
+	mockBuilder.mockWriteField = func(fieldname, value string) error {
+		if fieldname == failForField {
+			return mockFailedErr
+		}
+		return nil
+	}
+
+	failOn := []string{"model", "prompt", "temperature", "language"}
+	for _, failingField := range failOn {
+		failForField = failingField
+		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)
+
+		err = audioMultipartForm(req, mockBuilder)
+		checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
 	}
 }

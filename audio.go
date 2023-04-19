@@ -13,7 +13,7 @@ const (
 	Whisper1 = "whisper-1"
 )
 
-// Response formats
+// Response formats; Whisper uses JSON by default.
 const (
 	AudioResponseFormatJSON = "json"
 	AudioResponseFormatSRT  = "srt"

@@ -85,21 +85,23 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 		return fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)
 	}
 
-	if v != nil {
-		if result, ok := v.(*string); ok {
-			b, err := io.ReadAll(res.Body)
-			if err != nil {
-				return err
-			}
-			*result = string(b)
-			return nil
-		}
-		if err = json.NewDecoder(res.Body).Decode(v); err != nil {
-			return err
-		}
+	return decodeResponse(v, *res)
+}
+
+func decodeResponse(v interface{}, res http.Response) error {
+	if v == nil {
+		return nil
 	}
 
-	return nil
+	if result, ok := v.(*string); ok {
+		b, err := io.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+		*result = string(b)
+		return nil
+	}
+	return json.NewDecoder(res.Body).Decode(v)
 }
 
 func (c *Client) fullURL(suffix string) string {

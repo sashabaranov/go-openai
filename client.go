@@ -86,6 +86,14 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	}
 
 	if v != nil {
+		if result, ok := v.(*string); ok {
+			b, err := io.ReadAll(res.Body)
+			if err != nil {
+				return err
+			}
+			*result = string(b)
+			return nil
+		}
 		if err = json.NewDecoder(res.Body).Decode(v); err != nil {
 			return err
 		}

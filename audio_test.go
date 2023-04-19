@@ -112,6 +112,7 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 				Prompt:      "用简体中文",
 				Temperature: 0.5,
 				Language:    "zh",
+				Format:      AudioResponseFormatSRT,
 			}
 			_, err = tc.createFn(ctx, req)
 			checks.NoError(t, err, "audio API error")
@@ -179,6 +180,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		Prompt:      "test",
 		Temperature: 0.5,
 		Language:    "en",
+		Format:      AudioResponseFormatSRT,
 	}
 
 	mockFailedErr := fmt.Errorf("mock form builder fail")
@@ -202,7 +204,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		return nil
 	}
 
-	failOn := []string{"model", "prompt", "temperature", "language"}
+	failOn := []string{"model", "prompt", "temperature", "language", "response_format"}
 	for _, failingField := range failOn {
 		failForField = failingField
 		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)

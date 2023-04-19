@@ -128,11 +128,11 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
 	if err != nil || errRes.Error == nil {
 		reqErr := RequestError{
-			StatusCode: resp.StatusCode,
-			Err:        err,
+			HTTPStatusCode: resp.StatusCode,
+			Err:            err,
 		}
 		return fmt.Errorf("error, %w", &reqErr)
 	}
-	errRes.Error.StatusCode = resp.StatusCode
+	errRes.Error.HTTPStatusCode = resp.StatusCode
 	return fmt.Errorf("error, status code: %d, message: %w", resp.StatusCode, errRes.Error)
 }

@@ -2,8 +2,7 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
-	"io/ioutil"
-	"net/http"
+	"io"
 	"testing"
 )
 
@@ -28,39 +27,30 @@ func TestDecodeResponse(t *testing.T) {
 	stringInput := ""
 
 	testCases := []struct {
-		name     string
-		input    interface{}
-		response http.Response
+		name  string
+		value interface{}
+		body  io.Reader
 	}{
 		{
 			name:  "nil input",
-			input: nil,
-			response: http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(""))),
-			},
+			value: nil,
+			body:  bytes.NewReader([]byte("")),
 		},
 		{
 			name:  "string input",
-			input: &stringInput,
-			response: http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte("test"))),
-			},
+			value: &stringInput,
+			body:  bytes.NewReader([]byte("test")),
 		},
 		{
 			name:  "map input",
-			input: &map[string]interface{}{},
-			response: http.Response{
-				StatusCode: http.StatusOK,
-				Body:       ioutil.NopCloser(bytes.NewReader([]byte(`{"test": "test"}`))),
-			},
+			value: &map[string]interface{}{},
+			body:  bytes.NewReader([]byte(`{"test": "test"}`)),
 		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			err := decodeResponse(tc.input, tc.response)
+			err := decodeResponse(tc.body, tc.value)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
 			}

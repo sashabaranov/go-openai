@@ -43,7 +43,7 @@ func NewOrgClient(authToken, org string) *Client {
 	return NewClientWithConfig(config)
 }
 
-func (c *Client) sendRequest(req *http.Request, v interface{}) error {
+func (c *Client) sendRequest(req *http.Request, v any) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
@@ -85,23 +85,27 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 		return fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)
 	}
 
-	return decodeResponse(v, *res)
+	return decodeResponse(res.Body, v)
 }
 
-func decodeResponse(v interface{}, res http.Response) error {
+func decodeResponse(body io.Reader, v any) error {
 	if v == nil {
 		return nil
 	}
 
 	if result, ok := v.(*string); ok {
-		b, err := io.ReadAll(res.Body)
-		if err != nil {
-			return err
-		}
-		*result = string(b)
-		return nil
+		return decodeString(body, result)
 	}
-	return json.NewDecoder(res.Body).Decode(v)
+	return json.NewDecoder(body).Decode(v)
+}
+
+func decodeString(body io.Reader, output *string) error {
+	b, err := io.ReadAll(body)
+	if err != nil {
+		return err
+	}
+	*output = string(b)
+	return nil
 }
 
 func (c *Client) fullURL(suffix string) string {

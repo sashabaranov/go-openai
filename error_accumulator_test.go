@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"net/http"
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
@@ -71,7 +72,11 @@ func TestErrorByteWriteErrors(t *testing.T) {
 
 func TestErrorAccumulatorWriteErrors(t *testing.T) {
 	var err error
-	ts := test.NewTestServer().OpenAITestServer()
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "error", 200)
+	})
+	ts := server.OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
 

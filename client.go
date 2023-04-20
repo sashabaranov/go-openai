@@ -72,17 +72,7 @@ func (c *Client) sendRequest(req *http.Request, v interface{}) error {
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		var errRes ErrorResponse
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		if err != nil || errRes.Error == nil {
-			reqErr := RequestError{
-				StatusCode: res.StatusCode,
-				Err:        err,
-			}
-			return fmt.Errorf("error, %w", &reqErr)
-		}
-		errRes.Error.StatusCode = res.StatusCode
-		return fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)
+		return c.handleErrorResp(res)
 	}
 
 	if v != nil {
@@ -131,4 +121,18 @@ func (c *Client) newStreamRequest(
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
 	return req, nil
+}
+
+func (c *Client) handleErrorResp(resp *http.Response) error {
+	var errRes ErrorResponse
+	err := json.NewDecoder(resp.Body).Decode(&errRes)
+	if err != nil || errRes.Error == nil {
+		reqErr := RequestError{
+			HTTPStatusCode: resp.StatusCode,
+			Err:            err,
+		}
+		return fmt.Errorf("error, %w", &reqErr)
+	}
+	errRes.Error.HTTPStatusCode = resp.StatusCode
+	return fmt.Errorf("error, status code: %d, message: %w", resp.StatusCode, errRes.Error)
 }

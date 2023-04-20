@@ -7,17 +7,17 @@ import (
 
 // APIError provides error information returned by the OpenAI API.
 type APIError struct {
-	Code       any     `json:"code,omitempty"`
-	Message    string  `json:"message"`
-	Param      *string `json:"param,omitempty"`
-	Type       string  `json:"type"`
-	StatusCode int     `json:"-"`
+	Code           any     `json:"code,omitempty"`
+	Message        string  `json:"message"`
+	Param          *string `json:"param,omitempty"`
+	Type           string  `json:"type"`
+	HTTPStatusCode int     `json:"-"`
 }
 
 // RequestError provides informations about generic request errors.
 type RequestError struct {
-	StatusCode int
-	Err        error
+	HTTPStatusCode int
+	Err            error
 }
 
 type ErrorResponse struct {
@@ -73,7 +73,7 @@ func (e *RequestError) Error() string {
 	if e.Err != nil {
 		return e.Err.Error()
 	}
-	return fmt.Sprintf("status code %d", e.StatusCode)
+	return fmt.Sprintf("status code %d", e.HTTPStatusCode)
 }
 
 func (e *RequestError) Unwrap() error {

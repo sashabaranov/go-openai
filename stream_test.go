@@ -1,16 +1,16 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
 	"errors"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestCompletionsStreamWrongModel(t *testing.T) {
@@ -167,6 +167,52 @@ func TestCreateCompletionStreamError(t *testing.T) {
 	var apiErr *APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")
+	}
+	t.Logf("%+v\n", apiErr)
+}
+
+func TestCreateCompletionStreamRateLimitError(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(429)
+
+		// Send test responses
+		dataBytes := []byte(`{"error":{` +
+			`"message": "You are sending requests too quickly.",` +
+			`"type":"rate_limit_reached",` +
+			`"param":null,` +
+			`"code":"rate_limit_reached"}}`)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	config.HTTPClient.Transport = &tokenRoundTripper{
+		test.GetTestToken(),
+		http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := CompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Ada,
+		Prompt:    "Hello!",
+		Stream:    true,
+	}
+
+	var apiErr *APIError
+	_, err := client.CreateCompletionStream(ctx, request)
+	if !errors.As(err, &apiErr) {
+		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
 	}
 	t.Logf("%+v\n", apiErr)
 }

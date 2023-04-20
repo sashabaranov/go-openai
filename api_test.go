@@ -1,16 +1,15 @@
 package openai_test
 
 import (
-	"encoding/json"
-
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
 	"testing"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestAPI(t *testing.T) {
@@ -119,8 +118,8 @@ func TestAPIError(t *testing.T) {
 		t.Fatalf("Error is not an APIError: %+v", err)
 	}
 
-	if apiErr.StatusCode != 401 {
-		t.Fatalf("Unexpected API error status code: %d", apiErr.StatusCode)
+	if apiErr.HTTPStatusCode != 401 {
+		t.Fatalf("Unexpected API error status code: %d", apiErr.HTTPStatusCode)
 	}
 
 	switch v := apiErr.Code.(type) {
@@ -239,8 +238,8 @@ func TestRequestError(t *testing.T) {
 		t.Fatalf("Error is not a RequestError: %+v", err)
 	}
 
-	if reqErr.StatusCode != 418 {
-		t.Fatalf("Unexpected request error status code: %d", reqErr.StatusCode)
+	if reqErr.HTTPStatusCode != 418 {
+		t.Fatalf("Unexpected request error status code: %d", reqErr.HTTPStatusCode)
 	}
 
 	if reqErr.Unwrap() == nil {

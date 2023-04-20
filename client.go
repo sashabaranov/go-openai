@@ -134,6 +134,9 @@ func (c *Client) newStreamRequest(
 		// OpenAI or Azure AD authentication
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
+	if c.config.OrgID != "" {
+		req.Header.Set("OpenAI-Organization", c.config.OrgID)
+	}
 	return req, nil
 }
 

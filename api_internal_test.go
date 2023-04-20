@@ -42,6 +42,7 @@ func TestRequestAuthHeader(t *testing.T) {
 		APIType   APIType
 		HeaderKey string
 		Token     string
+		OrgID     string
 		Expect    string
 	}{
 		{
@@ -49,6 +50,15 @@ func TestRequestAuthHeader(t *testing.T) {
 			"",
 			"Authorization",
 			"dummy-token-openai",
+			"",
+			"Bearer dummy-token-openai",
+		},
+		{
+			"OpenAIOrg",
+			APITypeOpenAI,
+			"Authorization",
+			"dummy-token-openai",
+			"dummy-org-openai",
 			"Bearer dummy-token-openai",
 		},
 		{
@@ -56,6 +66,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeOpenAI,
 			"Authorization",
 			"dummy-token-openai",
+			"",
 			"Bearer dummy-token-openai",
 		},
 		{
@@ -63,6 +74,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeAzureAD,
 			"Authorization",
 			"dummy-token-azure",
+			"",
 			"Bearer dummy-token-azure",
 		},
 		{
@@ -70,6 +82,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeAzure,
 			AzureAPIKeyHeader,
 			"dummy-api-key-here",
+			"",
 			"dummy-api-key-here",
 		},
 	}
@@ -78,6 +91,7 @@ func TestRequestAuthHeader(t *testing.T) {
 		t.Run(c.Name, func(t *testing.T) {
 			az := DefaultConfig(c.Token)
 			az.APIType = c.APIType
+			az.OrgID = c.OrgID
 
 			cli := NewClientWithConfig(az)
 			req, err := cli.newStreamRequest(context.Background(), "POST", "/chat/completions", nil)

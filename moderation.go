@@ -15,7 +15,7 @@ import (
 const (
 	ModerationTextStable = "text-moderation-stable"
 	ModerationTextLatest = "text-moderation-latest"
-	ModerationText001    = "image-moderation-001"
+	ModerationText001    = "text-moderation-001"
 )
 
 // ModerationRequest represents a request structure for moderation API.

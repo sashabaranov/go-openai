@@ -8,6 +8,7 @@ import (
 
 type ChatCompletionStreamChoiceDelta struct {
 	Content string `json:"content"`
+	Role    string `json:"role"`
 }
 
 type ChatCompletionStreamChoice struct {

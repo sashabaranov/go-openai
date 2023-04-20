@@ -34,7 +34,7 @@ func TestModerations(t *testing.T) {
 	// create an edit request
 	model := "text-moderation-stable"
 	moderationReq := ModerationRequest{
-		Model: &model,
+		Model: model,
 		Input: "I want to kill them.",
 	}
 	_, err = client.Moderations(ctx, moderationReq)
@@ -77,7 +77,7 @@ func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	res := ModerationResponse{
 		ID:    strconv.Itoa(int(time.Now().Unix())),
-		Model: *moderationReq.Model,
+		Model: moderationReq.Model,
 	}
 	res.Results = append(res.Results, result)
 

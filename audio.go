@@ -13,6 +13,15 @@ const (
 	Whisper1 = "whisper-1"
 )
 
+// Response formats; Whisper uses AudioResponseFormatJSON by default.
+type AudioResponseFormat string
+
+const (
+	AudioResponseFormatJSON AudioResponseFormat = "json"
+	AudioResponseFormatSRT  AudioResponseFormat = "srt"
+	AudioResponseFormatVTT  AudioResponseFormat = "vtt"
+)
+
 // AudioRequest represents a request structure for audio API.
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
@@ -21,6 +30,7 @@ type AudioRequest struct {
 	Prompt      string // For translation, it should be in English
 	Temperature float32
 	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
+	Format      AudioResponseFormat
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -66,8 +76,17 @@ func (c *Client) callAudioAPI(
 	}
 	req.Header.Add("Content-Type", builder.formDataContentType())
 
-	err = c.sendRequest(req, &response)
+	if request.HasJSONResponse() {
+		err = c.sendRequest(req, &response)
+	} else {
+		err = c.sendRequest(req, &response.Text)
+	}
 	return
+}
+
+// HasJSONResponse returns true if the response format is JSON.
+func (r AudioRequest) HasJSONResponse() bool {
+	return r.Format == "" || r.Format == AudioResponseFormatJSON
 }
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
@@ -94,6 +113,14 @@ func audioMultipartForm(request AudioRequest, b formBuilder) error {
 		err = b.writeField("prompt", request.Prompt)
 		if err != nil {
 			return fmt.Errorf("writing prompt: %w", err)
+		}
+	}
+
+	// Create a form field for the format (if provided)
+	if request.Format != "" {
+		err = b.writeField("response_format", string(request.Format))
+		if err != nil {
+			return fmt.Errorf("writing format: %w", err)
 		}
 	}
 

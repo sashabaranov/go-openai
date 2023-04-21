@@ -462,3 +462,229 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>Generate Embeddings</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/gob"
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+	"io/ioutil"
+	"os"
+	"strings"
+)
+
+func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
+
+	resp, err := client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
+		Input: input,
+		Model: openai.AdaEmbeddingV2,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data[0].Embedding, nil
+}
+
+func main() {
+	ctx := context.Background()
+	client := openai.NewClient("your token")
+
+	// Load selections.txt, format like this:
+	/*
+	    Welcome to the go-openai interface, which will be the gateway for golang software engineers to enter the OpenAI development world.\n
+	    My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.\n
+	    The competition was held over two days,24 July and 2 August. The qualifying round was the first day with the apparatus final on the second day.\n
+	    There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.\n
+	    ...
+	*/
+	data, err := ioutil.ReadFile("selections.txt")
+	if err != nil {
+		panic(err)
+	}
+
+	// Split by line
+	lines := strings.Split(string(data), "\n")
+
+	var selections []string
+	for _, line := range lines {
+		selections = append(selections, line)
+	}
+
+	// Generate embeddings
+	var selectionsEmbeddings [][]float32
+	for _, selection := range selections {
+		embedding, err := getEmbedding(ctx, client, []string{selection})
+		if err != nil {
+			fmt.Printf("GetEmedding error: %v\n", err)
+			return
+		}
+		selectionsEmbeddings = append(selectionsEmbeddings, embedding)
+	}
+
+	// Write embeddings binary data to file
+	file, err := os.Create("embeddings.bin")
+	if err != nil {
+		fmt.Printf("Create file error: %v\n", err)
+		return
+	}
+	defer file.Close()
+
+	encoder := gob.NewEncoder(file)
+	err = encoder.Encode(selectionsEmbeddings)
+	if err != nil {
+		fmt.Printf("Encode error: %v\n", err)
+		return
+	}
+
+	return
+}
+```
+</details>
+
+<details>
+<summary>Embedding Similarity Search</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/gob"
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+	"io/ioutil"
+	"math"
+	"os"
+	"sort"
+	"strings"
+)
+
+func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
+
+	resp, err := client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
+		Input: input,
+		Model: openai.AdaEmbeddingV2,
+	})
+
+	if err != nil {
+		return nil, err
+	}
+
+	return resp.Data[0].Embedding, nil
+}
+
+// Calculate cosine similarity
+func cosineSimilarity(v1, v2 []float32) float32 {
+	dot := dotProduct(v1, v2)
+	v1Magnitude := math.Sqrt(float64(dotProduct(v1, v1)))
+	v2Magnitude := math.Sqrt(float64(dotProduct(v2, v2)))
+	return float32(float64(dot) / (v1Magnitude * v2Magnitude))
+}
+
+// Calculate dot product
+func dotProduct(v1, v2 []float32) float32 {
+	var result float32
+	for i := 0; i < len(v1); i++ {
+		result += v1[i] * v2[i]
+	}
+	return result
+}
+
+// Sort the index in descending order of similarity
+func sortIndexes(scores []float32) []int {
+	indexes := make([]int, len(scores))
+	for i := range indexes {
+		indexes[i] = i
+	}
+	sort.SliceStable(indexes, func(i, j int) bool {
+		return scores[indexes[i]] > scores[indexes[j]]
+	})
+	return indexes
+}
+
+func main() {
+	ctx := context.Background()
+	client := openai.NewClient("your token")
+
+	//  "embeddings.bin" from exp: <Generate Embeddings>
+	file, err := os.Open("embeddings.bin")
+	if err != nil {
+		panic(err)
+	}
+	defer file.Close()
+
+	// load all embeddings from local binary file
+	var allEmbeddings [][]float32
+	decoder := gob.NewDecoder(file)
+	if err := decoder.Decode(&allEmbeddings); err != nil {
+		fmt.Printf("Decode error: %v\n", err)
+		return
+	}
+
+	// make some input you like
+	input := "I am a Golang Software Engineer, I like girls."
+
+	// get embedding of input
+	inputEmbd, err := getEmbedding(ctx, client, []string{input})
+	if err != nil {
+		fmt.Printf("GetEmedding error: %v\n", err)
+		return
+	}
+
+	// Calculate similarity through cosine matching algorithm
+	var questionScores []float32
+	for _, embed := range allEmbeddings {
+		score := cosineSimilarity(embed, inputEmbd)
+		questionScores = append(questionScores, score)
+	}
+
+	// Take the subscripts of the top few selections with the highest similarity
+	sortedIndexes := sortIndexes(questionScores)
+	sortedIndexes = sortedIndexes[:3] // Top 3
+
+	fmt.Println("input:", input)
+	fmt.Println("----------------------")
+	fmt.Println("similarity section:")
+	selectionsFile, err := os.Open("selections.txt")
+	if err != nil {
+		fmt.Printf("Open file error: %v\n", err)
+		return
+	}
+	defer selectionsFile.Close()
+
+	fileData, err := ioutil.ReadAll(selectionsFile)
+	if err != nil {
+		fmt.Printf("ReadAll file error: %v\n", err)
+		return
+	}
+
+	// Split by line
+	selections := strings.Split(string(fileData), "\n")
+
+	for _, index := range sortedIndexes {
+		selection := selections[index]
+		fmt.Printf("%.4f %s\n", questionScores[index], selection)
+	}
+
+	// OutPut like this:
+	/*
+		input: I am a Golang Software Engineer, I like girls.
+		----------------------
+		similarity section:
+		0.9319 My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.
+		0.7978 Welcome to the go openai interface, which will be the gateway for go software engineers to enter the OpenAI development world.
+		0.6901 There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.
+	*/
+
+	return
+}
+```
+</details>

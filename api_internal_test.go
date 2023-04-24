@@ -25,8 +25,7 @@ func TestOpenAIFullURL(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultConfig("dummy")
-			cli := NewClientWithConfig(az)
+			cli := NewClient("dummy")
 			actual := cli.fullURL(c.Suffix)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
@@ -89,11 +88,7 @@ func TestRequestAuthHeader(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultConfig(c.Token)
-			az.APIType = c.APIType
-			az.OrgID = c.OrgID
-
-			cli := NewClientWithConfig(az)
+			cli := NewAzureClient(c.Token, "", "", WithOrganizationID(c.OrgID), WithSpecificAPIType(c.APIType))
 			req, err := cli.newStreamRequest(context.Background(), "POST", "/chat/completions", nil)
 			if err != nil {
 				t.Errorf("Failed to create request: %v", err)
@@ -134,8 +129,7 @@ func TestAzureFullURL(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultAzureConfig("dummy", c.BaseURL, c.Engine)
-			cli := NewClientWithConfig(az)
+			cli := NewAzureClient("dummy", c.BaseURL, c.Engine)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
 			actual := cli.fullURL("/chat/completions")
 			if actual != c.Expect {

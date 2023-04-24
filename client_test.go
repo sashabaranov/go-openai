@@ -8,13 +8,13 @@ import (
 
 func TestClient(t *testing.T) {
 	const mockToken = "mock token"
-	client := NewClient(mockToken)
+	const mockOrg = "mock org"
+
+	client := NewClient(mockToken, WithOrganizationID(mockOrg))
 	if client.config.authToken != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}
 
-	const mockOrg = "mock org"
-	client = NewOrgClient(mockToken, mockOrg)
 	if client.config.authToken != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}

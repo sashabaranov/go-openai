@@ -44,9 +44,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	client.requestBuilder = &failingRequestBuilder{}
 
 	ctx := context.Background()
@@ -158,9 +156,7 @@ func TestReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	client.requestBuilder = &failingRequestBuilder{}
 
 	ctx := context.Background()

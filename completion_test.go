@@ -18,9 +18,7 @@ import (
 )
 
 func TestCompletionsWrongModel(t *testing.T) {
-	config := DefaultConfig("whatever")
-	config.BaseURL = "http://localhost/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient("whatever", WithCustomBaseURL("http://localhost/v1"))
 
 	_, err := client.CreateCompletion(
 		context.Background(),
@@ -35,8 +33,7 @@ func TestCompletionsWrongModel(t *testing.T) {
 }
 
 func TestCompletionWithStream(t *testing.T) {
-	config := DefaultConfig("whatever")
-	client := NewClientWithConfig(config)
+	client := NewClient("whatever")
 
 	ctx := context.Background()
 	req := CompletionRequest{Stream: true}
@@ -56,9 +53,7 @@ func TestCompletions(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	req := CompletionRequest{

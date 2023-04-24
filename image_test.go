@@ -23,9 +23,7 @@ func TestImages(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	req := ImageRequest{}
@@ -93,9 +91,7 @@ func TestImageEdit(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	origin, err := os.Create("image.png")
@@ -138,9 +134,7 @@ func TestImageEditWithoutMask(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	origin, err := os.Create("image.png")
@@ -205,9 +199,7 @@ func TestImageVariation(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	origin, err := os.Create("image.png")
@@ -285,9 +277,7 @@ func (fb *mockFormBuilder) formDataContentType() string {
 }
 
 func TestImageFormBuilderFailures(t *testing.T) {
-	config := DefaultConfig("")
-	config.BaseURL = ""
-	client := NewClientWithConfig(config)
+	client := NewClient("", WithCustomBaseURL(""))
 
 	mockBuilder := &mockFormBuilder{}
 	client.createFormBuilder = func(io.Writer) formBuilder {
@@ -352,9 +342,7 @@ func TestImageFormBuilderFailures(t *testing.T) {
 }
 
 func TestVariImageFormBuilderFailures(t *testing.T) {
-	config := DefaultConfig("")
-	config.BaseURL = ""
-	client := NewClientWithConfig(config)
+	client := NewClient("", WithCustomBaseURL(""))
 
 	mockBuilder := &mockFormBuilder{}
 	client.createFormBuilder = func(io.Writer) formBuilder {

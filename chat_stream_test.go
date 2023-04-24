@@ -15,9 +15,7 @@ import (
 )
 
 func TestChatCompletionsStreamWrongModel(t *testing.T) {
-	config := DefaultConfig("whatever")
-	config.BaseURL = "http://localhost/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient("whatever", WithCustomBaseURL("http://localhost/v1"))
 	ctx := context.Background()
 
 	req := ChatCompletionRequest{
@@ -61,14 +59,14 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	defer server.Close()
 
 	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	httpClient := &http.Client{
+		Transport: &tokenRoundTripper{
+			test.GetTestToken(),
+			http.DefaultTransport,
+		},
 	}
 
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(server.URL+"/v1"), WithCustomClient(httpClient))
 	ctx := context.Background()
 
 	request := ChatCompletionRequest{
@@ -168,14 +166,14 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 	defer server.Close()
 
 	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	httpClient := &http.Client{
+		Transport: &tokenRoundTripper{
+			test.GetTestToken(),
+			http.DefaultTransport,
+		},
 	}
 
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(server.URL+"/v1"), WithCustomClient(httpClient))
 	ctx := context.Background()
 
 	request := ChatCompletionRequest{
@@ -225,14 +223,14 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 	defer ts.Close()
 
 	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	httpClient := &http.Client{
+		Transport: &tokenRoundTripper{
+			test.GetTestToken(),
+			http.DefaultTransport,
+		},
 	}
 
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"), WithCustomClient(httpClient))
 	ctx := context.Background()
 
 	request := ChatCompletionRequest{

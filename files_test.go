@@ -24,9 +24,7 @@ func TestFileUpload(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
+	client := NewClient(test.GetTestToken(), WithCustomBaseURL(ts.URL+"/v1"))
 	ctx := context.Background()
 
 	req := FileRequest{
@@ -81,9 +79,7 @@ func handleCreateFile(w http.ResponseWriter, r *http.Request) {
 }
 
 func TestFileUploadWithFailingFormBuilder(t *testing.T) {
-	config := DefaultConfig("")
-	config.BaseURL = ""
-	client := NewClientWithConfig(config)
+	client := NewClient("", WithCustomBaseURL(""))
 	mockBuilder := &mockFormBuilder{}
 	client.createFormBuilder = func(io.Writer) formBuilder {
 		return mockBuilder
@@ -128,9 +124,7 @@ func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 }
 
 func TestFileUploadWithNonExistentPath(t *testing.T) {
-	config := DefaultConfig("")
-	config.BaseURL = ""
-	client := NewClientWithConfig(config)
+	client := NewClient("", WithCustomBaseURL(""))
 
 	ctx := context.Background()
 	req := FileRequest{

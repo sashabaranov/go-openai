@@ -226,9 +226,7 @@ func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
 func TestRequestError(t *testing.T) {
 	var err error
 
-	config := DefaultConfig("dummy")
-	config.BaseURL = "https://httpbin.org/status/418?"
-	c := NewClientWithConfig(config)
+	c := NewClient("dummy", WithCustomBaseURL("https://httpbin.org/status/418?"))
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
 	checks.HasError(t, err, "ListEngines did not fail")

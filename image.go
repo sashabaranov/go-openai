@@ -131,9 +131,9 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 // ImageVariRequest represents the request structure for the image API.
 type ImageVariRequest struct {
 	Image          *os.File            `json:"image,omitempty"`
-	N              int                 `json:"n,omitempty"`
-	Size           ImageSize           `json:"size,omitempty"`
-	ResponseFormat ImageResponseFormat `json:"response_format,omitempty"`
+	N              int                 `json:"n,omitempty"`               // N The number of images to generate. Must be between 1 and 10
+	Size           ImageSize           `json:"size,omitempty"`            // Size The size of the generated images. Must be one of 256x256, 512x512, or 1024x1024
+	ResponseFormat ImageResponseFormat `json:"response_format,omitempty"` // ResponseFormat The format in which the generated images are returned. Must be one of url or b64_json
 }
 
 // CreateVariImage - API call to create an image variation. This is the main endpoint of the DALL-E API.

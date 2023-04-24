@@ -23,7 +23,7 @@ const (
 )
 
 // AudioRequest represents a request structure for audio API.
-// ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
+// ImageResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
 	Model       string
 	FilePath    string

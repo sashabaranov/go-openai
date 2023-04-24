@@ -54,9 +54,9 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < imageReq.N; i++ {
 		imageData := ImageResponseDataInner{}
 		switch imageReq.ResponseFormat {
-		case CreateImageResponseFormatURL, "":
+		case ImageResponseFormatURL, "":
 			imageData.URL = "https://example.com/image.png"
-		case CreateImageResponseFormatB64JSON:
+		case ImageResponseFormatB64JSON:
 			// This decodes to "{}" in base64.
 			imageData.B64JSON = "e30K"
 		default:
@@ -122,8 +122,8 @@ func TestImageEdit(t *testing.T) {
 		Mask:           mask,
 		Prompt:         "There is a turtle in the pool",
 		N:              3,
-		Size:           CreateImageSize1024x1024,
-		ResponseFormat: CreateImageResponseFormatURL,
+		Size:           ImageSize1024x1024,
+		ResponseFormat: ImageResponseFormatURL,
 	}
 	_, err = client.CreateEditImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -158,8 +158,8 @@ func TestImageEditWithoutMask(t *testing.T) {
 		Image:          origin,
 		Prompt:         "There is a turtle in the pool",
 		N:              3,
-		Size:           CreateImageSize1024x1024,
-		ResponseFormat: CreateImageResponseFormatURL,
+		Size:           ImageSize1024x1024,
+		ResponseFormat: ImageResponseFormatURL,
 	}
 	_, err = client.CreateEditImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
@@ -224,8 +224,8 @@ func TestImageVariation(t *testing.T) {
 	req := ImageVariRequest{
 		Image:          origin,
 		N:              3,
-		Size:           CreateImageSize1024x1024,
-		ResponseFormat: CreateImageResponseFormatURL,
+		Size:           ImageSize1024x1024,
+		ResponseFormat: ImageResponseFormatURL,
 	}
 	_, err = client.CreateVariImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")

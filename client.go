@@ -18,13 +18,28 @@ type Client struct {
 }
 
 // NewClient creates new OpenAI API client.
-func NewClient(authToken string) *Client {
+func NewClient(authToken string, options ...Option) *Client {
 	config := DefaultConfig(authToken)
-	return NewClientWithConfig(config)
+
+	for _, opt := range options {
+		opt(&config)
+	}
+
+	return newClient(config)
 }
 
-// NewClientWithConfig creates new OpenAI API client for specified config.
-func NewClientWithConfig(config ClientConfig) *Client {
+// NewAzureClient create new openAI API from Azure client
+func NewAzureClient(authToken string, baseUrl string, engine string, options ...Option) *Client {
+	config := DefaultAzureConfig(authToken, baseUrl, engine)
+
+	for _, opt := range options {
+		opt(&config)
+	}
+
+	return newClient(config)
+}
+
+func newClient(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
 		requestBuilder: newRequestBuilder(),
@@ -32,15 +47,6 @@ func NewClientWithConfig(config ClientConfig) *Client {
 			return newFormBuilder(body)
 		},
 	}
-}
-
-// NewOrgClient creates new OpenAI API client for specified Organization ID.
-//
-// Deprecated: Please use NewClientWithConfig.
-func NewOrgClient(authToken, org string) *Client {
-	config := DefaultConfig(authToken)
-	config.OrgID = org
-	return NewClientWithConfig(config)
 }
 
 func (c *Client) sendRequest(req *http.Request, v any) error {

@@ -148,6 +148,9 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
+		if errRes.Error != nil {
+			reqErr.Err = errRes.Error
+		}
 		return fmt.Errorf("error, %w", &reqErr)
 	}
 	errRes.Error.HTTPStatusCode = resp.StatusCode

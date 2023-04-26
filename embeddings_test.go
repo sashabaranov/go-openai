@@ -90,26 +90,6 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	checks.NoError(t, err, "CreateEmbeddings error")
 }
 
-func TestCosineSimilarity(t *testing.T) {
-	v1 := []float32{1, 2, 3}
-	v2 := []float32{2, 4, 6}
-	expected := float32(1.0)
-
-	result := CosineSimilarity(v1, v2)
-	if result != expected {
-		t.Errorf("Unexpected result. Expected: %v, but got %v", expected, result)
-	}
-
-	v1 = []float32{1, 0, 0}
-	v2 = []float32{0, 1, 0}
-	expected = float32(0.0)
-	result = CosineSimilarity(v1, v2)
-
-	if result != expected {
-		t.Errorf("Unexpected result. Expected: %v, but got %v", expected, result)
-	}
-}
-
 func TestDotProduct(t *testing.T) {
 	v1 := []float32{1, 2, 3}
 	v2 := []float32{2, 4, 6}

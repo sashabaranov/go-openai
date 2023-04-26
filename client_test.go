@@ -72,20 +72,44 @@ func TestHandleErrorResp(t *testing.T) {
 		{
 			name:     "401 Invalid Authentication",
 			httpCode: http.StatusUnauthorized,
-			body:     bytes.NewReader([]byte(`{"error":{"message":"You didn't provide an API key. ....","type":"invalid_request_error","param":null,"code":null}}`)),
+			body: bytes.NewReader([]byte(
+				`{
+					"error":{
+						"message":"You didn't provide an API key. ....",
+						"type":"invalid_request_error",
+						"param":null,
+						"code":null
+					}
+				}`,
+			)),
 			expected: "error, status code: 401, message: You didn't provide an API key. ....",
 		},
 		{
 			name:     "401 Azure Access Denied",
 			httpCode: http.StatusUnauthorized,
-			body:     bytes.NewReader([]byte(`{"error":{"code":"AccessDenied","message":"Access denied due to Virtual Network/Firewall rules."}}`)),
+			body: bytes.NewReader([]byte(
+				`{
+					"error":{
+						"code":"AccessDenied",
+						"message":"Access denied due to Virtual Network/Firewall rules."
+					}
+				}`,
+			)),
 			expected: "error, Access denied due to Virtual Network/Firewall rules.",
 		},
 		{
 			name:     "503 Model Overloaded",
 			httpCode: http.StatusServiceUnavailable,
-			body:     bytes.NewReader([]byte(`{"error":{"message":"That model is currently overloaded with other requests. You can retry your request...","type":"server_error","param":null,"code":null}}`)),
-			expected: "error, status code: 503, message: That model is currently overloaded with other requests. You can retry your request...",
+			body: bytes.NewReader([]byte(`
+				{
+					"error":{
+						"message":"That model...",
+						"type":"server_error",
+						"param":null,
+						"code":null
+					}
+				}`)),
+			expected: "error, status code: 503, message: That model...",
 		},
 	}
 

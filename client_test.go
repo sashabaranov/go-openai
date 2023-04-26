@@ -3,6 +3,7 @@ package openai //nolint:testpackage // testing private field
 import (
 	"bytes"
 	"io"
+	"net/http"
 	"testing"
 )
 
@@ -53,6 +54,44 @@ func TestDecodeResponse(t *testing.T) {
 			err := decodeResponse(tc.body, tc.value)
 			if err != nil {
 				t.Errorf("Unexpected error: %v", err)
+			}
+		})
+	}
+}
+
+func TestHandleErrorResp(t *testing.T) {
+	const mockToken = "mock token"
+	client := NewClient(mockToken)
+
+	testCases := []struct {
+		name     string
+		httpCode int
+		body     io.Reader
+		expected string
+	}{
+		{
+			name:     "401 Invalid Authentication",
+			httpCode: http.StatusUnauthorized,
+			body:     bytes.NewReader([]byte(`{"error":{"message":"You didn't provide an API key. ....","type":"invalid_request_error","param":null,"code":null}}`)),
+			expected: "error, status code: 401, message: You didn't provide an API key. ....",
+		},
+		{
+			name:     "401 Invalid Authentication",
+			httpCode: http.StatusUnauthorized,
+			body:     bytes.NewReader([]byte(`{"error":{"code":"AccessDenied","message":"Access denied due to Virtual Network/Firewall rules."}}`)),
+			expected: "error, Access denied due to Virtual Network/Firewall rules.",
+		},
+	}
+
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			testCase := &http.Response{}
+			testCase.StatusCode = tc.httpCode
+			testCase.Body = io.NopCloser(tc.body)
+			err := client.handleErrorResp(testCase)
+			if err.Error() != tc.expected {
+				t.Errorf("Unexpected error: %v , expected: %s", err, tc.expected)
+				t.Fail()
 			}
 		})
 	}

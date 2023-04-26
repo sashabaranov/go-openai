@@ -2,6 +2,7 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 	"net/http"
 	"testing"
@@ -60,6 +61,16 @@ func TestDecodeResponse(t *testing.T) {
 }
 
 func TestHandleErrorResp(t *testing.T) {
+	//var errRes *ErrorResponse
+	var errRes ErrorResponse
+	var reqErr RequestError
+	t.Log(errRes, errRes.Error)
+	if errRes.Error != nil {
+		reqErr.Err = errRes.Error
+	}
+	t.Log(fmt.Errorf("error, %w", &reqErr))
+	t.Log(errRes.Error, "nil pointer check Pass")
+
 	const mockToken = "mock token"
 	client := NewClient(mockToken)
 

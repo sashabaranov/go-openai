@@ -61,7 +61,7 @@ func TestDecodeResponse(t *testing.T) {
 }
 
 func TestHandleErrorResp(t *testing.T) {
-	//var errRes *ErrorResponse
+	// var errRes *ErrorResponse
 	var errRes ErrorResponse
 	var reqErr RequestError
 	t.Log(errRes, errRes.Error)

@@ -581,23 +581,6 @@ func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([
 	return resp.Data[0].Embedding, nil
 }
 
-// Calculate cosine similarity
-func cosineSimilarity(v1, v2 []float32) float32 {
-	dot := dotProduct(v1, v2)
-	v1Magnitude := math.Sqrt(float64(dotProduct(v1, v1)))
-	v2Magnitude := math.Sqrt(float64(dotProduct(v2, v2)))
-	return float32(float64(dot) / (v1Magnitude * v2Magnitude))
-}
-
-// Calculate dot product
-func dotProduct(v1, v2 []float32) float32 {
-	var result float32
-	for i := 0; i < len(v1); i++ {
-		result += v1[i] * v2[i]
-	}
-	return result
-}
-
 // Sort the index in descending order of similarity
 func sortIndexes(scores []float32) []int {
 	indexes := make([]int, len(scores))
@@ -642,7 +625,9 @@ func main() {
 	// Calculate similarity through cosine matching algorithm
 	var questionScores []float32
 	for _, embed := range allEmbeddings {
-		score := cosineSimilarity(embed, inputEmbd)
+		// OpenAI embeddings are normalized to length 1, which means that:
+		// Cosine similarity can be computed slightly faster using just a dot product
+		score := openai.DotProduct(embed, inputEmbd)
 		questionScores = append(questionScores, score)
 	}
 
@@ -678,7 +663,7 @@ func main() {
 	/*
 		input: I am a Golang Software Engineer, I like girls.
 		----------------------
-		similarity section:
+		similarity selection:
 		0.9319 My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.
 		0.7978 Welcome to the go openai interface, which will be the gateway for go software engineers to enter the OpenAI development world.
 		0.6901 There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.

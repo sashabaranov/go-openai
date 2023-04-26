@@ -2,12 +2,12 @@ package openai
 
 import "math"
 
-// cosineSimilarity Calculate cosine similarity
+// CosineSimilarity Calculate cosine similarity.
 // Note:
 // We recommend cosine similarity. The choice of distance function typically doesn’t matter much.
 // OpenAI embeddings are normalized to length 1, which means that:
-// Cosine similarity can be computed slightly faster using just a dot product
-// Cosine similarity and Euclidean distance will result in the identical rankings
+// Cosine similarity can be computed slightly faster using just a dot product.
+// Cosine similarity and Euclidean distance will result in the identical rankings.
 // See: https://platform.openai.com/docs/guides/embeddings/limitations-risks
 func CosineSimilarity(v1, v2 []float32) float32 {
 	// Calculate dot product
@@ -20,10 +20,10 @@ func CosineSimilarity(v1, v2 []float32) float32 {
 	return float32(float64(dot) / (v1Magnitude * v2Magnitude))
 }
 
-// DotProduct Calculate dot product of two vectors
+// DotProduct Calculate dot product of two vectors.
 func DotProduct(v1, v2 []float32) float32 {
 	var result float32
-	// Iterate over vectors and calculate dot product
+	// Iterate over vectors and calculate dot product.
 	for i := 0; i < len(v1); i++ {
 		result += v1[i] * v2[i]
 	}

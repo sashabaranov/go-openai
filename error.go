@@ -70,10 +70,7 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-	return fmt.Sprintf("status code %d", e.HTTPStatusCode)
+	return fmt.Sprintf("status code %d, message: %s", e.HTTPStatusCode, e.Err)
 }
 
 func (e *RequestError) Unwrap() error {

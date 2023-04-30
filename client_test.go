@@ -106,7 +106,7 @@ func TestHandleErrorResp(t *testing.T) {
 					}
 				}`,
 			)),
-			expected: "error, Access denied due to Virtual Network/Firewall rules.",
+			expected: "error, status code 401, message: Access denied due to Virtual Network/Firewall rules.",
 		},
 		{
 			name:     "503 Model Overloaded",
@@ -130,6 +130,7 @@ func TestHandleErrorResp(t *testing.T) {
 			testCase.StatusCode = tc.httpCode
 			testCase.Body = io.NopCloser(tc.body)
 			err := client.handleErrorResp(testCase)
+			t.Log(err.Error())
 			if err.Error() != tc.expected {
 				t.Errorf("Unexpected error: %v , expected: %s", err, tc.expected)
 				t.Fail()

@@ -2,7 +2,9 @@ package openai
 
 import (
 	"context"
+	"fmt"
 	"net/http"
+	"strings"
 )
 
 // Model struct represents an OpenAPI model.

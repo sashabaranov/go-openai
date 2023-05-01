@@ -149,7 +149,7 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 			Err:            err,
 		}
 		if errRes.Error != nil {
-			reqErr.Err = fmt.Errorf(errRes.Error.Message)
+			reqErr.Err = errRes.Error
 		}
 		return reqErr
 	}

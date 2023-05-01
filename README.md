@@ -10,13 +10,13 @@ This library provides Go clients for [OpenAI API](https://platform.openai.com/).
 * DALL·E 2
 * Whisper
 
-Installation:
+### Installation:
 ```
 go get github.com/sashabaranov/go-openai
 ```
 
 
-ChatGPT example usage:
+### ChatGPT example usage:
 
 ```go
 package main
@@ -52,9 +52,7 @@ func main() {
 
 ```
 
-
-
-Other examples:
+### Other examples:
 
 <details>
 <summary>ChatGPT streaming completion</summary>

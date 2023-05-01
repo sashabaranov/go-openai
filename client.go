@@ -144,15 +144,16 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 	var errRes ErrorResponse
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
 	if err != nil || errRes.Error == nil {
-		reqErr := RequestError{
+		reqErr := &RequestError{
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
 		if errRes.Error != nil {
-			reqErr.Err = errRes.Error
+			reqErr.Err = fmt.Errorf(errRes.Error.Message)
 		}
-		return fmt.Errorf("error, %w", &reqErr)
+		return reqErr
 	}
+
 	errRes.Error.HTTPStatusCode = resp.StatusCode
-	return fmt.Errorf("error, status code: %d, message: %w", resp.StatusCode, errRes.Error)
+	return errRes.Error
 }

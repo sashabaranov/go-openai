@@ -125,7 +125,9 @@ func (c *Client) newStreamRequest(
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
-
+	if len(c.config.OrgID) > 0 {
+		req.Header.Set("OpenAI-Organization", c.config.OrgID)
+	}
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {

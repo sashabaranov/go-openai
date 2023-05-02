@@ -2,9 +2,7 @@ package openai
 
 import (
 	"context"
-	"fmt"
 	"net/http"
-	"strings"
 )
 
 // Model struct represents an OpenAPI model.
@@ -42,28 +40,11 @@ type ModelsList struct {
 // ListModels Lists the currently available models,
 // and provides basic information about each model such as the model id and parent.
 func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) {
-	// validate if c has a DefaultAzureConfig
-	var req *http.Request
-	if c.config.APIType == APITypeAzure {
-		// azure models endpoint
-		baseURL := c.config.BaseURL
-		baseURL = strings.TrimRight(baseURL, "/")
-		// {endpoint}/openai/models?api-version=2022-12-01
-		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		// without updating fullURL
-		baseURL = fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, "/models", "2022-12-01")
-		req, err = c.requestBuilder.build(ctx, http.MethodGet, baseURL, nil)
-		if err != nil {
-			return
-		}
-		err = c.sendRequest(req, &models)
-	} else {
-		// openai models endpoint
-		req, err = c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/models"), nil)
-		if err != nil {
-			return
-		}
-		err = c.sendRequest(req, &models)
+	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/models"), nil)
+	if err != nil {
+		return
 	}
+
+	err = c.sendRequest(req, &models)
 	return
 }

@@ -65,12 +65,12 @@ if errors.As(err, &e) {
     case 401:
       // invalid auth or key (do not retry)
     case 429:
-	  // rate limiting or engine overload (wait and retry) 
-	case 500:
-	  // openai server error (retry)
-	default:
-	  // unhandled
-	}
+      // rate limiting or engine overload (wait and retry) 
+    case 500:
+      // openai server error (retry)
+    default:
+      // unhandled
+  }
 }
 
 ```

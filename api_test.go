@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -226,8 +228,13 @@ func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
 func TestRequestError(t *testing.T) {
 	var err error
 
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	}))
+	defer ts.Close()
+
 	config := DefaultConfig("dummy")
-	config.BaseURL = "https://httpbin.org/status/418?"
+	config.BaseURL = ts.URL
 	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)

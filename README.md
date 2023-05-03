@@ -52,29 +52,3 @@ func main() {
 ```
 
 See the `examples/` folder for more.
-
-<details>
-<summary>Error handling</summary>
-
-Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)
-
-example:
-```
-e := &openai.APIError{}
-if errors.As(err, &e) {
-  switch e.HTTPStatusCode {
-    case 401:
-      // invalid auth or key (do not retry)
-    case 429:
-      // rate limiting or engine overload (wait and retry) 
-    case 500:
-      // openai server error (retry)
-    default:
-      // unhandled
-  }
-}
-
-```
-</details>
-
-

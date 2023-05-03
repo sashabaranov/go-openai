@@ -325,3 +325,23 @@ func ExampleDefaultAzureConfig() {
 
 	fmt.Println(resp.Choices[0].Message.Content)
 }
+
+// Open-AI maintains clear documentation on how to handle API errors.
+//
+// see: https://platform.openai.com/docs/guides/error-codes/api-errors
+func ExampleAPIError() {
+	var err error // Assume this is the error you are checking.
+	e := &openai.APIError{}
+	if errors.As(err, &e) {
+		switch e.HTTPStatusCode {
+		case 401:
+		// invalid auth or key (do not retry)
+		case 429:
+		// rate limiting or engine overload (wait and retry)
+		case 500:
+		// openai server error (retry)
+		default:
+			// unhandled
+		}
+	}
+}

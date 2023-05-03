@@ -468,7 +468,7 @@ Open-AI maintains clear documentation on how to [handle API errors](https://plat
 
 example:
 ```
-e := &APIError{}
+e := &openai.APIError{}
 if errors.As(err, &e) {
   switch e.HTTPStatusCode {
     case 401:

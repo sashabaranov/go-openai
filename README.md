@@ -50,3 +50,5 @@ func main() {
 	fmt.Println(resp.Choices[0].Message.Content)
 }
 ```
+
+See the `examples/` folder for more.

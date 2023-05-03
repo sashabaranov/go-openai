@@ -31,6 +31,24 @@ func TestListModels(t *testing.T) {
 	checks.NoError(t, err, "ListModels error")
 }
 
+func TestAzureListModels(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/openai/models", handleModelsEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/", "dummyengine")
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err = client.ListModels(ctx)
+	checks.NoError(t, err, "ListModels error")
+}
+
 // handleModelsEndpoint Handles the models endpoint by the test server.
 func handleModelsEndpoint(w http.ResponseWriter, _ *http.Request) {
 	resBytes, _ := json.Marshal(ModelsList{})

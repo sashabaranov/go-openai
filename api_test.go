@@ -1,16 +1,17 @@
 package openai_test
 
 import (
+	"context"
 	"encoding/json"
+	"errors"
+	"io"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
 
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
-
-	"context"
-	"errors"
-	"io"
-	"os"
-	"testing"
 )
 
 func TestAPI(t *testing.T) {
@@ -119,8 +120,8 @@ func TestAPIError(t *testing.T) {
 		t.Fatalf("Error is not an APIError: %+v", err)
 	}
 
-	if apiErr.StatusCode != 401 {
-		t.Fatalf("Unexpected API error status code: %d", apiErr.StatusCode)
+	if apiErr.HTTPStatusCode != 401 {
+		t.Fatalf("Unexpected API error status code: %d", apiErr.HTTPStatusCode)
 	}
 
 	switch v := apiErr.Code.(type) {
@@ -227,8 +228,13 @@ func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
 func TestRequestError(t *testing.T) {
 	var err error
 
+	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	}))
+	defer ts.Close()
+
 	config := DefaultConfig("dummy")
-	config.BaseURL = "https://httpbin.org/status/418?"
+	config.BaseURL = ts.URL
 	c := NewClientWithConfig(config)
 	ctx := context.Background()
 	_, err = c.ListEngines(ctx)
@@ -239,8 +245,8 @@ func TestRequestError(t *testing.T) {
 		t.Fatalf("Error is not a RequestError: %+v", err)
 	}
 
-	if reqErr.StatusCode != 418 {
-		t.Fatalf("Unexpected request error status code: %d", reqErr.StatusCode)
+	if reqErr.HTTPStatusCode != 418 {
+		t.Fatalf("Unexpected request error status code: %d", reqErr.HTTPStatusCode)
 	}
 
 	if reqErr.Unwrap() == nil {

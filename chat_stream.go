@@ -3,10 +3,12 @@ package openai
 import (
 	"bufio"
 	"context"
+	"net/http"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
-	Content string `json:"content"`
+	Content string `json:"content,omitempty"`
+	Role    string `json:"role,omitempty"`
 }
 
 type ChatCompletionStreamChoice struct {
@@ -52,6 +54,9 @@ func (c *Client) CreateChatCompletionStream(
 	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return
+	}
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+		return nil, c.handleErrorResp(resp)
 	}
 
 	stream = &ChatCompletionStream{

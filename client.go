@@ -72,17 +72,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		var errRes ErrorResponse
-		err = json.NewDecoder(res.Body).Decode(&errRes)
-		if err != nil || errRes.Error == nil {
-			reqErr := RequestError{
-				StatusCode: res.StatusCode,
-				Err:        err,
-			}
-			return fmt.Errorf("error, %w", &reqErr)
-		}
-		errRes.Error.StatusCode = res.StatusCode
-		return fmt.Errorf("error, status code: %d, message: %w", res.StatusCode, errRes.Error)
+		return c.handleErrorResp(res)
 	}
 
 	return decodeResponse(res.Body, v)
@@ -113,6 +103,11 @@ func (c *Client) fullURL(suffix string) string {
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
+		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
+		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
+		if strings.Contains(suffix, "/models") {
+			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
 	}
@@ -144,5 +139,26 @@ func (c *Client) newStreamRequest(
 		// OpenAI or Azure AD authentication
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
+	if c.config.OrgID != "" {
+		req.Header.Set("OpenAI-Organization", c.config.OrgID)
+	}
 	return req, nil
+}
+
+func (c *Client) handleErrorResp(resp *http.Response) error {
+	var errRes ErrorResponse
+	err := json.NewDecoder(resp.Body).Decode(&errRes)
+	if err != nil || errRes.Error == nil {
+		reqErr := &RequestError{
+			HTTPStatusCode: resp.StatusCode,
+			Err:            err,
+		}
+		if errRes.Error != nil {
+			reqErr.Err = errRes.Error
+		}
+		return reqErr
+	}
+
+	errRes.Error.HTTPStatusCode = resp.StatusCode
+	return errRes.Error
 }

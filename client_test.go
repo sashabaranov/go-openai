@@ -2,6 +2,7 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -106,7 +107,7 @@ func TestHandleErrorResp(t *testing.T) {
 					}
 				}`,
 			)),
-			expected: "error, status code 401, message: Access denied due to Virtual Network/Firewall rules.",
+			expected: "error, status code: 401, message: Access denied due to Virtual Network/Firewall rules.",
 		},
 		{
 			name:     "503 Model Overloaded",
@@ -133,6 +134,12 @@ func TestHandleErrorResp(t *testing.T) {
 			t.Log(err.Error())
 			if err.Error() != tc.expected {
 				t.Errorf("Unexpected error: %v , expected: %s", err, tc.expected)
+				t.Fail()
+			}
+
+			e := &APIError{}
+			if !errors.As(err, &e) {
+				t.Errorf("(%s) Expected error to be of type APIError", tc.name)
 				t.Fail()
 			}
 		})

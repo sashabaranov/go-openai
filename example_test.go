@@ -62,7 +62,8 @@ func ExampleClient_CreateChatCompletionStream() {
 
 	fmt.Printf("Stream response: ")
 	for {
-		response, err := stream.Recv()
+		var response openai.ChatCompletionStreamResponse
+		response, err = stream.Recv()
 		if errors.Is(err, io.EOF) {
 			fmt.Println("\nStream finished")
 			return
@@ -112,7 +113,8 @@ func ExampleClient_CreateCompletionStream() {
 	defer stream.Close()
 
 	for {
-		response, err := stream.Recv()
+		var response openai.CompletionResponse
+		response, err = stream.Recv()
 		if errors.Is(err, io.EOF) {
 			fmt.Println("Stream finished")
 			return
@@ -164,7 +166,7 @@ func ExampleClient_CreateTranscription_captions() {
 		return
 	}
 	defer f.Close()
-	if _, err := f.WriteString(resp.Text); err != nil {
+	if _, err = f.WriteString(resp.Text); err != nil {
 		fmt.Printf("Error writing to file: %v\n", err)
 		return
 	}
@@ -189,7 +191,7 @@ func ExampleClient_CreateTranslation() {
 func ExampleClient_CreateImage() {
 	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
-	respUrl, err := client.CreateImage(
+	respURL, err := client.CreateImage(
 		context.Background(),
 		openai.ImageRequest{
 			Prompt:         "Parrot on a skateboard performs a trick, cartoon style, natural light, high detail",
@@ -202,7 +204,7 @@ func ExampleClient_CreateImage() {
 		fmt.Printf("Image creation error: %v\n", err)
 		return
 	}
-	fmt.Println(respUrl.Data[0].URL)
+	fmt.Println(respURL.Data[0].URL)
 }
 
 func ExampleClient_CreateImage_base64() {
@@ -246,12 +248,13 @@ func ExampleClient_CreateImage_base64() {
 
 func ExampleClientConfig_clientWithProxy() {
 	config := openai.DefaultConfig(os.Getenv("OPENAI_API_KEY"))
-	proxyUrl, err := url.Parse("http://localhost:{port}")
+	port := os.Getenv("OPENAI_PROXY_PORT")
+	proxyURL, err := url.Parse(fmt.Sprintf("http://localhost:%s", port))
 	if err != nil {
 		panic(err)
 	}
 	transport := &http.Transport{
-		Proxy: http.ProxyURL(proxyUrl),
+		Proxy: http.ProxyURL(proxyURL),
 	}
 	config.HTTPClient = &http.Client{
 		Transport: transport,
@@ -259,7 +262,7 @@ func ExampleClientConfig_clientWithProxy() {
 
 	client := openai.NewClientWithConfig(config)
 
-	client.CreateChatCompletion(
+	client.CreateChatCompletion( //nolint:errcheck // outside of the scope of this example.
 		context.Background(),
 		openai.ChatCompletionRequest{
 			// etc...

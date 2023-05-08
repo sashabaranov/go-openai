@@ -485,4 +485,5 @@ if errors.As(err, &e) {
 ```
 </details>
 
+See the `examples/` folder for more.
 

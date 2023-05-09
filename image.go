@@ -44,7 +44,7 @@ type ImageResponseDataInner struct {
 // CreateImage - API call to create an image. This is the main endpoint of the DALL-E API.
 func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (response ImageResponse, err error) {
 	urlSuffix := "/images/generations"
-	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix, ""), request)
+	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return
 	}
@@ -108,7 +108,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	}
 
 	urlSuffix := "/images/edits"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix, ""), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return
 	}
@@ -160,7 +160,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 
 	//https://platform.openai.com/docs/api-reference/images/create-variation
 	urlSuffix := "/images/variations"
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix, ""), body)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), body)
 	if err != nil {
 		return
 	}

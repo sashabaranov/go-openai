@@ -100,8 +100,8 @@ func decodeString(body io.Reader, output *string) error {
 
 // fullURL returns full URL for request.
 // If API type is Azure, model is required to get deployment name.
-// If API type is OpenAI, model will be ignored.
-func (c *Client) fullURL(suffix, model string) string {
+// args[0] is model name.
+func (c *Client) fullURL(suffix string, args ...any) string {
 	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
@@ -111,9 +111,16 @@ func (c *Client) fullURL(suffix, model string) string {
 		if strings.Contains(suffix, "/models") {
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
 		}
+		azureDeploymentName := "UNKNOWN"
+		if len(args) > 0 {
+			model, ok := args[0].(string)
+			if ok {
+				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+			}
+		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			c.config.GetAzureDeploymentByModel(model), suffix, c.config.APIVersion,
+			azureDeploymentName, suffix, c.config.APIVersion,
 		)
 	}
 

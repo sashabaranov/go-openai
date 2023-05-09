@@ -27,12 +27,12 @@ const AzureAPIKeyHeader = "api-key"
 type ClientConfig struct {
 	authToken string
 
-	BaseURL          string
-	OrgID            string
-	APIType          APIType
-	APIVersion       string            // required when APIType is APITypeAzure or APITypeAzureAD
-	AzureModelMapper map[string]string // replace model to azure deployment name
-	HTTPClient       *http.Client
+	BaseURL              string
+	OrgID                string
+	APIType              APIType
+	APIVersion           string                    // required when APIType is APITypeAzure or APITypeAzureAD
+	AzureModelMapperFunc func(model string) string // replace model to azure deployment name
+	HTTPClient           *http.Client
 
 	EmptyMessagesLimit uint
 }
@@ -50,21 +50,16 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzureConfig(apiKey, baseURL string, modelMapper map[string]string) ClientConfig {
-	if len(modelMapper) == 0 {
-		modelMapper = map[string]string{
-			GPT3Dot5Turbo0301: "gpt-35-turbo-0301",
-			GPT3Dot5Turbo:     "gpt-35-turbo",
-		}
-	}
-
+func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
-		authToken:        apiKey,
-		BaseURL:          baseURL,
-		OrgID:            "",
-		APIType:          APITypeAzure,
-		APIVersion:       "2023-03-15-preview",
-		AzureModelMapper: modelMapper,
+		authToken:  apiKey,
+		BaseURL:    baseURL,
+		OrgID:      "",
+		APIType:    APITypeAzure,
+		APIVersion: "2023-03-15-preview",
+		AzureModelMapperFunc: func(model string) string {
+			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+		},
 
 		HTTPClient: &http.Client{},
 
@@ -77,9 +72,9 @@ func (ClientConfig) String() string {
 }
 
 func (c ClientConfig) GetAzureDeploymentByModel(model string) string {
-	if v, ok := c.AzureModelMapper[model]; ok {
-		return v
+	if c.AzureModelMapperFunc != nil {
+		return c.AzureModelMapperFunc(model)
 	}
 
-	return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+	return model
 }

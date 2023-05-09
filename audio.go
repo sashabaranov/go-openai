@@ -3,9 +3,11 @@ package openai
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
@@ -26,10 +28,12 @@ const (
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
 	Model       string
-	FilePath    string
-	Prompt      string // For translation, it should be in English
+	FilePath    string  // Local file path - leave empty if using FileBytes + FileName
+	FileBytes   *[]byte // File as bytes, also requires FileName to be set (see below)
+	FileName    *string // File name for usage together with FileBytes. The API requires this parameter and use them as file format, so at least correct extension is required.
+	Prompt      string  // For translation, it should be 'English'
 	Temperature float32
-	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
+	Language    string // For better and faster recognition, but optional.
 	Format      AudioResponseFormat
 }
 
@@ -93,18 +97,38 @@ func (r AudioRequest) HasJSONResponse() bool {
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
 func audioMultipartForm(request AudioRequest, b formBuilder) error {
-	f, err := os.Open(request.FilePath)
-	if err != nil {
-		return fmt.Errorf("opening audio file: %w", err)
-	}
-	defer f.Close()
 
-	err = b.createFormFile("file", f)
-	if err != nil {
-		return fmt.Errorf("creating form file: %w", err)
+	// Create from filesystem path
+	if request.FilePath != "" {
+		f, err := os.Open(request.FilePath)
+		if err != nil {
+			return fmt.Errorf("opening audio file: %w", err)
+		}
+		defer f.Close()
+
+		err = b.createFormFile("file", f)
+		if err != nil {
+			return fmt.Errorf("creating form file: %w", err)
+		}
+
+		// Create from provided bytes
+	} else if request.FileBytes != nil {
+
+		if request.FileName == nil || strings.Contains(*request.FileName, ".") == false {
+			return errors.New("FileName with correct extension is required while FileBytes is used")
+		} else {
+
+			err := b.createFormFileFromBytes("file", *request.FileName, *request.FileBytes)
+			if err != nil {
+				return fmt.Errorf("creating form bytes: %w", err)
+			}
+		}
+
+	} else {
+		return errors.New("either FilePath or FileBytes should be specified")
 	}
 
-	err = b.writeField("model", request.Model)
+	err := b.writeField("model", request.Model)
 	if err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}

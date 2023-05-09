@@ -8,6 +8,7 @@ import (
 
 type formBuilder interface {
 	createFormFile(fieldname string, file *os.File) error
+	createFormFileFromBytes(fieldname, fileName string, data []byte) error
 	writeField(fieldname, value string) error
 	close() error
 	formDataContentType() string
@@ -30,6 +31,19 @@ func (fb *defaultFormBuilder) createFormFile(fieldname string, file *os.File) er
 	}
 
 	_, err = io.Copy(fieldWriter, file)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (fb *defaultFormBuilder) createFormFileFromBytes(fieldname, fileName string, data []byte) error {
+	fieldWriter, err := fb.writer.CreateFormFile(fieldname, fileName)
+	if err != nil {
+		return err
+	}
+
+	_, err = fieldWriter.Write(data)
 	if err != nil {
 		return err
 	}

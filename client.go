@@ -101,7 +101,7 @@ func decodeString(body io.Reader, output *string) error {
 // fullURL returns full URL for request.
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
-	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
+	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")

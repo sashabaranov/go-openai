@@ -1,7 +1,7 @@
 package openai_test
 
 import (
-	"github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"testing"
 )
 
@@ -47,7 +47,7 @@ func TestGetAzureDeploymentByModel(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Model, func(t *testing.T) {
-			conf := openai.DefaultAzureConfig("a", "https://test.openai.azure.com/", c.ModelMapper)
+			conf := DefaultAzureConfig("a", "https://test.openai.azure.com/", c.ModelMapper)
 			actual := conf.GetAzureDeploymentByModel(c.Model)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)

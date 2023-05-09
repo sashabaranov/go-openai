@@ -31,7 +31,7 @@ type ClientConfig struct {
 	OrgID                string
 	APIType              APIType
 	APIVersion           string                    // required when APIType is APITypeAzure or APITypeAzureAD
-	AzureModelMapperFunc func(model string) string // replace model to azure deployment name
+	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
 	HTTPClient           *http.Client
 
 	EmptyMessagesLimit uint

@@ -51,7 +51,7 @@ func DefaultConfig(authToken string) ClientConfig {
 }
 
 func DefaultAzureConfig(apiKey, baseURL string, modelMapper map[string]string) ClientConfig {
-	if modelMapper == nil || len(modelMapper) == 0 {
+	if len(modelMapper) == 0 {
 		modelMapper = map[string]string{
 			GPT3Dot5Turbo0301: "gpt-35-turbo-0301",
 			GPT3Dot5Turbo:     "gpt-35-turbo",

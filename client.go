@@ -112,7 +112,9 @@ func (c *Client) fullURL(suffix, model string) string {
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
 		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.GetAzureDeploymentByModel(model), suffix, c.config.APIVersion)
+			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+			c.config.GetAzureDeploymentByModel(model), suffix, c.config.APIVersion,
+		)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""

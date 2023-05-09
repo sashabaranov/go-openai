@@ -2,6 +2,7 @@ package openai
 
 import (
 	"net/http"
+	"regexp"
 )
 
 const (
@@ -26,13 +27,12 @@ const AzureAPIKeyHeader = "api-key"
 type ClientConfig struct {
 	authToken string
 
-	BaseURL    string
-	OrgID      string
-	APIType    APIType
-	APIVersion string // required when APIType is APITypeAzure or APITypeAzureAD
-	Engine     string // required when APIType is APITypeAzure or APITypeAzureAD
-
-	HTTPClient *http.Client
+	BaseURL          string
+	OrgID            string
+	APIType          APIType
+	APIVersion       string            // required when APIType is APITypeAzure or APITypeAzureAD
+	AzureModelMapper map[string]string // replace model to azure deployment name
+	HTTPClient       *http.Client
 
 	EmptyMessagesLimit uint
 }
@@ -50,14 +50,21 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
+func DefaultAzureConfig(apiKey, baseURL string, modelMapper map[string]string) ClientConfig {
+	if modelMapper == nil || len(modelMapper) == 0 {
+		modelMapper = map[string]string{
+			GPT3Dot5Turbo0301: "gpt-35-turbo-0301",
+			GPT3Dot5Turbo:     "gpt-35-turbo",
+		}
+	}
+
 	return ClientConfig{
-		authToken:  apiKey,
-		BaseURL:    baseURL,
-		OrgID:      "",
-		APIType:    APITypeAzure,
-		APIVersion: "2023-03-15-preview",
-		Engine:     engine,
+		authToken:        apiKey,
+		BaseURL:          baseURL,
+		OrgID:            "",
+		APIType:          APITypeAzure,
+		APIVersion:       "2023-03-15-preview",
+		AzureModelMapper: modelMapper,
 
 		HTTPClient: &http.Client{},
 
@@ -67,4 +74,12 @@ func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
 
 func (ClientConfig) String() string {
 	return "<OpenAI API ClientConfig>"
+}
+
+func (c ClientConfig) GetAzureDeploymentByModel(model string) string {
+	if v, ok := c.AzureModelMapper[model]; ok {
+		return v
+	}
+
+	return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
 }

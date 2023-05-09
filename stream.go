@@ -35,7 +35,7 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request, request.Model)
 	if err != nil {
 		return
 	}

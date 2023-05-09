@@ -46,7 +46,7 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
+	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request, request.Model)
 	if err != nil {
 		return
 	}

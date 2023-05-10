@@ -40,7 +40,7 @@ func TestAzureListModels(t *testing.T) {
 	ts.Start()
 	defer ts.Close()
 
-	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/", "dummyengine")
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
 	config.BaseURL = ts.URL
 	client := NewClientWithConfig(config)
 	ctx := context.Background()

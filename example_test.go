@@ -305,8 +305,7 @@ func Example_chatbot() {
 func ExampleDefaultAzureConfig() {
 	azureKey := os.Getenv("AZURE_OPENAI_API_KEY")       // Your azure API key
 	azureEndpoint := os.Getenv("AZURE_OPENAI_ENDPOINT") // Your azure OpenAI endpoint
-	azureModel := os.Getenv("AZURE_OPENAI_MODEL")       // Your model deployment name
-	config := openai.DefaultAzureConfig(azureKey, azureEndpoint, azureModel)
+	config := openai.DefaultAzureConfig(azureKey, azureEndpoint)
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),

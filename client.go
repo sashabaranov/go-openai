@@ -98,13 +98,29 @@ func decodeString(body io.Reader, output *string) error {
 	return nil
 }
 
-func (c *Client) fullURL(suffix string) string {
-	// /openai/deployments/{engine}/chat/completions?api-version={api_version}
+// fullURL returns full URL for request.
+// args[0] is model name, if API type is Azure, model name is required to get deployment name.
+func (c *Client) fullURL(suffix string, args ...any) string {
+	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
+		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
+		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
+		if strings.Contains(suffix, "/models") {
+			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+		}
+		azureDeploymentName := "UNKNOWN"
+		if len(args) > 0 {
+			model, ok := args[0].(string)
+			if ok {
+				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+			}
+		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix, c.config.Engine, suffix, c.config.APIVersion)
+			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+			azureDeploymentName, suffix, c.config.APIVersion,
+		)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
@@ -115,8 +131,9 @@ func (c *Client) newStreamRequest(
 	ctx context.Context,
 	method string,
 	urlSuffix string,
-	body any) (*http.Request, error) {
-	req, err := c.requestBuilder.build(ctx, method, c.fullURL(urlSuffix), body)
+	body any,
+	model string) (*http.Request, error) {
+	req, err := c.requestBuilder.build(ctx, method, c.fullURL(urlSuffix, model), body)
 	if err != nil {
 		return nil, err
 	}
@@ -144,15 +161,16 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 	var errRes ErrorResponse
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
 	if err != nil || errRes.Error == nil {
-		reqErr := RequestError{
+		reqErr := &RequestError{
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
 		if errRes.Error != nil {
 			reqErr.Err = errRes.Error
 		}
-		return fmt.Errorf("error, %w", &reqErr)
+		return reqErr
 	}
+
 	errRes.Error.HTTPStatusCode = resp.StatusCode
-	return fmt.Errorf("error, status code: %d, message: %w", resp.StatusCode, errRes.Error)
+	return errRes.Error
 }

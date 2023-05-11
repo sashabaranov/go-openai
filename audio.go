@@ -43,8 +43,7 @@ func (c *Client) CreateTranscription(
 	ctx context.Context,
 	request AudioRequest,
 ) (response AudioResponse, err error) {
-	response, err = c.callAudioAPI(ctx, request, "transcriptions")
-	return
+	return c.callAudioAPI(ctx, request, "transcriptions")
 }
 
 // CreateTranslation — API call to translate audio into English.
@@ -52,8 +51,7 @@ func (c *Client) CreateTranslation(
 	ctx context.Context,
 	request AudioRequest,
 ) (response AudioResponse, err error) {
-	response, err = c.callAudioAPI(ctx, request, "translations")
-	return
+	return c.callAudioAPI(ctx, request, "translations")
 }
 
 // callAudioAPI — API call to an audio endpoint.
@@ -66,13 +64,13 @@ func (c *Client) callAudioAPI(
 	builder := c.createFormBuilder(&formBody)
 
 	if err = audioMultipartForm(request, builder); err != nil {
-		return
+		return AudioResponse{}, err
 	}
 
 	urlSuffix := fmt.Sprintf("/audio/%s", endpointSuffix)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), &formBody)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), &formBody)
 	if err != nil {
-		return
+		return AudioResponse{}, err
 	}
 	req.Header.Add("Content-Type", builder.formDataContentType())
 
@@ -80,6 +78,9 @@ func (c *Client) callAudioAPI(
 		err = c.sendRequest(req, &response)
 	} else {
 		err = c.sendRequest(req, &response.Text)
+	}
+	if err != nil {
+		return AudioResponse{}, err
 	}
 	return
 }

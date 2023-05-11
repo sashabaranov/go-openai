@@ -10,13 +10,13 @@ This library provides Go clients for [OpenAI API](https://platform.openai.com/).
 * DALL·E 2
 * Whisper
 
-Installation:
+### Installation:
 ```
 go get github.com/sashabaranov/go-openai
 ```
 
 
-ChatGPT example usage:
+### ChatGPT example usage:
 
 ```go
 package main
@@ -52,9 +52,7 @@ func main() {
 
 ```
 
-
-
-Other examples:
+### Other examples:
 
 <details>
 <summary>ChatGPT streaming completion</summary>
@@ -462,3 +460,30 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>Error handling</summary>
+
+Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)
+
+example:
+```
+e := &openai.APIError{}
+if errors.As(err, &e) {
+  switch e.HTTPStatusCode {
+    case 401:
+      // invalid auth or key (do not retry)
+    case 429:
+      // rate limiting or engine overload (wait and retry) 
+    case 500:
+      // openai server error (retry)
+    default:
+      // unhandled
+  }
+}
+
+```
+</details>
+
+See the `examples/` folder for more.
+

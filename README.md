@@ -437,12 +437,14 @@ import (
 func main() {
 
 	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
-	config.AzureModelMapperFunc = func(model string) string {
-        azureModelMapping = []string{
-            "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
-        }
-        return azureModelMapping[model]
-    }
+	//If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
+	//config.AzureModelMapperFunc = func(model string) string {
+    //    azureModelMapping = []string{
+    //        "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
+    //    }
+    //    return azureModelMapping[model]
+    //}
+	
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),

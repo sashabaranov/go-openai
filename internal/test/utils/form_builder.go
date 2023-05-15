@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-type formBuilder interface {
+type FormBuilder interface {
 	createFormFile(fieldname string, file *os.File) error
 	writeField(fieldname, value string) error
 	close() error
@@ -17,7 +17,7 @@ type defaultFormBuilder struct {
 	writer *multipart.Writer
 }
 
-func newFormBuilder(body io.Writer) *defaultFormBuilder {
+func NewFormBuilder(body io.Writer) *defaultFormBuilder {
 	return &defaultFormBuilder{
 		writer: multipart.NewWriter(body),
 	}

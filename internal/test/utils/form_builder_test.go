@@ -30,7 +30,7 @@ func TestFormBuilderWithFailingWriter(t *testing.T) {
 	defer file.Close()
 	defer os.Remove(file.Name())
 
-	builder := newFormBuilder(&failingWriter{})
+	builder := NewFormBuilder(&failingWriter{})
 	err = builder.createFormFile("file", file)
 	checks.ErrorIs(t, err, errMockFailingWriterError, "formbuilder should return error if writer fails")
 }
@@ -47,7 +47,7 @@ func TestFormBuilderWithClosedFile(t *testing.T) {
 	defer os.Remove(file.Name())
 
 	body := &bytes.Buffer{}
-	builder := newFormBuilder(body)
+	builder := NewFormBuilder(body)
 	err = builder.createFormFile("file", file)
 	checks.HasError(t, err, "formbuilder should return error if file is closed")
 	checks.ErrorIs(t, err, os.ErrClosed, "formbuilder should return error if file is closed")

@@ -13,17 +13,17 @@ type FormBuilder interface {
 	FormDataContentType() string
 }
 
-type defaultFormBuilder struct {
+type DefaultFormBuilder struct {
 	writer *multipart.Writer
 }
 
-func NewFormBuilder(body io.Writer) *defaultFormBuilder {
-	return &defaultFormBuilder{
+func NewFormBuilder(body io.Writer) *DefaultFormBuilder {
+	return &DefaultFormBuilder{
 		writer: multipart.NewWriter(body),
 	}
 }
 
-func (fb *defaultFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
+func (fb *DefaultFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
 	fieldWriter, err := fb.writer.CreateFormFile(fieldname, file.Name())
 	if err != nil {
 		return err
@@ -36,14 +36,14 @@ func (fb *defaultFormBuilder) CreateFormFile(fieldname string, file *os.File) er
 	return nil
 }
 
-func (fb *defaultFormBuilder) WriteField(fieldname, value string) error {
+func (fb *DefaultFormBuilder) WriteField(fieldname, value string) error {
 	return fb.writer.WriteField(fieldname, value)
 }
 
-func (fb *defaultFormBuilder) Close() error {
+func (fb *DefaultFormBuilder) Close() error {
 	return fb.writer.Close()
 }
 
-func (fb *defaultFormBuilder) FormDataContentType() string {
+func (fb *DefaultFormBuilder) FormDataContentType() string {
 	return fb.writer.FormDataContentType()
 }

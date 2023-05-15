@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	
+	"github.com/sashabaranov/go-openai/internal/test/checks/utils"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.

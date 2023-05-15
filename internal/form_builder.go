@@ -7,10 +7,10 @@ import (
 )
 
 type FormBuilder interface {
-	createFormFile(fieldname string, file *os.File) error
-	writeField(fieldname, value string) error
-	close() error
-	formDataContentType() string
+	CreateFormFile(fieldname string, file *os.File) error
+	WriteField(fieldname, value string) error
+	Close() error
+	FormDataContentType() string
 }
 
 type defaultFormBuilder struct {
@@ -23,7 +23,7 @@ func NewFormBuilder(body io.Writer) *defaultFormBuilder {
 	}
 }
 
-func (fb *defaultFormBuilder) createFormFile(fieldname string, file *os.File) error {
+func (fb *defaultFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
 	fieldWriter, err := fb.writer.CreateFormFile(fieldname, file.Name())
 	if err != nil {
 		return err
@@ -36,14 +36,14 @@ func (fb *defaultFormBuilder) createFormFile(fieldname string, file *os.File) er
 	return nil
 }
 
-func (fb *defaultFormBuilder) writeField(fieldname, value string) error {
+func (fb *defaultFormBuilder) WriteField(fieldname, value string) error {
 	return fb.writer.WriteField(fieldname, value)
 }
 
-func (fb *defaultFormBuilder) close() error {
+func (fb *defaultFormBuilder) Close() error {
 	return fb.writer.Close()
 }
 
-func (fb *defaultFormBuilder) formDataContentType() string {
+func (fb *defaultFormBuilder) FormDataContentType() string {
 	return fb.writer.FormDataContentType()
 }

@@ -36,7 +36,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	var b bytes.Buffer
 	builder := c.createFormBuilder(&b)
 
-	err = builder.writeField("purpose", request.Purpose)
+	err = builder.WriteField("purpose", request.Purpose)
 	if err != nil {
 		return
 	}
@@ -46,12 +46,12 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	err = builder.createFormFile("file", fileData)
+	err = builder.CreateFormFile("file", fileData)
 	if err != nil {
 		return
 	}
 
-	err = builder.close()
+	err = builder.Close()
 	if err != nil {
 		return
 	}
@@ -61,7 +61,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	req.Header.Set("Content-Type", builder.formDataContentType())
+	req.Header.Set("Content-Type", builder.FormDataContentType())
 
 	err = c.sendRequest(req, &file)
 

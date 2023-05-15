@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/sashabaranov/go-openai/internal/test/checks/utils"
+	. "github.com/sashabaranov/go-openai/internal"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -16,7 +16,7 @@ type Client struct {
 	config ClientConfig
 
 	requestBuilder    requestBuilder
-	createFormBuilder func(io.Writer) utils.FormBuilder
+	createFormBuilder func(io.Writer) FormBuilder
 }
 
 // NewClient creates new OpenAI API client.
@@ -30,8 +30,8 @@ func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
 		requestBuilder: newRequestBuilder(),
-		createFormBuilder: func(body io.Writer) utils.FormBuilder {
-			return utils.NewFormBuilder(body)
+		createFormBuilder: func(body io.Writer) FormBuilder {
+			return NewFormBuilder(body)
 		},
 	}
 }

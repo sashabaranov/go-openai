@@ -1,6 +1,7 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	. "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -85,7 +86,7 @@ func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 	config.BaseURL = ""
 	client := NewClientWithConfig(config)
 	mockBuilder := &mockFormBuilder{}
-	client.createFormBuilder = func(io.Writer) formBuilder {
+	client.createFormBuilder = func(io.Writer) FormBuilder {
 		return mockBuilder
 	}
 

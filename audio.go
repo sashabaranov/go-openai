@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"os"
 
-	. "github.com/sashabaranov/go-openai/internal"
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
@@ -94,7 +94,7 @@ func (r AudioRequest) HasJSONResponse() bool {
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
-func audioMultipartForm(request AudioRequest, b FormBuilder) error {
+func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 	f, err := os.Open(request.FilePath)
 	if err != nil {
 		return fmt.Errorf("opening audio file: %w", err)

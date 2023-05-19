@@ -470,6 +470,54 @@ func main() {
 </details>
 
 <details>
+<summary>Azure OpenAI Embeddings</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	config.APIVersion = "2023-05-15" // optional update to latest API version
+
+	//If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
+	//config.AzureModelMapperFunc = func(model string) string {
+	//    azureModelMapping = map[string]string{
+	//        "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
+	//    }
+	//    return azureModelMapping[model]
+	//}
+
+	input := "Text to vectorize"
+
+	client := openai.NewClientWithConfig(config)
+	resp, err := client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			Input: []string{input},
+			Model: openai.AdaEmbeddingV2,
+		})
+
+	if err != nil {
+		fmt.Printf("CreateEmbeddings error: %v\n", err)
+		return
+	}
+
+	vectors := resp.Data[0].Embedding // []float32 with 1536 dimensions
+
+	fmt.Println(vectors[:10], "...", vectors[len(vectors)-10:])
+}
+```
+</details>
+
+<details>
 <summary>Error handling</summary>
 
 Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)

@@ -435,16 +435,15 @@ import (
 )
 
 func main() {
-
 	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
-	//If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
-	//config.AzureModelMapperFunc = func(model string) string {
-        //    azureModelMapping = map[string]string{
-        //        "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
-        //    }
-        //    return azureModelMapping[model]
-        //}
-	
+	// If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
+	// config.AzureModelMapperFunc = func(model string) string {
+	// 	azureModelMapping = map[string]string{
+	// 		"gpt-3.5-turbo": "your gpt-3.5-turbo deployment name",
+	// 	}
+	// 	return azureModelMapping[model]
+	// }
+
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -458,7 +457,6 @@ func main() {
 			},
 		},
 	)
-
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
 		return
@@ -466,6 +464,7 @@ func main() {
 
 	fmt.Println(resp.Choices[0].Message.Content)
 }
+
 ```
 </details>
 

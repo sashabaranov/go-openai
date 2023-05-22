@@ -160,6 +160,8 @@ func (c *Client) newStreamRequest(
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
+	defer resp.Body.Close()
+
 	var errRes ErrorResponse
 	err := json.NewDecoder(resp.Body).Decode(&errRes)
 	if err != nil || errRes.Error == nil {

@@ -7,6 +7,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
@@ -78,6 +79,11 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	}
 
 	return decodeResponse(res.Body, v)
+}
+
+// SetTimeout specific http client timeout
+func (c *Client) SetTimeout(timeout time.Duration) {
+	c.config.HTTPClient.Timeout = timeout
 }
 
 func decodeResponse(body io.Reader, v any) error {

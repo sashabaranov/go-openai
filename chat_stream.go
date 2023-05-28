@@ -4,6 +4,8 @@ import (
 	"bufio"
 	"context"
 	"net/http"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
@@ -65,7 +67,7 @@ func (c *Client) CreateChatCompletionStream(
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
 			errAccumulator:     newErrorAccumulator(),
-			unmarshaler:        &jsonUnmarshaler{},
+			unmarshaler:        &utils.JSONUnmarshaler{},
 		},
 	}
 	return

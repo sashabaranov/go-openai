@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 type errorAccumulator interface {
@@ -19,13 +21,13 @@ type errorBuffer interface {
 
 type defaultErrorAccumulator struct {
 	buffer      errorBuffer
-	unmarshaler unmarshaler
+	unmarshaler utils.Unmarshaler
 }
 
 func newErrorAccumulator() errorAccumulator {
 	return &defaultErrorAccumulator{
 		buffer:      &bytes.Buffer{},
-		unmarshaler: &jsonUnmarshaler{},
+		unmarshaler: &utils.JSONUnmarshaler{},
 	}
 }
 
@@ -42,7 +44,7 @@ func (e *defaultErrorAccumulator) unmarshalError() (errResp *ErrorResponse) {
 		return
 	}
 
-	err := e.unmarshaler.unmarshal(e.buffer.Bytes(), &errResp)
+	err := e.unmarshaler.Unmarshal(e.buffer.Bytes(), &errResp)
 	if err != nil {
 		errResp = nil
 	}

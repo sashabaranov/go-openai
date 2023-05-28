@@ -102,10 +102,8 @@ func (r AudioRequest) HasJSONResponse() bool {
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
 func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
-	var err error
-
 	if request.Reader != nil {
-		err = b.CreateFormFileReader("file", request.Reader, request.FilePath)
+		err := b.CreateFormFileReader("file", request.Reader, request.FilePath)
 		if err != nil {
 			return fmt.Errorf("creating form using reader: %w", err)
 		}
@@ -122,7 +120,7 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		}
 	}
 
-	err = b.WriteField("model", request.Model)
+	err := b.WriteField("model", request.Model)
 	if err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}

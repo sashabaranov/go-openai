@@ -70,7 +70,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 // DeleteFile deletes an existing file.
 func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
-	req, err := c.requestBuilder.build(ctx, http.MethodDelete, c.fullURL("/files/"+fileID), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodDelete, c.fullURL("/files/"+fileID), nil)
 	if err != nil {
 		return
 	}
@@ -82,7 +82,7 @@ func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
 // ListFiles Lists the currently available files,
 // and provides basic information about each file such as the file name and purpose.
 func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
-	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/files"), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL("/files"), nil)
 	if err != nil {
 		return
 	}
@@ -95,7 +95,7 @@ func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
 // such as the file name and purpose.
 func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s", fileID)
-	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
 	if err != nil {
 		return
 	}

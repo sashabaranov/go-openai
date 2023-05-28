@@ -2,6 +2,7 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -11,12 +12,10 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
-
-	"context"
-	"testing"
 )
 
 // TestAudio Tests the transcription and translation endpoints of the API using the mocked server.
@@ -60,6 +59,16 @@ func TestAudio(t *testing.T) {
 
 			req := AudioRequest{
 				FilePath: path,
+				Model:    "whisper-3",
+			}
+			_, err = tc.createFn(ctx, req)
+			checks.NoError(t, err, "audio API error")
+		})
+
+		t.Run(tc.name+" (with reader)", func(t *testing.T) {
+			req := AudioRequest{
+				FilePath: "fake.webm",
+				Reader:   bytes.NewBuffer([]byte(`some webm binary data`)),
 				Model:    "whisper-3",
 			}
 			_, err = tc.createFn(ctx, req)

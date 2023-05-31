@@ -1,6 +1,7 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	utils "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -273,12 +274,12 @@ func TestCreateChatCompletionStreamErrorAccumulatorWriteErrors(t *testing.T) {
 	stream, err := client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
 	checks.NoError(t, err)
 
-	stream.errAccumulator = &defaultErrorAccumulator{
-		buffer: &failingErrorBuffer{},
+	stream.errAccumulator = &utils.DefaultErrorAccumulator{
+		Buffer: &test.FailingErrorBuffer{},
 	}
 
 	_, err = stream.Recv()
-	checks.ErrorIs(t, err, errTestErrorAccumulatorWriteFailed, "Did not return error when write failed", err.Error())
+	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed, "Did not return error when Write failed", err.Error())
 }
 
 // Helper funcs.

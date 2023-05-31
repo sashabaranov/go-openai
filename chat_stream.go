@@ -66,7 +66,7 @@ func (c *Client) CreateChatCompletionStream(
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
-			errAccumulator:     newErrorAccumulator(),
+			errAccumulator:     utils.NewErrorAccumulator(),
 			unmarshaler:        &utils.JSONUnmarshaler{},
 		},
 	}

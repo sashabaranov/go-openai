@@ -20,7 +20,7 @@ type streamReader[T streamable] struct {
 
 	reader         *bufio.Reader
 	response       *http.Response
-	errAccumulator errorAccumulator
+	errAccumulator utils.ErrorAccumulator
 	unmarshaler    utils.Unmarshaler
 }
 
@@ -45,7 +45,7 @@ waitForData:
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
-		if writeErr := stream.errAccumulator.write(line); writeErr != nil {
+		if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
 			err = writeErr
 			return
 		}
@@ -70,7 +70,7 @@ waitForData:
 }
 
 func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {
-	errBytes := stream.errAccumulator.bytes()
+	errBytes := stream.errAccumulator.Bytes()
 	if len(errBytes) == 0 {
 		return
 	}

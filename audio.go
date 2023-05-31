@@ -102,25 +102,12 @@ func (r AudioRequest) HasJSONResponse() bool {
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
 func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
-	if request.Reader != nil {
-		err := b.CreateFormFileReader("file", request.Reader, request.FilePath)
-		if err != nil {
-			return fmt.Errorf("creating form using reader: %w", err)
-		}
-	} else {
-		f, err := os.Open(request.FilePath)
-		if err != nil {
-			return fmt.Errorf("opening audio file: %w", err)
-		}
-		defer f.Close()
-
-		err = b.CreateFormFile("file", f)
-		if err != nil {
-			return fmt.Errorf("creating form file: %w", err)
-		}
+	err := createFileField(request, b)
+	if err != nil {
+		return err
 	}
 
-	err := b.WriteField("model", request.Model)
+	err = b.WriteField("model", request.Model)
 	if err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
@@ -159,4 +146,28 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 
 	// Close the multipart writer
 	return b.Close()
+}
+
+// createFileField creates the "file" form field from either an existing file or by using the reader.
+func createFileField(request AudioRequest, b utils.FormBuilder) error {
+	if request.Reader != nil {
+		err := b.CreateFormFileReader("file", request.Reader, request.FilePath)
+		if err != nil {
+			return fmt.Errorf("creating form using reader: %w", err)
+		}
+		return nil
+	}
+
+	f, err := os.Open(request.FilePath)
+	if err != nil {
+		return fmt.Errorf("opening audio file: %w", err)
+	}
+	defer f.Close()
+
+	err = b.CreateFormFile("file", f)
+	if err != nil {
+		return fmt.Errorf("creating form file: %w", err)
+	}
+
+	return nil
 }

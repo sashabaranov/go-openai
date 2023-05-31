@@ -222,3 +222,43 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
 	}
 }
+
+func TestCreateFileField(t *testing.T) {
+	t.Run("createFileField failing file", func(t *testing.T) {
+		dir, cleanup := test.CreateTestDirectory(t)
+		defer cleanup()
+		path := filepath.Join(dir, "fake.mp3")
+		test.CreateTestFile(t, path)
+
+		req := AudioRequest{
+			FilePath: path,
+		}
+
+		mockFailedErr := fmt.Errorf("mock form builder fail")
+		mockBuilder := &mockFormBuilder{
+			mockCreateFormFile: func(string, *os.File) error {
+				return mockFailedErr
+			},
+		}
+
+		err := createFileField(req, mockBuilder)
+		checks.ErrorIs(t, err, mockFailedErr, "createFileField using a file should return error if form builder fails")
+	})
+
+	t.Run("createFileField failing reader", func(t *testing.T) {
+		req := AudioRequest{
+			FilePath: "test.wav",
+			Reader:   bytes.NewBuffer([]byte(`wav test contents`)),
+		}
+
+		mockFailedErr := fmt.Errorf("mock form builder fail")
+		mockBuilder := &mockFormBuilder{
+			mockCreateFormFileReader: func(string, io.Reader, string) error {
+				return mockFailedErr
+			},
+		}
+
+		err := createFileField(req, mockBuilder)
+		checks.ErrorIs(t, err, mockFailedErr, "createFileField using a reader should return error if form builder fails")
+	})
+}

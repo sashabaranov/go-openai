@@ -12,7 +12,7 @@ type EditsRequest struct {
 	Input       string  `json:"input,omitempty"`
 	Instruction string  `json:"instruction,omitempty"`
 	N           int     `json:"n,omitempty"`
-	Temperature float32 `json:"temperature,omitempty"`
+	Temperature float32 `json:"temperature"`
 	TopP        float32 `json:"top_p,omitempty"`
 }
 

@@ -2,14 +2,8 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
-	"context"
 	"errors"
-	"net/http"
 	"testing"
-
-	utils "github.com/sashabaranov/go-openai/internal"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var (
@@ -38,63 +32,33 @@ func (*failingUnMarshaller) Unmarshal(_ []byte, _ any) error {
 	return errTestUnmarshalerFailed
 }
 
-func TestErrorAccumulatorReturnsUnmarshalerErrors(t *testing.T) {
+func TestErrorAccumulatorBytes(t *testing.T) {
 	accumulator := &defaultErrorAccumulator{
-		buffer:      &bytes.Buffer{},
-		unmarshaler: &failingUnMarshaller{},
+		buffer: &bytes.Buffer{},
 	}
 
-	respErr := accumulator.unmarshalError()
-	if respErr != nil {
-		t.Fatalf("Did not return nil with empty buffer: %v", respErr)
+	errBytes := accumulator.bytes()
+	if len(errBytes) != 0 {
+		t.Fatalf("Did not return nil with empty bytes: %s", string(errBytes))
 	}
 
-	err := accumulator.write([]byte("{"))
+	err := accumulator.write([]byte("{}"))
 	if err != nil {
 		t.Fatalf("%+v", err)
 	}
 
-	respErr = accumulator.unmarshalError()
-	if respErr != nil {
-		t.Fatalf("Did not return nil when unmarshaler failed: %v", respErr)
+	errBytes = accumulator.bytes()
+	if len(errBytes) == 0 {
+		t.Fatalf("Did not return error bytes when has error: %s", string(errBytes))
 	}
 }
 
 func TestErrorByteWriteErrors(t *testing.T) {
 	accumulator := &defaultErrorAccumulator{
-		buffer:      &failingErrorBuffer{},
-		unmarshaler: &utils.JSONUnmarshaler{},
+		buffer: &failingErrorBuffer{},
 	}
 	err := accumulator.write([]byte("{"))
 	if !errors.Is(err, errTestErrorAccumulatorWriteFailed) {
 		t.Fatalf("Did not return error when write failed: %v", err)
 	}
-}
-
-func TestErrorAccumulatorWriteErrors(t *testing.T) {
-	var err error
-	server := test.NewTestServer()
-	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "error", 200)
-	})
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-
-	ctx := context.Background()
-
-	stream, err := client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
-	checks.NoError(t, err)
-
-	stream.errAccumulator = &defaultErrorAccumulator{
-		buffer:      &failingErrorBuffer{},
-		unmarshaler: &utils.JSONUnmarshaler{},
-	}
-
-	_, err = stream.Recv()
-	checks.ErrorIs(t, err, errTestErrorAccumulatorWriteFailed, "Did not return error when write failed", err.Error())
 }

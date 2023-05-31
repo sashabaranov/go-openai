@@ -35,7 +35,7 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		respErr := stream.errAccumulator.unmarshalError()
+		respErr := stream.unmarshalError()
 		if respErr != nil {
 			err = fmt.Errorf("error, %w", respErr.Error)
 		}
@@ -66,6 +66,20 @@ waitForData:
 	}
 
 	err = stream.unmarshaler.Unmarshal(line, &response)
+	return
+}
+
+func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {
+	errBytes := stream.errAccumulator.bytes()
+	if len(errBytes) == 0 {
+		return
+	}
+
+	err := stream.unmarshaler.Unmarshal(errBytes, &errResp)
+	if err != nil {
+		errResp = nil
+	}
+
 	return
 }
 

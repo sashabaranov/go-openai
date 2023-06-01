@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -28,6 +29,7 @@ const (
 	GPT3TextCurie001        = "text-curie-001"
 	GPT3TextBabbage001      = "text-babbage-001"
 	GPT3TextAda001          = "text-ada-001"
+	GPT3TextAdaEmbeddingV2  = "text-embedding-ada-002"
 	GPT3TextDavinci001      = "text-davinci-001"
 	GPT3DavinciInstructBeta = "davinci-instruct-beta"
 	GPT3Davinci             = "davinci"
@@ -104,6 +106,21 @@ type CompletionRequest struct {
 	User             string         `json:"user,omitempty"`
 }
 
+func (c CompletionRequest) Tokens() (tokens int, err error) {
+	prompt, ok := c.Prompt.(string)
+	if !ok {
+		return
+	}
+
+	ids, _, err := Tokenize(c.Model, prompt)
+	if err != nil {
+		err = fmt.Errorf("failed to tokenize prompt: %w", err)
+		return
+	}
+
+	return len(ids), nil
+}
+
 // CompletionChoice represents one of possible completions.
 type CompletionChoice struct {
 	Text         string        `json:"text"`
@@ -156,6 +173,11 @@ func (c *Client) CreateCompletion(
 	}
 
 	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), request)
+	if err != nil {
+		return
+	}
+
+	err = waitForRateLimit(c, ctx, request, request.Model)
 	if err != nil {
 		return
 	}

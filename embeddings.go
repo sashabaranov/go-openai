@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -129,10 +130,30 @@ type EmbeddingRequest struct {
 	User string `json:"user"`
 }
 
+func (r EmbeddingRequest) Tokens() (tokens int, err error) {
+	var text string
+	for _, paragraph := range r.Input {
+		text += paragraph
+	}
+
+	ids, _, err := Tokenize(r.Model.String(), text)
+	if err != nil {
+		err = fmt.Errorf("failed to tokenize prompt: %w", err)
+		return
+	}
+
+	return len(ids), nil
+}
+
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
 func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
 	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL("/embeddings", request.Model.String()), request)
+	if err != nil {
+		return
+	}
+
+	err = waitForRateLimit(c, ctx, request, request.Model.String())
 	if err != nil {
 		return
 	}

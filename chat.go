@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"errors"
+	"fmt"
 	"net/http"
 )
 
@@ -45,6 +46,21 @@ type ChatCompletionRequest struct {
 	User             string                  `json:"user,omitempty"`
 }
 
+func (c ChatCompletionRequest) Tokens() (tokens int, err error) {
+	var text string
+	for _, message := range c.Messages {
+		text += message.Content
+	}
+
+	ids, _, err := Tokenize(c.Model, text)
+	if err != nil {
+		err = fmt.Errorf("failed to tokenize prompt: %w", err)
+		return
+	}
+
+	return len(ids), nil
+}
+
 type ChatCompletionChoice struct {
 	Index        int                   `json:"index"`
 	Message      ChatCompletionMessage `json:"message"`
@@ -78,6 +94,11 @@ func (c *Client) CreateChatCompletion(
 	}
 
 	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), request)
+	if err != nil {
+		return
+	}
+
+	err = waitForRateLimit(c, ctx, request, request.Model)
 	if err != nil {
 		return
 	}

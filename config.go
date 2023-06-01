@@ -35,6 +35,7 @@ type ClientConfig struct {
 	HTTPClient           *http.Client
 
 	EmptyMessagesLimit uint
+	EnableRateLimiter  bool
 }
 
 func DefaultConfig(authToken string) ClientConfig {
@@ -47,6 +48,7 @@ func DefaultConfig(authToken string) ClientConfig {
 		HTTPClient: &http.Client{},
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+		EnableRateLimiter:  false,
 	}
 }
 
@@ -64,6 +66,7 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 		HTTPClient: &http.Client{},
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+		EnableRateLimiter:  false,
 	}
 }
 

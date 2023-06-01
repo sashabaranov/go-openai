@@ -540,5 +540,32 @@ if errors.As(err, &e) {
 ```
 </details>
 
+<details>
+<summary>Rate Limit</summary>
+The rate limit is disabled by default.
+You can enable it by setting the `EnableRateLimit` field in the `Config` struct to `true`.
+Documentation about to rate limit
+[azure openai api rate limit](https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits#quotas-and-limits-reference)
+[openai rate limit](https://platform.openai.com/docs/guides/rate-limits/overview)
+
+example:
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	config.EnableRateLimit = true // optional to enable rate limit
+
+}
+```
+</details>
 See the `examples/` folder for more.
 

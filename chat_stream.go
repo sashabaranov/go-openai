@@ -53,6 +53,11 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
+	err = waitForRateLimit(c, ctx, request, request.Model)
+	if err != nil {
+		return
+	}
+
 	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
 		return

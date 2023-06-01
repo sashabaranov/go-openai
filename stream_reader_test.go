@@ -1,6 +1,8 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	"bufio"
+	"bytes"
 	"errors"
 	"testing"
 
@@ -34,5 +36,18 @@ func TestStreamReaderReturnsUnmarshalerErrors(t *testing.T) {
 	respErr = stream.unmarshalError()
 	if respErr != nil {
 		t.Fatalf("Did not return nil when unmarshaler failed: %v", respErr)
+	}
+}
+
+func TestStreamReaderReturnsErrTooManyEmptyStreamMessages(t *testing.T) {
+	stream := &streamReader[ChatCompletionStreamResponse]{
+		emptyMessagesLimit: 3,
+		reader:             bufio.NewReader(bytes.NewReader([]byte("\n\n\n\n"))),
+		errAccumulator:     utils.NewErrorAccumulator(),
+		unmarshaler:        &utils.JSONUnmarshaler{},
+	}
+	_, err := stream.Recv()
+	if !errors.Is(err, ErrTooManyEmptyStreamMessages) {
+		t.Fatalf("Did not return error when recv failed: %v", err)
 	}
 }

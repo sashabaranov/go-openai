@@ -2,6 +2,7 @@ package openai
 
 import (
 	"fmt"
+
 	"github.com/tiktoken-go/tokenizer"
 )
 

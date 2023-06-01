@@ -3,7 +3,40 @@ package openai
 import (
 	"context"
 	"fmt"
+
 	"golang.org/x/time/rate"
+)
+
+// Document Reference:
+// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits#quotas-and-limits-reference
+// https://platform.openai.com/docs/guides/rate-limits/overview
+
+const (
+	SecondsPerMinute                  = 60
+	AzureDavinciRequestLimitPerMinute = 120
+	AzureChatGPTRequestLimitPerMinute = 300
+	AzureGPT4RequestLimitPerMinute    = 18
+	AzureDefaultRequestLimitPerMinute = 300
+
+	AzureDavinciTokensLimitPerMinute = 40000
+	AzureChatGPTTokensLimitPerMinute = 120000
+	AzureGPT4TokensLimitPerMinute    = 10000
+	AzureGPT432kTokensLimitPerMinute = 32000
+	AzureDefaultTokensLimitPerMinute = 120000
+
+	OpenAITextAndEmbeddingRequestLimitPerMinute = 3500
+	OpenAIChatRequestLimitPerMinute             = 3500
+	OpenAIGPT4RequestLimitPerMinute             = 200
+	OpenAIGPT432kRequestLimitPerMinute          = 20
+	OpenAIAudioRequestLimitPerMinute            = 50
+	OpenAIDefaultRequestLimitPerMinute          = 3500
+
+	OpenAIDavinciTokensLimitPerMinute = 350000
+	OpenAIAdaTokensLimitPerMinute     = 350000 * 200
+	OpenAIChatTokensLimitPerMinute    = 90000
+	OpenAIGPT4TokensLimitPerMinute    = 40000
+	OpenAIGPT432kTokensLimitPerMinute = 150000
+	OpenAIDefaultTokensLimitPerMinute = 350000
 )
 
 type RateLimiter interface {
@@ -12,11 +45,9 @@ type RateLimiter interface {
 
 // MemRateLimiter is a token bucket based rate limiter for OpenAI API.
 type MemRateLimiter struct {
-	RequestLimiters     map[string]*rate.Limiter
-	DefaultRequestLimit rate.Limit
-	TokensLimiters      map[string]*rate.Limiter
-	DefaultTokensLimit  rate.Limit
-	apiType             APIType
+	RequestLimiters map[string]*rate.Limiter
+	TokensLimiters  map[string]*rate.Limiter
+	apiType         APIType
 }
 
 func NewMemRateLimiter(apiType APIType) *MemRateLimiter {
@@ -25,15 +56,11 @@ func NewMemRateLimiter(apiType APIType) *MemRateLimiter {
 	}
 
 	if r.apiType == APITypeAzure || r.apiType == APITypeAzureAD {
-		r.DefaultRequestLimit = 300
-		r.DefaultTokensLimit = 120000
 		r.RequestLimiters = r.newAzureRequestLimiters()
 		r.TokensLimiters = r.newAzureTokensLimiters()
 	}
 
 	if r.apiType == APITypeOpenAI {
-		r.DefaultRequestLimit = 3500
-		r.DefaultTokensLimit = 350000
 		r.RequestLimiters = r.newOpenAIRequestLimiters()
 		r.TokensLimiters = r.newOpenAITokensLimiters()
 	}
@@ -64,7 +91,10 @@ func (r *MemRateLimiter) requestWait(ctx context.Context, model string) (err err
 
 	limiter, ok = r.RequestLimiters[model]
 	if !ok {
-		limiter = rate.NewLimiter(r.DefaultRequestLimit/60, int(r.DefaultRequestLimit))
+		limiter = r.newLimiter(AzureDefaultRequestLimitPerMinute)
+		if r.apiType == APITypeOpenAI {
+			limiter = r.newLimiter(OpenAIDefaultRequestLimitPerMinute)
+		}
 	}
 
 	// if limiter is nil, it means that the model is not rate limited
@@ -85,7 +115,10 @@ func (r *MemRateLimiter) tokensWait(ctx context.Context, model string, tokens in
 
 	limiter, ok = r.TokensLimiters[model]
 	if !ok {
-		limiter = rate.NewLimiter(r.DefaultTokensLimit/60, int(r.DefaultTokensLimit))
+		limiter = r.newLimiter(AzureDefaultTokensLimitPerMinute)
+		if r.apiType == APITypeOpenAI {
+			limiter = r.newLimiter(OpenAIDefaultTokensLimitPerMinute)
+		}
 	}
 
 	// if limiter is nil, it means that the model is not rate limited
@@ -96,16 +129,19 @@ func (r *MemRateLimiter) tokensWait(ctx context.Context, model string, tokens in
 	return limiter.WaitN(ctx, tokens)
 }
 
+func (r *MemRateLimiter) newLimiter(minuteRate int) *rate.Limiter {
+	return rate.NewLimiter(rate.Limit(minuteRate/SecondsPerMinute), minuteRate)
+}
+
 // newAzureRequestLimiters creates a map of request limiters for each azure openai model.
-// reference: https://learn.microsoft.com/en-us/azure/cognitive-services/openai/quotas-limits#quotas-and-limits-reference
 func (r *MemRateLimiter) newAzureRequestLimiters() map[string]*rate.Limiter {
 	// The limiters that are not defined here are controlled by the DefaultRequestLimit.
 	return map[string]*rate.Limiter{
-		GPT3Davinci:       rate.NewLimiter(120/60, 120),
-		GPT3Dot5Turbo:     rate.NewLimiter(300/60, 300),
-		GPT3Dot5Turbo0301: rate.NewLimiter(300/60, 300),
-		GPT4:              rate.NewLimiter(18/60, 18),
-		GPT432K:           rate.NewLimiter(18/60, 18),
+		GPT3Davinci:       r.newLimiter(AzureDavinciRequestLimitPerMinute),
+		GPT3Dot5Turbo:     r.newLimiter(AzureChatGPTRequestLimitPerMinute),
+		GPT3Dot5Turbo0301: r.newLimiter(AzureChatGPTRequestLimitPerMinute),
+		GPT4:              r.newLimiter(AzureGPT4RequestLimitPerMinute),
+		GPT432K:           r.newLimiter(AzureGPT432kTokensLimitPerMinute),
 	}
 }
 
@@ -113,26 +149,25 @@ func (r *MemRateLimiter) newAzureRequestLimiters() map[string]*rate.Limiter {
 func (r *MemRateLimiter) newAzureTokensLimiters() map[string]*rate.Limiter {
 	// The limiters that are not defined here are controlled by the DefaultTokensLimit.
 	return map[string]*rate.Limiter{
-		GPT3Davinci:       rate.NewLimiter(40000/60, 40000),
-		GPT3Dot5Turbo:     rate.NewLimiter(120000/60, 120000),
-		GPT3Dot5Turbo0301: rate.NewLimiter(120000/60, 120000),
-		GPT4:              rate.NewLimiter(10000/60, 10000),
-		GPT432K:           rate.NewLimiter(32000/60, 32000),
+		GPT3Davinci:       r.newLimiter(AzureDavinciTokensLimitPerMinute),
+		GPT3Dot5Turbo:     r.newLimiter(AzureChatGPTTokensLimitPerMinute),
+		GPT3Dot5Turbo0301: r.newLimiter(AzureChatGPTTokensLimitPerMinute),
+		GPT4:              r.newLimiter(AzureGPT4TokensLimitPerMinute),
+		GPT432K:           r.newLimiter(AzureGPT432kTokensLimitPerMinute),
 	}
 }
 
 // newOpenAIRequestLimiters creates a map of request limiters for each openai model.
-// reference: https://platform.openai.com/docs/guides/rate-limits/overview
 func (r *MemRateLimiter) newOpenAIRequestLimiters() map[string]*rate.Limiter {
 	// The limiters that are not defined here are controlled by the DefaultRequestLimit.
 	return map[string]*rate.Limiter{
-		GPT3Davinci:       rate.NewLimiter(3500/60, 3500),
-		GPT3Dot5Turbo:     rate.NewLimiter(3500/60, 3500),
-		GPT3Dot5Turbo0301: rate.NewLimiter(3500/60, 3500),
-		GPT4:              rate.NewLimiter(200/60, 200),
-		GPT40314:          rate.NewLimiter(200/60, 200),
-		GPT432K:           rate.NewLimiter(20/60, 20),
-		GPT432K0314:       rate.NewLimiter(20/60, 20),
+		GPT3Davinci:       r.newLimiter(OpenAITextAndEmbeddingRequestLimitPerMinute),
+		GPT3Dot5Turbo:     r.newLimiter(OpenAIChatRequestLimitPerMinute),
+		GPT3Dot5Turbo0301: r.newLimiter(OpenAIChatRequestLimitPerMinute),
+		GPT4:              r.newLimiter(OpenAIGPT4RequestLimitPerMinute),
+		GPT40314:          r.newLimiter(OpenAIGPT4RequestLimitPerMinute),
+		GPT432K:           r.newLimiter(OpenAIGPT432kRequestLimitPerMinute),
+		GPT432K0314:       r.newLimiter(OpenAIGPT432kRequestLimitPerMinute),
 	}
 }
 
@@ -140,12 +175,12 @@ func (r *MemRateLimiter) newOpenAIRequestLimiters() map[string]*rate.Limiter {
 func (r *MemRateLimiter) newOpenAITokensLimiters() map[string]*rate.Limiter {
 	// The limiters that are not defined here are controlled by the DefaultTokensLimit.
 	return map[string]*rate.Limiter{
-		GPT3Davinci:            rate.NewLimiter(350000/60, 350000),
-		GPT3TextAdaEmbeddingV2: rate.NewLimiter(350000*200/60, 350000*200),
-		GPT3Dot5Turbo:          rate.NewLimiter(350000/60, 350000),
-		GPT3Dot5Turbo0301:      rate.NewLimiter(350000/60, 350000),
-		GPT4:                   rate.NewLimiter(40000/60, 40000),
-		GPT432K:                rate.NewLimiter(150000/60, 150000),
+		GPT3Davinci:            r.newLimiter(OpenAIDavinciTokensLimitPerMinute),
+		GPT3TextAdaEmbeddingV2: r.newLimiter(OpenAIAdaTokensLimitPerMinute),
+		GPT3Dot5Turbo:          r.newLimiter(OpenAIChatTokensLimitPerMinute),
+		GPT3Dot5Turbo0301:      r.newLimiter(OpenAIChatTokensLimitPerMinute),
+		GPT4:                   r.newLimiter(OpenAIGPT4TokensLimitPerMinute),
+		GPT432K:                r.newLimiter(OpenAIGPT432kTokensLimitPerMinute),
 	}
 }
 
@@ -153,7 +188,7 @@ type TokenCountable interface {
 	Tokens() (int, error)
 }
 
-func waitForRateLimit(c *Client, ctx context.Context, request TokenCountable, model string) (err error) {
+func waitForRateLimit(ctx context.Context, c *Client, request TokenCountable, model string) (err error) {
 	if c.rateLimiter == nil {
 		return nil
 	}

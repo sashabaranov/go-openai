@@ -98,7 +98,7 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	err = waitForRateLimit(c, ctx, request, request.Model)
+	err = waitForRateLimit(ctx, c, request, request.Model)
 	if err != nil {
 		return
 	}

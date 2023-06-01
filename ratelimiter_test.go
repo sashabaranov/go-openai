@@ -2,12 +2,13 @@ package openai_test
 
 import (
 	"context"
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"sync"
 	"testing"
 	"time"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestMemRateLimiter_Wait(t *testing.T) {
@@ -101,7 +102,7 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 	}
 }
 
-// TestRateLimitedChatCompletions test the rate limiter works with chat completions
+// TestRateLimitedChatCompletions test the rate limiter works with chat completions.
 func TestRateLimitedChatCompletions(t *testing.T) {
 	server := test.NewTestServer()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)

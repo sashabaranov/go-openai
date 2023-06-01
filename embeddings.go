@@ -153,7 +153,7 @@ func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest)
 		return
 	}
 
-	err = waitForRateLimit(c, ctx, request, request.Model.String())
+	err = waitForRateLimit(ctx, c, request, request.Model.String())
 	if err != nil {
 		return
 	}

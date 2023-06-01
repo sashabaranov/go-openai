@@ -522,7 +522,7 @@ func main() {
 Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)
 
 example:
-```
+```go
 e := &openai.APIError{}
 if errors.As(err, &e) {
   switch e.HTTPStatusCode {
@@ -542,14 +542,16 @@ if errors.As(err, &e) {
 
 <details>
 <summary>Rate Limit</summary>
+
 The rate limit is disabled by default.
 
 You can enable it by setting the `EnableRateLimit` field in the `Config` struct to `true`.
 
 Now, rate limit support:
-	* `CreateChatCompletion`
-	* `CreateChatCompletionStream`
-	* `CreateEmbeddings`
+
+* `CreateChatCompletion`
+* `CreateChatCompletionStream`
+* `CreateEmbeddings`
 
 Documentation about to rate limit:
 

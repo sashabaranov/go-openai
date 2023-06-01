@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
@@ -72,7 +74,7 @@ func (c *Client) callAudioAPI(
 	if err != nil {
 		return AudioResponse{}, err
 	}
-	req.Header.Add("Content-Type", builder.formDataContentType())
+	req.Header.Add("Content-Type", builder.FormDataContentType())
 
 	if request.HasJSONResponse() {
 		err = c.sendRequest(req, &response)
@@ -92,26 +94,26 @@ func (r AudioRequest) HasJSONResponse() bool {
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
-func audioMultipartForm(request AudioRequest, b formBuilder) error {
+func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 	f, err := os.Open(request.FilePath)
 	if err != nil {
 		return fmt.Errorf("opening audio file: %w", err)
 	}
 	defer f.Close()
 
-	err = b.createFormFile("file", f)
+	err = b.CreateFormFile("file", f)
 	if err != nil {
 		return fmt.Errorf("creating form file: %w", err)
 	}
 
-	err = b.writeField("model", request.Model)
+	err = b.WriteField("model", request.Model)
 	if err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
 
 	// Create a form field for the prompt (if provided)
 	if request.Prompt != "" {
-		err = b.writeField("prompt", request.Prompt)
+		err = b.WriteField("prompt", request.Prompt)
 		if err != nil {
 			return fmt.Errorf("writing prompt: %w", err)
 		}
@@ -119,7 +121,7 @@ func audioMultipartForm(request AudioRequest, b formBuilder) error {
 
 	// Create a form field for the format (if provided)
 	if request.Format != "" {
-		err = b.writeField("response_format", string(request.Format))
+		err = b.WriteField("response_format", string(request.Format))
 		if err != nil {
 			return fmt.Errorf("writing format: %w", err)
 		}
@@ -127,7 +129,7 @@ func audioMultipartForm(request AudioRequest, b formBuilder) error {
 
 	// Create a form field for the temperature (if provided)
 	if request.Temperature != 0 {
-		err = b.writeField("temperature", fmt.Sprintf("%.2f", request.Temperature))
+		err = b.WriteField("temperature", fmt.Sprintf("%.2f", request.Temperature))
 		if err != nil {
 			return fmt.Errorf("writing temperature: %w", err)
 		}
@@ -135,12 +137,12 @@ func audioMultipartForm(request AudioRequest, b formBuilder) error {
 
 	// Create a form field for the language (if provided)
 	if request.Language != "" {
-		err = b.writeField("language", request.Language)
+		err = b.WriteField("language", request.Language)
 		if err != nil {
 			return fmt.Errorf("writing language: %w", err)
 		}
 	}
 
 	// Close the multipart writer
-	return b.close()
+	return b.Close()
 }

@@ -5,6 +5,8 @@ import (
 	"context"
 	"errors"
 	"net/http"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 var (
@@ -54,7 +56,7 @@ func (c *Client) CreateCompletionStream(
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
 			errAccumulator:     newErrorAccumulator(),
-			unmarshaler:        &jsonUnmarshaler{},
+			unmarshaler:        &utils.JSONUnmarshaler{},
 		},
 	}
 	return

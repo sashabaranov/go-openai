@@ -7,14 +7,16 @@ import (
 	"io"
 	"net/http"
 	"strings"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
 
-	requestBuilder    requestBuilder
-	createFormBuilder func(io.Writer) formBuilder
+	requestBuilder    utils.RequestBuilder
+	createFormBuilder func(io.Writer) utils.FormBuilder
 }
 
 // NewClient creates new OpenAI API client.
@@ -27,9 +29,9 @@ func NewClient(authToken string) *Client {
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
-		requestBuilder: newRequestBuilder(),
-		createFormBuilder: func(body io.Writer) formBuilder {
-			return newFormBuilder(body)
+		requestBuilder: utils.NewRequestBuilder(),
+		createFormBuilder: func(body io.Writer) utils.FormBuilder {
+			return utils.NewFormBuilder(body)
 		},
 	}
 }
@@ -133,7 +135,7 @@ func (c *Client) newStreamRequest(
 	urlSuffix string,
 	body any,
 	model string) (*http.Request, error) {
-	req, err := c.requestBuilder.build(ctx, method, c.fullURL(urlSuffix, model), body)
+	req, err := c.requestBuilder.Build(ctx, method, c.fullURL(urlSuffix, model), body)
 	if err != nil {
 		return nil, err
 	}

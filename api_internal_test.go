@@ -122,7 +122,7 @@ func TestAzureFullURL(t *testing.T) {
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
-				"/chat/completions?api-version=2023-03-15-preview",
+				"/chat/completions?api-version=2023-05-15",
 		},
 		{
 			"AzureBaseURLWithoutSlashOK",
@@ -131,7 +131,7 @@ func TestAzureFullURL(t *testing.T) {
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
-				"/chat/completions?api-version=2023-03-15-preview",
+				"/chat/completions?api-version=2023-05-15",
 		},
 	}
 

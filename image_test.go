@@ -1,6 +1,7 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	utils "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -268,19 +269,19 @@ type mockFormBuilder struct {
 	mockClose          func() error
 }
 
-func (fb *mockFormBuilder) createFormFile(fieldname string, file *os.File) error {
+func (fb *mockFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
 	return fb.mockCreateFormFile(fieldname, file)
 }
 
-func (fb *mockFormBuilder) writeField(fieldname, value string) error {
+func (fb *mockFormBuilder) WriteField(fieldname, value string) error {
 	return fb.mockWriteField(fieldname, value)
 }
 
-func (fb *mockFormBuilder) close() error {
+func (fb *mockFormBuilder) Close() error {
 	return fb.mockClose()
 }
 
-func (fb *mockFormBuilder) formDataContentType() string {
+func (fb *mockFormBuilder) FormDataContentType() string {
 	return ""
 }
 
@@ -290,7 +291,7 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	client := NewClientWithConfig(config)
 
 	mockBuilder := &mockFormBuilder{}
-	client.createFormBuilder = func(io.Writer) formBuilder {
+	client.createFormBuilder = func(io.Writer) utils.FormBuilder {
 		return mockBuilder
 	}
 	ctx := context.Background()
@@ -357,7 +358,7 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	client := NewClientWithConfig(config)
 
 	mockBuilder := &mockFormBuilder{}
-	client.createFormBuilder = func(io.Writer) formBuilder {
+	client.createFormBuilder = func(io.Writer) utils.FormBuilder {
 		return mockBuilder
 	}
 	ctx := context.Background()

@@ -177,7 +177,7 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	err = waitForRateLimit(ctx, c, request, request.Model)
+	err = WaitForRateLimit(ctx, c, request, request.Model)
 	if err != nil {
 		return
 	}

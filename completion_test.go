@@ -1,14 +1,13 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"io"
 	"net/http"
 	"strconv"
@@ -129,4 +128,49 @@ func getCompletionBody(r *http.Request) (CompletionRequest, error) {
 		return CompletionRequest{}, err
 	}
 	return completion, nil
+}
+
+func TestCompletionRequest_Tokens(t *testing.T) {
+	testcases := []struct {
+		name       string
+		model      string
+		prompt     string
+		wantErr    error
+		wantTokens int
+	}{
+		{
+			name:    "test unknown model",
+			model:   "unknown",
+			prompt:  "Hello, world!",
+			wantErr: errors.New("failed to tokenize prompt: model not supported: model not supported"),
+		},
+		{
+			name:       "test1",
+			model:      GPT3Dot5Turbo,
+			prompt:     "Hello, world!",
+			wantTokens: 4,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(tt *testing.T) {
+			req := CompletionRequest{
+				Model:  testcase.model,
+				Prompt: testcase.prompt,
+			}
+			tokens, err := req.Tokens()
+			if err != nil && testcase.wantErr == nil {
+				tt.Fatalf("Tokens() returned unexpected error: %v", err)
+			}
+
+			if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+				tt.Fatalf("Tokens() returned unexpected error: %v, want: %v", err, testcase.wantErr)
+			}
+
+			if tokens != testcase.wantTokens {
+				tt.Fatalf("Tokens() returned unexpected number of tokens: %d, want: %d", tokens, testcase.wantTokens)
+			}
+
+		})
+	}
 }

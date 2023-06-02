@@ -1,6 +1,7 @@
 package openai_test
 
 import (
+	"errors"
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
@@ -88,4 +89,49 @@ func TestEmbeddingEndpoint(t *testing.T) {
 
 	_, err = client.CreateEmbeddings(ctx, EmbeddingRequest{})
 	checks.NoError(t, err, "CreateEmbeddings error")
+}
+
+func TestEmbeddingRequest_Tokens(t *testing.T) {
+	testcases := []struct {
+		name       string
+		model      EmbeddingModel
+		input      []string
+		wantErr    error
+		wantTokens int
+	}{
+		{
+			name:    "test unknown model",
+			wantErr: errors.New("failed to tokenize prompt: model not supported: model not supported"),
+		},
+		{
+			name:  "test1",
+			model: AdaEmbeddingV2,
+			input: []string{
+				"The food was delicious and the waiter",
+			},
+			wantTokens: 7,
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(tt *testing.T) {
+			req := EmbeddingRequest{
+				Model: testcase.model,
+				Input: testcase.input,
+			}
+			tokens, err := req.Tokens()
+			if err != nil && testcase.wantErr == nil {
+				tt.Fatalf("Tokens() returned unexpected error: %v", err)
+			}
+
+			if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+				tt.Fatalf("Tokens() returned unexpected error: %v, want: %v", err, testcase.wantErr)
+			}
+
+			if tokens != testcase.wantTokens {
+				tt.Fatalf("Tokens() returned unexpected number of tokens: %d, want: %d", tokens, testcase.wantTokens)
+			}
+
+		})
+	}
 }

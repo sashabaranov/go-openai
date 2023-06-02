@@ -95,6 +95,8 @@ func (r *MemRateLimiter) requestWait(ctx context.Context, model string) (err err
 		if r.apiType == APITypeOpenAI {
 			limiter = r.newLimiter(OpenAIDefaultRequestLimitPerMinute)
 		}
+
+		r.RequestLimiters[model] = limiter
 	}
 
 	// if limiter is nil, it means that the model is not rate limited
@@ -119,6 +121,8 @@ func (r *MemRateLimiter) tokensWait(ctx context.Context, model string, tokens in
 		if r.apiType == APITypeOpenAI {
 			limiter = r.newLimiter(OpenAIDefaultTokensLimitPerMinute)
 		}
+
+		r.TokensLimiters[model] = limiter
 	}
 
 	// if limiter is nil, it means that the model is not rate limited
@@ -188,9 +192,21 @@ type TokenCountable interface {
 	Tokens() (int, error)
 }
 
-func waitForRateLimit(ctx context.Context, c *Client, request TokenCountable, model string) (err error) {
+func WaitForRateLimit(ctx context.Context, c *Client, request TokenCountable, model string) (err error) {
+	if ctx == nil {
+		return fmt.Errorf("context is nil")
+	}
+
+	if c == nil {
+		return fmt.Errorf("client is nil")
+	}
+
 	if c.rateLimiter == nil {
-		return nil
+		return fmt.Errorf("rate limiter is nil")
+	}
+
+	if request == nil {
+		return fmt.Errorf("request is nil")
 	}
 
 	var tokens int

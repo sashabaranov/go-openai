@@ -3,6 +3,7 @@ package openai_test
 import (
 	"context"
 	"errors"
+	"golang.org/x/time/rate"
 	"sync"
 	"testing"
 	"time"
@@ -14,14 +15,16 @@ import (
 
 func TestMemRateLimiter_Wait(t *testing.T) {
 	testcases := []struct {
-		name             string
-		apiType          APIType
-		model            string
-		totalRequests    int
-		concurrency      int
-		tokensPerRequest int
-		wantCostSeconds  int
-		wantErr          error
+		name                  string
+		apiType               APIType
+		model                 string
+		totalRequests         int
+		concurrency           int
+		tokensPerRequest      int
+		wantCostSeconds       int
+		customRequestLimiters map[string]*rate.Limiter
+		customTokensLimiters  map[string]*rate.Limiter
+		wantErr               error
 	}{
 		{
 			name:             "test under request limit",
@@ -48,6 +51,24 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    305,
 			concurrency:      305,
 			tokensPerRequest: 0,
+			wantCostSeconds:  1,
+		},
+		{
+			name:             "test unknown model request limit",
+			apiType:          APITypeAzure,
+			model:            "unknown",
+			totalRequests:    310,
+			concurrency:      310,
+			tokensPerRequest: 0,
+			wantCostSeconds:  2,
+		},
+		{
+			name:             "test unknown model tokens limit",
+			apiType:          APITypeAzure,
+			model:            "unknown",
+			totalRequests:    10,
+			concurrency:      10,
+			tokensPerRequest: 12200,
 			wantCostSeconds:  1,
 		},
 		{
@@ -87,11 +108,46 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			wantCostSeconds:  0,
 			wantErr:          errors.New("rate: Wait(n=12200000) exceeds limiter's burst 120000"),
 		},
+		{
+			name:          "test unlimited model request limit",
+			apiType:       APITypeAzure,
+			model:         "unlimited",
+			totalRequests: 600,
+			concurrency:   600,
+			customRequestLimiters: map[string]*rate.Limiter{
+				"unlimited": nil,
+			},
+			wantCostSeconds: 0,
+		},
+		{
+			name:             "test unlimited model tokens limit",
+			apiType:          APITypeAzure,
+			model:            "unlimited",
+			totalRequests:    1,
+			concurrency:      1,
+			tokensPerRequest: 12200000,
+			customTokensLimiters: map[string]*rate.Limiter{
+				"unlimited": nil,
+			},
+			wantCostSeconds: 0,
+		},
 	}
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(tt *testing.T) {
 			r := NewMemRateLimiter(testcase.apiType)
+			if testcase.customRequestLimiters != nil {
+				for key, val := range testcase.customRequestLimiters {
+					r.RequestLimiters[key] = val
+				}
+			}
+
+			if testcase.customTokensLimiters != nil {
+				for key, val := range testcase.customTokensLimiters {
+					r.TokensLimiters[key] = val
+				}
+			}
+
 			start := time.Now()
 			wg := sync.WaitGroup{}
 			wg.Add(testcase.totalRequests)
@@ -157,5 +213,146 @@ func TestRateLimitedChatCompletions(t *testing.T) {
 	elapsed := int(time.Since(start) / time.Second)
 	if elapsed != 3 {
 		t.Errorf("Wait() cost time = %v, want %v", elapsed, 3)
+	}
+}
+
+func TestWaitForRateLimit(t *testing.T) {
+	clientConfig := DefaultConfig("test")
+	clientConfig.EnableRateLimiter = true
+
+	testcases := []struct {
+		name    string
+		ctx     context.Context
+		c       *Client
+		request TokenCountable
+		model   string
+		wantErr error
+	}{
+		{
+			name:    "test client is nil",
+			model:   "unknown",
+			wantErr: errors.New("client is nil"),
+		},
+		{
+			name:    "test rate limiter is nil",
+			model:   "unknown",
+			c:       NewClient("test"),
+			wantErr: errors.New("rate limiter is nil"),
+		},
+		{
+			name:    "test context is nil",
+			model:   "unknown",
+			c:       NewClientWithConfig(clientConfig),
+			wantErr: errors.New("context is nil"),
+		},
+		{
+			name:  "test context is nil",
+			model: "unknown",
+			c:     NewClientWithConfig(clientConfig),
+			ctx:   context.Background(),
+		},
+		{
+			name:    "test request is nil",
+			model:   "unknown",
+			c:       NewClientWithConfig(clientConfig),
+			ctx:     context.Background(),
+			wantErr: errors.New("request is nil"),
+		},
+		{
+			name:  "test request is nil",
+			model: "unknown",
+			c:     NewClientWithConfig(clientConfig),
+			ctx:   context.Background(),
+			request: EmbeddingRequest{
+				Input: []string{
+					"The food was delicious and the waiter",
+					"Other examples of embedding request",
+				},
+				Model: AdaEmbeddingV2,
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(tt *testing.T) {
+			err := WaitForRateLimit(testcase.ctx, testcase.c, testcase.request, testcase.model)
+			if err != nil && testcase.wantErr == nil {
+				tt.Fatalf("Tokens() returned unexpected error: %v", err)
+			}
+
+			if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+				tt.Fatalf("Tokens() returned unexpected error: %v, want: %v", err, testcase.wantErr)
+			}
+		})
+	}
+}
+
+func TestWaitForRateLimitConcurrency(t *testing.T) {
+	clientConfig := DefaultConfig("test")
+	clientConfig.EnableRateLimiter = true
+	testcases := []struct {
+		name    string
+		ctx     context.Context
+		c       *Client
+		request TokenCountable
+		model   string
+		wantErr error
+	}{
+		{
+			name:    "test client is nil",
+			model:   "unknown",
+			wantErr: errors.New("client is nil"),
+		},
+		{
+			name:    "test rate limiter is nil",
+			model:   "unknown",
+			c:       NewClient("test"),
+			wantErr: errors.New("rate limiter is nil"),
+		},
+		{
+			name:    "test context is nil",
+			model:   "unknown",
+			c:       NewClientWithConfig(clientConfig),
+			wantErr: errors.New("context is nil"),
+		},
+		{
+			name:  "test context is nil",
+			model: "unknown",
+			c:     NewClientWithConfig(clientConfig),
+			ctx:   context.Background(),
+		},
+		{
+			name:    "test request is nil",
+			model:   "unknown",
+			c:       NewClientWithConfig(clientConfig),
+			ctx:     context.Background(),
+			wantErr: errors.New("request is nil"),
+		},
+		{
+			name:  "test request is nil",
+			model: "unknown",
+			c:     NewClientWithConfig(clientConfig),
+			ctx:   context.Background(),
+			request: EmbeddingRequest{
+				Input: []string{
+					"The food was delicious and the waiter",
+					"Other examples of embedding request",
+				},
+				Model: AdaEmbeddingV2,
+			},
+		},
+	}
+
+	for _, testcase := range testcases {
+		t.Run(testcase.name, func(tt *testing.T) {
+			err := WaitForRateLimit(testcase.ctx, testcase.c, testcase.request, testcase.model)
+			if err != nil && testcase.wantErr == nil {
+				tt.Fatalf("Tokens() returned unexpected error: %v", err)
+			}
+
+			if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+				tt.Fatalf("Tokens() returned unexpected error: %v, want: %v", err, testcase.wantErr)
+			}
+		})
 	}
 }

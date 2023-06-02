@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"io"
 	"net/http"
 	"strconv"
 	"strings"
 	"testing"
 	"time"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestCompletionsWrongModel(t *testing.T) {
@@ -170,7 +171,6 @@ func TestCompletionRequest_Tokens(t *testing.T) {
 			if tokens != testcase.wantTokens {
 				tt.Fatalf("Tokens() returned unexpected number of tokens: %d, want: %d", tokens, testcase.wantTokens)
 			}
-
 		})
 	}
 }

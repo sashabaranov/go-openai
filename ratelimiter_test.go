@@ -3,29 +3,70 @@ package openai_test
 import (
 	"context"
 	"errors"
-	"golang.org/x/time/rate"
 	"sync"
 	"testing"
 	"time"
+
+	"golang.org/x/time/rate"
 
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+type memRateLimiterWaitTestcase struct {
+	name                  string
+	apiType               APIType
+	model                 string
+	totalRequests         int
+	concurrency           int
+	tokensPerRequest      int
+	wantCostSeconds       int
+	customRequestLimiters map[string]*rate.Limiter
+	customTokensLimiters  map[string]*rate.Limiter
+	wantErr               error
+}
+
+func newMemRateLimiter(testcase memRateLimiterWaitTestcase) *MemRateLimiter {
+	r := NewMemRateLimiter(testcase.apiType)
+	if testcase.customRequestLimiters != nil {
+		for key, val := range testcase.customRequestLimiters {
+			r.RequestLimiters[key] = val
+		}
+	}
+
+	if testcase.customTokensLimiters != nil {
+		for key, val := range testcase.customTokensLimiters {
+			r.TokensLimiters[key] = val
+		}
+	}
+
+	return r
+}
+
+func runMemRateLimiterWaitTestCase(tt *testing.T, testcase memRateLimiterWaitTestcase) {
+	r := newMemRateLimiter(testcase)
+	wg := sync.WaitGroup{}
+	wg.Add(testcase.totalRequests)
+	for j := 0; j < testcase.concurrency; j++ {
+		go func() {
+			defer wg.Done()
+			err := r.Wait(context.Background(), testcase.model, testcase.tokensPerRequest)
+			if err != nil && testcase.wantErr == nil {
+				tt.Errorf("Wait() error = %v, want nil", err)
+				return
+			}
+			if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+				tt.Errorf("Wait() error = %v, want %v", err, testcase.wantErr)
+				return
+			}
+		}()
+	}
+	wg.Wait()
+}
+
 func TestMemRateLimiter_Wait(t *testing.T) {
-	testcases := []struct {
-		name                  string
-		apiType               APIType
-		model                 string
-		totalRequests         int
-		concurrency           int
-		tokensPerRequest      int
-		wantCostSeconds       int
-		customRequestLimiters map[string]*rate.Limiter
-		customTokensLimiters  map[string]*rate.Limiter
-		wantErr               error
-	}{
+	testcases := []memRateLimiterWaitTestcase{
 		{
 			name:             "test under request limit",
 			apiType:          APITypeAzure,
@@ -135,37 +176,8 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(tt *testing.T) {
-			r := NewMemRateLimiter(testcase.apiType)
-			if testcase.customRequestLimiters != nil {
-				for key, val := range testcase.customRequestLimiters {
-					r.RequestLimiters[key] = val
-				}
-			}
-
-			if testcase.customTokensLimiters != nil {
-				for key, val := range testcase.customTokensLimiters {
-					r.TokensLimiters[key] = val
-				}
-			}
-
 			start := time.Now()
-			wg := sync.WaitGroup{}
-			wg.Add(testcase.totalRequests)
-			for j := 0; j < testcase.concurrency; j++ {
-				go func() {
-					defer wg.Done()
-					err := r.Wait(context.Background(), testcase.model, testcase.tokensPerRequest)
-					if err != nil && testcase.wantErr == nil {
-						tt.Errorf("Wait() error = %v, want nil", err)
-						return
-					}
-					if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
-						tt.Errorf("Wait() error = %v, want %v", err, testcase.wantErr)
-						return
-					}
-				}()
-			}
-			wg.Wait()
+			runMemRateLimiterWaitTestCase(tt, testcase)
 			elapsed := int(time.Since(start) / time.Second)
 			if elapsed != testcase.wantCostSeconds {
 				tt.Errorf("Wait() cost time = %v, want %v", elapsed, testcase.wantCostSeconds)
@@ -231,11 +243,13 @@ func TestWaitForRateLimit(t *testing.T) {
 		{
 			name:    "test client is nil",
 			model:   "unknown",
+			ctx:     context.Background(),
 			wantErr: errors.New("client is nil"),
 		},
 		{
 			name:    "test rate limiter is nil",
 			model:   "unknown",
+			ctx:     context.Background(),
 			c:       NewClient("test"),
 			wantErr: errors.New("rate limiter is nil"),
 		},
@@ -246,12 +260,6 @@ func TestWaitForRateLimit(t *testing.T) {
 			wantErr: errors.New("context is nil"),
 		},
 		{
-			name:  "test context is nil",
-			model: "unknown",
-			c:     NewClientWithConfig(clientConfig),
-			ctx:   context.Background(),
-		},
-		{
 			name:    "test request is nil",
 			model:   "unknown",
 			c:       NewClientWithConfig(clientConfig),
@@ -259,7 +267,7 @@ func TestWaitForRateLimit(t *testing.T) {
 			wantErr: errors.New("request is nil"),
 		},
 		{
-			name:  "test request is nil",
+			name:  "test1",
 			model: "unknown",
 			c:     NewClientWithConfig(clientConfig),
 			ctx:   context.Background(),
@@ -301,11 +309,13 @@ func TestWaitForRateLimitConcurrency(t *testing.T) {
 		{
 			name:    "test client is nil",
 			model:   "unknown",
+			ctx:     context.Background(),
 			wantErr: errors.New("client is nil"),
 		},
 		{
 			name:    "test rate limiter is nil",
 			model:   "unknown",
+			ctx:     context.Background(),
 			c:       NewClient("test"),
 			wantErr: errors.New("rate limiter is nil"),
 		},
@@ -314,12 +324,6 @@ func TestWaitForRateLimitConcurrency(t *testing.T) {
 			model:   "unknown",
 			c:       NewClientWithConfig(clientConfig),
 			wantErr: errors.New("context is nil"),
-		},
-		{
-			name:  "test context is nil",
-			model: "unknown",
-			c:     NewClientWithConfig(clientConfig),
-			ctx:   context.Background(),
 		},
 		{
 			name:    "test request is nil",

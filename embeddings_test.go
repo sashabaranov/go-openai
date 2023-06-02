@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	"errors"
+
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
@@ -131,7 +132,6 @@ func TestEmbeddingRequest_Tokens(t *testing.T) {
 			if tokens != testcase.wantTokens {
 				tt.Fatalf("Tokens() returned unexpected number of tokens: %d, want: %d", tokens, testcase.wantTokens)
 			}
-
 		})
 	}
 }

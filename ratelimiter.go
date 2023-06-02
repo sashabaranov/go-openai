@@ -193,12 +193,16 @@ type TokenCountable interface {
 }
 
 func WaitForRateLimit(ctx context.Context, c *Client, request TokenCountable, model string) (err error) {
-	if ctx == nil {
-		return fmt.Errorf("context is nil")
-	}
-
 	if c == nil {
 		return fmt.Errorf("client is nil")
+	}
+
+	if !c.config.EnableRateLimiter {
+		return nil
+	}
+
+	if ctx == nil {
+		return fmt.Errorf("context is nil")
 	}
 
 	if c.rateLimiter == nil {

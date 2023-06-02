@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	"context"
+	"errors"
 	"sync"
 	"testing"
 	"time"
@@ -20,6 +21,7 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 		concurrency      int
 		tokensPerRequest int
 		wantCostSeconds  int
+		wantErr          error
 	}{
 		{
 			name:             "test under request limit",
@@ -75,6 +77,16 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			tokensPerRequest: 12200,
 			wantCostSeconds:  1,
 		},
+		{
+			name:             "test massive tokens",
+			apiType:          APITypeAzure,
+			model:            GPT3Dot5Turbo,
+			totalRequests:    1,
+			concurrency:      1,
+			tokensPerRequest: 12200000,
+			wantCostSeconds:  0,
+			wantErr:          errors.New("rate: Wait(n=12200000) exceeds limiter's burst 120000"),
+		},
 	}
 
 	for _, testcase := range testcases {
@@ -87,8 +99,12 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 				go func() {
 					defer wg.Done()
 					err := r.Wait(context.Background(), testcase.model, testcase.tokensPerRequest)
-					if err != nil {
-						tt.Errorf("Wait() error = %v", err)
+					if err != nil && testcase.wantErr == nil {
+						tt.Errorf("Wait() error = %v, want nil", err)
+						return
+					}
+					if err != nil && testcase.wantErr != nil && err.Error() != testcase.wantErr.Error() {
+						tt.Errorf("Wait() error = %v, want %v", err, testcase.wantErr)
 						return
 					}
 				}()

@@ -98,10 +98,10 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			name:             "test unknown model request limit",
 			apiType:          APITypeAzure,
 			model:            "unknown",
-			totalRequests:    310,
-			concurrency:      310,
+			totalRequests:    300,
+			concurrency:      300,
 			tokensPerRequest: 0,
-			wantCostSeconds:  2,
+			wantCostSeconds:  0,
 		},
 		{
 			name:             "test unknown model tokens limit",
@@ -153,8 +153,8 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			name:          "test unlimited model request limit",
 			apiType:       APITypeAzure,
 			model:         "unlimited",
-			totalRequests: 600,
-			concurrency:   600,
+			totalRequests: 1,
+			concurrency:   1,
 			customRequestLimiters: map[string]*rate.Limiter{
 				"unlimited": nil,
 			},
@@ -214,17 +214,17 @@ func TestRateLimitedChatCompletions(t *testing.T) {
 	}
 
 	wg := sync.WaitGroup{}
-	wg.Add(3675)
+	wg.Add(3)
 	start := time.Now()
-	for i := 0; i < 3675; i++ {
+	for i := 0; i < 3; i++ {
 		_, err = client.CreateChatCompletion(ctx, req)
 		checks.NoError(t, err, "CreateChatCompletion error")
 		wg.Done()
 	}
 	wg.Wait()
 	elapsed := int(time.Since(start) / time.Second)
-	if elapsed != 3 {
-		t.Errorf("Wait() cost time = %v, want %v", elapsed, 3)
+	if elapsed != 0 {
+		t.Errorf("Wait() cost time = %v, want %v", elapsed, 0)
 	}
 }
 

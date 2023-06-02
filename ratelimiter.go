@@ -3,6 +3,7 @@ package openai
 import (
 	"context"
 	"fmt"
+	"sync"
 
 	"golang.org/x/time/rate"
 )
@@ -45,6 +46,7 @@ type RateLimiter interface {
 
 // MemRateLimiter is a token bucket based rate limiter for OpenAI API.
 type MemRateLimiter struct {
+	mutex           sync.RWMutex
 	RequestLimiters map[string]*rate.Limiter
 	TokensLimiters  map[string]*rate.Limiter
 	apiType         APIType
@@ -52,6 +54,7 @@ type MemRateLimiter struct {
 
 func NewMemRateLimiter(apiType APIType) *MemRateLimiter {
 	r := &MemRateLimiter{
+		mutex:   sync.RWMutex{},
 		apiType: apiType,
 	}
 
@@ -89,14 +92,18 @@ func (r *MemRateLimiter) requestWait(ctx context.Context, model string) (err err
 		return nil
 	}
 
+	r.mutex.RLock()
 	limiter, ok = r.RequestLimiters[model]
+	r.mutex.RUnlock()
 	if !ok {
 		limiter = r.newLimiter(AzureDefaultRequestLimitPerMinute)
 		if r.apiType == APITypeOpenAI {
 			limiter = r.newLimiter(OpenAIDefaultRequestLimitPerMinute)
 		}
 
+		r.mutex.Lock()
 		r.RequestLimiters[model] = limiter
+		r.mutex.Unlock()
 	}
 
 	// if limiter is nil, it means that the model is not rate limited
@@ -115,14 +122,18 @@ func (r *MemRateLimiter) tokensWait(ctx context.Context, model string, tokens in
 		return nil
 	}
 
+	r.mutex.RLock()
 	limiter, ok = r.TokensLimiters[model]
+	r.mutex.RUnlock()
 	if !ok {
 		limiter = r.newLimiter(AzureDefaultTokensLimitPerMinute)
 		if r.apiType == APITypeOpenAI {
 			limiter = r.newLimiter(OpenAIDefaultTokensLimitPerMinute)
 		}
 
+		r.mutex.Lock()
 		r.TokensLimiters[model] = limiter
+		r.mutex.Unlock()
 	}
 
 	// if limiter is nil, it means that the model is not rate limited

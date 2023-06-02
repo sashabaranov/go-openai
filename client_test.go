@@ -93,6 +93,18 @@ func TestHandleErrorResp(t *testing.T) {
 		expected string
 	}{
 		{
+			name:     "400 Bad Request",
+			httpCode: http.StatusBadRequest,
+			body: bytes.NewReader([]byte(
+				`{
+					"object":"error",
+					"message":"This model's maximum context length is 2048 tokens. ....",
+					"code":40303
+				}`,
+			)),
+			expected: "error, status code: 400, message: This model's maximum context length is 2048 tokens. ....",
+		},
+		{
 			name:     "401 Invalid Authentication",
 			httpCode: http.StatusUnauthorized,
 			body: bytes.NewReader([]byte(

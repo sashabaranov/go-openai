@@ -160,19 +160,36 @@ func (c *Client) newStreamRequest(
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
-	var errRes ErrorResponse
-	err := json.NewDecoder(resp.Body).Decode(&errRes)
-	if err != nil || errRes.Error == nil {
-		reqErr := &RequestError{
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &RequestError{
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
-		if errRes.Error != nil {
-			reqErr.Err = errRes.Error
-		}
-		return reqErr
 	}
 
-	errRes.Error.HTTPStatusCode = resp.StatusCode
-	return errRes.Error
+	var errRes ErrorResponse
+	if err := json.Unmarshal(body, &errRes); err != nil {
+		return &RequestError{
+			HTTPStatusCode: resp.StatusCode,
+			Err:            err,
+		}
+	}
+
+	if errRes.Error != nil {
+		return errRes.Error
+	}
+
+	var apiErr APIError
+	if err := json.Unmarshal(body, &apiErr); err != nil {
+		return handleUnmarshalError(resp.StatusCode, err)
+	}
+	return &apiErr
+}
+
+func handleUnmarshalError(statusCode int, err error) *RequestError {
+	return &RequestError{
+		HTTPStatusCode: statusCode,
+		Err:            err,
+	}
 }

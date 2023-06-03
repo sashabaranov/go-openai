@@ -577,14 +577,14 @@ func main() {
 
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateEmbeddings(
-	context.Background(),
-	openai.EmbeddingRequest{
-	Input: []string{input},
-	Model: openai.AdaEmbeddingV2,
+		context.Background(),
+		openai.EmbeddingRequest{
+		Input: []string{input},
+		Model: openai.AdaEmbeddingV2,
 	})
 
 	if err != nil {
-	fmt.Printf("CreateEmbeddings error: %v\n", err)
+		fmt.Printf("CreateEmbeddings error: %v\n", err)
 	return
 	}
 }

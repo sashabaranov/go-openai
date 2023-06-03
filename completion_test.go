@@ -70,6 +70,30 @@ func TestCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateCompletion error")
 }
 
+func TestCompletionsRateLimit(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/completions", handleCompletionEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.EnableRateLimiter = true
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := CompletionRequest{
+		MaxTokens: 5,
+		Model:     "ada",
+	}
+	req.Prompt = "Lorem ipsum"
+	_, err = client.CreateCompletion(ctx, req)
+	checks.NoError(t, err, "CreateCompletion error")
+}
+
 // handleCompletionEndpoint Handles the completion endpoint by the test server.
 func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -135,7 +159,7 @@ func TestCompletionRequest_Tokens(t *testing.T) {
 	testcases := []struct {
 		name       string
 		model      string
-		prompt     string
+		prompt     any
 		wantErr    error
 		wantTokens int
 	}{
@@ -150,6 +174,12 @@ func TestCompletionRequest_Tokens(t *testing.T) {
 			model:      GPT3Dot5Turbo,
 			prompt:     "Hello, world!",
 			wantTokens: 4,
+		},
+		{
+			name:       "test any prompt",
+			model:      GPT3Dot5Turbo,
+			prompt:     1,
+			wantTokens: 0,
 		},
 	}
 

@@ -92,6 +92,33 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	checks.NoError(t, err, "CreateEmbeddings error")
 }
 
+func TestEmbeddingRateLimit(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler(
+		"/v1/embeddings",
+		func(w http.ResponseWriter, r *http.Request) {
+			resBytes, _ := json.Marshal(EmbeddingResponse{})
+			fmt.Fprintln(w, string(resBytes))
+		},
+	)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.EnableRateLimiter = true
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err = client.CreateEmbeddings(ctx, EmbeddingRequest{
+		Model: AdaEmbeddingV2,
+	})
+	checks.NoError(t, err, "CreateEmbeddings error")
+}
+
 func TestEmbeddingRequest_Tokens(t *testing.T) {
 	testcases := []struct {
 		name       string

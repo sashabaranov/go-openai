@@ -81,6 +81,35 @@ func TestChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
+func TestChatCompletionsRateLimit(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.EnableRateLimiter = true
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	}
+	_, err = client.CreateChatCompletion(ctx, req)
+	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
 // handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.
 func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error

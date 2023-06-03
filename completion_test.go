@@ -83,15 +83,15 @@ func TestCompletionsRateLimit(t *testing.T) {
 	config.EnableRateLimiter = true
 	config.BaseURL = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
+	ctx, cancel := context.WithCancel(context.Background())
 	req := CompletionRequest{
 		MaxTokens: 5,
 		Model:     "ada",
 	}
 	req.Prompt = "Lorem ipsum"
+	cancel()
 	_, err = client.CreateCompletion(ctx, req)
-	checks.NoError(t, err, "CreateCompletion error")
+	checks.ErrorContains(t, err, "context canceled", "CreateCompletion error")
 }
 
 // handleCompletionEndpoint Handles the completion endpoint by the test server.

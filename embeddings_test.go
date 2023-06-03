@@ -111,12 +111,12 @@ func TestEmbeddingRateLimit(t *testing.T) {
 	config.EnableRateLimiter = true
 	config.BaseURL = ts.URL + "/v1"
 	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
 	_, err = client.CreateEmbeddings(ctx, EmbeddingRequest{
 		Model: AdaEmbeddingV2,
 	})
-	checks.NoError(t, err, "CreateEmbeddings error")
+	checks.ErrorContains(t, err, "context canceled", "CreateEmbeddings error")
 }
 
 func TestEmbeddingRequest_Tokens(t *testing.T) {

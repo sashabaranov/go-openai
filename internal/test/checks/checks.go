@@ -2,6 +2,7 @@ package checks
 
 import (
 	"errors"
+	"strings"
 	"testing"
 )
 
@@ -44,5 +45,12 @@ func ErrorIsNotf(t *testing.T, err, target error, format string, msg ...string) 
 	t.Helper()
 	if errors.Is(err, target) {
 		t.Fatalf(format, msg)
+	}
+}
+
+func ErrorContains(t *testing.T, err error, search string, message ...string) {
+	t.Helper()
+	if err == nil || search == "" || !strings.Contains(err.Error(), search) {
+		t.Error(err, message)
 	}
 }

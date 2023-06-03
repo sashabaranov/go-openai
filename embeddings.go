@@ -153,9 +153,11 @@ func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest)
 		return
 	}
 
-	err = WaitForRateLimit(ctx, c, request, request.Model.String())
-	if err != nil {
-		return
+	if c.config.EnableRateLimiter {
+		err = c.rateLimiter.WaitForRequest(ctx, request.Model.String(), request)
+		if err != nil {
+			return
+		}
 	}
 
 	err = c.sendRequest(req, &resp)

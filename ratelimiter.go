@@ -40,8 +40,13 @@ const (
 	OpenAIDefaultTokensLimitPerMinute = 350000
 )
 
+type TokenCountable interface {
+	Tokens() (int, error)
+}
+
 type RateLimiter interface {
 	Wait(ctx context.Context, model string, tokens int) error
+	WaitForRequest(ctx context.Context, model string, req TokenCountable) error
 }
 
 // MemRateLimiter is a token bucket based rate limiter for OpenAI API.
@@ -69,6 +74,31 @@ func NewMemRateLimiter(apiType APIType) *MemRateLimiter {
 	}
 
 	return r
+}
+
+func (r *MemRateLimiter) WaitForRequest(ctx context.Context, model string, req TokenCountable) (err error) {
+	if ctx == nil {
+		return fmt.Errorf("context is nil")
+	}
+
+	if req == nil {
+		return fmt.Errorf("request is nil")
+	}
+
+	var tokens int
+	tokens, err = req.Tokens()
+	if err != nil {
+		err = fmt.Errorf("failed to get tokens count: %w", err)
+		return
+	}
+
+	err = r.Wait(ctx, model, tokens)
+	if err != nil {
+		err = fmt.Errorf("failed to wait for rate limiter: %w", err)
+		return
+	}
+
+	return
 }
 
 func (r *MemRateLimiter) Wait(ctx context.Context, model string, tokens int) (err error) {
@@ -197,45 +227,4 @@ func (r *MemRateLimiter) newOpenAITokensLimiters() map[string]*rate.Limiter {
 		GPT4:                   r.newLimiter(OpenAIGPT4TokensLimitPerMinute),
 		GPT432K:                r.newLimiter(OpenAIGPT432kTokensLimitPerMinute),
 	}
-}
-
-type TokenCountable interface {
-	Tokens() (int, error)
-}
-
-func WaitForRateLimit(ctx context.Context, c *Client, request TokenCountable, model string) (err error) {
-	if c == nil {
-		return fmt.Errorf("client is nil")
-	}
-
-	if !c.config.EnableRateLimiter {
-		return nil
-	}
-
-	if ctx == nil {
-		return fmt.Errorf("context is nil")
-	}
-
-	if c.rateLimiter == nil {
-		return fmt.Errorf("rate limiter is nil")
-	}
-
-	if request == nil {
-		return fmt.Errorf("request is nil")
-	}
-
-	var tokens int
-	tokens, err = request.Tokens()
-	if err != nil {
-		err = fmt.Errorf("failed to get tokens count: %w", err)
-		return
-	}
-
-	err = c.rateLimiter.Wait(ctx, model, tokens)
-	if err != nil {
-		err = fmt.Errorf("failed to wait for rate limiter: %w", err)
-		return
-	}
-
-	return
 }

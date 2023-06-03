@@ -226,48 +226,35 @@ func TestRateLimitedChatCompletions(t *testing.T) {
 	}
 }
 
-func TestWaitForRateLimit(t *testing.T) {
-	clientConfig := DefaultConfig("test")
-	clientConfig.EnableRateLimiter = true
-
+func TestWaitForRequest(t *testing.T) {
 	testcases := []struct {
 		name    string
 		ctx     context.Context
-		c       *Client
 		request TokenCountable
 		model   string
 		wantErr error
 	}{
 		{
-			name:    "test client is nil",
+			name:    "test request is nil",
 			model:   "unknown",
 			ctx:     context.Background(),
-			wantErr: errors.New("client is nil"),
+			wantErr: errors.New("request is nil"),
 		},
 		{
-			name:    "test rate limiter is nil",
+			name:    "test request is nil",
 			model:   "unknown",
-			ctx:     context.Background(),
-			c:       NewClient("test"),
-			wantErr: errors.New("rate limiter is nil"),
-		},
-		{
-			name:    "test context is nil",
-			model:   "unknown",
-			c:       NewClientWithConfig(clientConfig),
+			request: EmbeddingRequest{},
 			wantErr: errors.New("context is nil"),
 		},
 		{
 			name:    "test request is nil",
 			model:   "unknown",
-			c:       NewClientWithConfig(clientConfig),
 			ctx:     context.Background(),
 			wantErr: errors.New("request is nil"),
 		},
 		{
 			name:  "test1",
 			model: "unknown",
-			c:     NewClientWithConfig(clientConfig),
 			ctx:   context.Background(),
 			request: EmbeddingRequest{
 				Input: []string{
@@ -281,7 +268,8 @@ func TestWaitForRateLimit(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(tt *testing.T) {
-			err := WaitForRateLimit(testcase.ctx, testcase.c, testcase.request, testcase.model)
+			r := NewMemRateLimiter(APITypeAzure)
+			err := r.WaitForRequest(testcase.ctx, testcase.model, testcase.request)
 			if err != nil && testcase.wantErr == nil {
 				tt.Fatalf("Tokens() returned unexpected error: %v", err)
 			}
@@ -293,47 +281,23 @@ func TestWaitForRateLimit(t *testing.T) {
 	}
 }
 
-func TestWaitForRateLimitConcurrency(t *testing.T) {
-	clientConfig := DefaultConfig("test")
-	clientConfig.EnableRateLimiter = true
+func TestWaitForRequestConcurrency(t *testing.T) {
 	testcases := []struct {
 		name    string
 		ctx     context.Context
-		c       *Client
 		request TokenCountable
 		model   string
 		wantErr error
 	}{
 		{
-			name:    "test client is nil",
-			model:   "unknown",
-			ctx:     context.Background(),
-			wantErr: errors.New("client is nil"),
-		},
-		{
-			name:    "test rate limiter is nil",
-			model:   "unknown",
-			ctx:     context.Background(),
-			c:       NewClient("test"),
-			wantErr: errors.New("rate limiter is nil"),
-		},
-		{
-			name:    "test context is nil",
-			model:   "unknown",
-			c:       NewClientWithConfig(clientConfig),
-			wantErr: errors.New("context is nil"),
-		},
-		{
 			name:    "test request is nil",
 			model:   "unknown",
-			c:       NewClientWithConfig(clientConfig),
 			ctx:     context.Background(),
 			wantErr: errors.New("request is nil"),
 		},
 		{
 			name:  "test request is nil",
 			model: "unknown",
-			c:     NewClientWithConfig(clientConfig),
 			ctx:   context.Background(),
 			request: EmbeddingRequest{
 				Input: []string{
@@ -347,7 +311,8 @@ func TestWaitForRateLimitConcurrency(t *testing.T) {
 
 	for _, testcase := range testcases {
 		t.Run(testcase.name, func(tt *testing.T) {
-			err := WaitForRateLimit(testcase.ctx, testcase.c, testcase.request, testcase.model)
+			r := NewMemRateLimiter(APITypeAzure)
+			err := r.WaitForRequest(testcase.ctx, testcase.model, testcase.request)
 			if err != nil && testcase.wantErr == nil {
 				tt.Fatalf("Tokens() returned unexpected error: %v", err)
 			}
@@ -357,4 +322,25 @@ func TestWaitForRateLimitConcurrency(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestNilRequestLimiters(t *testing.T) {
+	r := NewMemRateLimiter(APITypeAzure)
+	r.RequestLimiters = nil
+	err := r.Wait(context.Background(), GPT3Dot5Turbo, 0)
+	checks.NoError(t, err, "Wait error")
+}
+
+func TestNilTokensLimiters(t *testing.T) {
+	r := NewMemRateLimiter(APITypeAzure)
+	r.TokensLimiters = nil
+	err := r.Wait(context.Background(), GPT3Dot5Turbo, 0)
+	checks.NoError(t, err, "Wait error")
+}
+
+func TestWaitForRateLimitTokensErr(t *testing.T) {
+	r := NewMemRateLimiter(APITypeAzure)
+	r.TokensLimiters = nil
+	err := r.Wait(context.Background(), GPT3Dot5Turbo, 0)
+	checks.NoError(t, err, "Wait error")
 }

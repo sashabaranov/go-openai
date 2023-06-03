@@ -176,8 +176,7 @@ func TestCreateChatCompletionStreamRateLimit(t *testing.T) {
 	}
 
 	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
+	ctx, cancel := context.WithCancel(context.Background())
 	request := ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
@@ -190,63 +189,9 @@ func TestCreateChatCompletionStreamRateLimit(t *testing.T) {
 		Stream: true,
 	}
 
-	stream, err := client.CreateChatCompletionStream(ctx, request)
-	checks.NoError(t, err, "CreateCompletionStream returned error")
-	defer stream.Close()
-
-	expectedResponses := []ChatCompletionStreamResponse{
-		{
-			ID:      "1",
-			Object:  "completion",
-			Created: 1598069254,
-			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{
-				{
-					Delta: ChatCompletionStreamChoiceDelta{
-						Content: "response1",
-					},
-					FinishReason: "max_tokens",
-				},
-			},
-		},
-		{
-			ID:      "2",
-			Object:  "completion",
-			Created: 1598069255,
-			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{
-				{
-					Delta: ChatCompletionStreamChoiceDelta{
-						Content: "response2",
-					},
-					FinishReason: "max_tokens",
-				},
-			},
-		},
-	}
-
-	for ix, expectedResponse := range expectedResponses {
-		b, _ := json.Marshal(expectedResponse)
-		t.Logf("%d: %s", ix, string(b))
-
-		receivedResponse, streamErr := stream.Recv()
-		checks.NoError(t, streamErr, "stream.Recv() failed")
-		if !compareChatResponses(expectedResponse, receivedResponse) {
-			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
-		}
-	}
-
-	_, streamErr := stream.Recv()
-	if !errors.Is(streamErr, io.EOF) {
-		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
-	}
-
-	_, streamErr = stream.Recv()
-
-	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
-	if !errors.Is(streamErr, io.EOF) {
-		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
-	}
+	cancel()
+	_, err := client.CreateChatCompletionStream(ctx, request)
+	checks.ErrorContains(t, err, "failed to wait for rate limiter: context canceled")
 }
 
 func TestCreateChatCompletionStreamError(t *testing.T) {

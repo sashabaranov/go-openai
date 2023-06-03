@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -46,5 +47,18 @@ func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) 
 	}
 
 	err = c.sendRequest(req, &models)
+	return
+}
+
+// GetModel Retrieves a model instance, providing basic information about
+// the model such as the owner and permissioning.
+func (c *Client) GetModel(ctx context.Context, modelID string) (model Model, err error) {
+	urlSuffix := fmt.Sprintf("/models/%s", modelID)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &model)
 	return
 }

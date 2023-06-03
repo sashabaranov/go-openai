@@ -54,3 +54,44 @@ func handleModelsEndpoint(w http.ResponseWriter, _ *http.Request) {
 	resBytes, _ := json.Marshal(ModelsList{})
 	fmt.Fprintln(w, string(resBytes))
 }
+
+// TestGetModel Tests the retrieve model endpoint of the API using the mocked server.
+func TestGetModel(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/models/text-davinci-003", handleGetModelEndpoint)
+	// create the test server
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err := client.GetModel(ctx, "text-davinci-003")
+	checks.NoError(t, err, "GetModel error")
+}
+
+func TestAzureGetModel(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/openai/models/text-davinci-003", handleModelsEndpoint)
+	// create the test server
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err := client.GetModel(ctx, "text-davinci-003")
+	checks.NoError(t, err, "GetModel error")
+}
+
+// handleModelsEndpoint Handles the models endpoint by the test server.
+func handleGetModelEndpoint(w http.ResponseWriter, _ *http.Request) {
+	resBytes, _ := json.Marshal(Model{})
+	fmt.Fprintln(w, string(resBytes))
+}

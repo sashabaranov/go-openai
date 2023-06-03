@@ -142,6 +142,113 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	}
 }
 
+func TestCreateChatCompletionStreamRateLimit(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"content":"response1"},"finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data = `{"id":"2","object":"completion","created":1598069255,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"content":"response2"},"finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: done\n")...)
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	}))
+	defer server.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.EnableRateLimiter = true
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &tokenRoundTripper{
+		test.GetTestToken(),
+		http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	}
+
+	stream, err := client.CreateChatCompletionStream(ctx, request)
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	expectedResponses := []ChatCompletionStreamResponse{
+		{
+			ID:      "1",
+			Object:  "completion",
+			Created: 1598069254,
+			Model:   GPT3Dot5Turbo,
+			Choices: []ChatCompletionStreamChoice{
+				{
+					Delta: ChatCompletionStreamChoiceDelta{
+						Content: "response1",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
+		},
+		{
+			ID:      "2",
+			Object:  "completion",
+			Created: 1598069255,
+			Model:   GPT3Dot5Turbo,
+			Choices: []ChatCompletionStreamChoice{
+				{
+					Delta: ChatCompletionStreamChoiceDelta{
+						Content: "response2",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
+		},
+	}
+
+	for ix, expectedResponse := range expectedResponses {
+		b, _ := json.Marshal(expectedResponse)
+		t.Logf("%d: %s", ix, string(b))
+
+		receivedResponse, streamErr := stream.Recv()
+		checks.NoError(t, streamErr, "stream.Recv() failed")
+		if !compareChatResponses(expectedResponse, receivedResponse) {
+			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
+		}
+	}
+
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
+	}
+
+	_, streamErr = stream.Recv()
+
+	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
+	}
+}
+
 func TestCreateChatCompletionStreamError(t *testing.T) {
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")

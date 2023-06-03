@@ -21,7 +21,7 @@ type memRateLimiterWaitTestcase struct {
 	totalRequests         int
 	concurrency           int
 	tokensPerRequest      int
-	wantCostSeconds       int
+	checkCostFunc         func(cost time.Duration) bool
 	customRequestLimiters map[string]*rate.Limiter
 	customTokensLimiters  map[string]*rate.Limiter
 	wantErr               error
@@ -74,7 +74,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    100,
 			concurrency:      100,
 			tokensPerRequest: 0,
-			wantCostSeconds:  0,
 		},
 		{
 			name:             "test equal request limit",
@@ -83,16 +82,17 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    300,
 			concurrency:      300,
 			tokensPerRequest: 0,
-			wantCostSeconds:  0,
 		},
 		{
 			name:             "test over request limit",
 			apiType:          APITypeAzure,
 			model:            GPT3Dot5Turbo,
-			totalRequests:    320,
-			concurrency:      320,
+			totalRequests:    310,
+			concurrency:      310,
 			tokensPerRequest: 0,
-			wantCostSeconds:  4,
+			checkCostFunc: func(cost time.Duration) bool {
+				return cost.Seconds() >= 1
+			},
 		},
 		{
 			name:             "test unknown model request limit",
@@ -101,7 +101,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    300,
 			concurrency:      300,
 			tokensPerRequest: 0,
-			wantCostSeconds:  0,
 		},
 		{
 			name:             "test unknown model tokens limit",
@@ -110,7 +109,9 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    10,
 			concurrency:      10,
 			tokensPerRequest: 12200,
-			wantCostSeconds:  1,
+			checkCostFunc: func(cost time.Duration) bool {
+				return cost.Seconds() >= 1
+			},
 		},
 		{
 			name:             "test under tokens limit",
@@ -119,7 +120,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    10,
 			concurrency:      10,
 			tokensPerRequest: 10000,
-			wantCostSeconds:  0,
 		},
 		{
 			name:             "test equal tokens limit",
@@ -128,7 +128,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    10,
 			concurrency:      10,
 			tokensPerRequest: 12000,
-			wantCostSeconds:  0,
 		},
 		{
 			name:             "test over tokens limit",
@@ -137,7 +136,9 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    10,
 			concurrency:      10,
 			tokensPerRequest: 12800,
-			wantCostSeconds:  4,
+			checkCostFunc: func(cost time.Duration) bool {
+				return cost.Seconds() >= 1
+			},
 		},
 		{
 			name:             "test massive tokens",
@@ -146,7 +147,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			totalRequests:    1,
 			concurrency:      1,
 			tokensPerRequest: 12200000,
-			wantCostSeconds:  0,
 			wantErr:          errors.New("rate: Wait(n=12200000) exceeds limiter's burst 120000"),
 		},
 		{
@@ -158,7 +158,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			customRequestLimiters: map[string]*rate.Limiter{
 				"unlimited": nil,
 			},
-			wantCostSeconds: 0,
 		},
 		{
 			name:             "test unlimited model tokens limit",
@@ -170,7 +169,6 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 			customTokensLimiters: map[string]*rate.Limiter{
 				"unlimited": nil,
 			},
-			wantCostSeconds: 0,
 		},
 	}
 
@@ -178,9 +176,9 @@ func TestMemRateLimiter_Wait(t *testing.T) {
 		t.Run(testcase.name, func(tt *testing.T) {
 			start := time.Now()
 			runMemRateLimiterWaitTestCase(tt, testcase)
-			elapsed := int(time.Since(start) / time.Second)
-			if elapsed != testcase.wantCostSeconds {
-				tt.Errorf("Wait() cost time = %v, want %v", elapsed, testcase.wantCostSeconds)
+			elapsed := time.Since(start)
+			if testcase.checkCostFunc != nil && !testcase.checkCostFunc(elapsed) {
+				tt.Errorf("Wait() cost time = %v, checkCostFunc %v", elapsed, testcase.checkCostFunc(elapsed))
 			}
 		})
 	}

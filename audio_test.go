@@ -261,4 +261,15 @@ func TestCreateFileField(t *testing.T) {
 		err := createFileField(req, mockBuilder)
 		checks.ErrorIs(t, err, mockFailedErr, "createFileField using a reader should return error if form builder fails")
 	})
+
+	t.Run("createFileField failing open", func(t *testing.T) {
+		req := AudioRequest{
+			FilePath: "non_existing_file.wav",
+		}
+
+		mockBuilder := &mockFormBuilder{}
+
+		err := createFileField(req, mockBuilder)
+		checks.HasError(t, err, "createFileField using file should return error when open file fails")
+	})
 }

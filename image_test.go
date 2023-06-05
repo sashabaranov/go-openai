@@ -264,13 +264,18 @@ func handleVariateImageEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 type mockFormBuilder struct {
-	mockCreateFormFile func(string, *os.File) error
-	mockWriteField     func(string, string) error
-	mockClose          func() error
+	mockCreateFormFile       func(string, *os.File) error
+	mockCreateFormFileReader func(string, io.Reader, string) error
+	mockWriteField           func(string, string) error
+	mockClose                func() error
 }
 
 func (fb *mockFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
 	return fb.mockCreateFormFile(fieldname, file)
+}
+
+func (fb *mockFormBuilder) CreateFormFileReader(fieldname string, r io.Reader, filename string) error {
+	return fb.mockCreateFormFileReader(fieldname, r, filename)
 }
 
 func (fb *mockFormBuilder) WriteField(fieldname, value string) error {

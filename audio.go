@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -27,8 +28,14 @@ const (
 // AudioRequest represents a request structure for audio API.
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
-	Model       string
-	FilePath    string
+	Model string
+
+	// FilePath is either an existing file in your filesystem or a filename representing the contents of Reader.
+	FilePath string
+
+	// Reader is an optional io.Reader when you do not want to use an existing file.
+	Reader io.Reader
+
 	Prompt      string // For translation, it should be in English
 	Temperature float32
 	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
@@ -95,15 +102,9 @@ func (r AudioRequest) HasJSONResponse() bool {
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
 func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
-	f, err := os.Open(request.FilePath)
+	err := createFileField(request, b)
 	if err != nil {
-		return fmt.Errorf("opening audio file: %w", err)
-	}
-	defer f.Close()
-
-	err = b.CreateFormFile("file", f)
-	if err != nil {
-		return fmt.Errorf("creating form file: %w", err)
+		return err
 	}
 
 	err = b.WriteField("model", request.Model)
@@ -145,4 +146,28 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 
 	// Close the multipart writer
 	return b.Close()
+}
+
+// createFileField creates the "file" form field from either an existing file or by using the reader.
+func createFileField(request AudioRequest, b utils.FormBuilder) error {
+	if request.Reader != nil {
+		err := b.CreateFormFileReader("file", request.Reader, request.FilePath)
+		if err != nil {
+			return fmt.Errorf("creating form using reader: %w", err)
+		}
+		return nil
+	}
+
+	f, err := os.Open(request.FilePath)
+	if err != nil {
+		return fmt.Errorf("opening audio file: %w", err)
+	}
+	defer f.Close()
+
+	err = b.CreateFormFile("file", f)
+	if err != nil {
+		return fmt.Errorf("creating form file: %w", err)
+	}
+
+	return nil
 }

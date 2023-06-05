@@ -3,6 +3,7 @@ package test
 import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
+	"net/http"
 	"os"
 	"testing"
 )
@@ -26,4 +27,27 @@ func CreateTestDirectory(t *testing.T) (path string, cleanup func()) {
 	checks.NoError(t, err)
 
 	return path, func() { os.RemoveAll(path) }
+}
+
+// TokenRoundTripper is a struct that implements the RoundTripper
+// interface, specifically to handle the authentication token by adding a token
+// to the request header. We need this because the API requires that each
+// request include a valid API token in the headers for authentication and
+// authorization.
+type TokenRoundTripper struct {
+	Token    string
+	Fallback http.RoundTripper
+}
+
+// RoundTrip takes an *http.Request as input and returns an
+// *http.Response and an error.
+//
+// It is expected to use the provided request to create a connection to an HTTP
+// server and return the response, or an error if one occurred. The returned
+// Response should have its Body closed. If the RoundTrip method returns an
+// error, the Client's Get, Head, Post, and PostForm methods return the same
+// error.
+func (t *TokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
+	req.Header.Set("Authorization", "Bearer "+t.Token)
+	return t.Fallback.RoundTrip(req)
 }

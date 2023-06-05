@@ -20,7 +20,7 @@ type streamReader[T streamable] struct {
 
 	reader         *bufio.Reader
 	response       *http.Response
-	errAccumulator errorAccumulator
+	errAccumulator utils.ErrorAccumulator
 	unmarshaler    utils.Unmarshaler
 }
 
@@ -35,7 +35,7 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 waitForData:
 	line, err := stream.reader.ReadBytes('\n')
 	if err != nil {
-		respErr := stream.errAccumulator.unmarshalError()
+		respErr := stream.unmarshalError()
 		if respErr != nil {
 			err = fmt.Errorf("error, %w", respErr.Error)
 		}
@@ -45,7 +45,7 @@ waitForData:
 	var headerData = []byte("data: ")
 	line = bytes.TrimSpace(line)
 	if !bytes.HasPrefix(line, headerData) {
-		if writeErr := stream.errAccumulator.write(line); writeErr != nil {
+		if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
 			err = writeErr
 			return
 		}
@@ -66,6 +66,20 @@ waitForData:
 	}
 
 	err = stream.unmarshaler.Unmarshal(line, &response)
+	return
+}
+
+func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {
+	errBytes := stream.errAccumulator.Bytes()
+	if len(errBytes) == 0 {
+		return
+	}
+
+	err := stream.unmarshaler.Unmarshal(errBytes, &errResp)
+	if err != nil {
+		errResp = nil
+	}
+
 	return
 }
 

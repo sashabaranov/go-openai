@@ -57,9 +57,9 @@ func TestCreateCompletionStream(t *testing.T) {
 	// Client portion of the test
 	config := DefaultConfig(test.GetTestToken())
 	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
 	}
 
 	client := NewClientWithConfig(config)
@@ -142,9 +142,9 @@ func TestCreateCompletionStreamError(t *testing.T) {
 	// Client portion of the test
 	config := DefaultConfig(test.GetTestToken())
 	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
 	}
 
 	client := NewClientWithConfig(config)
@@ -194,9 +194,9 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 	// Client portion of the test
 	config := DefaultConfig(test.GetTestToken())
 	config.BaseURL = ts.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
 	}
 
 	client := NewClientWithConfig(config)
@@ -215,29 +215,6 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
 	}
 	t.Logf("%+v\n", apiErr)
-}
-
-// A "tokenRoundTripper" is a struct that implements the RoundTripper
-// interface, specifically to handle the authentication token by adding a token
-// to the request header. We need this because the API requires that each
-// request include a valid API token in the headers for authentication and
-// authorization.
-type tokenRoundTripper struct {
-	token    string
-	fallback http.RoundTripper
-}
-
-// RoundTrip takes an *http.Request as input and returns an
-// *http.Response and an error.
-//
-// It is expected to use the provided request to create a connection to an HTTP
-// server and return the response, or an error if one occurred. The returned
-// Response should have its Body closed. If the RoundTrip method returns an
-// error, the Client's Get, Head, Post, and PostForm methods return the same
-// error.
-func (t *tokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Authorization", "Bearer "+t.token)
-	return t.fallback.RoundTrip(req)
 }
 
 // Helper funcs.

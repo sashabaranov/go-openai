@@ -170,104 +170,82 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err = client.CreateCompletion(ctx, CompletionRequest{Prompt: "testing"})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
+	type TestCase struct {
+		Name     string
+		TestFunc func() (any, error)
 	}
 
-	_, err = client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
+	testCases := []TestCase{
+		{"CreateCompletion", func() (any, error) {
+			return client.CreateCompletion(ctx, CompletionRequest{Prompt: "testing"})
+		}},
+		{"CreateCompletionStream", func() (any, error) {
+			return client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
+		}},
+		{"CreateChatCompletion", func() (any, error) {
+			return client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateChatCompletionStream", func() (any, error) {
+			return client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateFineTune", func() (any, error) {
+			return client.CreateFineTune(ctx, FineTuneRequest{})
+		}},
+		{"ListFineTunes", func() (any, error) {
+			return client.ListFineTunes(ctx)
+		}},
+		{"CancelFineTune", func() (any, error) {
+			return client.CancelFineTune(ctx, "")
+		}},
+		{"GetFineTune", func() (any, error) {
+			return client.GetFineTune(ctx, "")
+		}},
+		{"DeleteFineTune", func() (any, error) {
+			return client.DeleteFineTune(ctx, "")
+		}},
+		{"ListFineTuneEvents", func() (any, error) {
+			return client.ListFineTuneEvents(ctx, "")
+		}},
+		{"Moderations", func() (any, error) {
+			return client.Moderations(ctx, ModerationRequest{})
+		}},
+		{"Edits", func() (any, error) {
+			return client.Edits(ctx, EditsRequest{})
+		}},
+		{"CreateEmbeddings", func() (any, error) {
+			return client.CreateEmbeddings(ctx, EmbeddingRequest{})
+		}},
+		{"CreateImage", func() (any, error) {
+			return client.CreateImage(ctx, ImageRequest{})
+		}},
+		{"DeleteFile", func() (any, error) {
+			return nil, client.DeleteFile(ctx, "")
+		}},
+		{"GetFile", func() (any, error) {
+			return client.GetFile(ctx, "")
+		}},
+		{"ListFiles", func() (any, error) {
+			return client.ListFiles(ctx)
+		}},
+		{"ListEngines", func() (any, error) {
+			return client.ListEngines(ctx)
+		}},
+		{"GetEngine", func() (any, error) {
+			return client.GetEngine(ctx, "")
+		}},
+		{"ListModels", func() (any, error) {
+			return client.ListModels(ctx)
+		}},
+		{"GetModel", func() (any, error) {
+			return client.GetModel(ctx, "text-davinci-003")
+		}},
 	}
 
-	_, err = client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.CreateFineTune(ctx, FineTuneRequest{})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.ListFineTunes(ctx)
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.CancelFineTune(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.GetFineTune(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.DeleteFineTune(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.ListFineTuneEvents(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.Moderations(ctx, ModerationRequest{})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.Edits(ctx, EditsRequest{})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.CreateEmbeddings(ctx, EmbeddingRequest{})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.CreateImage(ctx, ImageRequest{})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	err = client.DeleteFile(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.GetFile(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.ListFiles(ctx)
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.ListEngines(ctx)
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.GetEngine(ctx, "")
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.ListModels(ctx)
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
-	}
-
-	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
-	if !errors.Is(err, errTestRequestBuilderFailed) {
-		t.Fatalf("Did not return error when request builder failed: %v", err)
+	for _, testCase := range testCases {
+		_, err = testCase.TestFunc()
+		if !errors.Is(err, errTestRequestBuilderFailed) {
+			t.Fatalf("%s did not return error when request builder failed: %v", testCase.Name, err)
+		}
 	}
 }
 

@@ -44,7 +44,11 @@ func DefaultConfig(authToken string) ClientConfig {
 		APIType:   APITypeOpenAI,
 		OrgID:     "",
 
-		HTTPClient: &http.Client{},
+		HTTPClient: &http.Client{
+			Transport: &http.Transport{
+				Proxy: http.ProxyFromEnvironment, // use http_proxy from env
+			},
+		},
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}

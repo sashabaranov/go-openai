@@ -32,41 +32,43 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 
 	var emptyMessagesCount uint
 
-waitForData:
-	line, err := stream.reader.ReadBytes('\n')
-	if err != nil {
-		respErr := stream.unmarshalError()
-		if respErr != nil {
-			err = fmt.Errorf("error, %w", respErr.Error)
-		}
-		return
-	}
-
-	var headerData = []byte("data: ")
-	line = bytes.TrimSpace(line)
-	if !bytes.HasPrefix(line, headerData) {
-		if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
-			err = writeErr
-			return
-		}
-		emptyMessagesCount++
-		if emptyMessagesCount > stream.emptyMessagesLimit {
-			err = ErrTooManyEmptyStreamMessages
+	for {
+		var line []byte
+		line, err = stream.reader.ReadBytes('\n')
+		if err != nil {
+			respErr := stream.unmarshalError()
+			if respErr != nil {
+				err = fmt.Errorf("error, %w", respErr.Error)
+			}
 			return
 		}
 
-		goto waitForData
-	}
+		var headerData = []byte("data: ")
+		line = bytes.TrimSpace(line)
+		if !bytes.HasPrefix(line, headerData) {
+			if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
+				err = writeErr
+				return
+			}
+			emptyMessagesCount++
+			if emptyMessagesCount > stream.emptyMessagesLimit {
+				err = ErrTooManyEmptyStreamMessages
+				return
+			}
 
-	line = bytes.TrimPrefix(line, headerData)
-	if string(line) == "[DONE]" {
-		stream.isFinished = true
-		err = io.EOF
+			continue
+		}
+
+		line = bytes.TrimPrefix(line, headerData)
+		if string(line) == "[DONE]" {
+			stream.isFinished = true
+			err = io.EOF
+			return
+		}
+
+		err = stream.unmarshaler.Unmarshal(line, &response)
 		return
 	}
-
-	err = stream.unmarshaler.Unmarshal(line, &response)
-	return
 }
 
 func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {

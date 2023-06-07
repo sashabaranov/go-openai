@@ -30,44 +30,51 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 		return
 	}
 
+	response, err = stream.processLines()
+	return
+}
+
+func (stream *streamReader[T]) processLines() (T, error) {
 	var emptyMessagesCount uint
 
 	for {
-		var line []byte
-		line, err = stream.reader.ReadBytes('\n')
-		if err != nil {
+		rawLine, readErr := stream.reader.ReadBytes('\n')
+		if readErr != nil {
 			respErr := stream.unmarshalError()
 			if respErr != nil {
-				err = fmt.Errorf("error, %w", respErr.Error)
+				return *new(T), fmt.Errorf("error, %w", respErr.Error)
 			}
-			return
+			return *new(T), readErr
 		}
 
 		var headerData = []byte("data: ")
-		line = bytes.TrimSpace(line)
-		if !bytes.HasPrefix(line, headerData) {
-			if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
-				err = writeErr
-				return
+		noSpaceLine := bytes.TrimSpace(rawLine)
+		if !bytes.HasPrefix(noSpaceLine, headerData) {
+			writeErr := stream.errAccumulator.Write(noSpaceLine)
+			if writeErr != nil {
+				return *new(T), writeErr
 			}
 			emptyMessagesCount++
 			if emptyMessagesCount > stream.emptyMessagesLimit {
-				err = ErrTooManyEmptyStreamMessages
-				return
+				return *new(T), ErrTooManyEmptyStreamMessages
 			}
 
 			continue
 		}
 
-		line = bytes.TrimPrefix(line, headerData)
-		if string(line) == "[DONE]" {
+		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
+		if string(noPrefixLine) == "[DONE]" {
 			stream.isFinished = true
-			err = io.EOF
-			return
+			return *new(T), io.EOF
 		}
 
-		err = stream.unmarshaler.Unmarshal(line, &response)
-		return
+		var response T
+		unmarshalErr := stream.unmarshaler.Unmarshal(noPrefixLine, &response)
+		if unmarshalErr != nil {
+			return *new(T), unmarshalErr
+		}
+
+		return response, nil
 	}
 }
 

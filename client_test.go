@@ -134,6 +134,15 @@ func TestHandleErrorResp(t *testing.T) {
 				}`)),
 			expected: "error, status code: 503, message: That model...",
 		},
+		{
+			name:     "503 no message (Unknown response)",
+			httpCode: http.StatusServiceUnavailable,
+			body: bytes.NewReader([]byte(`
+				{
+					"error":{}
+				}`)),
+			expected: "error, status code: 503, message: ",
+		},
 	}
 
 	for _, tc := range testCases {

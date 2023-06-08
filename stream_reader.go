@@ -30,43 +30,52 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 		return
 	}
 
+	response, err = stream.processLines()
+	return
+}
+
+func (stream *streamReader[T]) processLines() (T, error) {
 	var emptyMessagesCount uint
 
-waitForData:
-	line, err := stream.reader.ReadBytes('\n')
-	if err != nil {
-		respErr := stream.unmarshalError()
-		if respErr != nil {
-			err = fmt.Errorf("error, %w", respErr.Error)
-		}
-		return
-	}
-
-	var headerData = []byte("data: ")
-	line = bytes.TrimSpace(line)
-	if !bytes.HasPrefix(line, headerData) {
-		if writeErr := stream.errAccumulator.Write(line); writeErr != nil {
-			err = writeErr
-			return
-		}
-		emptyMessagesCount++
-		if emptyMessagesCount > stream.emptyMessagesLimit {
-			err = ErrTooManyEmptyStreamMessages
-			return
+	for {
+		rawLine, readErr := stream.reader.ReadBytes('\n')
+		if readErr != nil {
+			respErr := stream.unmarshalError()
+			if respErr != nil {
+				return *new(T), fmt.Errorf("error, %w", respErr.Error)
+			}
+			return *new(T), readErr
 		}
 
-		goto waitForData
-	}
+		var headerData = []byte("data: ")
+		noSpaceLine := bytes.TrimSpace(rawLine)
+		if !bytes.HasPrefix(noSpaceLine, headerData) {
+			writeErr := stream.errAccumulator.Write(noSpaceLine)
+			if writeErr != nil {
+				return *new(T), writeErr
+			}
+			emptyMessagesCount++
+			if emptyMessagesCount > stream.emptyMessagesLimit {
+				return *new(T), ErrTooManyEmptyStreamMessages
+			}
 
-	line = bytes.TrimPrefix(line, headerData)
-	if string(line) == "[DONE]" {
-		stream.isFinished = true
-		err = io.EOF
-		return
-	}
+			continue
+		}
 
-	err = stream.unmarshaler.Unmarshal(line, &response)
-	return
+		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
+		if string(noPrefixLine) == "[DONE]" {
+			stream.isFinished = true
+			return *new(T), io.EOF
+		}
+
+		var response T
+		unmarshalErr := stream.unmarshaler.Unmarshal(noPrefixLine, &response)
+		if unmarshalErr != nil {
+			return *new(T), unmarshalErr
+		}
+
+		return response, nil
+	}
 }
 
 func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {

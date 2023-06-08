@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
@@ -215,6 +216,165 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
 	}
 	t.Logf("%+v\n", apiErr)
+}
+
+func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Totally 301 empty messages (300 is the limit)
+		for i := 0; i < 299; i++ {
+			dataBytes = append(dataBytes, '\n')
+		}
+
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data = `{"id":"2","object":"completion","created":1598069255,"model":"text-davinci-002","choices":[{"text":"response2","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: done\n")...)
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	}))
+	defer server.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	}
+
+	stream, err := client.CreateCompletionStream(ctx, request)
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, ErrTooManyEmptyStreamMessages) {
+		t.Errorf("TestCreateCompletionStreamTooManyEmptyStreamMessagesError did not return ErrTooManyEmptyStreamMessages")
+	}
+}
+
+func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Stream is terminated without sending "done" message
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	}))
+	defer server.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	}
+
+	stream, err := client.CreateCompletionStream(ctx, request)
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("TestCreateCompletionStreamUnexpectedTerminatedError did not return io.EOF")
+	}
+}
+
+func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
+	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Send broken json
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		data = `{"id":"2","object":"completion","created":1598069255,"model":`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: done\n")...)
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	}))
+	defer server.Close()
+
+	// Client portion of the test
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = server.URL + "/v1"
+	config.HTTPClient.Transport = &test.TokenRoundTripper{
+		Token:    test.GetTestToken(),
+		Fallback: http.DefaultTransport,
+	}
+
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	request := CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	}
+
+	stream, err := client.CreateCompletionStream(ctx, request)
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	var syntaxError *json.SyntaxError
+	if !errors.As(streamErr, &syntaxError) {
+		t.Errorf("TestCreateCompletionStreamBrokenJSONError did not return json.SyntaxError")
+	}
 }
 
 // Helper funcs.

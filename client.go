@@ -49,10 +49,10 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
-		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
+		req.Header.Set(AzureAPIKeyHeader, c.config.AuthToken)
 	} else {
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
 	}
 
 	// Check whether Content-Type is already set, Upload Files API requires
@@ -110,7 +110,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 		if strings.Contains(suffix, "/models") {
-			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, AzureAPIPrefix, suffix, c.config.APIVersion)
 		}
 		azureDeploymentName := "UNKNOWN"
 		if len(args) > 0 {
@@ -120,7 +120,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			}
 		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+			baseURL, AzureAPIPrefix, AzureDeploymentsPrefix,
 			azureDeploymentName, suffix, c.config.APIVersion,
 		)
 	}
@@ -148,10 +148,10 @@ func (c *Client) newStreamRequest(
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
-		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
+		req.Header.Set(AzureAPIKeyHeader, c.config.AuthToken)
 	} else {
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
 	}
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)

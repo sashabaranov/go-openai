@@ -6,11 +6,11 @@ import (
 )
 
 const (
-	openaiAPIURLv1                 = "https://api.openai.com/v1"
-	defaultEmptyMessagesLimit uint = 300
+	OpenaiAPIURLv1                 = "https://api.openai.com/v1"
+	DefaultEmptyMessagesLimit uint = 300
 
-	azureAPIPrefix         = "openai"
-	azureDeploymentsPrefix = "deployments"
+	AzureAPIPrefix         = "openai"
+	AzureDeploymentsPrefix = "deployments"
 )
 
 type APIType string
@@ -25,7 +25,7 @@ const AzureAPIKeyHeader = "api-key"
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	authToken string
+	AuthToken string
 
 	BaseURL              string
 	OrgID                string
@@ -39,20 +39,20 @@ type ClientConfig struct {
 
 func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
-		authToken: authToken,
-		BaseURL:   openaiAPIURLv1,
+		AuthToken: authToken,
+		BaseURL:   OpenaiAPIURLv1,
 		APIType:   APITypeOpenAI,
 		OrgID:     "",
 
 		HTTPClient: &http.Client{},
 
-		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+		EmptyMessagesLimit: DefaultEmptyMessagesLimit,
 	}
 }
 
 func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
-		authToken:  apiKey,
+		AuthToken:  apiKey,
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAzure,
@@ -63,7 +63,7 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 
 		HTTPClient: &http.Client{},
 
-		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+		EmptyMessagesLimit: DefaultEmptyMessagesLimit,
 	}
 }
 

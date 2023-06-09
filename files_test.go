@@ -281,3 +281,29 @@ func TestGetFileContentReturnError(t *testing.T) {
 		return
 	}
 }
+
+func TestGetFileContentReturnTimeoutError(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/v1/files/deadbeef/content", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(10 * time.Nanosecond)
+	})
+	// create the test server
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Nanosecond)
+	defer cancel()
+
+	_, err := client.GetFileContent(ctx, "deadbeef")
+	if err == nil {
+		t.Fatal("Did not return error")
+	}
+	if !os.IsTimeout(err) {
+		t.Fatal("Did not return timeout error")
+	}
+}

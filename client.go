@@ -1,12 +1,16 @@
 package openai
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
@@ -71,10 +75,58 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		return err
 	}
 
+	// Special handling for initial call to Azure DALL-E API
+	if strings.Contains(req.URL.Path, "openai/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
+
+		io.Copy(ioutil.Discard, res.Body)
+		callBackUrl := res.Header.Get("Operation-Location")
+		if callBackUrl == "" {
+			return errors.New("Error retrieving call back URL (Operation-Location) for image request")
+		}
+		newReq, _ := http.NewRequest("GET", callBackUrl, nil)
+		return c.sendRequest(newReq, v)
+
+	}
+
 	defer res.Body.Close()
 
 	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
 		return c.handleErrorResp(res)
+	}
+
+	// Special handling for callBack to Azure DALL-E API
+	if strings.Contains(req.URL.Path, "openai/operations/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
+
+		type callBackResponse struct {
+			Created int64  `json:"created"`
+			Expires int64  `json:"expires"`
+			Id      string `json:"id"`
+			Result  struct {
+				Data []struct {
+					URL string `json:"url"`
+				} `json:"data"`
+			} `json:"result"`
+			Status string `json:"status"`
+		}
+
+		// Wait for the callBack to complete
+		var result *callBackResponse
+		json.NewDecoder(res.Body).Decode(&result)
+		if strings.ToLower(result.Status) == "notrunning" || strings.ToLower(result.Status) == "running" {
+			time.Sleep(time.Duration(5) * time.Second)
+			return c.sendRequest(req, v)
+		}
+
+		// Convert the callBack response to the OpenAI ImageResponse
+		var urlList []ImageResponseDataInner
+		for _, data := range result.Result.Data {
+			urlList = append(urlList, ImageResponseDataInner{URL: data.URL})
+		}
+		converted, err := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
+		if err != nil {
+			return err
+		}
+		return decodeResponse(bytes.NewReader(converted), v)
 	}
 
 	return decodeResponse(res.Body, v)
@@ -111,6 +163,9 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 		if strings.Contains(suffix, "/models") {
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+		}
+		if strings.Contains(suffix, "/images") {
+			return fmt.Sprintf("%s/%s%s:submit?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
 		}
 		azureDeploymentName := "UNKNOWN"
 		if len(args) > 0 {

@@ -15,6 +15,9 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
+// Retry Sleep seconds for Azure DALL-E 2 callback URL
+var callBackWaitTime = 5
+
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
@@ -118,8 +121,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		// Wait for the callBack to complete
 		var result *callBackResponse
 		json.NewDecoder(res.Body).Decode(&result)
-		if strings.ToLower(result.Status) == "notrunning" || strings.ToLower(result.Status) == "running" {
-			callBackWaitTime := 5 * time.Second
+		if result.Status == "notRunning" || result.Status == "running" {
 			time.Sleep(time.Duration(callBackWaitTime) * time.Second)
 			return c.sendRequest(req, v)
 		}

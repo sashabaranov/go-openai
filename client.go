@@ -120,7 +120,10 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 
 		// Wait for the callBack to complete
 		var result *callBackResponse
-		json.NewDecoder(res.Body).Decode(&result)
+		err := json.NewDecoder(res.Body).Decode(&result)
+		if err != nil {
+			return err
+		}
 		if result.Status == "notRunning" || result.Status == "running" {
 			time.Sleep(time.Duration(callBackWaitTime) * time.Second)
 			return c.sendRequest(req, v)

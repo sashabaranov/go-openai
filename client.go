@@ -78,12 +78,18 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	// Special handling for initial call to Azure DALL-E API
 	if strings.Contains(req.URL.Path, "openai/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
 
-		io.Copy(ioutil.Discard, res.Body)
-		callBackUrl := res.Header.Get("Operation-Location")
-		if callBackUrl == "" {
+		_, err := io.Copy(ioutil.Discard, res.Body)
+		if err != nil {
+			return err
+		}
+		callBackURL := res.Header.Get("Operation-Location")
+		if callBackURL == "" {
 			return errors.New("Error retrieving call back URL (Operation-Location) for image request")
 		}
-		newReq, _ := http.NewRequest("GET", callBackUrl, nil)
+		newReq, err := http.NewRequest("GET", callBackURL, nil)
+		if err != nil {
+			return err
+		}
 		return c.sendRequest(newReq, v)
 
 	}
@@ -113,7 +119,8 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		var result *callBackResponse
 		json.NewDecoder(res.Body).Decode(&result)
 		if strings.ToLower(result.Status) == "notrunning" || strings.ToLower(result.Status) == "running" {
-			time.Sleep(time.Duration(5) * time.Second)
+			callBackWaitTime := 5 * time.Second
+			time.Sleep(time.Duration(callBackWaitTime) * time.Second)
 			return c.sendRequest(req, v)
 		}
 

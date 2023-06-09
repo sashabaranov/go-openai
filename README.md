@@ -538,6 +538,7 @@ if errors.As(err, &e) {
 }
 
 ```
+</details>
 <details>
 <summary>Azure OpenAI DALL-E 2</summary>
 

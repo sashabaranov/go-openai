@@ -11,7 +11,7 @@ import (
 	"net/url"
 	"os"
 
-	"github.com/coggsfl/go-openai"
+	"github.com/sashabaranov/go-openai"
 )
 
 func Example() {

@@ -12,10 +12,10 @@ import (
 	"strings"
 	"time"
 
-	utils "github.com/coggsfl/go-openai/internal"
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
-// Retry Sleep seconds for Azure DALL-E 2 callback URL.
+// Retry Sleep seconds for Azure DALL-E 2 callback URL
 var callBackWaitTime = 5
 
 // Client is OpenAI GPT-3 API client.
@@ -62,8 +62,8 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
 
-	// Check whether Content-Type is already set, Upload Files API requires.
-	// Content-Type == multipart/form-data.
+	// Check whether Content-Type is already set, Upload Files API requires
+	// Content-Type == multipart/form-data
 	contentType := req.Header.Get("Content-Type")
 	if contentType == "" {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
@@ -78,7 +78,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		return err
 	}
 
-	// Special handling for initial call to Azure DALL-E API.
+	// Special handling for initial call to Azure DALL-E API
 	if strings.Contains(req.URL.Path, "openai/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
 
 		_, err := io.Copy(ioutil.Discard, res.Body)
@@ -103,7 +103,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		return c.handleErrorResp(res)
 	}
 
-	// Special handling for callBack to Azure DALL-E API.
+	// Special handling for callBack to Azure DALL-E API
 	if strings.Contains(req.URL.Path, "openai/operations/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
 
 		type callBackResponse struct {
@@ -118,7 +118,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 			Status string `json:"status"`
 		}
 
-		// Wait for the callBack to complete.
+		// Wait for the callBack to complete
 		var result *callBackResponse
 		err := json.NewDecoder(res.Body).Decode(&result)
 		if err != nil {
@@ -129,7 +129,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 			return c.sendRequest(req, v)
 		}
 
-		// Convert the callBack response to the OpenAI ImageResponse.
+		// Convert the callBack response to the OpenAI ImageResponse
 		var urlList []ImageResponseDataInner
 		for _, data := range result.Result.Data {
 			urlList = append(urlList, ImageResponseDataInner{URL: data.URL})

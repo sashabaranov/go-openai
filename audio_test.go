@@ -14,8 +14,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/coggsfl/go-openai/internal/test"
-	"github.com/coggsfl/go-openai/internal/test/checks"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 // TestAudio Tests the transcription and translation endpoints of the API using the mocked server.

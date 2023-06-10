@@ -1,3 +1,3 @@
-module github.com/coggsfl/go-openai
+module github.com/sashabaranov/go-openai
 
-go 1.20
+go 1.18

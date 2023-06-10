@@ -6,7 +6,7 @@ import (
 	"errors"
 	"testing"
 
-	utils "github.com/coggsfl/go-openai/internal"
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 var errTestUnmarshalerFailed = errors.New("test unmarshaler failed")

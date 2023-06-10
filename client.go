@@ -15,9 +15,6 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
-// Retry Sleep seconds for Azure DALL-E 2 callback URL
-var callBackWaitTime = 5
-
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
@@ -78,7 +75,7 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		return err
 	}
 
-	// Special handling for initial call to Azure DALL-E API
+	// Special handling for initial call to Azure DALL-E API.
 	if strings.Contains(req.URL.Path, "openai/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
 
 		_, err := io.Copy(ioutil.Discard, res.Body)
@@ -105,43 +102,50 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 
 	// Special handling for callBack to Azure DALL-E API
 	if strings.Contains(req.URL.Path, "openai/operations/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
-
-		type callBackResponse struct {
-			Created int64  `json:"created"`
-			Expires int64  `json:"expires"`
-			Id      string `json:"id"`
-			Result  struct {
-				Data []struct {
-					URL string `json:"url"`
-				} `json:"data"`
-			} `json:"result"`
-			Status string `json:"status"`
-		}
-
-		// Wait for the callBack to complete
-		var result *callBackResponse
-		err := json.NewDecoder(res.Body).Decode(&result)
-		if err != nil {
-			return err
-		}
-		if result.Status == "notRunning" || result.Status == "running" {
-			time.Sleep(time.Duration(callBackWaitTime) * time.Second)
-			return c.sendRequest(req, v)
-		}
-
-		// Convert the callBack response to the OpenAI ImageResponse
-		var urlList []ImageResponseDataInner
-		for _, data := range result.Result.Data {
-			urlList = append(urlList, ImageResponseDataInner{URL: data.URL})
-		}
-		converted, err := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
-		if err != nil {
-			return err
-		}
-		return decodeResponse(bytes.NewReader(converted), v)
+		return c.handleImageRequest(req, v, res)
 	}
 
 	return decodeResponse(res.Body, v)
+}
+
+// Handle image callback response from Azure DALL-E API
+func (c *Client) handleImageRequest(req *http.Request, v any, res *http.Response) error {
+	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
+	var callBackWaitTime = 5
+
+	type callBackResponse struct {
+		Created int64  `json:"created"`
+		Expires int64  `json:"expires"`
+		Id      string `json:"id"`
+		Result  struct {
+			Data []struct {
+				URL string `json:"url"`
+			} `json:"data"`
+		} `json:"result"`
+		Status string `json:"status"`
+	}
+
+	// Wait for the callBack to complete
+	var result *callBackResponse
+	err := json.NewDecoder(res.Body).Decode(&result)
+	if err != nil {
+		return err
+	}
+	if result.Status == "notRunning" || result.Status == "running" {
+		time.Sleep(time.Duration(callBackWaitTime) * time.Second)
+		return c.sendRequest(req, v)
+	}
+
+	// Convert the callBack response to the OpenAI ImageResponse
+	var urlList []ImageResponseDataInner
+	for _, data := range result.Result.Data {
+		urlList = append(urlList, ImageResponseDataInner{URL: data.URL})
+	}
+	converted, err := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
+	if err != nil {
+		return err
+	}
+	return decodeResponse(bytes.NewReader(converted), v)
 }
 
 func decodeResponse(body io.Reader, v any) error {

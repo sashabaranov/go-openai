@@ -164,12 +164,15 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
 		switch {
-		case strings.Contains(suffix, "/models"): // if suffix is /models change to {endpoint}/openai/models?api-version={api_version}
+		case strings.Contains(suffix, "/models"):
+			// if suffix is /models change to {endpoint}/openai/models?api-version={api_version}
 			// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		case strings.Contains(suffix, "/images"): // if suffix is /images change to {endpoint}openai/images/generations:submit?api-version={api_version}
+		case strings.Contains(suffix, "/images"):
+			// if suffix is /images change to {endpoint}openai/images/generations:submit?api-version={api_version}
 			return fmt.Sprintf("%s/%s%s:submit?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		default: // /openai/deployments/{model}/chat/completions?api-version={api_version}
+		default:
+			// /openai/deployments/{model}/chat/completions?api-version={api_version}
 			azureDeploymentName := "UNKNOWN"
 			if len(args) > 0 {
 				model, ok := args[0].(string)

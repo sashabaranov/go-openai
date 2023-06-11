@@ -102,16 +102,18 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
 	var callBackWaitTime = 5
 
+	type Data []struct {
+		URL string `json:"url"`
+	}
+	type Result struct {
+		Data Data `json:"data"`
+	}
 	type callBackResponse struct {
 		Created int64  `json:"created"`
 		Expires int64  `json:"expires"`
 		ID      string `json:"id"`
-		Result  struct {
-			Data []struct {
-				URL string `json:"url"`
-			} `json:"data"`
-		} `json:"result"`
-		Status string `json:"status"`
+		Result  Result `json:"result"`
+		Status  string `json:"status"`
 	}
 
 	// Wait for the callBack to complete

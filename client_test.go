@@ -3,9 +3,11 @@ package openai //nolint:testpackage // testing private field
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"testing"
 
@@ -282,5 +284,76 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+}
+
+func TestImageRequestCallback(t *testing.T) {
+
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	var request ImageRequest
+	urlSuffix := "/images/generations"
+	req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL(urlSuffix), request)
+	if err != nil {
+		return
+	}
+	var response ImageResponse
+	callback := mockCallbackResponse(123456789, 123456789, "123456789", "http://example.com/image1", "http://example.com/image2", "Succeeded")
+	t.Run("imageRequestCallback", func(t *testing.T) {
+		err := client.imageRequestCallback(req, &response, callback)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		if response.Data[0].URL != "http://example.com/image1" {
+			t.Errorf("Unexpected response: %v", response)
+		}
+		if response.Data[1].URL != "http://example.com/image2" {
+			t.Errorf("Unexpected response: %v", response)
+		}
+	})
+
+}
+
+func mockCallbackResponse(created int64, expires int64, id string, url1 string, url2 string, status string) *http.Response {
+	type Data []struct {
+		URL string `json:"url"`
+	}
+	type Result struct {
+		Data Data `json:"data"`
+	}
+	type callBackResponse struct {
+		Created int64  `json:"created"`
+		Expires int64  `json:"expires"`
+		ID      string `json:"id"`
+		Result  Result `json:"result"`
+		Status  string `json:"status"`
+	}
+
+	cbResponse := callBackResponse{
+		Created: created,
+		Expires: expires,
+		ID:      id,
+		Status:  status,
+		Result: Result{
+			Data: Data{
+				{URL: url1},
+				{URL: url2},
+			},
+		},
+	}
+	cbResponseBytes := new(bytes.Buffer)
+	json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	responseBody := ioutil.NopCloser(bytes.NewReader(cbResponseBytes.Bytes()))
+
+	return &http.Response{
+		StatusCode: 200,
+		Body:       responseBody,
 	}
 }

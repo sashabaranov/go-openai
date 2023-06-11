@@ -124,7 +124,7 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	type callBackResponse struct {
 		Created int64  `json:"created"`
 		Expires int64  `json:"expires"`
-		Id      string `json:"id"`
+		ID      string `json:"id"`
 		Result  struct {
 			Data []struct {
 				URL string `json:"url"`

@@ -50,6 +50,48 @@ func NewOrgClient(authToken, org string) *Client {
 }
 
 func (c *Client) sendRequest(req *http.Request, v any) error {
+	c.setRequestHeaders(req, c.config) // Set the request headers
+
+	res, err := c.config.HTTPClient.Do(req)
+	if err != nil {
+		return err
+	}
+
+	// Special handling for initial call to Azure DALL-E API.
+	if strings.Contains(req.URL.Path, "openai/images") &&
+		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
+
+		_, err := io.Copy(ioutil.Discard, res.Body)
+		if err != nil {
+			return err
+		}
+		callBackURL := res.Header.Get("Operation-Location")
+		if callBackURL == "" {
+			return errors.New("Error retrieving call back URL (Operation-Location) for image request")
+		}
+		newReq, err := http.NewRequest("GET", callBackURL, nil)
+		if err != nil {
+			return err
+		}
+		return c.sendRequest(newReq, v)
+	}
+
+	defer res.Body.Close()
+
+	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
+		return c.handleErrorResp(res)
+	}
+
+	// Special handling for callBack to Azure DALL-E API.
+	if strings.Contains(req.URL.Path, "openai/operations/images") &&
+		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
+		return c.handleImageRequest(req, v, res)
+	}
+
+	return decodeResponse(res.Body, v)
+}
+
+func (c *Client) setRequestHeaders(req *http.Request, config ClientConfig) {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
@@ -69,46 +111,9 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	if len(c.config.OrgID) > 0 {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)
 	}
-
-	res, err := c.config.HTTPClient.Do(req)
-	if err != nil {
-		return err
-	}
-
-	// Special handling for initial call to Azure DALL-E API.
-	if strings.Contains(req.URL.Path, "openai/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
-
-		_, err := io.Copy(ioutil.Discard, res.Body)
-		if err != nil {
-			return err
-		}
-		callBackURL := res.Header.Get("Operation-Location")
-		if callBackURL == "" {
-			return errors.New("Error retrieving call back URL (Operation-Location) for image request")
-		}
-		newReq, err := http.NewRequest("GET", callBackURL, nil)
-		if err != nil {
-			return err
-		}
-		return c.sendRequest(newReq, v)
-
-	}
-
-	defer res.Body.Close()
-
-	if res.StatusCode < http.StatusOK || res.StatusCode >= http.StatusBadRequest {
-		return c.handleErrorResp(res)
-	}
-
-	// Special handling for callBack to Azure DALL-E API
-	if strings.Contains(req.URL.Path, "openai/operations/images") && (c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
-		return c.handleImageRequest(req, v, res)
-	}
-
-	return decodeResponse(res.Body, v)
 }
 
-// Handle image callback response from Azure DALL-E API
+// Handle image callback response from Azure DALL-E API.
 func (c *Client) handleImageRequest(req *http.Request, v any, res *http.Response) error {
 	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
 	var callBackWaitTime = 5

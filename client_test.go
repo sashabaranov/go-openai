@@ -288,7 +288,6 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 }
 
 func TestImageRequestCallback(t *testing.T) {
-
 	ts := test.NewTestServer().OpenAITestServer()
 	ts.Start()
 	defer ts.Close()
@@ -305,9 +304,12 @@ func TestImageRequestCallback(t *testing.T) {
 		return
 	}
 	var response ImageResponse
-	callback := mockCallbackResponse(123456789, 123456789, "123456789", "http://example.com/image1", "http://example.com/image2", "Succeeded")
+	callback, err := mockCallbackResponse(123456789, "http://example.com/image1", "http://example.com/image2", "Succeeded")
+	if err != nil {
+		t.Errorf("Unexpected error: %v", err)
+	}
 	t.Run("imageRequestCallback", func(t *testing.T) {
-		err := client.imageRequestCallback(req, &response, callback)
+		err = client.imageRequestCallback(req, &response, callback)
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
 		}
@@ -321,10 +323,9 @@ func TestImageRequestCallback(t *testing.T) {
 			t.Errorf("Unexpected response: %v", response)
 		}
 	})
-
 }
 
-func mockCallbackResponse(created int64, expires int64, id string, url1 string, url2 string, status string) *http.Response {
+func mockCallbackResponse(created int64, url1 string, url2 string, status string) (*http.Response, error) {
 	type Data []struct {
 		URL string `json:"url"`
 	}
@@ -341,8 +342,6 @@ func mockCallbackResponse(created int64, expires int64, id string, url1 string, 
 
 	cbResponse := callBackResponse{
 		Created: created,
-		Expires: expires,
-		ID:      id,
 		Status:  status,
 		Result: Result{
 			Data: Data{
@@ -352,11 +351,14 @@ func mockCallbackResponse(created int64, expires int64, id string, url1 string, 
 		},
 	}
 	cbResponseBytes := new(bytes.Buffer)
-	json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	err := json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	if err != nil {
+		return nil, err
+	}
 	responseBody := ioutil.NopCloser(bytes.NewReader(cbResponseBytes.Bytes()))
 
 	return &http.Response{
 		StatusCode: 200,
 		Body:       responseBody,
-	}
+	}, nil
 }

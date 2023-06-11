@@ -3,7 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"net/http"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
@@ -57,7 +56,7 @@ func (c *Client) CreateChatCompletionStream(
 	if err != nil {
 		return
 	}
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+	if isFailureStatusCode(resp) {
 		return nil, c.handleErrorResp(resp)
 	}
 

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
@@ -101,5 +102,28 @@ func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err err
 	}
 
 	err = c.sendRequest(req, &file)
+	return
+}
+
+func (c *Client) GetFileContent(ctx context.Context, fileID string) (content io.ReadCloser, err error) {
+	urlSuffix := fmt.Sprintf("/files/%s/content", fileID)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
+	if err != nil {
+		return
+	}
+
+	c.setCommonHeaders(req)
+
+	res, err := c.config.HTTPClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	if isFailureStatusCode(res) {
+		err = c.handleErrorResp(res)
+		return
+	}
+
+	content = res.Body
 	return
 }

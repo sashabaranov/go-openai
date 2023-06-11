@@ -233,6 +233,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"GetFile", func() (any, error) {
 			return client.GetFile(ctx, "")
 		}},
+		{"GetFileContent", func() (any, error) {
+			return client.GetFileContent(ctx, "")
+		}},
 		{"ListFiles", func() (any, error) {
 			return client.ListFiles(ctx)
 		}},

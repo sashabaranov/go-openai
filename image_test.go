@@ -35,6 +35,26 @@ func TestImages(t *testing.T) {
 	checks.NoError(t, err, "CreateImage error")
 }
 
+func TestAzureCreateImage(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/openai/images/generations:submit", handleImageEndpoint)
+	// create the test server
+	var err error
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := ImageRequest{}
+	req.Prompt = "Lorem ipsum"
+	_, err = client.CreateImage(ctx, req)
+	checks.NoError(t, err, "CreateImage error")
+}
+
 // handleImageEndpoint Handles the images endpoint by the test server.
 func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error

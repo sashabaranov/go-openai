@@ -160,19 +160,16 @@ func decodeString(body io.Reader, output *string) error {
 // fullURL returns full URL for request.
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
-	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
-		switch suffix {
-		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
-		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		case "/models":
+		switch {
+		case strings.Contains(suffix, "/models"): // if suffix is /models change to {endpoint}/openai/models?api-version={api_version}
+			// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		// if suffix is /images change to {endpoint}openai/images/generations:submit?api-version={c.config.APIVersion}
-		case "/images":
+		case strings.Contains(suffix, "/images"): // if suffix is /images change to {endpoint}openai/images/generations:submit?api-version={api_version}
 			return fmt.Sprintf("%s/%s%s:submit?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		default:
+		default: // /openai/deployments/{model}/chat/completions?api-version={api_version}
 			azureDeploymentName := "UNKNOWN"
 			if len(args) > 0 {
 				model, ok := args[0].(string)

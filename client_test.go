@@ -311,6 +311,9 @@ func TestImageRequestCallback(t *testing.T) {
 		if err != nil {
 			t.Errorf("Unexpected error: %v", err)
 		}
+		if response.Created != 123456789 {
+			t.Errorf("Unexpected response: %v", response)
+		}
 		if response.Data[0].URL != "http://example.com/image1" {
 			t.Errorf("Unexpected response: %v", response)
 		}

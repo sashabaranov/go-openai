@@ -183,25 +183,26 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
+
+		switch suffix {
 		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		if strings.Contains(suffix, "/models") {
+		case "/models":
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		}
-		if strings.Contains(suffix, "/images") {
+		case "/images":
 			return fmt.Sprintf("%s/%s%s:submit?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		}
-		azureDeploymentName := "UNKNOWN"
-		if len(args) > 0 {
-			model, ok := args[0].(string)
-			if ok {
-				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+		default:
+			azureDeploymentName := "UNKNOWN"
+			if len(args) > 0 {
+				model, ok := args[0].(string)
+				if ok {
+					azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+				}
 			}
+			return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+				azureDeploymentName, suffix, c.config.APIVersion,
+			)
 		}
-		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			azureDeploymentName, suffix, c.config.APIVersion,
-		)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""

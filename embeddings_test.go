@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"bytes"
@@ -67,7 +66,8 @@ func TestEmbeddingModel(t *testing.T) {
 }
 
 func TestEmbeddingEndpoint(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler(
 		"/v1/embeddings",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -75,17 +75,6 @@ func TestEmbeddingEndpoint(t *testing.T) {
 			fmt.Fprintln(w, string(resBytes))
 		},
 	)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	_, err = client.CreateEmbeddings(ctx, EmbeddingRequest{})
+	_, err := client.CreateEmbeddings(context.Background(), EmbeddingRequest{})
 	checks.NoError(t, err, "CreateEmbeddings error")
 }

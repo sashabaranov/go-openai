@@ -8,27 +8,29 @@ import (
 	"testing"
 
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 // TestGetEngine Tests the retrieve engine endpoint of the API using the mocked server.
 func TestGetEngine(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/engines/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
 		resBytes, _ := json.Marshal(Engine{})
 		fmt.Fprintln(w, string(resBytes))
 	})
-	// create the test server
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	_, err := client.GetEngine(ctx, "text-davinci-003")
+	_, err := client.GetEngine(context.Background(), "text-davinci-003")
 	checks.NoError(t, err, "GetEngine error")
+}
+
+// TestListEngines Tests the list engines endpoint of the API using the mocked server.
+func TestListEngines(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
+		resBytes, _ := json.Marshal(EnginesList{})
+		fmt.Fprintln(w, string(resBytes))
+	})
+	_, err := client.ListEngines(context.Background())
+	checks.NoError(t, err, "ListEngines error")
 }

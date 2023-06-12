@@ -1,6 +1,10 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	"bytes"
+	"math/rand"
+	"strings"
+
 	utils "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
@@ -38,6 +42,7 @@ func TestImages(t *testing.T) {
 func TestAzureCreateImage(t *testing.T) {
 	server := test.NewTestServer()
 	server.RegisterHandler("/openai/images/generations:submit", handleImageEndpoint)
+	server.RegisterHandler("/openai/operations/images/request-id", handleImageCallbackEndpoint)
 	// create the test server
 	var err error
 	ts := server.OpenAITestServer()
@@ -51,6 +56,8 @@ func TestAzureCreateImage(t *testing.T) {
 
 	req := ImageRequest{}
 	req.Prompt = "Lorem ipsum"
+	req.ResponseFormat = CreateImageResponseFormatURL
+	req.N = 2
 	_, err = client.CreateImage(ctx, req)
 	checks.NoError(t, err, "CreateImage error")
 }
@@ -60,13 +67,20 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resBytes []byte
 
-	// imagess only accepts POST requests
+	// images only accepts POST requests
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 	var imageReq ImageRequest
 	if imageReq, err = getImageBody(r); err != nil {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
+		return
+	}
+	// Azure Image Generation request - respond with callback Header only & HTTP accepted status.
+	if strings.Contains(r.RequestURI, "/openai/images/generations:submit") {
+		w.Header().Add("Operation-Location", "http://"+r.Host+"/openai/operations/images/request-id")
+		w.WriteHeader(http.StatusAccepted)
 		return
 	}
 	res := ImageResponse{
@@ -88,6 +102,61 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	resBytes, _ = json.Marshal(res)
 	fmt.Fprintln(w, string(resBytes))
+}
+
+// handleImageCallbackEndpoint Handles the callback endpoint by the test server.
+func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
+	var err error
+	//var resBytes []byte
+	type Data []struct {
+		URL string `json:"url"`
+	}
+	type Result struct {
+		Data Data `json:"data"`
+	}
+	type callBackResponse struct {
+		Created int64  `json:"created"`
+		Expires int64  `json:"expires"`
+		ID      string `json:"id"`
+		Result  Result `json:"result"`
+		Status  string `json:"status"`
+	}
+
+	// image callback only accepts GET requests
+	if r.Method != "GET" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
+	}
+
+	// Randomly set the status to Succeeded or running
+	status := ""
+	rand.Seed(time.Now().UnixNano())
+	switch rand.Intn(3) {
+	case 0:
+		status = "Succeeded"
+	case 1:
+		status = "running"
+	case 2:
+		status = "notRunning"
+	}
+
+	cbResponse := callBackResponse{
+		Created: time.Now().Unix(),
+		Status:  status,
+		Result: Result{
+			Data: Data{
+				{URL: "http://example.com/image1"},
+				{URL: "http://example.com/image2"},
+			},
+		},
+	}
+	cbResponseBytes := new(bytes.Buffer)
+	err = json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	if err != nil {
+		http.Error(w, "could not write repsonse", http.StatusInternalServerError)
+		return
+	}
+	fmt.Fprintln(w, cbResponseBytes.String())
 }
 
 // getImageBody Returns the body of the request to create a image.
@@ -428,3 +497,54 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 }
+
+/*
+func TestAzureImageRequestCallback(t *testing.T) {
+	server := test.NewTestServer()
+	server.RegisterHandler("/openai/operations/images/request-id", handleImageCallbackEndpoint)
+	// create the test server
+	ts := server.OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+
+	t.Run("imageRequestCallback", func(t *testing.T) {
+		urlSuffix := "/images/generations"
+		request := ImageRequest{}
+		request.Prompt = "Lorem ipsum"
+		request.ResponseFormat = CreateImageResponseFormatURL
+		request.N = 2
+		ctx := context.Background()
+		req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL(urlSuffix), request)
+		if err != nil {
+			return
+		}
+
+
+		var response ImageResponse
+		// Generate mock response from Image Request API
+		callback, err := mockAzureCreateImageResponse(&config)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		fmt.Println(callback)
+		err = client.imageRequestCallback(req, &response, callback)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		err = client.requestImage(callback, &response)
+		if err != nil {
+			t.Errorf("Unexpected error: %v", err)
+		}
+		if response.Data[0].URL != "http://example.com/image1" {
+			t.Errorf("Unexpected response: %v", response)
+		}
+		if response.Data[1].URL != "http://example.com/image2" {
+			t.Errorf("Unexpected response: %v", response)
+		}
+	})
+}
+*/

@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -69,7 +71,11 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	if isFailureStatusCode(res) {
 		return c.handleErrorResp(res)
 	}
-
+	// Special handling for initial call to Azure DALL-E API.
+	if strings.Contains(req.URL.Path, "openai/images/generations") &&
+		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
+		return c.requestImage(res, v)
+	}
 	// Special handling for callBack to Azure DALL-E API.
 	if strings.Contains(req.URL.Path, "openai/operations/images") &&
 		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
@@ -97,10 +103,26 @@ func isFailureStatusCode(resp *http.Response) bool {
 	return resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest
 }
 
+func (c *Client) requestImage(res *http.Response, v any) error {
+	_, err := io.Copy(ioutil.Discard, res.Body)
+	if err != nil {
+		return err
+	}
+	callBackURL := res.Header.Get("Operation-Location")
+	if callBackURL == "" {
+		return errors.New("Error retrieving call back URL (Operation-Location) for image request")
+	}
+	newReq, err := http.NewRequest("GET", callBackURL, nil)
+	if err != nil {
+		return err
+	}
+	return c.sendRequest(newReq, v)
+}
+
 // Handle image callback response from Azure DALL-E API.
 func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Response) error {
 	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
-	var callBackWaitTime = 5
+	var callBackWaitTime = 3
 
 	type Data []struct {
 		URL string `json:"url"`
@@ -120,7 +142,11 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	var result *callBackResponse
 	err := json.NewDecoder(res.Body).Decode(&result)
 	if err != nil {
+		fmt.Println("Error decoding callBack response")
 		return err
+	}
+	if result.Status == "" {
+		return errors.New("Error retrieving callBack response")
 	}
 	if result.Status == "notRunning" || result.Status == "running" {
 		time.Sleep(time.Duration(callBackWaitTime) * time.Second)

@@ -273,7 +273,6 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 }
 
 func TestImageRequestCallbackErrors(t *testing.T) {
-
 	var err error
 	ts := test.NewTestServer().OpenAITestServer()
 	ts.Start()
@@ -285,7 +284,7 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 	client.requestBuilder = &failingRequestBuilder{}
 
 	// Test requestImage callback URL empty.
-	TestCase := "Callback URL is empty"
+	testCase := "Callback URL is empty"
 	res := &http.Response{
 		StatusCode: http.StatusOK,
 		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
@@ -294,13 +293,27 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 	err = client.requestImage(res, v)
 
 	if !errors.Is(err, ErrClientEmptyCallbackURL) {
-		t.Fatalf("%s did not return error. requestImage failed: %v", TestCase, err)
+		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
 	}
+}
 
+func TestImageRequestCallbackStatusEmpty(t *testing.T) {
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
+	client := NewClientWithConfig(config)
 	// Test imageRequestCallback status response empty.
-	TestCase = "imageRequestCallback status response empty"
+	testCase := "imageRequestCallback status response empty"
 	var request ImageRequest
 	ctx := context.Background()
+	req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL("/images"), request)
+	if err != nil {
+		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", testCase, err)
+	}
+
 	cbResponse := CallBackResponse{
 		Created: time.Now().Unix(),
 		Status:  "",
@@ -313,15 +326,15 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 	}
 	cbResponseBytes := new(bytes.Buffer)
 	json.NewEncoder(cbResponseBytes).Encode(cbResponse)
-	req, _ := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL(""), request)
-	res = &http.Response{
+
+	res := &http.Response{
 		StatusCode: http.StatusOK,
 		Body:       ioutil.NopCloser(bytes.NewBufferString(cbResponseBytes.String())),
 	}
-	v = &ImageRequest{}
+	v := &ImageRequest{}
 	err = client.imageRequestCallback(req, v, res)
-	fmt.Println(err)
+
 	if !errors.Is(err, ErrClientRetievingCallbackResponse) {
-		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", TestCase, err)
+		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
 	}
 }

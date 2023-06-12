@@ -7,6 +7,8 @@ import (
 	"testing"
 
 	utils "github.com/sashabaranov/go-openai/internal"
+	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var errTestUnmarshalerFailed = errors.New("test unmarshaler failed")
@@ -47,7 +49,17 @@ func TestStreamReaderReturnsErrTooManyEmptyStreamMessages(t *testing.T) {
 		unmarshaler:        &utils.JSONUnmarshaler{},
 	}
 	_, err := stream.Recv()
-	if !errors.Is(err, ErrTooManyEmptyStreamMessages) {
-		t.Fatalf("Did not return error when recv failed: %v", err)
+	checks.ErrorIs(t, err, ErrTooManyEmptyStreamMessages, "Did not return error when recv failed", err.Error())
+}
+
+func TestStreamReaderReturnsErrTestErrorAccumulatorWriteFailed(t *testing.T) {
+	stream := &streamReader[ChatCompletionStreamResponse]{
+		reader: bufio.NewReader(bytes.NewReader([]byte("\n"))),
+		errAccumulator: &utils.DefaultErrorAccumulator{
+			Buffer: &test.FailingErrorBuffer{},
+		},
+		unmarshaler: &utils.JSONUnmarshaler{},
 	}
+	_, err := stream.Recv()
+	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed, "Did not return error when write failed", err.Error())
 }

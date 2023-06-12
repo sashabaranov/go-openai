@@ -3,11 +3,14 @@ package openai //nolint:testpackage // testing private field
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"testing"
+	"time"
 
 	"github.com/sashabaranov/go-openai/internal/test"
 )
@@ -282,5 +285,59 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+}
+
+func TestImageRequestCallbackErrors(t *testing.T) {
+
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultConfig(test.GetTestToken())
+	config.BaseURL = ts.URL
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+
+	// Test requestImage callback URL empty.
+	TestCase := "Callback URL is empty"
+	res := &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+	v := &ImageRequest{}
+	err = client.requestImage(res, v)
+
+	if !errors.Is(err, ErrClientEmptyCallbackURL) {
+		t.Fatalf("%s did not return error. requestImage failed: %v", TestCase, err)
+	}
+
+	// Test imageRequestCallback status response empty.
+	TestCase = "imageRequestCallback status response empty"
+	var request ImageRequest
+	ctx := context.Background()
+	cbResponse := CallBackResponse{
+		Created: time.Now().Unix(),
+		Status:  "",
+		Result: CBResult{
+			Data: CBData{
+				{URL: "http://example.com/image1"},
+				{URL: "http://example.com/image2"},
+			},
+		},
+	}
+	cbResponseBytes := new(bytes.Buffer)
+	json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	req, _ := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL(""), request)
+	res = &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(cbResponseBytes.String())),
+	}
+	v = &ImageRequest{}
+	err = client.imageRequestCallback(req, v, res)
+	fmt.Println(err)
+	if !errors.Is(err, ErrClientRetievingCallbackResponse) {
+		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", TestCase, err)
 	}
 }

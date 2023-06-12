@@ -107,19 +107,6 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 // handleImageCallbackEndpoint Handles the callback endpoint by the test server.
 func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
-	type Data []struct {
-		URL string `json:"url"`
-	}
-	type Result struct {
-		Data Data `json:"data"`
-	}
-	type callBackResponse struct {
-		Created int64  `json:"created"`
-		Expires int64  `json:"expires"`
-		ID      string `json:"id"`
-		Result  Result `json:"result"`
-		Status  string `json:"status"`
-	}
 
 	// image callback only accepts GET requests
 	if r.Method != "GET" {
@@ -139,11 +126,11 @@ func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
 		status = "notRunning"
 	}
 
-	cbResponse := callBackResponse{
+	cbResponse := CallBackResponse{
 		Created: time.Now().Unix(),
 		Status:  status,
-		Result: Result{
-			Data: Data{
+		Result: CBResult{
+			Data: CBData{
 				{URL: "http://example.com/image1"},
 				{URL: "http://example.com/image2"},
 			},

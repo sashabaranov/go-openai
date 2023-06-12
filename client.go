@@ -15,12 +15,32 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
+var (
+	ErrClientEmptyCallbackURL          = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
+	ErrClientRetievingCallbackResponse = errors.New("Error retrieving callback response")
+)
+
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
 
 	requestBuilder    utils.RequestBuilder
 	createFormBuilder func(io.Writer) utils.FormBuilder
+}
+
+// Azure image request callback response struct.
+type CBData []struct {
+	URL string `json:"url"`
+}
+type CBResult struct {
+	Data CBData `json:"data"`
+}
+type CallBackResponse struct {
+	Created int64    `json:"created"`
+	Expires int64    `json:"expires"`
+	ID      string   `json:"id"`
+	Result  CBResult `json:"result"`
+	Status  string   `json:"status"`
 }
 
 // NewClient creates new OpenAI API client.
@@ -71,15 +91,16 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	if isFailureStatusCode(res) {
 		return c.handleErrorResp(res)
 	}
-	// Special handling for initial call to Azure DALL-E API.
-	if strings.Contains(req.URL.Path, "openai/images/generations") &&
-		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
-		return c.requestImage(res, v)
-	}
-	// Special handling for callBack to Azure DALL-E API.
-	if strings.Contains(req.URL.Path, "openai/operations/images") &&
-		(c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD) {
-		return c.imageRequestCallback(req, v, res)
+
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+		// Special handling for initial call to Azure DALL-E API.
+		if strings.Contains(req.URL.Path, "openai/images/generations") {
+			return c.requestImage(res, v)
+		}
+		// Special handling for callBack to Azure DALL-E API.
+		if strings.Contains(req.URL.Path, "openai/operations/images") {
+			return c.imageRequestCallback(req, v, res)
+		}
 	}
 
 	return decodeResponse(res.Body, v)
@@ -110,7 +131,7 @@ func (c *Client) requestImage(res *http.Response, v any) error {
 	}
 	callBackURL := res.Header.Get("Operation-Location")
 	if callBackURL == "" {
-		return errors.New("Error retrieving call back URL (Operation-Location) for image request")
+		return ErrClientEmptyCallbackURL
 	}
 	newReq, err := http.NewRequest("GET", callBackURL, nil)
 	if err != nil {
@@ -124,28 +145,14 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
 	var callBackWaitTime = 3
 
-	type Data []struct {
-		URL string `json:"url"`
-	}
-	type Result struct {
-		Data Data `json:"data"`
-	}
-	type callBackResponse struct {
-		Created int64  `json:"created"`
-		Expires int64  `json:"expires"`
-		ID      string `json:"id"`
-		Result  Result `json:"result"`
-		Status  string `json:"status"`
-	}
-
 	// Wait for the callBack to complete
-	var result *callBackResponse
+	var result *CallBackResponse
 	err := json.NewDecoder(res.Body).Decode(&result)
 	if err != nil {
 		return err
 	}
 	if result.Status == "" {
-		return errors.New("Error retrieving callBack response")
+		return ErrClientRetievingCallbackResponse
 	}
 	if result.Status == "notRunning" || result.Status == "running" {
 		time.Sleep(time.Duration(callBackWaitTime) * time.Second)

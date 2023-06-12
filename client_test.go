@@ -325,8 +325,10 @@ func TestImageRequestCallbackStatusEmpty(t *testing.T) {
 		},
 	}
 	cbResponseBytes := new(bytes.Buffer)
-	json.NewEncoder(cbResponseBytes).Encode(cbResponse)
-
+	err = json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	if err != nil {
+		t.Fatalf("%s. json encoding failed with unexpected error: %v", testCase, err)
+	}
 	res := &http.Response{
 		StatusCode: http.StatusOK,
 		Body:       ioutil.NopCloser(bytes.NewBufferString(cbResponseBytes.String())),

@@ -6,7 +6,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"os"
 	"testing"
 
@@ -226,18 +225,13 @@ func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
 }
 
 func TestRequestError(t *testing.T) {
-	var err error
-
-	ts := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
-	}))
-	defer ts.Close()
+	})
 
-	config := DefaultConfig("dummy")
-	config.BaseURL = ts.URL
-	c := NewClientWithConfig(config)
-	ctx := context.Background()
-	_, err = c.ListEngines(ctx)
+	_, err := client.ListEngines(context.Background())
 	checks.HasError(t, err, "ListEngines did not fail")
 
 	var reqErr *RequestError

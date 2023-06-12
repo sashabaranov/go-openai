@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -18,26 +17,13 @@ import (
 
 // TestModeration Tests the moderations endpoint of the API using the mocked server.
 func TestModerations(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	// create an edit request
-	model := "text-moderation-stable"
-	moderationReq := ModerationRequest{
-		Model: model,
+	_, err := client.Moderations(context.Background(), ModerationRequest{
+		Model: ModerationTextStable,
 		Input: "I want to kill them.",
-	}
-	_, err = client.Moderations(ctx, moderationReq)
+	})
 	checks.NoError(t, err, "Moderation error")
 }
 

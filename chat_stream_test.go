@@ -1,8 +1,7 @@
-package openai //nolint:testpackage // testing private field
+package openai_test
 
 import (
-	utils "github.com/sashabaranov/go-openai/internal"
-	"github.com/sashabaranov/go-openai/internal/test"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -10,7 +9,6 @@ import (
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httptest"
 	"testing"
 )
 
@@ -37,7 +35,9 @@ func TestChatCompletionsStreamWrongModel(t *testing.T) {
 }
 
 func TestCreateChatCompletionStream(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -57,21 +57,9 @@ func TestCreateChatCompletionStream(t *testing.T) {
 
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
-	}))
-	defer server.Close()
+	})
 
-	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &test.TokenRoundTripper{
-		Token:    test.GetTestToken(),
-		Fallback: http.DefaultTransport,
-	}
-
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
 		Messages: []ChatCompletionMessage{
@@ -81,9 +69,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 			},
 		},
 		Stream: true,
-	}
-
-	stream, err := client.CreateChatCompletionStream(ctx, request)
+	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -143,7 +129,9 @@ func TestCreateChatCompletionStream(t *testing.T) {
 }
 
 func TestCreateChatCompletionStreamError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -164,21 +152,9 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
-	}))
-	defer server.Close()
+	})
 
-	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &test.TokenRoundTripper{
-		Token:    test.GetTestToken(),
-		Fallback: http.DefaultTransport,
-	}
-
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
 		Messages: []ChatCompletionMessage{
@@ -188,9 +164,7 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 			},
 		},
 		Stream: true,
-	}
-
-	stream, err := client.CreateChatCompletionStream(ctx, request)
+	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -205,7 +179,8 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 }
 
 func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(429)
@@ -220,22 +195,7 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
 	})
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	config.HTTPClient.Transport = &test.TokenRoundTripper{
-		Token:    test.GetTestToken(),
-		Fallback: http.DefaultTransport,
-	}
-
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := ChatCompletionRequest{
+	_, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
 		Messages: []ChatCompletionMessage{
@@ -245,10 +205,8 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 			},
 		},
 		Stream: true,
-	}
-
+	})
 	var apiErr *APIError
-	_, err := client.CreateChatCompletionStream(ctx, request)
 	if !errors.As(err, &apiErr) {
 		t.Errorf("TestCreateChatCompletionStreamRateLimitError did not return APIError")
 	}
@@ -262,7 +220,8 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		"Please retry after 20 seconds. " +
 		"Please go here: https://aka.ms/oai/quotaincrease if you would like to further increase the default rate limit."
 
-	server := test.NewTestServer()
+	client, server, teardown := setupAzureTestServer()
+	defer teardown()
 	server.RegisterHandler("/openai/deployments/gpt-35-turbo/chat/completions",
 		func(w http.ResponseWriter, r *http.Request) {
 			w.Header().Set("Content-Type", "application/json")
@@ -273,17 +232,9 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 
 			checks.NoError(t, err, "Write error")
 		})
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
 
-	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := ChatCompletionRequest{
+	apiErr := &APIError{}
+	_, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
 		Messages: []ChatCompletionMessage{
@@ -293,10 +244,7 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 			},
 		},
 		Stream: true,
-	}
-
-	apiErr := &APIError{}
-	_, err = client.CreateChatCompletionStream(ctx, request)
+	})
 	if !errors.As(err, &apiErr) {
 		t.Errorf("Did not return APIError: %+v\n", apiErr)
 		return
@@ -314,33 +262,6 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		t.Errorf("Did not return Message. got = %s, want = %s\n", apiErr.Message, wantMessage)
 		return
 	}
-}
-
-func TestCreateChatCompletionStreamErrorAccumulatorWriteErrors(t *testing.T) {
-	var err error
-	server := test.NewTestServer()
-	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
-		http.Error(w, "error", 200)
-	})
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-
-	ctx := context.Background()
-
-	stream, err := client.CreateChatCompletionStream(ctx, ChatCompletionRequest{})
-	checks.NoError(t, err)
-
-	stream.errAccumulator = &utils.DefaultErrorAccumulator{
-		Buffer: &test.FailingErrorBuffer{},
-	}
-
-	_, err = stream.Recv()
-	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed, "Did not return error when Write failed", err.Error())
 }
 
 // Helper funcs.

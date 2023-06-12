@@ -142,7 +142,6 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	var result *callBackResponse
 	err := json.NewDecoder(res.Body).Decode(&result)
 	if err != nil {
-		fmt.Println("Error decoding callBack response")
 		return err
 	}
 	if result.Status == "" {

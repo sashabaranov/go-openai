@@ -107,7 +107,6 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 // handleImageCallbackEndpoint Handles the callback endpoint by the test server.
 func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
-	//var resBytes []byte
 	type Data []struct {
 		URL string `json:"url"`
 	}
@@ -497,54 +496,3 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 }
-
-/*
-func TestAzureImageRequestCallback(t *testing.T) {
-	server := test.NewTestServer()
-	server.RegisterHandler("/openai/operations/images/request-id", handleImageCallbackEndpoint)
-	// create the test server
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
-	config.BaseURL = ts.URL
-	client := NewClientWithConfig(config)
-
-	t.Run("imageRequestCallback", func(t *testing.T) {
-		urlSuffix := "/images/generations"
-		request := ImageRequest{}
-		request.Prompt = "Lorem ipsum"
-		request.ResponseFormat = CreateImageResponseFormatURL
-		request.N = 2
-		ctx := context.Background()
-		req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL(urlSuffix), request)
-		if err != nil {
-			return
-		}
-
-
-		var response ImageResponse
-		// Generate mock response from Image Request API
-		callback, err := mockAzureCreateImageResponse(&config)
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-		fmt.Println(callback)
-		err = client.imageRequestCallback(req, &response, callback)
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-		err = client.requestImage(callback, &response)
-		if err != nil {
-			t.Errorf("Unexpected error: %v", err)
-		}
-		if response.Data[0].URL != "http://example.com/image1" {
-			t.Errorf("Unexpected response: %v", response)
-		}
-		if response.Data[1].URL != "http://example.com/image2" {
-			t.Errorf("Unexpected response: %v", response)
-		}
-	})
-}
-*/

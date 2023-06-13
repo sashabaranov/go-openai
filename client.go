@@ -17,7 +17,7 @@ import (
 
 var (
 	ErrClientEmptyCallbackURL          = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
-	ErrClientRetievingCallbackResponse = errors.New("Error retrieving callback response")
+	ErrClientRetievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -154,8 +154,9 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	if result.Status == "" {
 		return ErrClientRetievingCallbackResponse
 	}
-	if result.Status == "notRunning" || result.Status == "running" {
+	if result.Status != "Succeeded" {
 		time.Sleep(time.Duration(callBackWaitTime) * time.Second)
+		req.Header.Add("Retry", "true")
 		return c.sendRequest(req, v)
 	}
 

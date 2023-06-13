@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	"bytes"
-	"math/rand"
 	"strings"
 
 	. "github.com/sashabaranov/go-openai"
@@ -94,16 +93,10 @@ func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Randomly set the status to Succeeded or running
-	status := ""
-	rand.Seed(time.Now().UnixNano())
-	switch rand.Intn(3) {
-	case 0:
+	// Set the status to succeeded if this is a retry request.
+	status := "running"
+	if r.Header.Get("Retry") == "true" {
 		status = "Succeeded"
-	case 1:
-		status = "running"
-	case 2:
-		status = "notRunning"
 	}
 
 	cbResponse := CallBackResponse{

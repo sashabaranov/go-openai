@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -48,25 +47,15 @@ func TestCompletionWithStream(t *testing.T) {
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestCompletions(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/completions", handleCompletionEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
 	req := CompletionRequest{
 		MaxTokens: 5,
 		Model:     "ada",
+		Prompt:    "Lorem ipsum",
 	}
-	req.Prompt = "Lorem ipsum"
-	_, err = client.CreateCompletion(ctx, req)
+	_, err := client.CreateCompletion(context.Background(), req)
 	checks.NoError(t, err, "CreateCompletion error")
 }
 

@@ -44,7 +44,7 @@ type ImageResponseDataInner struct {
 // CreateImage - API call to create an image. This is the main endpoint of the DALL-E API.
 func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (response ImageResponse, err error) {
 	urlSuffix := "/images/generations"
-	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
+	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
 	if err != nil {
 		return
 	}
@@ -69,40 +69,40 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	builder := c.createFormBuilder(body)
 
 	// image
-	err = builder.createFormFile("image", request.Image)
+	err = builder.CreateFormFile("image", request.Image)
 	if err != nil {
 		return
 	}
 
 	// mask, it is optional
 	if request.Mask != nil {
-		err = builder.createFormFile("mask", request.Mask)
+		err = builder.CreateFormFile("mask", request.Mask)
 		if err != nil {
 			return
 		}
 	}
 
-	err = builder.writeField("prompt", request.Prompt)
+	err = builder.WriteField("prompt", request.Prompt)
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("n", strconv.Itoa(request.N))
+	err = builder.WriteField("n", strconv.Itoa(request.N))
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("size", request.Size)
+	err = builder.WriteField("size", request.Size)
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("response_format", request.ResponseFormat)
+	err = builder.WriteField("response_format", request.ResponseFormat)
 	if err != nil {
 		return
 	}
 
-	err = builder.close()
+	err = builder.Close()
 	if err != nil {
 		return
 	}
@@ -113,7 +113,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	req.Header.Set("Content-Type", builder.formDataContentType())
+	req.Header.Set("Content-Type", builder.FormDataContentType())
 	err = c.sendRequest(req, &response)
 	return
 }
@@ -133,27 +133,27 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	builder := c.createFormBuilder(body)
 
 	// image
-	err = builder.createFormFile("image", request.Image)
+	err = builder.CreateFormFile("image", request.Image)
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("n", strconv.Itoa(request.N))
+	err = builder.WriteField("n", strconv.Itoa(request.N))
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("size", request.Size)
+	err = builder.WriteField("size", request.Size)
 	if err != nil {
 		return
 	}
 
-	err = builder.writeField("response_format", request.ResponseFormat)
+	err = builder.WriteField("response_format", request.ResponseFormat)
 	if err != nil {
 		return
 	}
 
-	err = builder.close()
+	err = builder.Close()
 	if err != nil {
 		return
 	}
@@ -165,7 +165,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 		return
 	}
 
-	req.Header.Set("Content-Type", builder.formDataContentType())
+	req.Header.Set("Content-Type", builder.FormDataContentType())
 	err = c.sendRequest(req, &response)
 	return
 }

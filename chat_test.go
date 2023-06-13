@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -52,20 +51,10 @@ func TestChatCompletionsWithStream(t *testing.T) {
 
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestChatCompletions(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	req := ChatCompletionRequest{
+	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3Dot5Turbo,
 		Messages: []ChatCompletionMessage{
@@ -74,8 +63,7 @@ func TestChatCompletions(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-	}
-	_, err = client.CreateChatCompletion(ctx, req)
+	})
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 

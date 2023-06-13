@@ -3,20 +3,20 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/sashabaranov/go-openai)](https://goreportcard.com/report/github.com/sashabaranov/go-openai)
 [![codecov](https://codecov.io/gh/sashabaranov/go-openai/branch/master/graph/badge.svg?token=bCbIfHLIsW)](https://codecov.io/gh/sashabaranov/go-openai)
 
-This library provides Go clients for [OpenAI API](https://platform.openai.com/). We support:
+This library provides unofficial Go clients for [OpenAI API](https://platform.openai.com/). We support: 
 
 * ChatGPT
 * GPT-3, GPT-4
 * DALL·E 2
 * Whisper
 
-Installation:
+### Installation:
 ```
 go get github.com/sashabaranov/go-openai
 ```
 
 
-ChatGPT example usage:
+### ChatGPT example usage:
 
 ```go
 package main
@@ -52,9 +52,7 @@ func main() {
 
 ```
 
-
-
-Other examples:
+### Other examples:
 
 <details>
 <summary>ChatGPT streaming completion</summary>
@@ -437,8 +435,15 @@ import (
 )
 
 func main() {
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	// If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
+	// config.AzureModelMapperFunc = func(model string) string {
+	// 	azureModelMapping = map[string]string{
+	// 		"gpt-3.5-turbo": "your gpt-3.5-turbo deployment name",
+	// 	}
+	// 	return azureModelMapping[model]
+	// }
 
-	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint ", "your Model deployment name")
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -452,7 +457,6 @@ func main() {
 			},
 		},
 	)
-
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
 		return
@@ -460,8 +464,58 @@ func main() {
 
 	fmt.Println(resp.Choices[0].Message.Content)
 }
+
 ```
 </details>
+
+<details>
+<summary>Azure OpenAI Embeddings</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	config.APIVersion = "2023-05-15" // optional update to latest API version
+
+	//If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
+	//config.AzureModelMapperFunc = func(model string) string {
+	//    azureModelMapping = map[string]string{
+	//        "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
+	//    }
+	//    return azureModelMapping[model]
+	//}
+
+	input := "Text to vectorize"
+
+	client := openai.NewClientWithConfig(config)
+	resp, err := client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			Input: []string{input},
+			Model: openai.AdaEmbeddingV2,
+		})
+
+	if err != nil {
+		fmt.Printf("CreateEmbeddings error: %v\n", err)
+		return
+	}
+
+	vectors := resp.Data[0].Embedding // []float32 with 1536 dimensions
+
+	fmt.Println(vectors[:10], "...", vectors[len(vectors)-10:])
+}
+```
+</details>
+
 
 <details>
 <summary>Generate Embeddings</summary>
@@ -470,13 +524,13 @@ func main() {
 package main
 
 import (
-	"context"
-	"encoding/gob"
-	"fmt"
-	"github.com/sashabaranov/go-openai"
-	"io/ioutil"
-	"os"
-	"strings"
+    "context"
+    "encoding/gob"
+    "fmt"
+    "github.com/sashabaranov/go-openai"
+    "io/ioutil"
+    "os"
+    "strings"
 )
 
 func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
@@ -494,29 +548,25 @@ func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([
 }
 
 func main() {
-	ctx := context.Background()
-	client := openai.NewClient("your token")
+    ctx := context.Background()
+    client := openai.NewClient("your token")
 
-	// Load selections.txt, format like this:
-	/*
-	    Welcome to the go-openai interface, which will be the gateway for golang software engineers to enter the OpenAI development world.\n
-	    My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.\n
-	    The competition was held over two days,24 July and 2 August. The qualifying round was the first day with the apparatus final on the second day.\n
-	    There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.\n
-	    ...
-	*/
-	data, err := ioutil.ReadFile("selections.txt")
-	if err != nil {
-		panic(err)
-	}
 
-	// Split by line
-	lines := strings.Split(string(data), "\n")
-
-	var selections []string
-	for _, line := range lines {
-		selections = append(selections, line)
-	}
+	// example selections
+	selections := []string{
+		"Welcome to the go-openai interface, which will be the gateway for golang software engineers to enter the OpenAI development world.",
+		"It was tasty and fresh. The other one I bought was old and tasted moldy. But this one was good.",
+		"Great coffee at a good price. I'm a subscription buyer and I buy this month after month. What more can I say?",
+		"This chocolate is amazing..I love the taste and smell, this is the only chocolate for me...I found a new love!"
+		"I love this coffee!  And such a great price.  Will buy more when I am running out which will be soon.",
+		"The Raspberry Tea Syrup is great. I can use it for hot and cold drinks as well in certain recipes.",
+		"Everyone that dips with this loves it!  So easy to use! Olive oil and tasty bread is all you need.",
+		"This is a favorite of mine for using over ice. Even bought it to give out as Christmas gifts last year.",
+		"If you like a great , hot, sauce then buy this. If spicy with heat isn't to your liking then don't buy it.",
+		"My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.",
+		"The competition was held over two days,24 July and 2 August. The qualifying round was the first day with the apparatus final on the second day.",
+		"There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.",
+    }
 
 	// Generate embeddings
 	var selectionsEmbeddings [][]float32
@@ -613,7 +663,7 @@ func main() {
 	}
 
 	// make some input you like
-	input := "I am a Golang Software Engineer, I like girls."
+	input := "I am a Golang Software Engineer, I like Go and OpenAI."
 
 	// get embedding of input
 	inputEmbd, err := getEmbedding(ctx, client, []string{input})
@@ -659,17 +709,33 @@ func main() {
 		fmt.Printf("%.4f %s\n", questionScores[index], selection)
 	}
 
-	// OutPut like this:
-	/*
-		input: I am a Golang Software Engineer, I like girls.
-		----------------------
-		similarity selection:
-		0.9319 My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.
-		0.7978 Welcome to the go openai interface, which will be the gateway for go software engineers to enter the OpenAI development world.
-		0.6901 There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.
-	*/
-
 	return
 }
 ```
 </details>
+
+<details>
+<summary>Error handling</summary>
+
+Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)
+
+example:
+```
+e := &openai.APIError{}
+if errors.As(err, &e) {
+  switch e.HTTPStatusCode {
+    case 401:
+      // invalid auth or key (do not retry)
+    case 429:
+      // rate limiting or engine overload (wait and retry) 
+    case 500:
+      // openai server error (retry)
+    default:
+      // unhandled
+  }
+}
+
+```
+</details>
+
+See the `examples/` folder for more.

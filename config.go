@@ -2,6 +2,7 @@ package openai
 
 import (
 	"net/http"
+	"regexp"
 )
 
 const (
@@ -26,13 +27,12 @@ const AzureAPIKeyHeader = "api-key"
 type ClientConfig struct {
 	authToken string
 
-	BaseURL    string
-	OrgID      string
-	APIType    APIType
-	APIVersion string // required when APIType is APITypeAzure or APITypeAzureAD
-	Engine     string // required when APIType is APITypeAzure or APITypeAzureAD
-
-	HTTPClient *http.Client
+	BaseURL              string
+	OrgID                string
+	APIType              APIType
+	APIVersion           string                    // required when APIType is APITypeAzure or APITypeAzureAD
+	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
+	HTTPClient           *http.Client
 
 	EmptyMessagesLimit uint
 }
@@ -50,14 +50,16 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
+func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
 		authToken:  apiKey,
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAzure,
-		APIVersion: "2023-03-15-preview",
-		Engine:     engine,
+		APIVersion: "2023-05-15",
+		AzureModelMapperFunc: func(model string) string {
+			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+		},
 
 		HTTPClient: &http.Client{},
 
@@ -67,4 +69,12 @@ func DefaultAzureConfig(apiKey, baseURL, engine string) ClientConfig {
 
 func (ClientConfig) String() string {
 	return "<OpenAI API ClientConfig>"
+}
+
+func (c ClientConfig) GetAzureDeploymentByModel(model string) string {
+	if c.AzureModelMapperFunc != nil {
+		return c.AzureModelMapperFunc(model)
+	}
+
+	return model
 }

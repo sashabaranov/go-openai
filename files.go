@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 )
@@ -36,7 +37,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	var b bytes.Buffer
 	builder := c.createFormBuilder(&b)
 
-	err = builder.writeField("purpose", request.Purpose)
+	err = builder.WriteField("purpose", request.Purpose)
 	if err != nil {
 		return
 	}
@@ -46,12 +47,12 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	err = builder.createFormFile("file", fileData)
+	err = builder.CreateFormFile("file", fileData)
 	if err != nil {
 		return
 	}
 
-	err = builder.close()
+	err = builder.Close()
 	if err != nil {
 		return
 	}
@@ -61,7 +62,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	req.Header.Set("Content-Type", builder.formDataContentType())
+	req.Header.Set("Content-Type", builder.FormDataContentType())
 
 	err = c.sendRequest(req, &file)
 
@@ -70,7 +71,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 // DeleteFile deletes an existing file.
 func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
-	req, err := c.requestBuilder.build(ctx, http.MethodDelete, c.fullURL("/files/"+fileID), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodDelete, c.fullURL("/files/"+fileID), nil)
 	if err != nil {
 		return
 	}
@@ -82,7 +83,7 @@ func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
 // ListFiles Lists the currently available files,
 // and provides basic information about each file such as the file name and purpose.
 func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
-	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/files"), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL("/files"), nil)
 	if err != nil {
 		return
 	}
@@ -95,11 +96,34 @@ func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
 // such as the file name and purpose.
 func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s", fileID)
-	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
 	if err != nil {
 		return
 	}
 
 	err = c.sendRequest(req, &file)
+	return
+}
+
+func (c *Client) GetFileContent(ctx context.Context, fileID string) (content io.ReadCloser, err error) {
+	urlSuffix := fmt.Sprintf("/files/%s/content", fileID)
+	req, err := c.requestBuilder.Build(ctx, http.MethodGet, c.fullURL(urlSuffix), nil)
+	if err != nil {
+		return
+	}
+
+	c.setCommonHeaders(req)
+
+	res, err := c.config.HTTPClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	if isFailureStatusCode(res) {
+		err = c.handleErrorResp(res)
+		return
+	}
+
+	content = res.Body
 	return
 }

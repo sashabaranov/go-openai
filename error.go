@@ -25,6 +25,10 @@ type ErrorResponse struct {
 }
 
 func (e *APIError) Error() string {
+	if e.HTTPStatusCode > 0 {
+		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Message)
+	}
+
 	return e.Message
 }
 
@@ -40,9 +44,13 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
-	err = json.Unmarshal(rawMap["type"], &e.Type)
-	if err != nil {
-		return
+	// optional fields for azure openai
+	// refs: https://github.com/sashabaranov/go-openai/issues/343
+	if _, ok := rawMap["type"]; ok {
+		err = json.Unmarshal(rawMap["type"], &e.Type)
+		if err != nil {
+			return
+		}
 	}
 
 	// optional fields
@@ -70,10 +78,7 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	if e.Err != nil {
-		return e.Err.Error()
-	}
-	return fmt.Sprintf("status code %d", e.HTTPStatusCode)
+	return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Err)
 }
 
 func (e *RequestError) Unwrap() error {

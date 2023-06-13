@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"errors"
 	"io"
+	"net/http"
 	"os"
 	"testing"
 
@@ -224,13 +225,13 @@ func TestAPIErrorUnmarshalJSONInvalidMessage(t *testing.T) {
 }
 
 func TestRequestError(t *testing.T) {
-	var err error
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	})
 
-	config := DefaultConfig("dummy")
-	config.BaseURL = "https://httpbin.org/status/418?"
-	c := NewClientWithConfig(config)
-	ctx := context.Background()
-	_, err = c.ListEngines(ctx)
+	_, err := client.ListEngines(context.Background())
 	checks.HasError(t, err, "ListEngines did not fail")
 
 	var reqErr *RequestError

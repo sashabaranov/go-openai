@@ -154,7 +154,7 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	if result.Status == "" {
 		return ErrClientRetievingCallbackResponse
 	}
-	if result.Status != "Succeeded" {
+	if result.Status != "succeeded" {
 		time.Sleep(time.Duration(callBackWaitTime) * time.Second)
 		req.Header.Add("Retry", "true")
 		return c.sendRequest(req, v)

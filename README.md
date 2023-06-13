@@ -15,7 +15,6 @@ This library provides unofficial Go clients for [OpenAI API](https://platform.op
 go get github.com/sashabaranov/go-openai
 ```
 
-
 ### ChatGPT example usage:
 
 ```go
@@ -105,6 +104,73 @@ func main() {
 
 		fmt.Printf(response.Choices[0].Delta.Content)
 	}
+}
+```
+</details>
+
+<details>
+<summary>GPT3.5 & GPT4 Function Calling</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"fmt"
+
+	"github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	c := openai.NewClient("sk-xxx")
+	ctx := context.Background()
+
+	req := openai.ChatCompletionRequest{
+		Model: openai.GPT3Dot5Turbo0613,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "What's the weather like in Boston?",
+			},
+		},
+		Functions: []openai.ChatCompletionFunction{
+			{
+				Name:        "get_current_weather",
+				Description: "Get the current weather in a given location",
+				Parameters: openai.FunctionParameters{
+					Type: "object",
+					Properties: map[string]openai.ParameterProperties{
+						"location": {
+							Type:        "string",
+							Description: "The city and state, e.g. San Francisco, CA",
+						},
+						"unit": {
+							Type: "string",
+							Enum: []string{"celsius", "fahrenheit"},
+						},
+					},
+					Required: []string{"location"},
+				},
+			},
+		},
+		FunctionCall: "auto",
+	}
+
+	resp, err := c.CreateChatCompletion(ctx, req)
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		return
+	}
+
+	functionCall := resp.Choices[0].Message.FunctionCall
+	var arguments map[string]string
+	err = json.Unmarshal([]byte(functionCall.Arguments), &arguments)
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		return
+	}
+	fmt.Printf("location: %s\n", arguments["location"])
 }
 ```
 </details>

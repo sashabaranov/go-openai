@@ -8,8 +8,9 @@ import (
 )
 
 type ChatCompletionStreamChoiceDelta struct {
-	Content string `json:"content,omitempty"`
-	Role    string `json:"role,omitempty"`
+	Content      string       `json:"content,omitempty"`
+	Role         string       `json:"role,omitempty"`
+	FunctionCall FunctionCall `json:"function_call,omitempty"`
 }
 
 type ChatCompletionStreamChoice struct {
@@ -36,6 +37,8 @@ type ChatCompletionStream struct {
 // support. It sets whether to stream back partial progress. If set, tokens will be
 // sent as data-only server-sent events as they become available, with the
 // stream terminated by a data: [DONE] message.
+//
+//nolint:dupl // false positive
 func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
@@ -43,6 +46,11 @@ func (c *Client) CreateChatCompletionStream(
 	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
+		return
+	}
+
+	if !checkFunctionCall(request.FunctionCall) {
+		err = ErrChatCompletionInvalidFunctionCall
 		return
 	}
 

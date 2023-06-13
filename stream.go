@@ -20,6 +20,8 @@ type CompletionStream struct {
 // support. It sets whether to stream back partial progress. If set, tokens will be
 // sent as data-only server-sent events as they become available, with the
 // stream terminated by a data: [DONE] message.
+//
+//nolint:dupl // false positive
 func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,

@@ -1,14 +1,23 @@
 package openai
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"strings"
+	"time"
 
 	utils "github.com/coggsfl/go-openai/internal"
+)
+
+var (
+	ErrClientEmptyCallbackURL          = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
+	ErrClientRetievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -17,6 +26,21 @@ type Client struct {
 
 	requestBuilder    utils.RequestBuilder
 	createFormBuilder func(io.Writer) utils.FormBuilder
+}
+
+// Azure image request callback response struct.
+type CBData []struct {
+	URL string `json:"url"`
+}
+type CBResult struct {
+	Data CBData `json:"data"`
+}
+type CallBackResponse struct {
+	Created int64    `json:"created"`
+	Expires int64    `json:"expires"`
+	ID      string   `json:"id"`
+	Result  CBResult `json:"result"`
+	Status  string   `json:"status"`
 }
 
 // NewClient creates new OpenAI API client.
@@ -68,6 +92,17 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 		return c.handleErrorResp(res)
 	}
 
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+		// Special handling for initial call to Azure DALL-E API.
+		if strings.Contains(req.URL.Path, "openai/images/generations") {
+			return c.requestImage(res, v)
+		}
+		// Special handling for callBack to Azure DALL-E API.
+		if strings.Contains(req.URL.Path, "openai/operations/images") {
+			return c.imageRequestCallback(req, v, res)
+		}
+	}
+
 	return decodeResponse(res.Body, v)
 }
 
@@ -87,6 +122,54 @@ func (c *Client) setCommonHeaders(req *http.Request) {
 
 func isFailureStatusCode(resp *http.Response) bool {
 	return resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest
+}
+
+func (c *Client) requestImage(res *http.Response, v any) error {
+	_, err := io.Copy(ioutil.Discard, res.Body)
+	if err != nil {
+		return err
+	}
+	callBackURL := res.Header.Get("Operation-Location")
+	if callBackURL == "" {
+		return ErrClientEmptyCallbackURL
+	}
+	newReq, err := http.NewRequest("GET", callBackURL, nil)
+	if err != nil {
+		return err
+	}
+	return c.sendRequest(newReq, v)
+}
+
+// Handle image callback response from Azure DALL-E API.
+func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Response) error {
+	// Retry Sleep seconds for Azure DALL-E 2 callback URL.
+	var callBackWaitTime = 3
+
+	// Wait for the callBack to complete
+	var result *CallBackResponse
+	err := json.NewDecoder(res.Body).Decode(&result)
+	if err != nil {
+		return err
+	}
+	if result.Status == "" {
+		return ErrClientRetievingCallbackResponse
+	}
+	if result.Status != "Succeeded" {
+		time.Sleep(time.Duration(callBackWaitTime) * time.Second)
+		req.Header.Add("Retry", "true")
+		return c.sendRequest(req, v)
+	}
+
+	// Convert the callBack response to the OpenAI ImageResponse
+	var urlList []ImageResponseDataInner
+	for _, data := range result.Result.Data {
+		urlList = append(urlList, ImageResponseDataInner{URL: data.URL})
+	}
+	converted, err := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
+	if err != nil {
+		return err
+	}
+	return decodeResponse(bytes.NewReader(converted), v)
 }
 
 func decodeResponse(body io.Reader, v any) error {
@@ -112,26 +195,30 @@ func decodeString(body io.Reader, output *string) error {
 // fullURL returns full URL for request.
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
-	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
-		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
-		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		if strings.Contains(suffix, "/models") {
+		switch {
+		case strings.Contains(suffix, "/models"):
+			// if suffix is /models change to {endpoint}/openai/models?api-version={api_version}
+			// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		}
-		azureDeploymentName := "UNKNOWN"
-		if len(args) > 0 {
-			model, ok := args[0].(string)
-			if ok {
-				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+		case strings.Contains(suffix, "/images"):
+			// if suffix is /images change to {endpoint}openai/images/generations:submit?api-version={api_version}
+			return fmt.Sprintf("%s/%s%s:submit?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+		default:
+			// /openai/deployments/{model}/chat/completions?api-version={api_version}
+			azureDeploymentName := "UNKNOWN"
+			if len(args) > 0 {
+				model, ok := args[0].(string)
+				if ok {
+					azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+				}
 			}
+			return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+				azureDeploymentName, suffix, c.config.APIVersion,
+			)
 		}
-		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			azureDeploymentName, suffix, c.config.APIVersion,
-		)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""

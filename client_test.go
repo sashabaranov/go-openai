@@ -3,11 +3,16 @@ package openai //nolint:testpackage // testing private field
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
+	"io/ioutil"
 	"net/http"
+	"reflect"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/coggsfl/go-openai/internal/test"
 )
@@ -267,4 +272,123 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
+}
+
+func TestRequestImageErrors(t *testing.T) {
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
+	client := NewClientWithConfig(config)
+
+	// Test requestImage callback URL empty.
+	testCase := "Callback URL is empty"
+	res := &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+	v := &ImageRequest{}
+	err = client.requestImage(res, v)
+
+	if !errors.Is(err, ErrClientEmptyCallbackURL) {
+		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
+	}
+
+	// Test requestImage callback URL malformed.
+	testCase = "Callback URL is malformed"
+	res = &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Operation-Location": []string{"hxxp://localhost:8080/openai/operations/images/request-id"}},
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+	err = client.requestImage(res, v)
+	if err == nil {
+		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
+	}
+}
+
+func TestImageRequestCallbackErrors(t *testing.T) {
+	var err error
+	ts := test.NewTestServer().OpenAITestServer()
+	ts.Start()
+	defer ts.Close()
+
+	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
+	client := NewClientWithConfig(config)
+	// Test imageRequestCallback status response empty.
+	testCase := "imageRequestCallback status response empty"
+	var request ImageRequest
+	ctx := context.Background()
+	req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL("openai/operations/images"), request)
+	if err != nil {
+		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", testCase, err)
+	}
+	cbResponse := CallBackResponse{
+		Created: time.Now().Unix(),
+		Status:  "",
+		Result: CBResult{
+			Data: CBData{
+				{URL: "http://example.com/image1"},
+				{URL: "http://example.com/image2"},
+			},
+		},
+	}
+	cbResponseBytes := new(bytes.Buffer)
+	err = json.NewEncoder(cbResponseBytes).Encode(cbResponse)
+	if err != nil {
+		t.Fatalf("%s. json encoding failed with unexpected error: %v", testCase, err)
+	}
+	res := &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(cbResponseBytes.String())),
+	}
+	v := &ImageRequest{}
+	err = client.imageRequestCallback(req, v, res)
+
+	if !errors.Is(err, ErrClientRetievingCallbackResponse) {
+		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
+	}
+}
+
+func TestDecodeString(t *testing.T) {
+	t.Run("should return error for invalid body", func(t *testing.T) {
+		err := decodeResponse(strings.NewReader("{"), &struct{}{})
+		if err == nil {
+			t.Fatalf("decodeResponse did not return error for invalid body")
+		}
+	})
+	t.Run("should decode JSON into a struct", func(t *testing.T) {
+		response := `{"name": "John", "age": 30}`
+		expected := struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}{
+			Name: "John",
+			Age:  30,
+		}
+		var actual struct {
+			Name string `json:"name"`
+			Age  int    `json:"age"`
+		}
+		err := decodeResponse(strings.NewReader(response), &actual)
+		if err != nil {
+			t.Fatalf("decodeResponse did not return error for invalid body")
+		}
+		if !reflect.DeepEqual(expected, actual) {
+			t.Fatalf("decodeResponse did not return expected result")
+		}
+	})
+	t.Run("should decode string into a pointer", func(t *testing.T) {
+		response := "hello world"
+		var actual string
+		err := decodeResponse(strings.NewReader(response), &actual)
+		if err != nil {
+			t.Fatalf("decodeResponse did not return error for invalid body")
+		}
+		if !reflect.DeepEqual(response, actual) {
+			t.Fatalf("decodeResponse did not return expected result")
+		}
+	})
 }

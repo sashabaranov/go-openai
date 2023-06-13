@@ -438,7 +438,7 @@ func main() {
 	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
 	// If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
 	// config.AzureModelMapperFunc = func(model string) string {
-	// 	azureModelMapping = map[string]string{
+	// 	azureModelMapping := map[string]string{
 	// 		"gpt-3.5-turbo": "your gpt-3.5-turbo deployment name",
 	// 	}
 	// 	return azureModelMapping[model]
@@ -488,7 +488,7 @@ func main() {
 
 	//If you use a deployment name different from the model name, you can customize the AzureModelMapperFunc function
 	//config.AzureModelMapperFunc = func(model string) string {
-	//    azureModelMapping = map[string]string{
+	//    azureModelMapping := map[string]string{
 	//        "gpt-3.5-turbo":"your gpt-3.5-turbo deployment name",
 	//    }
 	//    return azureModelMapping[model]
@@ -538,6 +538,45 @@ if errors.As(err, &e) {
 }
 
 ```
+</details>
+<details>
+<summary>Azure OpenAI DALL-E 2</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	config.APIVersion = "2023-06-01-preview"
+	client := openai.NewClientWithConfig(config)
+	ctx := context.Background()
+
+	// Sample image by link
+	reqUrl := openai.ImageRequest{
+		Prompt:         "Parrot on a skateboard performs a trick, cartoon style, natural light, high detail",
+		Size:           openai.CreateImageSize256x256,
+		ResponseFormat: openai.CreateImageResponseFormatURL,
+		N:              1,
+		User:		"user identifier for moderation tracking",
+	}
+
+	respUrl, err := c.CreateImage(ctx, reqUrl)
+	if err != nil {
+		fmt.Printf("Image creation error: %v\n", err)
+		return
+	}
+	fmt.Println(respUrl.Data[0].URL)
+}
+```
+
 </details>
 
 See the `examples/` folder for more.

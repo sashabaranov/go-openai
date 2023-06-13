@@ -38,20 +38,39 @@ type FunctionCall struct {
 	Arguments string `json:"arguments"`
 }
 
+type ChatCompletionFunction struct {
+	Name        string             `json:"name"`
+	Description string             `json:"description"`
+	Parameters  FunctionParameters `json:"parameters"`
+}
+
+type FunctionParameters struct {
+	Type	   string                         `json:"type"`
+	Properties map[string]ParameterProperties `json:"properties"`
+	Required   []string                       `json:"required,omitempty"`
+}
+
+type ParameterProperties struct {
+	Type        string   `json:"type"`
+	Description string   `json:"description,omitempty"`
+	Enum        []string `json:"enum,omitempty"`
+}
+
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
-	Model            string                  `json:"model"`
-	Messages         []ChatCompletionMessage `json:"messages"`
-	MaxTokens        int                     `json:"max_tokens,omitempty"`
-	Temperature      float32                 `json:"temperature,omitempty"`
-	TopP             float32                 `json:"top_p,omitempty"`
-	N                int                     `json:"n,omitempty"`
-	Stream           bool                    `json:"stream,omitempty"`
-	Stop             []string                `json:"stop,omitempty"`
-	PresencePenalty  float32                 `json:"presence_penalty,omitempty"`
-	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
-	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
-	User             string                  `json:"user,omitempty"`
+	Model            string                   `json:"model"`
+	Messages         []ChatCompletionMessage  `json:"messages"`
+	Functions        []ChatCompletionFunction `json:"functions,omitempty"`
+	MaxTokens        int                      `json:"max_tokens,omitempty"`
+	Temperature      float32                  `json:"temperature,omitempty"`
+	TopP             float32                  `json:"top_p,omitempty"`
+	N                int                      `json:"n,omitempty"`
+	Stream           bool                     `json:"stream,omitempty"`
+	Stop             []string                 `json:"stop,omitempty"`
+	PresencePenalty  float32                  `json:"presence_penalty,omitempty"`
+	FrequencyPenalty float32                  `json:"frequency_penalty,omitempty"`
+	LogitBias        map[string]int           `json:"logit_bias,omitempty"`
+	User             string                   `json:"user,omitempty"`
 }
 
 type ChatCompletionChoice struct {

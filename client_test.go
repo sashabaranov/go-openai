@@ -14,7 +14,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/coggsfl/go-openai/internal/test"
 )
 
 var errTestRequestBuilderFailed = errors.New("test request builder failed")

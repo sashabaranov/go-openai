@@ -11,6 +11,7 @@ const (
 	ChatMessageRoleSystem    = "system"
 	ChatMessageRoleUser      = "user"
 	ChatMessageRoleAssistant = "assistant"
+	ChatMessageRoleFunction  = "function"
 )
 
 var (

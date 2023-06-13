@@ -524,13 +524,11 @@ func main() {
 package main
 
 import (
-    "context"
-    "encoding/gob"
-    "fmt"
-    "github.com/sashabaranov/go-openai"
-    "io/ioutil"
-    "os"
-    "strings"
+	"context"
+	"encoding/gob"
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+	"os"
 )
 
 func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
@@ -548,16 +546,16 @@ func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([
 }
 
 func main() {
-    ctx := context.Background()
-    client := openai.NewClient("your token")
 
+	ctx := context.Background()
+	client := openai.NewClient("your token")
 
 	// example selections
 	selections := []string{
 		"Welcome to the go-openai interface, which will be the gateway for golang software engineers to enter the OpenAI development world.",
 		"It was tasty and fresh. The other one I bought was old and tasted moldy. But this one was good.",
 		"Great coffee at a good price. I'm a subscription buyer and I buy this month after month. What more can I say?",
-		"This chocolate is amazing..I love the taste and smell, this is the only chocolate for me...I found a new love!"
+		"This chocolate is amazing..I love the taste and smell, this is the only chocolate for me...I found a new love!",
 		"I love this coffee!  And such a great price.  Will buy more when I am running out which will be soon.",
 		"The Raspberry Tea Syrup is great. I can use it for hot and cold drinks as well in certain recipes.",
 		"Everyone that dips with this loves it!  So easy to use! Olive oil and tasty bread is all you need.",
@@ -566,7 +564,7 @@ func main() {
 		"My name is Aceld, and I am a Golang software development engineer. I like young and beautiful girls.",
 		"The competition was held over two days,24 July and 2 August. The qualifying round was the first day with the apparatus final on the second day.",
 		"There are 4 types of gymnastics apparatus: floor, vault, pommel horse, and rings. The apparatus final is a competition between the top 8 gymnasts in each apparatus.",
-    }
+	}
 
 	// Generate embeddings
 	var selectionsEmbeddings [][]float32
@@ -611,7 +609,6 @@ import (
 	"fmt"
 	"github.com/sashabaranov/go-openai"
 	"io/ioutil"
-	"math"
 	"os"
 	"sort"
 	"strings"

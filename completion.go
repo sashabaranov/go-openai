@@ -54,10 +54,10 @@ const (
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
 		GPT3Dot5Turbo:        true,
-		GPT3Dot5Turbo16K0613: true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,
 		GPT3Dot5Turbo16K:     true,
+		GPT3Dot5Turbo16K0613: true,
 		GPT4:                 true,
 		GPT40314:             true,
 		GPT40613:             true,

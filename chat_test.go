@@ -67,6 +67,24 @@ func TestChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
+func TestAzureChatCompletions(t *testing.T) {
+	client, server, teardown := setupAzureTestServer()
+	defer teardown()
+	server.RegisterHandler("/openai/deployments/*", handleChatCompletionEndpoint)
+
+	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateAzureChatCompletion error")
+}
+
 // handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.
 func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error

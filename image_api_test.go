@@ -7,7 +7,6 @@ import (
 	. "github.com/coggsfl/go-openai"
 	"github.com/coggsfl/go-openai/internal/test/checks"
 
-
 	"context"
 	"encoding/json"
 	"fmt"
@@ -97,7 +96,7 @@ func handleImageCallbackEndpoint(w http.ResponseWriter, r *http.Request) {
 	// Set the status to succeeded if this is a retry request.
 	status := "running"
 	if r.Header.Get("Retry") == "true" {
-		status = "Succeeded"
+		status = "succeeded"
 	}
 
 	cbResponse := CallBackResponse{

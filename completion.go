@@ -26,6 +26,7 @@ const (
 	GPT3Dot5Turbo0613       = "gpt-3.5-turbo-0613"
 	GPT3Dot5Turbo0301       = "gpt-3.5-turbo-0301"
 	GPT3Dot5Turbo16K        = "gpt-3.5-turbo-16k"
+	GPT3Dot5Turbo16K0613    = "gpt-3.5-turbo-16k-0613"
 	GPT3Dot5Turbo           = "gpt-3.5-turbo"
 	GPT3TextDavinci003      = "text-davinci-003"
 	GPT3TextDavinci002      = "text-davinci-002"
@@ -52,16 +53,17 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
-		GPT3Dot5Turbo:     true,
-		GPT3Dot5Turbo0301: true,
-		GPT3Dot5Turbo0613: true,
-		GPT3Dot5Turbo16K:  true,
-		GPT4:              true,
-		GPT40314:          true,
-		GPT40613:          true,
-		GPT432K:           true,
-		GPT432K0314:       true,
-		GPT432K0613:       true,
+		GPT3Dot5Turbo:        true,
+		GPT3Dot5Turbo0301:    true,
+		GPT3Dot5Turbo0613:    true,
+		GPT3Dot5Turbo16K:     true,
+		GPT3Dot5Turbo16K0613: true,
+		GPT4:                 true,
+		GPT40314:             true,
+		GPT40613:             true,
+		GPT432K:              true,
+		GPT432K0314:          true,
+		GPT432K0613:          true,
 	},
 	"/chat/completions": {
 		CodexCodeDavinci002:     true,

@@ -17,6 +17,8 @@ var (
 // GPT3 Models are designed for text-based tasks. For code-specific
 // tasks, please refer to the Codex series of models.
 const (
+	GPT432K0613             = "gpt-4-32k-0613"
+	GPT40613                = "gpt-4-0613"
 	GPT432K0314             = "gpt-4-32k-0314"
 	GPT432K                 = "gpt-4-32k"
 	GPT40314                = "gpt-4-0314"

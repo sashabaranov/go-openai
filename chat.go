@@ -17,8 +17,9 @@ const (
 const chatCompletionsSuffix = "/chat/completions"
 
 var (
-	ErrChatCompletionInvalidModel       = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
-	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
+	ErrChatCompletionInvalidModel        = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
+	ErrChatCompletionStreamNotSupported  = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
+	ErrChatCompletionInvalidFunctionCall = errors.New(`FunctionCall parameter only supports "none", "auto", or a map[string]string`)                     //nolint:lll
 )
 
 type ChatCompletionMessage struct {
@@ -55,7 +56,20 @@ type ChatCompletionRequest struct {
 	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
 	User             string                  `json:"user,omitempty"`
 	Functions        []*FunctionDefine       `json:"functions,omitempty"`
-	FunctionCall     string                  `json:"function_call,omitempty"`
+	FunctionCall     any                     `json:"function_call,omitempty"`
+}
+
+func checkFunctionCall(value any) bool {
+	if value == nil {
+		return true
+	}
+	if v, isString := value.(string); isString {
+		return v == "none" || v == "auto"
+	}
+	if v, isMap := value.(map[string]string); isMap {
+		return v["name"] != ""
+	}
+	return false
 }
 
 type FunctionDefine struct {
@@ -143,6 +157,11 @@ func (c *Client) CreateChatCompletion(
 	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
+		return
+	}
+
+	if !checkFunctionCall(request.FunctionCall) {
+		err = ErrChatCompletionInvalidFunctionCall
 		return
 	}
 

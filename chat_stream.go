@@ -8,8 +8,9 @@ import (
 )
 
 type ChatCompletionStreamChoiceDelta struct {
-	Content string `json:"content,omitempty"`
-	Role    string `json:"role,omitempty"`
+	Content      string        `json:"content,omitempty"`
+	Role         string        `json:"role,omitempty"`
+	FunctionCall *FunctionCall `json:"function_call,omitempty"`
 }
 
 type ChatCompletionStreamChoice struct {
@@ -43,6 +44,11 @@ func (c *Client) CreateChatCompletionStream(
 	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
+		return
+	}
+
+	if !checkFunctionCall(request.FunctionCall) {
+		err = ErrChatCompletionInvalidFunctionCall
 		return
 	}
 

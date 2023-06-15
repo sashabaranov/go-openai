@@ -1,6 +1,8 @@
 package openai_test
 
 import (
+	"fmt"
+
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -125,6 +127,41 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
 	if !errors.Is(streamErr, io.EOF) {
 		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
+	}
+}
+
+func TestChatCompletionsStreamWithFunctionCall(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	cases := []struct {
+		FunctionCall any
+		Pass         bool
+	}{
+		{"none", true},
+		{"auto", true},
+		{map[string]string{"name": "test"}, true},
+		{nil, true},
+		{"invalid", false},
+		{map[string]string{}, false},
+	}
+	for _, c := range cases {
+		req := ChatCompletionRequest{
+			FunctionCall: c.FunctionCall,
+		}
+		_, err := client.CreateChatCompletionStream(ctx, req)
+		if c.Pass {
+			checks.ErrorIsNot(t, err, ErrChatCompletionInvalidFunctionCall, "unexpected error")
+		} else {
+			checks.ErrorIs(
+				t,
+				err,
+				ErrChatCompletionInvalidFunctionCall,
+				fmt.Sprintf("should not pass for function call: %v", c.FunctionCall),
+			)
+		}
 	}
 }
 

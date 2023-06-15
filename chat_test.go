@@ -49,6 +49,41 @@ func TestChatCompletionsWithStream(t *testing.T) {
 	checks.ErrorIs(t, err, ErrChatCompletionStreamNotSupported, "unexpected error")
 }
 
+func TestChatCompletionsWithFunctionCall(t *testing.T) {
+	config := DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	cases := []struct {
+		FunctionCall any
+		Pass         bool
+	}{
+		{"none", true},
+		{"auto", true},
+		{map[string]string{"name": "test"}, true},
+		{nil, true},
+		{"invalid", false},
+		{map[string]string{}, false},
+	}
+	for _, c := range cases {
+		req := ChatCompletionRequest{
+			FunctionCall: c.FunctionCall,
+		}
+		_, err := client.CreateChatCompletion(ctx, req)
+		if c.Pass {
+			checks.ErrorIsNot(t, err, ErrChatCompletionInvalidFunctionCall, "unexpected error")
+		} else {
+			checks.ErrorIs(
+				t,
+				err,
+				ErrChatCompletionInvalidFunctionCall,
+				fmt.Sprintf("should not pass for function call: %v", c.FunctionCall),
+			)
+		}
+	}
+}
+
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestChatCompletions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()

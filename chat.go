@@ -11,6 +11,7 @@ const (
 	ChatMessageRoleSystem    = "system"
 	ChatMessageRoleUser      = "user"
 	ChatMessageRoleAssistant = "assistant"
+	ChatMessageRoleFunction  = "function"
 )
 
 const chatCompletionsSuffix = "/chat/completions"
@@ -53,18 +54,18 @@ type ChatCompletionRequest struct {
 	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
 	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
 	User             string                  `json:"user,omitempty"`
-	Functions        []*FunctionsDefine      `json:"functions,omitempty"`
+	Functions        []*FunctionDefine       `json:"functions,omitempty"`
 	FunctionCall     string                  `json:"function_call,omitempty"`
 }
 
-type FunctionsDefine struct {
+type FunctionDefine struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	// it's required in function call
-	Parameters *FuncParams `json:"parameters"`
+	Parameters *FunctionParams `json:"parameters"`
 }
 
-type FuncParams struct {
+type FunctionParams struct {
 	// the Type must be JSONSchemaTypeObject
 	Type       JSONSchemaType               `json:"type"`
 	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`

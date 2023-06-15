@@ -50,6 +50,22 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
+func DefaultConfigWithUrl(authToken string, proxyUrl string) ClientConfig {
+	if proxyUrl == "" {
+		proxyUrl = openaiAPIURLv1
+	}
+	return ClientConfig{
+		authToken: authToken,
+		BaseURL:   proxyUrl,
+		APIType:   APITypeOpenAI,
+		OrgID:     "",
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}
+
 func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
 		authToken:  apiKey,

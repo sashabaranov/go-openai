@@ -15,7 +15,7 @@ type ChatCompletionStreamChoiceDelta struct {
 type ChatCompletionStreamChoice struct {
 	Index        int                             `json:"index"`
 	Delta        ChatCompletionStreamChoiceDelta `json:"delta"`
-	FinishReason string                          `json:"finish_reason"`
+	FinishReason FinishReason                    `json:"finish_reason"`
 }
 
 type ChatCompletionStreamResponse struct {

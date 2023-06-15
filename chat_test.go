@@ -168,8 +168,8 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 			Index: i,
 		})
 	}
-	inputTokens := numTokens(completionReq.Messages[0].Content) * completionReq.N
-	completionTokens := completionReq.MaxTokens * completionReq.N
+	inputTokens := numTokens(completionReq.Messages[0].Content) * n
+	completionTokens := completionReq.MaxTokens * n
 	res.Usage = Usage{
 		PromptTokens:     inputTokens,
 		CompletionTokens: completionTokens,

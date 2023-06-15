@@ -83,7 +83,11 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		Model: completionReq.Model,
 	}
 	// create completions
-	for i := 0; i < completionReq.N; i++ {
+	n := completionReq.N
+	if n == 0 {
+		n = 1
+	}
+	for i := 0; i < n; i++ {
 		// generate a random string of length completionReq.Length
 		completionStr := strings.Repeat("a", completionReq.MaxTokens)
 		if completionReq.Echo {
@@ -94,8 +98,8 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 			Index: i,
 		})
 	}
-	inputTokens := numTokens(completionReq.Prompt.(string)) * completionReq.N
-	completionTokens := completionReq.MaxTokens * completionReq.N
+	inputTokens := numTokens(completionReq.Prompt.(string)) * n
+	completionTokens := completionReq.MaxTokens * n
 	res.Usage = Usage{
 		PromptTokens:     inputTokens,
 		CompletionTokens: completionTokens,

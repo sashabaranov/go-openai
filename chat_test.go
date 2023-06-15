@@ -67,7 +67,7 @@ func TestChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
-// TestChatCompletionsFunctions tests including a function call
+// TestChatCompletionsFunctions tests including a function call.
 func TestChatCompletionsFunctions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
@@ -82,7 +82,8 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			},
 		},
 		Functions: []*FunctionDefine{{
-			Name:       "test",
+			Name: "test",
+			//nolint:lll
 			Parameters: json.RawMessage(`"{\"properties\":{\"count\":{\"type\":\"integer\",\"description\":\"total number of words in sentence\"},\"words\":{\"items\":{\"type\":\"string\"},\"type\":\"array\",\"description\":\"list of words in sentence\"}},\"type\":\"object\",\"required\":[\"count\",\"words\"]}"`),
 		}},
 	})
@@ -135,7 +136,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// if there are functions, include them
 		if len(completionReq.Functions) > 0 {
 			var fc map[string]interface{}
-			if err := json.Unmarshal(completionReq.Functions[0].Parameters, &fc); err != nil {
+			if err = json.Unmarshal(completionReq.Functions[0].Parameters, &fc); err != nil {
 				http.Error(w, "could not unmarshal function parameters", http.StatusInternalServerError)
 				return
 			}

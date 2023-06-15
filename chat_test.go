@@ -84,7 +84,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		Functions: []*FunctionDefine{{
 			Name: "test",
 			//nolint:lll
-			Parameters: json.RawMessage(`"{\"properties\":{\"count\":{\"type\":\"integer\",\"description\":\"total number of words in sentence\"},\"words\":{\"items\":{\"type\":\"string\"},\"type\":\"array\",\"description\":\"list of words in sentence\"}},\"type\":\"object\",\"required\":[\"count\",\"words\"]}"`),
+			Parameters: json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`),
 		}},
 	})
 	checks.NoError(t, err, "CreateChatCompletion with functions error")
@@ -132,7 +132,11 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		Model: completionReq.Model,
 	}
 	// create completions
-	for i := 0; i < completionReq.N; i++ {
+	n := completionReq.N
+	if n == 0 {
+		n = 1
+	}
+	for i := 0; i < n; i++ {
 		// if there are functions, include them
 		if len(completionReq.Functions) > 0 {
 			var fc map[string]interface{}

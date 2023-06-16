@@ -615,16 +615,15 @@ import (
 )
 
 func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
-
 	resp, err := client.CreateEmbeddings(ctx, openai.EmbeddingRequest{
-		Input: input,
+		Input: input, 
 		Model: openai.AdaEmbeddingV2,
 	})
-
+	
 	if err != nil {
 		return nil, err
 	}
-
+	
 	return resp.Data[0].Embedding, nil
 }
 
@@ -700,7 +699,7 @@ func main() {
 
 	// Split by line
 	selections := strings.Split(string(fileData), "\n")
-
+	
 	for _, index := range sortedIndexes {
 		selection := selections[index]
 		fmt.Printf("%.4f %s\n", questionScores[index], selection)
@@ -717,19 +716,20 @@ func main() {
 Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)
 
 example:
-```
+```go
 e := &openai.APIError{}
+
 if errors.As(err, &e) {
-  switch e.HTTPStatusCode {
-    case 401:
-      // invalid auth or key (do not retry)
+	switch e.HTTPStatusCode {
+	case 401:
+        // invalid auth or key (do not retry)
     case 429:
-      // rate limiting or engine overload (wait and retry) 
+        // rate limiting or engine overload (wait and retry) 
     case 500:
-      // openai server error (retry)
+        // openai server error (retry)
     default:
-      // unhandled
-  }
+        // unhandled
+    }
 }
 
 ```

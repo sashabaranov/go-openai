@@ -253,7 +253,10 @@ func TestMarshalJSON(t *testing.T) {
 	})
 
 	t.Run("ParametersRaw is nil, Parameters is not nil", func(t *testing.T) {
-		params := &FunctionParams{Type: JSONSchemaTypeObject, Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}}}
+		params := &FunctionParams{
+			Type:       JSONSchemaTypeObject,
+			Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}},
+		}
 		funcDefine := FunctionDefine{Name: "testFunc", Parameters: params}
 
 		expected := `{"name":"testFunc","parameters":{"type":"object","properties":{"name":{"type":"string"}}}}`
@@ -266,7 +269,10 @@ func TestMarshalJSON(t *testing.T) {
 	})
 
 	t.Run("ParametersRaw is not nil, Parameters is not nil", func(t *testing.T) {
-		params := &FunctionParams{Type: JSONSchemaTypeObject, Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}}}
+		params := &FunctionParams{
+			Type:       JSONSchemaTypeObject,
+			Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}},
+		}
 		funcDefine := FunctionDefine{Name: "testFunc", ParametersRaw: json.RawMessage(`{"name":"test"}`), Parameters: params}
 
 		expected := `{"name":"testFunc","parameters":{"name":"test"}}`

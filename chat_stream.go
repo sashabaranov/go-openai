@@ -15,7 +15,7 @@ type ChatCompletionStreamChoiceDelta struct {
 type ChatCompletionStreamChoice struct {
 	Index        int                             `json:"index"`
 	Delta        ChatCompletionStreamChoiceDelta `json:"delta"`
-	FinishReason string                          `json:"finish_reason"`
+	FinishReason FinishReason                    `json:"finish_reason"`
 }
 
 type ChatCompletionStreamResponse struct {
@@ -40,7 +40,7 @@ func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
-	urlSuffix := "/chat/completions"
+	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return

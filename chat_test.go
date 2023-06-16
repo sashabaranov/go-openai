@@ -238,3 +238,69 @@ func getChatCompletionBody(r *http.Request) (ChatCompletionRequest, error) {
 	}
 	return completion, nil
 }
+
+func TestMarshalJSON(t *testing.T) {
+	t.Run("ParametersRaw is not nil", func(t *testing.T) {
+		funcDefine := FunctionDefine{Name: "testFunc", ParametersRaw: json.RawMessage(`{"name":"test"}`)}
+
+		expected := `{"name":"testFunc","parameters":{"name":"test"}}`
+		b, err := funcDefine.MarshalJSON()
+		checks.NoError(t, err)
+
+		if string(b) != expected {
+			t.Errorf("Got %v, expected %v", string(b), expected)
+		}
+	})
+
+	t.Run("ParametersRaw is nil, Parameters is not nil", func(t *testing.T) {
+		params := &FunctionParams{Type: JSONSchemaTypeObject, Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}}}
+		funcDefine := FunctionDefine{Name: "testFunc", Parameters: params}
+
+		expected := `{"name":"testFunc","parameters":{"type":"object","properties":{"name":{"type":"string"}}}}`
+		b, err := funcDefine.MarshalJSON()
+		checks.NoError(t, err)
+
+		if string(b) != expected {
+			t.Errorf("Got %v, expected %v", string(b), expected)
+		}
+	})
+
+	t.Run("ParametersRaw is not nil, Parameters is not nil", func(t *testing.T) {
+		params := &FunctionParams{Type: JSONSchemaTypeObject, Properties: map[string]*JSONSchemaDefine{"name": {Type: JSONSchemaTypeString}}}
+		funcDefine := FunctionDefine{Name: "testFunc", ParametersRaw: json.RawMessage(`{"name":"test"}`), Parameters: params}
+
+		expected := `{"name":"testFunc","parameters":{"name":"test"}}`
+		b, err := funcDefine.MarshalJSON()
+		checks.NoError(t, err)
+
+		if string(b) != expected {
+			t.Errorf("Got %v, expected %v", string(b), expected)
+		}
+	})
+}
+
+func TestUnmarshalJSON(t *testing.T) {
+	t.Run("ParametersRaw is valid", func(t *testing.T) {
+		data := []byte(`{"name":"testFunc","parameters":{"type":"object","properties":{"name":{"type":"string"}}}}`)
+
+		var funcDefine FunctionDefine
+		err := funcDefine.UnmarshalJSON(data)
+		checks.NoError(t, err)
+
+		if funcDefine.Name != "testFunc" {
+			t.Errorf("Got %v, expected testFunc", funcDefine.Name)
+		}
+
+		if funcDefine.Parameters.Type != JSONSchemaTypeObject {
+			t.Errorf("Got %v, expected object", funcDefine.Parameters.Type)
+		}
+	})
+
+	t.Run("ParametersRaw is invalid", func(t *testing.T) {
+		data := []byte(`{"name":"testFunc","parameters":"invalid json"}`)
+
+		var funcDefine FunctionDefine
+		err := funcDefine.UnmarshalJSON(data)
+		checks.HasError(t, err, "invalid character")
+	})
+}

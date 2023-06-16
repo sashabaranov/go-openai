@@ -95,6 +95,8 @@ type JSONSchemaDefine struct {
 	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
 	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
 	Required []string `json:"required,omitempty"`
+	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
+	Items *JSONSchemaDefine `json:"items,omitempty"`
 }
 
 type FinishReason string

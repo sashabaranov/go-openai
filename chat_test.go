@@ -102,7 +102,6 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			},
 			Functions: []*FunctionDefine{{
 				Name: "test",
-				//nolint:lll
 				Parameters: &FunctionParams{
 					Properties: map[string]*JSONSchemaDefine{
 						"count": {

@@ -149,11 +149,7 @@ type JSONSchemaDefine struct {
 	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
 	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
 	Required []string `json:"required,omitempty"`
-<<<<<<< HEAD
 	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
-=======
-	// Items is a items of JSON Schema. It used if Type is JSONSchemaTypeArray.
->>>>>>> e94a13e (chore: add back removed interfaces, custom marshal)
 	Items *JSONSchemaDefine `json:"items,omitempty"`
 }
 

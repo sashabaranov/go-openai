@@ -46,6 +46,22 @@ type AudioRequest struct {
 
 // AudioResponse represents a response structure for audio API.
 type AudioResponse struct {
+	Task     string  `json:"task"`
+	Language string  `json:"language"`
+	Duration float64 `json:"duration"`
+	Segments []struct {
+		ID               int     `json:"id"`
+		Seek             int     `json:"seek"`
+		Start            float64 `json:"start"`
+		End              float64 `json:"end"`
+		Text             string  `json:"text"`
+		Tokens           []int   `json:"tokens"`
+		Temperature      float64 `json:"temperature"`
+		AvgLogprob       float64 `json:"avg_logprob"`
+		CompressionRatio float64 `json:"compression_ratio"`
+		NoSpeechProb     float64 `json:"no_speech_prob"`
+		Transient        bool    `json:"transient"`
+	} `json:"segments"`
 	Text string `json:"text"`
 }
 
@@ -98,7 +114,7 @@ func (c *Client) callAudioAPI(
 
 // HasJSONResponse returns true if the response format is JSON.
 func (r AudioRequest) HasJSONResponse() bool {
-	return r.Format == "" || r.Format == AudioResponseFormatJSON
+	return r.Format == "" || r.Format == AudioResponseFormatJSON || r.Format == AudioResponseFormatVerboseJSON
 }
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for

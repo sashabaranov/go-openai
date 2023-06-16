@@ -527,8 +527,9 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"github.com/sashabaranov/go-openai"
 	"os"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {
@@ -607,11 +608,12 @@ import (
 	"context"
 	"encoding/gob"
 	"fmt"
-	"github.com/sashabaranov/go-openai"
 	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func getEmbedding(ctx context.Context, client *openai.Client, input []string) ([]float32, error) {

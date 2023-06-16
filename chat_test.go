@@ -178,12 +178,11 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 			b := completionReq.Functions[0].ParametersRaw
 			if completionReq.Functions[0].Parameters != nil {
 				// marshal this to json
-				b_, err := json.Marshal(completionReq.Functions[0].Parameters)
+				b, err = json.Marshal(completionReq.Functions[0].Parameters)
 				if err != nil {
 					http.Error(w, "could not marshal function parameters", http.StatusInternalServerError)
 					return
 				}
-				b = b_
 			}
 
 			if err = json.Unmarshal(b, &fc); err != nil {

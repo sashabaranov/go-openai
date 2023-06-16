@@ -72,22 +72,58 @@ func TestChatCompletionsFunctions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
-	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
-		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
-			{
-				Role:    ChatMessageRoleUser,
-				Content: "Hello!",
+	t.Run("ParametersRaw", func(t *testing.T) {
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
 			},
-		},
-		Functions: []*FunctionDefine{{
-			Name: "test",
-			//nolint:lll
-			Parameters: json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`),
-		}},
+			Functions: []*FunctionDefine{{
+				Name: "test",
+				//nolint:lll
+				ParametersRaw: json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`),
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions and parametersRaw error")
 	})
-	checks.NoError(t, err, "CreateChatCompletion with functions error")
+	t.Run("Parameters", func(t *testing.T) {
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+			Functions: []*FunctionDefine{{
+				Name: "test",
+				//nolint:lll
+				Parameters: &FunctionParams{
+					Properties: map[string]*JSONSchemaDefine{
+						"count": {
+							Type:        "integer",
+							Description: "total number of words in sentence",
+						},
+						"words": {
+							Type:        "array",
+							Description: "list of words in sentence",
+							Items: &JSONSchemaDefine{
+								Type: JSONSchemaTypeString,
+							},
+						},
+					},
+					Required: []string{"count", "words"},
+					Type:     "object",
+				},
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions and parametersRaw error")
+	})
 }
 
 func TestAzureChatCompletions(t *testing.T) {
@@ -140,7 +176,18 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// if there are functions, include them
 		if len(completionReq.Functions) > 0 {
 			var fc map[string]interface{}
-			if err = json.Unmarshal(completionReq.Functions[0].Parameters, &fc); err != nil {
+			b := completionReq.Functions[0].ParametersRaw
+			if completionReq.Functions[0].Parameters != nil {
+				// marshal this to json
+				b_, err := json.Marshal(completionReq.Functions[0].Parameters)
+				if err != nil {
+					http.Error(w, "could not marshal function parameters", http.StatusInternalServerError)
+					return
+				}
+				b = b_
+			}
+
+			if err = json.Unmarshal(b, &fc); err != nil {
 				http.Error(w, "could not unmarshal function parameters", http.StatusInternalServerError)
 				return
 			}
@@ -150,7 +197,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 					// this is valid json so it should be fine
 					FunctionCall: &FunctionCall{
 						Name:      completionReq.Functions[0].Name,
-						Arguments: string(completionReq.Functions[0].Parameters),
+						Arguments: string(completionReq.Functions[0].ParametersRaw),
 					},
 				},
 				Index: i,

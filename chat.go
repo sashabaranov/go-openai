@@ -65,9 +65,58 @@ type FunctionDefine struct {
 	// ParametersRaw is a JSONSchema object describing the function. 
 	// You can pass a raw byte array describing the schema, 
 	// or you can generate the array from a JSONSchema object, using another library.
-	ParametersRaw json.RawMessage `json:"parameters"`
+	ParametersRaw json.RawMessage `json:"-"`
 	// Deprecated: DO NOT USE. Use ParametersRaw instead.
-	Parameters *FunctionParams `json:"parameters"`
+	Parameters    *FunctionParams `json:"-"`
+}
+
+func (fd FunctionDefine) MarshalJSON() ([]byte, error) {
+	type Alias FunctionDefine
+	var parameters json.RawMessage
+	var err error
+
+	if fd.ParametersRaw != nil {
+		parameters = fd.ParametersRaw
+	} else {
+		parameters, err = json.Marshal(fd.Parameters)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return json.Marshal(&struct {
+		*Alias
+		Parameters json.RawMessage `json:"parameters"`
+	}{
+		Alias:      (*Alias)(&fd),
+		Parameters: parameters,
+	})
+}
+
+func (fd *FunctionDefine) UnmarshalJSON(data []byte) error {
+	type Alias FunctionDefine
+	aux := &struct {
+		Parameters json.RawMessage `json:"parameters"`
+		*Alias
+	}{
+		Alias: (*Alias)(fd),
+	}
+
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	fd.ParametersRaw = aux.Parameters
+
+	// Attempt to unmarshal Parameters
+	var params *FunctionParams
+	if err := json.Unmarshal(aux.Parameters, &params); err != nil {
+		return err
+	}
+
+	fd.Parameters = params
+
+	return nil
 }
 
 type FunctionParams struct {
@@ -100,7 +149,11 @@ type JSONSchemaDefine struct {
 	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
 	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
 	Required []string `json:"required,omitempty"`
+<<<<<<< HEAD
 	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
+=======
+	// Items is a items of JSON Schema. It used if Type is JSONSchemaTypeArray.
+>>>>>>> e94a13e (chore: add back removed interfaces, custom marshal)
 	Items *JSONSchemaDefine `json:"items,omitempty"`
 }
 

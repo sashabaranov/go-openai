@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -61,7 +62,11 @@ type ChatCompletionRequest struct {
 type FunctionDefine struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
-	// it's required in function call
+	// ParametersRaw is a JSONSchema object describing the function. 
+	// You can pass a raw byte array describing the schema, 
+	// or you can generate the array from a JSONSchema object, using another library.
+	ParametersRaw json.RawMessage `json:"parameters"`
+	// Deprecated: DO NOT USE. Use ParametersRaw instead.
 	Parameters *FunctionParams `json:"parameters"`
 }
 

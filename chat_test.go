@@ -67,6 +67,28 @@ func TestChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
+// TestChatCompletionsFunctions tests including a function call
+func TestChatCompletionsFunctions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Functions: []*FunctionDefine{{
+			Name:       "test",
+			Parameters: json.RawMessage(`"{\"properties\":{\"count\":{\"type\":\"integer\",\"description\":\"total number of words in sentence\"},\"words\":{\"items\":{\"type\":\"string\"},\"type\":\"array\",\"description\":\"list of words in sentence\"}},\"type\":\"object\",\"required\":[\"count\",\"words\"]}"`),
+		}},
+	})
+	checks.NoError(t, err, "CreateChatCompletion with functions error")
+}
+
 func TestAzureChatCompletions(t *testing.T) {
 	client, server, teardown := setupAzureTestServer()
 	defer teardown()
@@ -110,6 +132,26 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	// create completions
 	for i := 0; i < completionReq.N; i++ {
+		// if there are functions, include them
+		if len(completionReq.Functions) > 0 {
+			var fc map[string]interface{}
+			if err := json.Unmarshal(completionReq.Functions[0].Parameters, &fc); err != nil {
+				http.Error(w, "could not unmarshal function parameters", http.StatusInternalServerError)
+				return
+			}
+			res.Choices = append(res.Choices, ChatCompletionChoice{
+				Message: ChatCompletionMessage{
+					Role: ChatMessageRoleFunction,
+					// this is valid json so it should be fine
+					FunctionCall: &FunctionCall{
+						Name:      completionReq.Functions[0].Name,
+						Arguments: string(completionReq.Functions[0].Parameters),
+					},
+				},
+				Index: i,
+			})
+			continue
+		}
 		// generate a random string of length completionReq.Length
 		completionStr := strings.Repeat("a", completionReq.MaxTokens)
 

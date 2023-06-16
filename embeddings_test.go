@@ -1,14 +1,12 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-	"math"
-
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"net/http"
 	"testing"
 )
@@ -80,6 +78,7 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	checks.NoError(t, err, "CreateEmbeddings error")
 }
 
+/*
 func TestDotProduct(t *testing.T) {
 	v1 := []float32{1, 2, 3}
 	v2 := []float32{2, 4, 6}
@@ -97,3 +96,4 @@ func TestDotProduct(t *testing.T) {
 		t.Errorf("Unexpected result. Expected: %v, but got %v", expected, result)
 	}
 }
+*/

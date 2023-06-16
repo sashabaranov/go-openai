@@ -20,9 +20,11 @@ const (
 type AudioResponseFormat string
 
 const (
-	AudioResponseFormatJSON AudioResponseFormat = "json"
-	AudioResponseFormatSRT  AudioResponseFormat = "srt"
-	AudioResponseFormatVTT  AudioResponseFormat = "vtt"
+	AudioResponseFormatJSON        AudioResponseFormat = "json"
+	AudioResponseFormatText        AudioResponseFormat = "text"
+	AudioResponseFormatSRT         AudioResponseFormat = "srt"
+	AudioResponseFormatVerboseJSON AudioResponseFormat = "verbose_json"
+	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
 )
 
 // AudioRequest represents a request structure for audio API.

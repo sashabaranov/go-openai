@@ -273,7 +273,10 @@ func TestMarshalJSON(t *testing.T) {
 			Type:       JSONSchemaTypeObject,
 			Properties: map[string]*JSONSchemaDefinition{"name": {Type: JSONSchemaTypeString}},
 		}
-		funcDefine := FunctionDefinition{Name: "testFunc", ParametersRaw: json.RawMessage(`{"name":"test"}`), Parameters: params}
+		funcDefine := FunctionDefinition{
+			Name:          "testFunc",
+			ParametersRaw: json.RawMessage(`{"name":"test"}`),
+			Parameters:    params}
 
 		expected := `{"name":"testFunc","parameters":{"name":"test"}}`
 		b, err := funcDefine.MarshalJSON()

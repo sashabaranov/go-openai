@@ -65,7 +65,7 @@ type FunctionDefinition struct {
 	// Parameters is a JSONSchema object describing the function.
 	// You can pass a raw byte array describing the schema,
 	// or you can generate the array from a JSONSchema object, using another library.
-	Parameters json.RawMessage `json:"-"`
+	Parameters json.RawMessage `json:"parameters"`
 }
 
 type FinishReason string

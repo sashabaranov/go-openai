@@ -62,97 +62,10 @@ type ChatCompletionRequest struct {
 type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
-	// ParametersRaw is a JSONSchema object describing the function.
+	// Parameters is a JSONSchema object describing the function.
 	// You can pass a raw byte array describing the schema,
 	// or you can generate the array from a JSONSchema object, using another library.
-	ParametersRaw json.RawMessage `json:"-"`
-	// Deprecated: DO NOT USE. Use ParametersRaw instead.
-	Parameters *FunctionParams `json:"-"`
-}
-
-func (fd FunctionDefinition) MarshalJSON() ([]byte, error) {
-	// create alias to avoid recursion
-	type Alias FunctionDefinition
-	var parameters json.RawMessage
-	var err error
-
-	if fd.ParametersRaw != nil {
-		parameters = fd.ParametersRaw
-	} else {
-		parameters, err = json.Marshal(fd.Parameters)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return json.Marshal(&struct {
-		*Alias
-		Parameters json.RawMessage `json:"parameters"`
-	}{
-		Alias:      (*Alias)(&fd),
-		Parameters: parameters,
-	})
-}
-
-func (fd *FunctionDefinition) UnmarshalJSON(data []byte) error {
-	type Alias FunctionDefinition
-	aux := &struct {
-		Parameters json.RawMessage `json:"parameters"`
-		*Alias
-	}{
-		Alias: (*Alias)(fd),
-	}
-
-	if err := json.Unmarshal(data, &aux); err != nil {
-		return err
-	}
-
-	fd.ParametersRaw = aux.Parameters
-
-	// Attempt to unmarshal Parameters
-	var params *FunctionParams
-	if err := json.Unmarshal(aux.Parameters, &params); err != nil {
-		return err
-	}
-
-	fd.Parameters = params
-
-	return nil
-}
-
-type FunctionParams struct {
-	// the Type must be JSONSchemaTypeObject
-	Type       JSONSchemaType                   `json:"type"`
-	Properties map[string]*JSONSchemaDefinition `json:"properties,omitempty"`
-	Required   []string                         `json:"required,omitempty"`
-}
-
-type JSONSchemaType string
-
-const (
-	JSONSchemaTypeObject  JSONSchemaType = "object"
-	JSONSchemaTypeNumber  JSONSchemaType = "number"
-	JSONSchemaTypeInteger JSONSchemaType = "integer"
-	JSONSchemaTypeString  JSONSchemaType = "string"
-	JSONSchemaTypeArray   JSONSchemaType = "array"
-	JSONSchemaTypeNull    JSONSchemaType = "null"
-	JSONSchemaTypeBoolean JSONSchemaType = "boolean"
-)
-
-// JSONSchemaDefinition is a struct for JSON Schema.
-type JSONSchemaDefinition struct {
-	// Type is a type of JSON Schema.
-	Type JSONSchemaType `json:"type,omitempty"`
-	// Description is a description of JSON Schema.
-	Description string `json:"description,omitempty"`
-	// Enum is a enum of JSON Schema. It used if Type is JSONSchemaTypeString.
-	Enum []string `json:"enum,omitempty"`
-	// Properties is a properties of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Properties map[string]*JSONSchemaDefinition `json:"properties,omitempty"`
-	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Required []string `json:"required,omitempty"`
-	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
-	Items *JSONSchemaDefinition `json:"items,omitempty"`
+	Parameters json.RawMessage `json:"-"`
 }
 
 type FinishReason string

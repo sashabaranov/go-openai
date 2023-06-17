@@ -72,57 +72,22 @@ func TestChatCompletionsFunctions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
-	t.Run("ParametersRaw", func(t *testing.T) {
-		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
-			MaxTokens: 5,
-			Model:     GPT3Dot5Turbo0613,
-			Messages: []ChatCompletionMessage{
-				{
-					Role:    ChatMessageRoleUser,
-					Content: "Hello!",
-				},
+	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo0613,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
 			},
-			Functions: []*FunctionDefinition{{
-				Name: "test",
-				//nolint:lll
-				ParametersRaw: json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`),
-			}},
-		})
-		checks.NoError(t, err, "CreateChatCompletion with functions and parametersRaw error")
+		},
+		Functions: []*FunctionDefinition{{
+			Name: "test",
+			//nolint:lll
+			Parameters: json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`),
+		}},
 	})
-	t.Run("Parameters", func(t *testing.T) {
-		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
-			MaxTokens: 5,
-			Model:     GPT3Dot5Turbo0613,
-			Messages: []ChatCompletionMessage{
-				{
-					Role:    ChatMessageRoleUser,
-					Content: "Hello!",
-				},
-			},
-			Functions: []*FunctionDefinition{{
-				Name: "test",
-				Parameters: &FunctionParams{
-					Properties: map[string]*JSONSchemaDefinition{
-						"count": {
-							Type:        JSONSchemaTypeInteger,
-							Description: "total number of words in sentence",
-						},
-						"words": {
-							Type:        JSONSchemaTypeArray,
-							Description: "list of words in sentence",
-							Items: &JSONSchemaDefinition{
-								Type: JSONSchemaTypeString,
-							},
-						},
-					},
-					Required: []string{"count", "words"},
-					Type:     JSONSchemaTypeObject,
-				},
-			}},
-		})
-		checks.NoError(t, err, "CreateChatCompletion with functions and parametersRaw error")
-	})
+	checks.NoError(t, err, "CreateChatCompletion with functions error")
 }
 
 func TestAzureChatCompletions(t *testing.T) {
@@ -175,15 +140,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		// if there are functions, include them
 		if len(completionReq.Functions) > 0 {
 			var fc map[string]interface{}
-			b := completionReq.Functions[0].ParametersRaw
-			if completionReq.Functions[0].Parameters != nil {
-				// marshal this to json
-				b, err = json.Marshal(completionReq.Functions[0].Parameters)
-				if err != nil {
-					http.Error(w, "could not marshal function parameters", http.StatusInternalServerError)
-					return
-				}
-			}
+			b := completionReq.Functions[0].Parameters
 
 			if err = json.Unmarshal(b, &fc); err != nil {
 				http.Error(w, "could not unmarshal function parameters", http.StatusInternalServerError)
@@ -195,7 +152,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 					// this is valid json so it should be fine
 					FunctionCall: &FunctionCall{
 						Name:      completionReq.Functions[0].Name,
-						Arguments: string(completionReq.Functions[0].ParametersRaw),
+						Arguments: string(completionReq.Functions[0].Parameters),
 					},
 				},
 				Index: i,
@@ -237,79 +194,4 @@ func getChatCompletionBody(r *http.Request) (ChatCompletionRequest, error) {
 		return ChatCompletionRequest{}, err
 	}
 	return completion, nil
-}
-
-func TestMarshalJSON(t *testing.T) {
-	t.Run("ParametersRaw is not nil", func(t *testing.T) {
-		funcDefine := FunctionDefinition{Name: "testFunc", ParametersRaw: json.RawMessage(`{"name":"test"}`)}
-
-		expected := `{"name":"testFunc","parameters":{"name":"test"}}`
-		b, err := funcDefine.MarshalJSON()
-		checks.NoError(t, err)
-
-		if string(b) != expected {
-			t.Errorf("Got %v, expected %v", string(b), expected)
-		}
-	})
-
-	t.Run("ParametersRaw is nil, Parameters is not nil", func(t *testing.T) {
-		params := &FunctionParams{
-			Type:       JSONSchemaTypeObject,
-			Properties: map[string]*JSONSchemaDefinition{"name": {Type: JSONSchemaTypeString}},
-		}
-		funcDefine := FunctionDefinition{Name: "testFunc", Parameters: params}
-
-		expected := `{"name":"testFunc","parameters":{"type":"object","properties":{"name":{"type":"string"}}}}`
-		b, err := funcDefine.MarshalJSON()
-		checks.NoError(t, err)
-
-		if string(b) != expected {
-			t.Errorf("Got %v, expected %v", string(b), expected)
-		}
-	})
-
-	t.Run("ParametersRaw is not nil, Parameters is not nil", func(t *testing.T) {
-		params := &FunctionParams{
-			Type:       JSONSchemaTypeObject,
-			Properties: map[string]*JSONSchemaDefinition{"name": {Type: JSONSchemaTypeString}},
-		}
-		funcDefine := FunctionDefinition{
-			Name:          "testFunc",
-			ParametersRaw: json.RawMessage(`{"name":"test"}`),
-			Parameters:    params}
-
-		expected := `{"name":"testFunc","parameters":{"name":"test"}}`
-		b, err := funcDefine.MarshalJSON()
-		checks.NoError(t, err)
-
-		if string(b) != expected {
-			t.Errorf("Got %v, expected %v", string(b), expected)
-		}
-	})
-}
-
-func TestUnmarshalJSON(t *testing.T) {
-	t.Run("ParametersRaw is valid", func(t *testing.T) {
-		data := []byte(`{"name":"testFunc","parameters":{"type":"object","properties":{"name":{"type":"string"}}}}`)
-
-		var funcDefine FunctionDefinition
-		err := funcDefine.UnmarshalJSON(data)
-		checks.NoError(t, err)
-
-		if funcDefine.Name != "testFunc" {
-			t.Errorf("Got %v, expected testFunc", funcDefine.Name)
-		}
-
-		if funcDefine.Parameters.Type != JSONSchemaTypeObject {
-			t.Errorf("Got %v, expected object", funcDefine.Parameters.Type)
-		}
-	})
-
-	t.Run("ParametersRaw is invalid", func(t *testing.T) {
-		data := []byte(`{"name":"testFunc","parameters":"invalid json"}`)
-
-		var funcDefine FunctionDefinition
-		err := funcDefine.UnmarshalJSON(data)
-		checks.HasError(t, err, "invalid character")
-	})
 }

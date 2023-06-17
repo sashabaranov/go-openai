@@ -55,11 +55,11 @@ type ChatCompletionRequest struct {
 	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
 	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
 	User             string                  `json:"user,omitempty"`
-	Functions        []*FunctionDefine       `json:"functions,omitempty"`
+	Functions        []*FunctionDefinition   `json:"functions,omitempty"`
 	FunctionCall     string                  `json:"function_call,omitempty"`
 }
 
-type FunctionDefine struct {
+type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	// ParametersRaw is a JSONSchema object describing the function.
@@ -70,8 +70,9 @@ type FunctionDefine struct {
 	Parameters *FunctionParams `json:"-"`
 }
 
-func (fd FunctionDefine) MarshalJSON() ([]byte, error) {
-	type Alias FunctionDefine
+func (fd FunctionDefinition) MarshalJSON() ([]byte, error) {
+	// create alias to avoid recursion
+	type Alias FunctionDefinition
 	var parameters json.RawMessage
 	var err error
 
@@ -93,8 +94,8 @@ func (fd FunctionDefine) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (fd *FunctionDefine) UnmarshalJSON(data []byte) error {
-	type Alias FunctionDefine
+func (fd *FunctionDefinition) UnmarshalJSON(data []byte) error {
+	type Alias FunctionDefinition
 	aux := &struct {
 		Parameters json.RawMessage `json:"parameters"`
 		*Alias
@@ -121,9 +122,9 @@ func (fd *FunctionDefine) UnmarshalJSON(data []byte) error {
 
 type FunctionParams struct {
 	// the Type must be JSONSchemaTypeObject
-	Type       JSONSchemaType               `json:"type"`
-	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
-	Required   []string                     `json:"required,omitempty"`
+	Type       JSONSchemaType                   `json:"type"`
+	Properties map[string]*JSONSchemaDefinition `json:"properties,omitempty"`
+	Required   []string                         `json:"required,omitempty"`
 }
 
 type JSONSchemaType string
@@ -131,14 +132,15 @@ type JSONSchemaType string
 const (
 	JSONSchemaTypeObject  JSONSchemaType = "object"
 	JSONSchemaTypeNumber  JSONSchemaType = "number"
+	JSONSchemaTypeInteger JSONSchemaType = "integer"
 	JSONSchemaTypeString  JSONSchemaType = "string"
 	JSONSchemaTypeArray   JSONSchemaType = "array"
 	JSONSchemaTypeNull    JSONSchemaType = "null"
 	JSONSchemaTypeBoolean JSONSchemaType = "boolean"
 )
 
-// JSONSchemaDefine is a struct for JSON Schema.
-type JSONSchemaDefine struct {
+// JSONSchemaDefinition is a struct for JSON Schema.
+type JSONSchemaDefinition struct {
 	// Type is a type of JSON Schema.
 	Type JSONSchemaType `json:"type,omitempty"`
 	// Description is a description of JSON Schema.
@@ -146,11 +148,11 @@ type JSONSchemaDefine struct {
 	// Enum is a enum of JSON Schema. It used if Type is JSONSchemaTypeString.
 	Enum []string `json:"enum,omitempty"`
 	// Properties is a properties of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
+	Properties map[string]*JSONSchemaDefinition `json:"properties,omitempty"`
 	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
 	Required []string `json:"required,omitempty"`
 	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
-	Items *JSONSchemaDefine `json:"items,omitempty"`
+	Items *JSONSchemaDefinition `json:"items,omitempty"`
 }
 
 type FinishReason string

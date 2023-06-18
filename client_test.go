@@ -356,9 +356,16 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 	}
 	v := &ImageRequest{}
 	err = client.imageRequestCallback(req, v, res)
-
 	if !errors.Is(err, ErrClientRetrievingCallbackResponse) {
 		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
+	}
+	// Test imageRequestCallback status response not OK.
+	testCase = "imageRequestCallback status response not OK"
+	var errorHTTPClient httptest.ResponseRecorder
+	errorHTTPClient.WriteHeader(http.StatusInternalServerError)
+	err = client.imageRequestCallback(req, v, res)
+	if err == nil {
+		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", testCase, err)
 	}
 }
 

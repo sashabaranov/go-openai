@@ -16,7 +16,7 @@ import (
 
 var (
 	ErrClientEmptyCallbackURL           = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
-	ErrClientRetrievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll                                  //nolint:lll
+	ErrClientRetrievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll
 )
 
 // Client is OpenAI GPT-3 API client.

@@ -65,7 +65,7 @@ type FunctionDefinition struct {
 	// You can pass a raw byte array describing the schema,
 	// or you can generate the array from a JSONSchema object, using another library.
 	// The only constraint is that the input must implement the JSONEncodable interface.
-	Parameters interface{} `json:"parameters"`
+	Parameters any `json:"parameters"`
 }
 
 // Deprecated: use FunctionDefinition instead

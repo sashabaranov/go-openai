@@ -7,7 +7,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"strings"
 	"time"
@@ -16,8 +15,8 @@ import (
 )
 
 var (
-	ErrClientEmptyCallbackURL          = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
-	ErrClientRetievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll
+	ErrClientEmptyCallbackURL           = errors.New("Error retrieving callback URL (Operation-Location) for image request") //nolint:lll
+	ErrClientRetrievingCallbackResponse = errors.New("Error retrieving callback response")                                   //nolint:lll                                  //nolint:lll
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -125,7 +124,7 @@ func isFailureStatusCode(resp *http.Response) bool {
 }
 
 func (c *Client) requestImage(res *http.Response, v any) error {
-	_, err := io.Copy(ioutil.Discard, res.Body)
+	_, err := io.Copy(io.Discard, res.Body)
 	if err != nil {
 		return err
 	}
@@ -149,10 +148,10 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	var result *CallBackResponse
 	err := json.NewDecoder(res.Body).Decode(&result)
 	if err != nil {
-		return err
+		return ErrClientRetrievingCallbackResponse
 	}
 	if result.Status == "" {
-		return ErrClientRetievingCallbackResponse
+		return ErrClientRetrievingCallbackResponse
 	}
 	if result.Status != "succeeded" {
 		time.Sleep(time.Duration(callBackWaitTime) * time.Second)

@@ -124,6 +124,19 @@ func TestHandleErrorResp(t *testing.T) {
 			expected: "error, status code: 401, message: Access denied due to Virtual Network/Firewall rules.",
 		},
 		{
+			name:     "429 Request Throttled Too Many Requests",
+			httpCode: http.StatusTooManyRequests,
+			body: bytes.NewReader([]byte(
+				`{
+					"error":{
+						"code":"429",
+						"message":"That model..."
+					}
+				}`,
+			)),
+			expected: "error, status code: 429, message: That model...",
+		},
+		{
 			name:     "503 Model Overloaded",
 			httpCode: http.StatusServiceUnavailable,
 			body: bytes.NewReader([]byte(`
@@ -345,7 +358,7 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 	v := &ImageRequest{}
 	err = client.imageRequestCallback(req, v, res)
 
-	if !errors.Is(err, ErrClientRetievingCallbackResponse) {
+	if !errors.Is(err, ErrClientRetrievingCallbackResponse) {
 		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
 	}
 }

@@ -2,7 +2,6 @@ package openai
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -56,16 +55,17 @@ type ChatCompletionRequest struct {
 	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
 	User             string                  `json:"user,omitempty"`
 	Functions        []*FunctionDefinition   `json:"functions,omitempty"`
-	FunctionCall     string                  `json:"function_call,omitempty"`
+	FunctionCall     any                     `json:"function_call,omitempty"`
 }
 
 type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
-	// Parameters is a JSONSchema object describing the function.
+	// Parameters is an object describing the function.
 	// You can pass a raw byte array describing the schema,
 	// or you can generate the array from a JSONSchema object, using another library.
-	Parameters json.RawMessage `json:"parameters"`
+	// The only constraint is that the input must implement the JSONEncodable interface.
+	Parameters interface{} `json:"parameters"`
 }
 
 type FinishReason string

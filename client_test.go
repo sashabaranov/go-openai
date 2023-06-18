@@ -9,6 +9,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 	"time"
 
@@ -286,14 +287,8 @@ func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 }
 
 func TestRequestImageErrors(t *testing.T) {
-	var err error
-	ts := test.NewTestServer().OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
+	config := DefaultAzureConfig(test.GetTestToken(), "http://localhost:8080/openai/operations/images")
 	client := NewClientWithConfig(config)
-
 	// Test requestImage callback URL empty.
 	testCase := "Callback URL is empty"
 	res := &http.Response{
@@ -301,12 +296,10 @@ func TestRequestImageErrors(t *testing.T) {
 		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
 	}
 	v := &ImageRequest{}
-	err = client.requestImage(res, v)
-
+	err := client.requestImage(res, v)
 	if !errors.Is(err, ErrClientEmptyCallbackURL) {
 		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
 	}
-
 	// Test requestImage callback URL malformed.
 	testCase = "Callback URL is malformed"
 	res = &http.Response{
@@ -318,15 +311,21 @@ func TestRequestImageErrors(t *testing.T) {
 	if err == nil {
 		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
 	}
+	// Test requestImage callback URL with invalid chars that cause url.Parse to throw error.
+	testCase = "Callback URL fails URL parsing"
+	res = &http.Response{
+		StatusCode: http.StatusOK,
+		Header:     http.Header{"Operation-Location": []string{"http://abc{DEf1=ghi@localhost:8080/openai/operations/images/request-id"}},
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
+	err = client.requestImage(res, v)
+	if err == nil {
+		t.Fatalf("%s did not return error. requestImage failed: %v", testCase, err)
+	}
 }
 
 func TestImageRequestCallbackErrors(t *testing.T) {
-	var err error
-	ts := test.NewTestServer().OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultAzureConfig(test.GetTestToken(), ts.URL)
+	config := DefaultAzureConfig(test.GetTestToken(), "http://localhost:8080/openai/operations/images")
 	client := NewClientWithConfig(config)
 	// Test imageRequestCallback status response empty.
 	testCase := "imageRequestCallback status response empty"
@@ -360,5 +359,17 @@ func TestImageRequestCallbackErrors(t *testing.T) {
 
 	if !errors.Is(err, ErrClientRetrievingCallbackResponse) {
 		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
+	}
+}
+
+func TestRequestImageFunc(t *testing.T) {
+	config := DefaultAzureConfig(test.GetTestToken(), "http://localhost:8080/openai/operations/images")
+	client := NewClientWithConfig(config)
+	v := &ImageRequest{}
+	var errorHTTPClient httptest.ResponseRecorder
+	errorHTTPClient.WriteHeader(http.StatusInternalServerError)
+	err := client.requestImage(errorHTTPClient.Result(), v)
+	if err == nil {
+		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", "TestRequestImageFunc", err)
 	}
 }

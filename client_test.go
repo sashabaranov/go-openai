@@ -315,7 +315,7 @@ func TestRequestImageErrors(t *testing.T) {
 	testCase = "Callback URL fails URL parsing"
 	res = &http.Response{
 		StatusCode: http.StatusOK,
-		Header:     http.Header{"Operation-Location": []string{"http://abc{DEf1=ghi@localhost:8080/openai/operations/images/request-id"}},
+		Header:     http.Header{"Operation-Location": []string{"http://abc{DEf1=ghi@localhost:8080"}},
 		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
 	}
 	err = client.requestImage(res, v)

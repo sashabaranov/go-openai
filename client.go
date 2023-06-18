@@ -126,7 +126,6 @@ func isFailureStatusCode(resp *http.Response) bool {
 func (c *Client) requestImage(res *http.Response, v any) error {
 	_, err := io.Copy(io.Discard, res.Body)
 	if err != nil {
-		fmt.Println("Error discarding response body")
 		return err
 	}
 	callBackURL := res.Header.Get("Operation-Location")

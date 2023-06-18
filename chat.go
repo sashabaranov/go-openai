@@ -68,6 +68,9 @@ type FunctionDefinition struct {
 	Parameters interface{} `json:"parameters"`
 }
 
+// Deprecated: use FunctionDefinition instead
+type FunctionDefine FunctionDefinition
+
 type FinishReason string
 
 const (

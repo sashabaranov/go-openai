@@ -72,23 +72,50 @@ func TestChatCompletionsFunctions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
-	//nolint:lll
-	msg := json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`)
-	_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
-		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo0613,
-		Messages: []ChatCompletionMessage{
-			{
-				Role:    ChatMessageRoleUser,
-				Content: "Hello!",
+	t.Run("bytes", func(t *testing.T) {
+		//nolint:lll
+		msg := json.RawMessage(`{"properties":{"count":{"type":"integer","description":"total number of words in sentence"},"words":{"items":{"type":"string"},"type":"array","description":"list of words in sentence"}},"type":"object","required":["count","words"]}`)
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo0613,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
 			},
-		},
-		Functions: []*FunctionDefinition{{
-			Name:       "test",
-			Parameters: &msg,
-		}},
+			Functions: []*FunctionDefinition{{
+				Name:       "test",
+				Parameters: &msg,
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
-	checks.NoError(t, err, "CreateChatCompletion with functions error")
+	t.Run("struct", func(t *testing.T) {
+		type testMessage struct {
+			Count int      `json:"count"`
+			Words []string `json:"words"`
+		}
+		msg := testMessage{
+			Count: 2,
+			Words: []string{"hello", "world"},
+		}
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo0613,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+			Functions: []*FunctionDefinition{{
+				Name:       "test",
+				Parameters: &msg,
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions error")
+	})
 }
 
 func TestAzureChatCompletions(t *testing.T) {

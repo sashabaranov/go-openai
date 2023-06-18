@@ -517,6 +517,46 @@ func main() {
 </details>
 
 <details>
+<summary>Azure OpenAI DALL-E 2</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+
+	config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint")
+	config.APIVersion = "2023-06-01-preview"
+	client := openai.NewClientWithConfig(config)
+	ctx := context.Background()
+
+	// Sample image by link
+	reqUrl := openai.ImageRequest{
+		Prompt:         "Parrot on a skateboard performs a trick, cartoon style, natural light, high detail",
+		Size:           openai.CreateImageSize256x256,
+		ResponseFormat: openai.CreateImageResponseFormatURL,
+		N:              1,
+		User:		"user identifier for moderation tracking",
+	}
+
+	respUrl, err := c.CreateImage(ctx, reqUrl)
+	if err != nil {
+		fmt.Printf("Image creation error: %v\n", err)
+		return
+	}
+	fmt.Println(respUrl.Data[0].URL)
+}
+```
+
+</details>
+
+<details>
 <summary>Error handling</summary>
 
 Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)

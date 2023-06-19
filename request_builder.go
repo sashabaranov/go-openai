@@ -4,6 +4,8 @@ import (
 	"bytes"
 	"context"
 	"net/http"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 type requestBuilder interface {
@@ -11,12 +13,12 @@ type requestBuilder interface {
 }
 
 type httpRequestBuilder struct {
-	marshaller marshaller
+	marshaller utils.Marshaller
 }
 
 func newRequestBuilder() *httpRequestBuilder {
 	return &httpRequestBuilder{
-		marshaller: &jsonMarshaller{},
+		marshaller: &utils.JSONMarshaller{},
 	}
 }
 
@@ -26,7 +28,7 @@ func (b *httpRequestBuilder) build(ctx context.Context, method, url string, requ
 	}
 
 	var reqBytes []byte
-	reqBytes, err := b.marshaller.marshal(request)
+	reqBytes, err := b.marshaller.Marshal(request)
 	if err != nil {
 		return nil, err
 	}

@@ -19,7 +19,7 @@ type (
 	failingMarshaller     struct{}
 )
 
-func (*failingMarshaller) marshal(_ any) ([]byte, error) {
+func (*failingMarshaller) Marshal(_ any) ([]byte, error) {
 	return []byte{}, errTestMarshallerFailed
 }
 

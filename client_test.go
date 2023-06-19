@@ -3,7 +3,6 @@ package openai //nolint:testpackage // testing private field
 import (
 	"bytes"
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -11,7 +10,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/sashabaranov/go-openai/internal/test"
 )
@@ -327,45 +325,34 @@ func TestRequestImageErrors(t *testing.T) {
 func TestImageRequestCallbackErrors(t *testing.T) {
 	config := DefaultAzureConfig(test.GetTestToken(), "http://localhost:8080/openai/operations/images")
 	client := NewClientWithConfig(config)
-	// Test imageRequestCallback status response empty.
-	testCase := "imageRequestCallback status response empty"
+
 	var request ImageRequest
 	ctx := context.Background()
 	req, err := client.requestBuilder.Build(ctx, http.MethodPost, client.fullURL("openai/operations/images"), request)
 	if err != nil {
-		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", testCase, err)
-	}
-	cbResponse := CallBackResponse{
-		Created: time.Now().Unix(),
-		Status:  "",
-		Result: CBResult{
-			Data: CBData{
-				{URL: "http://example.com/image1"},
-				{URL: "http://example.com/image2"},
-			},
-		},
-	}
-	cbResponseBytes := new(bytes.Buffer)
-	err = json.NewEncoder(cbResponseBytes).Encode(cbResponse)
-	if err != nil {
-		t.Fatalf("%s. json encoding failed with unexpected error: %v", testCase, err)
-	}
-	res := &http.Response{
-		StatusCode: http.StatusOK,
-		Body:       ioutil.NopCloser(bytes.NewBufferString(cbResponseBytes.String())),
+		t.Fatalf("RequestBuilder failed with unexpected error: %v", err)
 	}
 	v := &ImageRequest{}
+
+	// Test imageRequestCallback status response not OK.
+	res := &http.Response{
+		StatusCode: http.StatusInternalServerError,
+		Body:       ioutil.NopCloser(bytes.NewBufferString("")),
+	}
 	err = client.imageRequestCallback(req, v, res)
 	if !errors.Is(err, ErrClientRetrievingCallbackResponse) {
-		t.Fatalf("%s did not return error. imageRequestCallback failed: %v", testCase, err)
+		t.Fatalf("imageRequestCallback status response not OK did not return error. imageRequestCallback failed: %v", err)
 	}
-	// Test imageRequestCallback status response not OK.
-	testCase = "imageRequestCallback status response not OK"
-	var errorHTTPClient httptest.ResponseRecorder
-	errorHTTPClient.WriteHeader(http.StatusInternalServerError)
+
+	// Test imageRequestCallback status response empty.
+	emptyStatusBody := `{"created":1687129482,"status":""}`
+	res = &http.Response{
+		StatusCode: http.StatusOK,
+		Body:       ioutil.NopCloser(bytes.NewBufferString(emptyStatusBody)),
+	}
 	err = client.imageRequestCallback(req, v, res)
-	if err == nil {
-		t.Fatalf("%s. requestBuilder failed with unexpected error: %v", testCase, err)
+	if !errors.Is(err, ErrClientRetrievingCallbackResponse) {
+		t.Fatalf("imageRequestCallback status response empty did not return error. imageRequestCallback failed: %v", err)
 	}
 }
 

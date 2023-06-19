@@ -164,10 +164,7 @@ func (c *Client) imageRequestCallback(req *http.Request, v any, res *http.Respon
 	for _, data := range result.Result.Data {
 		urlList = append(urlList, ImageResponseDataInner{URL: data.URL})
 	}
-	converted, err := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
-	if err != nil {
-		return err
-	}
+	converted, _ := json.Marshal(ImageResponse{Created: result.Created, Data: urlList})
 	return decodeResponse(bytes.NewReader(converted), v)
 }
 

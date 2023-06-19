@@ -117,7 +117,6 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
 	t.Run("JSONSchemaDefine", func(t *testing.T) {
-
 		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
 			MaxTokens: 5,
 			Model:     GPT3Dot5Turbo0613,
@@ -142,6 +141,10 @@ func TestChatCompletionsFunctions(t *testing.T) {
 							Items: &JSONSchemaDefinition{
 								Type: JSONSchemaTypeString,
 							},
+						},
+						"enumTest": {
+							Type: JSONSchemaTypeString,
+							Enum: []string{"hello", "world"},
 						},
 					},
 				},

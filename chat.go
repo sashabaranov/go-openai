@@ -63,8 +63,9 @@ type FunctionDefinition struct {
 	Description string `json:"description,omitempty"`
 	// Parameters is an object describing the function.
 	// You can pass a raw byte array describing the schema,
-	// or you can generate the array from a JSONSchema object, using another library.
-	// The only constraint is that the input must implement the JSONEncodable interface.
+	// or you can pass in a struct which serializes to the proper JSONSchema.
+	// The JSONSchemaDefinition struct is provided for convenience, but you should
+	// consider another specialized library for more complex schemas.
 	Parameters any `json:"parameters"`
 }
 

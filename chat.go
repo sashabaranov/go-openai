@@ -54,7 +54,7 @@ type ChatCompletionRequest struct {
 	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
 	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
 	User             string                  `json:"user,omitempty"`
-	Functions        []*FunctionDefinition   `json:"functions,omitempty"`
+	Functions        []FunctionDefinition    `json:"functions,omitempty"`
 	FunctionCall     any                     `json:"function_call,omitempty"`
 }
 
@@ -92,7 +92,7 @@ type JSONSchemaDefinition struct {
 	// Enum is a enum of JSON Schema. It used if Type is JSONSchemaTypeString.
 	Enum []string `json:"enum,omitempty"`
 	// Properties is a properties of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Properties map[string]*JSONSchemaDefinition `json:"properties,omitempty"`
+	Properties map[string]JSONSchemaDefinition `json:"properties,omitempty"`
 	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
 	Required []string `json:"required,omitempty"`
 	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.

@@ -84,7 +84,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 					Content: "Hello!",
 				},
 			},
-			Functions: []*FunctionDefinition{{
+			Functions: []FunctionDefinition{{
 				Name:       "test",
 				Parameters: &msg,
 			}},
@@ -109,7 +109,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 					Content: "Hello!",
 				},
 			},
-			Functions: []*FunctionDefinition{{
+			Functions: []FunctionDefinition{{
 				Name:       "test",
 				Parameters: &msg,
 			}},
@@ -126,11 +126,11 @@ func TestChatCompletionsFunctions(t *testing.T) {
 					Content: "Hello!",
 				},
 			},
-			Functions: []*FunctionDefinition{{
+			Functions: []FunctionDefinition{{
 				Name: "test",
 				Parameters: &JSONSchemaDefinition{
 					Type: JSONSchemaTypeObject,
-					Properties: map[string]*JSONSchemaDefinition{
+					Properties: map[string]JSONSchemaDefinition{
 						"count": {
 							Type:        JSONSchemaTypeNumber,
 							Description: "total number of words in sentence",

@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -16,19 +15,9 @@ import (
 
 // TestEdits Tests the edits endpoint of the API using the mocked server.
 func TestEdits(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/edits", handleEditEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
 	// create an edit request
 	model := "ada"
 	editReq := EditsRequest{
@@ -40,7 +29,7 @@ func TestEdits(t *testing.T) {
 		Instruction: "test instruction",
 		N:           3,
 	}
-	response, err := client.Edits(ctx, editReq)
+	response, err := client.Edits(context.Background(), editReq)
 	checks.NoError(t, err, "Edits error")
 	if len(response.Choices) != editReq.N {
 		t.Fatalf("edits does not properly return the correct number of choices")

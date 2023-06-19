@@ -3,7 +3,6 @@ package openai
 import (
 	"bufio"
 	"context"
-	"net/http"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
@@ -16,7 +15,7 @@ type ChatCompletionStreamChoiceDelta struct {
 type ChatCompletionStreamChoice struct {
 	Index        int                             `json:"index"`
 	Delta        ChatCompletionStreamChoiceDelta `json:"delta"`
-	FinishReason string                          `json:"finish_reason"`
+	FinishReason FinishReason                    `json:"finish_reason"`
 }
 
 type ChatCompletionStreamResponse struct {
@@ -41,7 +40,7 @@ func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
-	urlSuffix := "/chat/completions"
+	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
@@ -57,7 +56,7 @@ func (c *Client) CreateChatCompletionStream(
 	if err != nil {
 		return
 	}
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+	if isFailureStatusCode(resp) {
 		return nil, c.handleErrorResp(resp)
 	}
 
@@ -66,7 +65,7 @@ func (c *Client) CreateChatCompletionStream(
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
-			errAccumulator:     newErrorAccumulator(),
+			errAccumulator:     utils.NewErrorAccumulator(),
 			unmarshaler:        &utils.JSONUnmarshaler{},
 		},
 	}

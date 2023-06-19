@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"context"
 	"errors"
-	"net/http"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
@@ -46,7 +45,7 @@ func (c *Client) CreateCompletionStream(
 	if err != nil {
 		return
 	}
-	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusBadRequest {
+	if isFailureStatusCode(resp) {
 		return nil, c.handleErrorResp(resp)
 	}
 
@@ -55,7 +54,7 @@ func (c *Client) CreateCompletionStream(
 			emptyMessagesLimit: c.config.EmptyMessagesLimit,
 			reader:             bufio.NewReader(resp.Body),
 			response:           resp,
-			errAccumulator:     newErrorAccumulator(),
+			errAccumulator:     utils.NewErrorAccumulator(),
 			unmarshaler:        &utils.JSONUnmarshaler{},
 		},
 	}

@@ -3,6 +3,7 @@ package openai
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // APIError provides error information returned by the OpenAI API.
@@ -41,12 +42,23 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 
 	err = json.Unmarshal(rawMap["message"], &e.Message)
 	if err != nil {
-		return
+		// If the parameter field of a function call is invalid as a JSON schema
+		// refs: https://github.com/sashabaranov/go-openai/issues/381
+		var messages []string
+		err = json.Unmarshal(rawMap["message"], &messages)
+		if err != nil {
+			return
+		}
+		e.Message = strings.Join(messages, ", ")
 	}
 
-	err = json.Unmarshal(rawMap["type"], &e.Type)
-	if err != nil {
-		return
+	// optional fields for azure openai
+	// refs: https://github.com/sashabaranov/go-openai/issues/343
+	if _, ok := rawMap["type"]; ok {
+		err = json.Unmarshal(rawMap["type"], &e.Type)
+		if err != nil {
+			return
+		}
 	}
 
 	// optional fields

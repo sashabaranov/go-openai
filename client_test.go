@@ -2,12 +2,23 @@ package openai //nolint:testpackage // testing private field
 
 import (
 	"bytes"
+	"context"
 	"errors"
 	"fmt"
 	"io"
 	"net/http"
 	"testing"
+
+	"github.com/sashabaranov/go-openai/internal/test"
 )
+
+var errTestRequestBuilderFailed = errors.New("test request builder failed")
+
+type failingRequestBuilder struct{}
+
+func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any) (*http.Request, error) {
+	return nil, errTestRequestBuilderFailed
+}
 
 func TestClient(t *testing.T) {
 	const mockToken = "mock token"
@@ -123,6 +134,15 @@ func TestHandleErrorResp(t *testing.T) {
 				}`)),
 			expected: "error, status code: 503, message: That model...",
 		},
+		{
+			name:     "503 no message (Unknown response)",
+			httpCode: http.StatusServiceUnavailable,
+			body: bytes.NewReader([]byte(`
+				{
+					"error":{}
+				}`)),
+			expected: "error, status code: 503, message: ",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -143,5 +163,108 @@ func TestHandleErrorResp(t *testing.T) {
 				t.Fail()
 			}
 		})
+	}
+}
+
+func TestClientReturnsRequestBuilderErrors(t *testing.T) {
+	config := DefaultConfig(test.GetTestToken())
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+	ctx := context.Background()
+
+	type TestCase struct {
+		Name     string
+		TestFunc func() (any, error)
+	}
+
+	testCases := []TestCase{
+		{"CreateCompletion", func() (any, error) {
+			return client.CreateCompletion(ctx, CompletionRequest{Prompt: "testing"})
+		}},
+		{"CreateCompletionStream", func() (any, error) {
+			return client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
+		}},
+		{"CreateChatCompletion", func() (any, error) {
+			return client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateChatCompletionStream", func() (any, error) {
+			return client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateFineTune", func() (any, error) {
+			return client.CreateFineTune(ctx, FineTuneRequest{})
+		}},
+		{"ListFineTunes", func() (any, error) {
+			return client.ListFineTunes(ctx)
+		}},
+		{"CancelFineTune", func() (any, error) {
+			return client.CancelFineTune(ctx, "")
+		}},
+		{"GetFineTune", func() (any, error) {
+			return client.GetFineTune(ctx, "")
+		}},
+		{"DeleteFineTune", func() (any, error) {
+			return client.DeleteFineTune(ctx, "")
+		}},
+		{"ListFineTuneEvents", func() (any, error) {
+			return client.ListFineTuneEvents(ctx, "")
+		}},
+		{"Moderations", func() (any, error) {
+			return client.Moderations(ctx, ModerationRequest{})
+		}},
+		{"Edits", func() (any, error) {
+			return client.Edits(ctx, EditsRequest{})
+		}},
+		{"CreateEmbeddings", func() (any, error) {
+			return client.CreateEmbeddings(ctx, EmbeddingRequest{})
+		}},
+		{"CreateImage", func() (any, error) {
+			return client.CreateImage(ctx, ImageRequest{})
+		}},
+		{"DeleteFile", func() (any, error) {
+			return nil, client.DeleteFile(ctx, "")
+		}},
+		{"GetFile", func() (any, error) {
+			return client.GetFile(ctx, "")
+		}},
+		{"GetFileContent", func() (any, error) {
+			return client.GetFileContent(ctx, "")
+		}},
+		{"ListFiles", func() (any, error) {
+			return client.ListFiles(ctx)
+		}},
+		{"ListEngines", func() (any, error) {
+			return client.ListEngines(ctx)
+		}},
+		{"GetEngine", func() (any, error) {
+			return client.GetEngine(ctx, "")
+		}},
+		{"ListModels", func() (any, error) {
+			return client.ListModels(ctx)
+		}},
+		{"GetModel", func() (any, error) {
+			return client.GetModel(ctx, "text-davinci-003")
+		}},
+	}
+
+	for _, testCase := range testCases {
+		_, err := testCase.TestFunc()
+		if !errors.Is(err, errTestRequestBuilderFailed) {
+			t.Fatalf("%s did not return error when request builder failed: %v", testCase.Name, err)
+		}
+	}
+}
+
+func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
+	config := DefaultConfig(test.GetTestToken())
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+	ctx := context.Background()
+	_, err := client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
+	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
+	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 }

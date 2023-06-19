@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/http/httptest"
+	"regexp"
 )
 
 const testAPI = "this-is-my-secure-token-do-not-steal!!"
@@ -36,11 +37,14 @@ func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 			return
 		}
 
-		handlerCall, ok := ts.handlers[r.URL.Path]
-		if !ok {
-			http.Error(w, "the resource path doesn't exist", http.StatusNotFound)
-			return
+		// Handle /path/* routes.
+		for route, handler := range ts.handlers {
+			pattern, _ := regexp.Compile(route)
+			if pattern.MatchString(r.URL.Path) {
+				handler(w, r)
+				return
+			}
 		}
-		handlerCall(w, r)
+		http.Error(w, "the resource path doesn't exist", http.StatusNotFound)
 	}))
 }

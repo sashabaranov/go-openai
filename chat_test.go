@@ -116,6 +116,39 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		})
 		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
+	t.Run("JSONSchemaDefine", func(t *testing.T) {
+
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo0613,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+			Functions: []*FunctionDefinition{{
+				Name: "test",
+				Parameters: &JSONSchemaDefinition{
+					Type: JSONSchemaTypeObject,
+					Properties: map[string]*JSONSchemaDefinition{
+						"count": {
+							Type:        JSONSchemaTypeNumber,
+							Description: "total number of words in sentence",
+						},
+						"words": {
+							Type:        JSONSchemaTypeArray,
+							Description: "list of words in sentence",
+							Items: &JSONSchemaDefinition{
+								Type: JSONSchemaTypeString,
+							},
+						},
+					},
+				},
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions error")
+	})
 }
 
 func TestAzureChatCompletions(t *testing.T) {

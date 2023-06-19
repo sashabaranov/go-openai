@@ -68,7 +68,7 @@ type FunctionDefinition struct {
 	Parameters any `json:"parameters"`
 }
 
-// Deprecated: use FunctionDefinition instead
+// Deprecated: use FunctionDefinition instead.
 type FunctionDefine FunctionDefinition
 
 type JSONSchemaType string
@@ -99,7 +99,7 @@ type JSONSchemaDefinition struct {
 	Items *JSONSchemaDefinition `json:"items,omitempty"`
 }
 
-// Deprecated: use JSONSchemaDefinition instead
+// Deprecated: use JSONSchemaDefinition instead.
 type JSONSchemaDefine JSONSchemaDefinition
 
 type FinishReason string

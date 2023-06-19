@@ -203,8 +203,9 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	for i := 0; i < n; i++ {
 		// if there are functions, include them
 		if len(completionReq.Functions) > 0 {
+			var fcb []byte
 			b := completionReq.Functions[0].Parameters
-			fcb, err := json.Marshal(b)
+			fcb, err = json.Marshal(b)
 			if err != nil {
 				http.Error(w, "could not marshal function parameters", http.StatusInternalServerError)
 				return

@@ -1,9 +1,6 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
 	"encoding/json"
 	"fmt"
@@ -13,6 +10,10 @@ import (
 	"strings"
 	"testing"
 	"time"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 func TestChatCompletionsWrongModel(t *testing.T) {
@@ -128,22 +129,22 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			},
 			Functions: []FunctionDefinition{{
 				Name: "test",
-				Parameters: &JSONSchemaDefinition{
-					Type: JSONSchemaTypeObject,
-					Properties: map[string]JSONSchemaDefinition{
+				Parameters: &jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
 						"count": {
-							Type:        JSONSchemaTypeNumber,
+							Type:        jsonschema.Number,
 							Description: "total number of words in sentence",
 						},
 						"words": {
-							Type:        JSONSchemaTypeArray,
+							Type:        jsonschema.Array,
 							Description: "list of words in sentence",
-							Items: &JSONSchemaDefinition{
-								Type: JSONSchemaTypeString,
+							Items: &jsonschema.Definition{
+								Type: jsonschema.String,
 							},
 						},
 						"enumTest": {
-							Type: JSONSchemaTypeString,
+							Type: jsonschema.String,
 							Enum: []string{"hello", "world"},
 						},
 					},
@@ -165,22 +166,22 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			},
 			Functions: []FunctionDefine{{
 				Name: "test",
-				Parameters: &JSONSchemaDefine{
-					Type: JSONSchemaTypeObject,
-					Properties: map[string]JSONSchemaDefine{
+				Parameters: &jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
 						"count": {
-							Type:        JSONSchemaTypeNumber,
+							Type:        jsonschema.Number,
 							Description: "total number of words in sentence",
 						},
 						"words": {
-							Type:        JSONSchemaTypeArray,
+							Type:        jsonschema.Array,
 							Description: "list of words in sentence",
-							Items: &JSONSchemaDefine{
-								Type: JSONSchemaTypeString,
+							Items: &jsonschema.Definition{
+								Type: jsonschema.String,
 							},
 						},
 						"enumTest": {
-							Type: JSONSchemaTypeString,
+							Type: jsonschema.String,
 							Enum: []string{"hello", "world"},
 						},
 					},

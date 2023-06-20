@@ -542,3 +542,16 @@ if errors.As(err, &e) {
 
 See the `examples/` folder for more.
 
+### Integration tests:
+
+Integration tests are requested against the production version of the OpenAI API. These tests will verify that the library is properly coded against the actual behavior of the API, and will  fail upon any incompatible change in the API.
+
+**Notes:**
+These tests send real network traffic to the OpenAI API and may reach rate limits. Temporary network problems may also cause the test to fail.
+
+**Run tests using:**
+```
+OPENAI_TOKEN=XXX go test -v -tags=integration ./api_integration_test.go
+```
+
+If `OPENAI_TOKEN` environment variables are not available, integration tests will be skipped.

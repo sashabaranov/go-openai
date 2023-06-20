@@ -1,4 +1,3 @@
-//nolint:gocritic //*new(T) error
 package openai
 
 import (

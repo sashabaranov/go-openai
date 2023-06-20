@@ -94,7 +94,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			az.OrgID = c.OrgID
 
 			cli := NewClientWithConfig(az)
-			req, err := cli.newStreamRequest(context.Background(), "POST", "/chat/completions", nil, "")
+			req, err := cli.newRequest(context.Background(), "POST", "/chat/completions")
 			if err != nil {
 				t.Errorf("Failed to create request: %v", err)
 			}

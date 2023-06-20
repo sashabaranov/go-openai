@@ -16,7 +16,7 @@ var errTestRequestBuilderFailed = errors.New("test request builder failed")
 
 type failingRequestBuilder struct{}
 
-func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any) (*http.Request, error) {
+func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any, _ http.Header) (*http.Request, error) {
 	return nil, errTestRequestBuilderFailed
 }
 

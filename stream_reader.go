@@ -1,3 +1,4 @@
+//nolint:gocritic //*new(T) error
 package openai
 
 import (
@@ -39,6 +40,7 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 	return
 }
 
+//nolint:gocognit
 func (stream *streamReader[T]) processLines() (T, error) {
 	var (
 		emptyMessagesCount uint

@@ -1,6 +1,9 @@
 package openai_test
 
 import (
+	"os"
+	"time"
+
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
@@ -55,4 +58,23 @@ func TestAzureGetModel(t *testing.T) {
 func handleGetModelEndpoint(w http.ResponseWriter, _ *http.Request) {
 	resBytes, _ := json.Marshal(Model{})
 	fmt.Fprintln(w, string(resBytes))
+}
+
+func TestGetModelReturnTimeoutError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/models/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(10 * time.Nanosecond)
+	})
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Nanosecond)
+	defer cancel()
+
+	_, err := client.GetModel(ctx, "text-davinci-003")
+	if err == nil {
+		t.Fatal("Did not return error")
+	}
+	if !os.IsTimeout(err) {
+		t.Fatal("Did not return timeout error")
+	}
 }

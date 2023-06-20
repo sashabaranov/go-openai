@@ -185,6 +185,7 @@ func TestCreateChatCompletionStreamErrorWithDataPrefix(t *testing.T) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
+		//nolint:lll
 		dataBytes := []byte(`data: {"error":{"message":"The server had an error while processing your request. Sorry about that!", "type":"server_ error", "param":null,"code":null}}`)
 		dataBytes = append(dataBytes, []byte("\n\ndata: [DONE]\n\n")...)
 

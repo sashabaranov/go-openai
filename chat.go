@@ -70,7 +70,7 @@ type FunctionDefinition struct {
 }
 
 // Deprecated: use FunctionDefinition instead.
-type FunctionDefine FunctionDefinition
+type FunctionDefine = FunctionDefinition
 
 type JSONSchemaType string
 
@@ -101,7 +101,7 @@ type JSONSchemaDefinition struct {
 }
 
 // Deprecated: use JSONSchemaDefinition instead.
-type JSONSchemaDefine JSONSchemaDefinition
+type JSONSchemaDefine = JSONSchemaDefinition
 
 type FinishReason string
 

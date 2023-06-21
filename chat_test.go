@@ -84,7 +84,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 					Content: "Hello!",
 				},
 			},
-			Functions: []FunctionDefinition{{
+			Functions: []FunctionDefine{{
 				Name:       "test",
 				Parameters: &msg,
 			}},
@@ -139,6 +139,43 @@ func TestChatCompletionsFunctions(t *testing.T) {
 							Type:        JSONSchemaTypeArray,
 							Description: "list of words in sentence",
 							Items: &JSONSchemaDefinition{
+								Type: JSONSchemaTypeString,
+							},
+						},
+						"enumTest": {
+							Type: JSONSchemaTypeString,
+							Enum: []string{"hello", "world"},
+						},
+					},
+				},
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions error")
+	})
+	t.Run("JSONSchemaDefineWithFunctionDefine", func(t *testing.T) {
+		// this is a compatibility check
+		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     GPT3Dot5Turbo0613,
+			Messages: []ChatCompletionMessage{
+				{
+					Role:    ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+			Functions: []FunctionDefine{{
+				Name: "test",
+				Parameters: &JSONSchemaDefine{
+					Type: JSONSchemaTypeObject,
+					Properties: map[string]JSONSchemaDefine{
+						"count": {
+							Type:        JSONSchemaTypeNumber,
+							Description: "total number of words in sentence",
+						},
+						"words": {
+							Type:        JSONSchemaTypeArray,
+							Description: "list of words in sentence",
+							Items: &JSONSchemaDefine{
 								Type: JSONSchemaTypeString,
 							},
 						},

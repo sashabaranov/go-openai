@@ -14,7 +14,7 @@ This library provides unofficial Go clients for [OpenAI API](https://platform.op
 ```
 go get github.com/sashabaranov/go-openai
 ```
-
+Currently, go-openai requires Go version 1.18 or greater.
 
 ### ChatGPT example usage:
 

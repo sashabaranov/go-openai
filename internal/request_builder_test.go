@@ -22,7 +22,7 @@ func TestRequestBuilderReturnsMarshallerErrors(t *testing.T) {
 		marshaller: &failingMarshaller{},
 	}
 
-	_, err := builder.Build(context.Background(), "", "", struct{}{})
+	_, err := builder.Build(context.Background(), "", "", struct{}{}, nil)
 	if !errors.Is(err, errTestMarshallerFailed) {
 		t.Fatalf("Did not return error when marshaller failed: %v", err)
 	}
@@ -38,7 +38,7 @@ func TestRequestBuilderReturnsRequest(t *testing.T) {
 		reqBytes, _ = b.marshaller.Marshal(request)
 		want, _     = http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(reqBytes))
 	)
-	got, _ := b.Build(ctx, method, url, request)
+	got, _ := b.Build(ctx, method, url, request, nil)
 	if !reflect.DeepEqual(got.Body, want.Body) ||
 		!reflect.DeepEqual(got.URL, want.URL) ||
 		!reflect.DeepEqual(got.Method, want.Method) {
@@ -54,7 +54,7 @@ func TestRequestBuilderReturnsRequestWhenRequestOfArgsIsNil(t *testing.T) {
 		want, _ = http.NewRequestWithContext(ctx, method, url, nil)
 	)
 	b := NewRequestBuilder()
-	got, _ := b.Build(ctx, method, url, nil)
+	got, _ := b.Build(ctx, method, url, nil, nil)
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Build() got = %v, want %v", got, want)
 	}

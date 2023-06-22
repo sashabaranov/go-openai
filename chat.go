@@ -152,7 +152,7 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), request)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), withBody(request))
 	if err != nil {
 		return
 	}

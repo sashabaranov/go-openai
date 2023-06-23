@@ -555,3 +555,10 @@ OPENAI_TOKEN=XXX go test -v -tags=integration ./api_integration_test.go
 ```
 
 If the `OPENAI_TOKEN` environment variable is not available, integration tests will be skipped.
+
+## Thank you
+
+We want to take a moment to express our deepest gratitude to the [contributors](https://github.com/sashabaranov/go-openai/graphs/contributors) and sponsors of this project:
+- [Carson Kahn](https://carsonkahn.com) of [Spindle AI](https://spindleai.com)
+
+To all of you: thank you. You've helped us achieve more than we ever imagined possible. Can't wait to see where we go next, together!

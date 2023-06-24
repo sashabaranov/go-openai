@@ -62,46 +62,15 @@ type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	// Parameters is an object describing the function.
-	// You can pass a raw byte array describing the schema,
-	// or you can pass in a struct which serializes to the proper JSONSchema.
-	// The JSONSchemaDefinition struct is provided for convenience, but you should
-	// consider another specialized library for more complex schemas.
+	// You can pass a []byte describing the schema,
+	// or you can pass in a struct which serializes to the proper JSON schema.
+	// The jsonschema package is provided for convenience, but you should
+	// consider another specialized library if you require more complex schemas.
 	Parameters any `json:"parameters"`
 }
 
 // Deprecated: use FunctionDefinition instead.
 type FunctionDefine = FunctionDefinition
-
-type JSONSchemaType string
-
-const (
-	JSONSchemaTypeObject  JSONSchemaType = "object"
-	JSONSchemaTypeNumber  JSONSchemaType = "number"
-	JSONSchemaTypeString  JSONSchemaType = "string"
-	JSONSchemaTypeArray   JSONSchemaType = "array"
-	JSONSchemaTypeNull    JSONSchemaType = "null"
-	JSONSchemaTypeBoolean JSONSchemaType = "boolean"
-)
-
-// JSONSchemaDefinition is a struct for JSON Schema.
-// It is fairly limited and you may have better luck using a third-party library.
-type JSONSchemaDefinition struct {
-	// Type is a type of JSON Schema.
-	Type JSONSchemaType `json:"type,omitempty"`
-	// Description is a description of JSON Schema.
-	Description string `json:"description,omitempty"`
-	// Enum is a enum of JSON Schema. It used if Type is JSONSchemaTypeString.
-	Enum []string `json:"enum,omitempty"`
-	// Properties is a properties of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Properties map[string]JSONSchemaDefinition `json:"properties,omitempty"`
-	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Required []string `json:"required,omitempty"`
-	// Items is a property of JSON Schema. It used if Type is JSONSchemaTypeArray.
-	Items *JSONSchemaDefinition `json:"items,omitempty"`
-}
-
-// Deprecated: use JSONSchemaDefinition instead.
-type JSONSchemaDefine = JSONSchemaDefinition
 
 type FinishReason string
 

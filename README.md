@@ -517,6 +517,66 @@ func main() {
 </details>
 
 <details>
+<summary>JSON Schema for function calling</summary>
+
+It is now possible for chat completion to choose to call a function for more information ([see developer docs here](https://platform.openai.com/docs/guides/gpt/function-calling)).
+
+In order to describe the type of functions that can be called, a JSON schema must be provided. Many JSON schema libraries exist and are more advanced than what we can offer in this library, however we have included a simple `jsonschema` package for those who want to use this feature without formatting their own JSON schema payload.
+
+The developer documents give this JSON schema definition as an example:
+
+```json
+{
+  "name":"get_current_weather",
+  "description":"Get the current weather in a given location",
+  "parameters":{
+    "type":"object",
+    "properties":{
+        "location":{
+          "type":"string",
+          "description":"The city and state, e.g. San Francisco, CA"
+        },
+        "unit":{
+          "type":"string",
+          "enum":[
+              "celsius",
+              "fahrenheit"
+          ]
+        }
+    },
+    "required":[
+        "location"
+    ]
+  }
+}
+```
+
+Using the `jsonschema` package, this schema could be created using structs as such:
+
+```go
+FunctionDefinition{
+  Name: "get_current_weather",
+  Parameters: jsonschema.Definition{
+    Type: jsonschema.Object,
+    Properties: map[string]jsonschema.Definition{
+      "location": {
+        Type: jsonschema.String,
+        Description: "The city and state, e.g. San Francisco, CA",
+      },
+      "unit": {
+        Type: jsonschema.String,
+        Enum: []string{"celcius", "fahrenheit"},
+      },
+    },
+    Required: []string{"location"},
+  },
+}
+```
+
+The `Parameters` field of a `FunctionDefinition` can accept either of the above styles, or even a nested struct from another library (as long as it can be marshalled into JSON).
+</details>
+
+<details>
 <summary>Error handling</summary>
 
 Open-AI maintains clear documentation on how to [handle API errors](https://platform.openai.com/docs/guides/error-codes/api-errors)

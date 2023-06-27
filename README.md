@@ -444,6 +444,11 @@ func main() {
 	// 	return azureModelMapping[model]
 	// }
 
+	// If you met the error "ChatCompletion error: error, status code: 404,message: The API deployment for this resource does not exist.If you created the deployment within the last 5 minutes, please wait a moment and try again."
+	// You can set the APIVersion to the correct version by:
+	// config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint", openai.WithAzureAPIVersion("2021-03-01-preview"))
+	// find the corrent version in Azure AI Studio -> Chat playgrount -> Chat session -> view Code
+
 	client := openai.NewClientWithConfig(config)
 	resp, err := client.CreateChatCompletion(
 		context.Background(),
@@ -493,6 +498,11 @@ func main() {
 	//    }
 	//    return azureModelMapping[model]
 	//}
+
+	// If you met the error "ChatCompletion error: error, status code: 404,message: The API deployment for this resource does not exist.If you created the deployment within the last 5 minutes, please wait a moment and try again."
+	// You can set the APIVersion to the correct version by:
+	// config := openai.DefaultAzureConfig("your Azure OpenAI Key", "https://your Azure OpenAI Endpoint", openai.WithAzureAPIVersion("2021-03-01-preview"))
+	// find the corrent version in Azure AI Studio -> Chat playgrount -> Chat session -> view Code
 
 	input := "Text to vectorize"
 

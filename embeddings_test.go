@@ -92,4 +92,8 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	)
 	_, err := client.CreateEmbeddings(context.Background(), EmbeddingRequest{})
 	checks.NoError(t, err, "CreateEmbeddings error")
+
+	// test create embeddings with tokens
+	_, err = client.CreateEmbeddings(context.Background(), EmbeddingRequestTokens{})
+	checks.NoError(t, err, "CreateEmbeddings error")
 }

@@ -54,8 +54,6 @@ func TestEmbedding(t *testing.T) {
 			},
 			Model: model,
 		}
-		// marshal embeddingReq to JSON and confirm that the model field equals
-		// the AdaSearchQuery type
 		marshaled, err = json.Marshal(embeddingReqTokens)
 		checks.NoError(t, err, "Could not marshal embedding request")
 		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {

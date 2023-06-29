@@ -171,7 +171,7 @@ func (r EmbeddingRequestTokens) ToEmbeddingRequest() BaseEmbeddingRequest {
 	}
 }
 
-// CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
+// CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |body.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
 func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestBody) (resp EmbeddingResponse, err error) {
 	baseReq := body.ToEmbeddingRequest()

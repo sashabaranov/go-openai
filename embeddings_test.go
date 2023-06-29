@@ -46,6 +46,21 @@ func TestEmbedding(t *testing.T) {
 		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}
+
+		embeddingReqTokens := EmbeddingRequestTokens{
+			Input: [][]int{
+				{464, 2057, 373, 12625, 290, 262, 46612},
+				{6395, 6096, 286, 11525, 12083, 2581},
+			},
+			Model: model,
+		}
+		// marshal embeddingReq to JSON and confirm that the model field equals
+		// the AdaSearchQuery type
+		marshaled, err = json.Marshal(embeddingReqTokens)
+		checks.NoError(t, err, "Could not marshal embedding request")
+		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
+			t.Fatalf("Expected embedding request to contain model field")
+		}
 	}
 }
 

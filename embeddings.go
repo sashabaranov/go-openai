@@ -113,10 +113,21 @@ type EmbeddingResponse struct {
 	Usage  Usage          `json:"usage"`
 }
 
+type EmbeddingRequestBody interface {
+	// Needs to be of type EmbeddingRequest or EmbeddingRequestTokens
+	ToEmbeddingRequest() BaseEmbeddingRequest
+}
+
+type BaseEmbeddingRequest struct {
+	Input interface{}    `json:"input"`
+	Model EmbeddingModel `json:"model"`
+	User  string         `json:"user"`
+}
+
 // EmbeddingRequest is the input to a Create embeddings request.
 type EmbeddingRequest struct {
 	// Input is a slice of strings for which you want to generate an Embedding vector.
-	// Each input must not exceed 2048 tokens in length.
+	// Each input must not exceed 8192 tokens in length.
 	// OpenAPI suggests replacing newlines (\n) in your input with a single space, as they
 	// have observed inferior results when newlines are present.
 	// E.g.
@@ -129,10 +140,42 @@ type EmbeddingRequest struct {
 	User string `json:"user"`
 }
 
+func (r EmbeddingRequest) ToEmbeddingRequest() BaseEmbeddingRequest {
+	return BaseEmbeddingRequest{
+		Input: r.Input,
+		Model: r.Model,
+		User:  r.User,
+	}
+}
+
+type EmbeddingRequestTokens struct {
+	// Input is a slice of slices of ints ([][]int) representing a slice of slices of tokens for which you want to generate an Embedding vector.
+	// Each input must not exceed 8192 tokens in length.
+	// OpenAPI suggests replacing newlines (\n) in your input with a single space, as they
+	// have observed inferior results when newlines are present.
+	// E.g.
+	//	"The food was delicious and the waiter..."
+	Input [][]int `json:"input"`
+	// ID of the model to use. You can use the List models API to see all of your available models,
+	// or see our Model overview for descriptions of them.
+	Model EmbeddingModel `json:"model"`
+	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
+	User string `json:"user"`
+}
+
+func (r EmbeddingRequestTokens) ToEmbeddingRequest() BaseEmbeddingRequest {
+	return BaseEmbeddingRequest{
+		Input: r.Input,
+		Model: r.Model,
+		User:  r.User,
+	}
+}
+
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequest) (resp EmbeddingResponse, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", request.Model.String()), withBody(request))
+func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequestBody) (resp EmbeddingResponse, err error) {
+	baseRequest := request.ToEmbeddingRequest()
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseRequest.Model.String()), withBody(baseRequest))
 	if err != nil {
 		return
 	}

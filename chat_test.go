@@ -85,7 +85,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 					Content: "Hello!",
 				},
 			},
-			Functions: []FunctionDefine{{
+			Functions: []FunctionDefinition{{
 				Name:       "test",
 				Parameters: &msg,
 			}},
@@ -117,7 +117,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		})
 		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
-	t.Run("JSONSchemaDefine", func(t *testing.T) {
+	t.Run("JSONSchemaDefinition", func(t *testing.T) {
 		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
 			MaxTokens: 5,
 			Model:     GPT3Dot5Turbo0613,
@@ -153,7 +153,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		})
 		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
-	t.Run("JSONSchemaDefineWithFunctionDefine", func(t *testing.T) {
+	t.Run("JSONSchemaDefinitionWithFunctionDefine", func(t *testing.T) {
 		// this is a compatibility check
 		_, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
 			MaxTokens: 5,

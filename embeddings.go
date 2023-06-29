@@ -149,7 +149,7 @@ func (r EmbeddingRequest) ToEmbeddingRequest() BaseEmbeddingRequest {
 }
 
 type EmbeddingRequestTokens struct {
-	// Input is a slice of slices of ints ([][]int) representing a slice of slices of tokens for which you want to generate an Embedding vector.
+	// Input is a slice of slices of ints ([][]int) for which you want to generate an Embedding vector.
 	// Each input must not exceed 8192 tokens in length.
 	// OpenAPI suggests replacing newlines (\n) in your input with a single space, as they
 	// have observed inferior results when newlines are present.
@@ -173,9 +173,9 @@ func (r EmbeddingRequestTokens) ToEmbeddingRequest() BaseEmbeddingRequest {
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |request.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, request EmbeddingRequestBody) (resp EmbeddingResponse, err error) {
-	baseRequest := request.ToEmbeddingRequest()
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseRequest.Model.String()), withBody(baseRequest))
+func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestBody) (resp EmbeddingResponse, err error) {
+	baseReq := body.ToEmbeddingRequest()
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
 	if err != nil {
 		return
 	}

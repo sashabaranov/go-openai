@@ -1,12 +1,3 @@
----
-name: Pull Request
-about: Propose changes to the codebase
-title: ''
-labels: ''
-assignees: ''
-
----
-
 A similar PR may already be submitted!
 Please search among the [Pull request](https://github.com/sashabaranov/go-openai/pulls) before creating one.
 

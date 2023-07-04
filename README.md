@@ -10,17 +10,6 @@ This library provides unofficial Go clients for [OpenAI API](https://platform.op
 * DALL·E 2
 * Whisper
 
-### Getting an OpenAI API Key:
-
-1. Visit the OpenAI website at [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys).
-2. If you don't have an account, click on "Sign Up" to create one. If you do, click "Log In".
-3. Once logged in, navigate to your API key management page.
-4. Click on "Create new secret key".
-5. Enter a name for your new key, then click "Create secret key".
-6. Your new API key will be displayed. Use this key to interact with the OpenAI API.
-
-**Note:** Your API key is sensitive information. Do not share it with anyone.
-
 ### Installation:
 ```
 go get github.com/sashabaranov/go-openai
@@ -62,6 +51,17 @@ func main() {
 }
 
 ```
+
+### Getting an OpenAI API Key:
+
+1. Visit the OpenAI website at [https://platform.openai.com/account/api-keys](https://platform.openai.com/account/api-keys).
+2. If you don't have an account, click on "Sign Up" to create one. If you do, click "Log In".
+3. Once logged in, navigate to your API key management page.
+4. Click on "Create new secret key".
+5. Enter a name for your new key, then click "Create secret key".
+6. Your new API key will be displayed. Use this key to interact with the OpenAI API.
+
+**Note:** Your API key is sensitive information. Do not share it with anyone.
 
 ### Other examples:
 

@@ -177,6 +177,9 @@ func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |body.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
+//
+// Body should be of type EmbeddingRequestStrings for embedding strings or EmbeddingRequestTokens
+// for embedding groups of text already converted to tokens.
 func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestConverter) (resp EmbeddingResponse, err error) {
 	baseReq := body.Convert()
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))

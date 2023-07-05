@@ -113,19 +113,23 @@ type EmbeddingResponse struct {
 	Usage  Usage          `json:"usage"`
 }
 
-type EmbeddingRequestBody interface {
-	// Needs to be of type EmbeddingRequest or EmbeddingRequestTokens
-	ToEmbeddingRequest() BaseEmbeddingRequest
+type EmbeddingRequestConverter interface {
+	// Needs to be of type EmbeddingRequestStrings or EmbeddingRequestTokens
+	Convert() EmbeddingRequest
 }
 
-type BaseEmbeddingRequest struct {
+type EmbeddingRequest struct {
 	Input any            `json:"input"`
 	Model EmbeddingModel `json:"model"`
 	User  string         `json:"user"`
 }
 
-// EmbeddingRequest is the input to a Create embeddings request.
-type EmbeddingRequest struct {
+func (r EmbeddingRequest) Convert() EmbeddingRequest {
+	return r
+}
+
+// EmbeddingRequestStrings is the input to a create embeddings request with a slice of strings.
+type EmbeddingRequestStrings struct {
 	// Input is a slice of strings for which you want to generate an Embedding vector.
 	// Each input must not exceed 8192 tokens in length.
 	// OpenAPI suggests replacing newlines (\n) in your input with a single space, as they
@@ -140,8 +144,8 @@ type EmbeddingRequest struct {
 	User string `json:"user"`
 }
 
-func (r EmbeddingRequest) ToEmbeddingRequest() BaseEmbeddingRequest {
-	return BaseEmbeddingRequest{
+func (r EmbeddingRequestStrings) Convert() EmbeddingRequest {
+	return EmbeddingRequest{
 		Input: r.Input,
 		Model: r.Model,
 		User:  r.User,
@@ -163,8 +167,8 @@ type EmbeddingRequestTokens struct {
 	User string `json:"user"`
 }
 
-func (r EmbeddingRequestTokens) ToEmbeddingRequest() BaseEmbeddingRequest {
-	return BaseEmbeddingRequest{
+func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
+	return EmbeddingRequest{
 		Input: r.Input,
 		Model: r.Model,
 		User:  r.User,
@@ -173,8 +177,8 @@ func (r EmbeddingRequestTokens) ToEmbeddingRequest() BaseEmbeddingRequest {
 
 // CreateEmbeddings returns an EmbeddingResponse which will contain an Embedding for every item in |body.Input|.
 // https://beta.openai.com/docs/api-reference/embeddings/create
-func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestBody) (resp EmbeddingResponse, err error) {
-	baseReq := body.ToEmbeddingRequest()
+func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestConverter) (resp EmbeddingResponse, err error) {
+	baseReq := body.Convert()
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
 	if err != nil {
 		return

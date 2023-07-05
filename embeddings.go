@@ -119,7 +119,7 @@ type EmbeddingRequestBody interface {
 }
 
 type BaseEmbeddingRequest struct {
-	Input interface{}    `json:"input"`
+	Input any            `json:"input"`
 	Model EmbeddingModel `json:"model"`
 	User  string         `json:"user"`
 }

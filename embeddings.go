@@ -180,14 +180,14 @@ func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 //
 // Body should be of type EmbeddingRequestStrings for embedding strings or EmbeddingRequestTokens
 // for embedding groups of text already converted to tokens.
-func (c *Client) CreateEmbeddings(ctx context.Context, body EmbeddingRequestConverter) (resp EmbeddingResponse, err error) {
-	baseReq := body.Convert()
+func (c *Client) CreateEmbeddings(ctx context.Context, r EmbeddingRequestConverter) (res EmbeddingResponse, err error) {
+	baseReq := r.Convert()
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
 	if err != nil {
 		return
 	}
 
-	err = c.sendRequest(req, &resp)
+	err = c.sendRequest(req, &res)
 
 	return
 }

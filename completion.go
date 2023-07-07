@@ -43,20 +43,16 @@ const (
 	GPT3TextDavinci001 = "text-davinci-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
 	GPT3DavinciInstructBeta = "davinci-instruct-beta"
-	// Deprecated: Will be shut down on January 04, 2024. Use davinci-002 instead.
-	GPT3Davinci    = "davinci"
-	GPT3Davinci002 = "davinci-002"
+	GPT3Davinci             = "davinci"
+	GPT3Davinci002          = "davinci-002"
 	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
 	GPT3CurieInstructBeta = "curie-instruct-beta"
-	// Deprecated: Will be shut down on January 04, 2024. Use curie-002  instead.
-	GPT3Curie    = "curie"
-	GPT3Curie002 = "curie-002"
-	// Deprecated: Will be shut down on January 04, 2024. Use ada-002 instead.
-	GPT3Ada    = "ada"
-	GPT3Ada002 = "ada-002"
-	// Deprecated: Will be shut down on January 04, 2024. Use babbage-002 instead.
-	GPT3Babbage    = "babbage"
-	GPT3Babbage002 = "babbage-002"
+	GPT3Curie             = "curie"
+	GPT3Curie002          = "curie-002"
+	GPT3Ada               = "ada"
+	GPT3Ada002            = "ada-002"
+	GPT3Babbage           = "babbage"
+	GPT3Babbage002        = "babbage-002"
 )
 
 // Codex Defines the models provided by OpenAI.

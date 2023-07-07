@@ -33,23 +33,23 @@ func (e *EmbeddingModel) UnmarshalText(b []byte) error {
 }
 
 const (
-	Unknown EmbeddingModel = iota
-	AdaSimilarity
-	BabbageSimilarity
-	CurieSimilarity
-	DavinciSimilarity
-	AdaSearchDocument
-	AdaSearchQuery
-	BabbageSearchDocument
-	BabbageSearchQuery
-	CurieSearchDocument
-	CurieSearchQuery
-	DavinciSearchDocument
-	DavinciSearchQuery
-	AdaCodeSearchCode
-	AdaCodeSearchText
-	BabbageCodeSearchCode
-	BabbageCodeSearchText
+	Unknown               EmbeddingModel = iota
+	AdaSimilarity                        // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	BabbageSimilarity                    // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	CurieSimilarity                      // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	DavinciSimilarity                    // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	AdaSearchDocument                    // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	AdaSearchQuery                       // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	BabbageSearchDocument                // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	BabbageSearchQuery                   // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	CurieSearchDocument                  // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	CurieSearchQuery                     // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	DavinciSearchDocument                // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	DavinciSearchQuery                   // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	AdaCodeSearchCode                    // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	AdaCodeSearchText                    // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	BabbageCodeSearchCode                // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
+	BabbageCodeSearchText                // Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
 	AdaEmbeddingV2
 )
 

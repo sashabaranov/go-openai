@@ -28,18 +28,23 @@ const (
 	GPT3Dot5Turbo16K        = "gpt-3.5-turbo-16k"
 	GPT3Dot5Turbo16K0613    = "gpt-3.5-turbo-16k-0613"
 	GPT3Dot5Turbo           = "gpt-3.5-turbo"
-	GPT3TextDavinci003      = "text-davinci-003"
-	GPT3TextDavinci002      = "text-davinci-002"
-	GPT3TextCurie001        = "text-curie-001"
-	GPT3TextBabbage001      = "text-babbage-001"
-	GPT3TextAda001          = "text-ada-001"
-	GPT3TextDavinci001      = "text-davinci-001"
-	GPT3DavinciInstructBeta = "davinci-instruct-beta"
-	GPT3Davinci             = "davinci"
-	GPT3CurieInstructBeta   = "curie-instruct-beta"
-	GPT3Curie               = "curie"
-	GPT3Ada                 = "ada"
-	GPT3Babbage             = "babbage"
+	GPT3Dot5TurboInstruct   = "gpt-3.5-turbo-instruct"
+	GPT3TextDavinci003      = "text-davinci-003"      // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3TextDavinci002      = "text-davinci-002"      // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3TextCurie001        = "text-curie-001"        // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3TextBabbage001      = "text-babbage-001"      // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3TextAda001          = "text-ada-001"          // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3TextDavinci001      = "text-davinci-001"      // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3DavinciInstructBeta = "davinci-instruct-beta" // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3Davinci             = "davinci"               // Deprecated: Will be shut down on January 04, 2024. Use davinci-002 instead.
+	GPT3Davinci002          = "davinci-002"
+	GPT3CurieInstructBeta   = "curie-instruct-beta" // Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	GPT3Curie               = "curie"               // Deprecated: Will be shut down on January 04, 2024. Use curie-002  instead.
+	GPT3Curie002            = "curie-002"
+	GPT3Ada                 = "ada" // Deprecated: Will be shut down on January 04, 2024. Use ada-002 instead.
+	GPT3Ada002              = "ada-002"
+	GPT3Babbage             = "babbage" // Deprecated: Will be shut down on January 04, 2024. Use babbage-002 instead.
+	GPT3Babbage002          = "babbage-002"
 )
 
 // Codex Defines the models provided by OpenAI.

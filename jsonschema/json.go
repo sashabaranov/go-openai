@@ -4,6 +4,8 @@
 // and/or pass in the schema in []byte format.
 package jsonschema
 
+import "encoding/json"
+
 type DataType string
 
 const (
@@ -17,7 +19,7 @@ const (
 )
 
 // Definition is a struct for describing a JSON Schema.
-// It is fairly limited and you may have better luck using a third-party library.
+// It is fairly limited, and you may have better luck using a third-party library.
 type Definition struct {
 	// Type specifies the data type of the schema.
 	Type DataType `json:"type,omitempty"`
@@ -32,4 +34,25 @@ type Definition struct {
 	Required []string `json:"required,omitempty"`
 	// Items specifies which data type an array contains, if the schema type is Array.
 	Items *Definition `json:"items,omitempty"`
+}
+
+func (d *Definition) MarshalJSON() ([]byte, error) {
+	d.initializeProperties()
+	return json.Marshal(*d)
+}
+
+func (d *Definition) initializeProperties() {
+	if d.Properties == nil {
+		d.Properties = make(map[string]Definition)
+		return
+	}
+
+	for k, v := range d.Properties {
+		if v.Properties == nil {
+			v.Properties = make(map[string]Definition)
+		} else {
+			v.initializeProperties()
+		}
+		d.Properties[k] = v
+	}
 }

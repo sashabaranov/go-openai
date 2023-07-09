@@ -50,10 +50,9 @@ func (d *Definition) initializeProperties() {
 	for k, v := range d.Properties {
 		if v.Properties == nil {
 			v.Properties = make(map[string]Definition)
-			d.Properties[k] = v
 		} else {
 			v.initializeProperties()
-			d.Properties[k] = v
 		}
+		d.Properties[k] = v
 	}
 }

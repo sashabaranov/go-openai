@@ -9,8 +9,10 @@ import (
 	"os"
 	"testing"
 
+	"github.com/sashabaranov/go-openai"
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 func TestAPI(t *testing.T) {
@@ -100,6 +102,37 @@ func TestAPI(t *testing.T) {
 	if counter == 0 {
 		t.Error("Stream did not return any responses")
 	}
+
+	_, err = c.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "What is the weather like in Boston?",
+				},
+			},
+			Functions: []openai.FunctionDefinition{{
+				Name: "get_current_weather",
+				Parameters: jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"location": {
+							Type:        jsonschema.String,
+							Description: "The city and state, e.g. San Francisco, CA",
+						},
+						"unit": {
+							Type: jsonschema.String,
+							Enum: []string{"celsius", "fahrenheit"},
+						},
+					},
+					Required: []string{"location"},
+				},
+			}},
+		},
+	)
+	checks.NoError(t, err, "CreateChatCompletion (with functions) returned error")
 }
 
 func TestAPIError(t *testing.T) {

@@ -567,7 +567,7 @@ Using the `jsonschema` package, this schema could be created using structs as su
 ```go
 FunctionDefinition{
   Name: "get_current_weather",
-  Parameters: jsonschema.Definition{
+  Parameters: &jsonschema.Definition{
     Type: jsonschema.Object,
     Properties: map[string]jsonschema.Definition{
       "location": {

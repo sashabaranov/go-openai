@@ -17,7 +17,7 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 		{
 			name: "Test with empty Definition",
 			def:  Definition{},
-			want: `{}`,
+			want: `{"properties":{}}`,
 		},
 		{
 			name: "Test with Definition properties set",
@@ -35,7 +35,8 @@ func TestDefinition_MarshalJSON(t *testing.T) {
    "description":"A string type",
    "properties":{
       "name":{
-         "type":"string"
+         "type":"string",
+         "properties":{}
       }
    }
 }`,
@@ -65,10 +66,12 @@ func TestDefinition_MarshalJSON(t *testing.T) {
          "type":"object",
          "properties":{
             "name":{
-               "type":"string"
+               "type":"string",
+               "properties":{}
             },
             "age":{
-               "type":"integer"
+               "type":"integer",
+               "properties":{}
             }
          }
       }
@@ -111,19 +114,23 @@ func TestDefinition_MarshalJSON(t *testing.T) {
          "type":"object",
          "properties":{
             "name":{
-               "type":"string"
+               "type":"string",
+               "properties":{}
             },
             "age":{
-               "type":"integer"
+               "type":"integer",
+               "properties":{}
             },
             "address":{
                "type":"object",
                "properties":{
                   "city":{
-                     "type":"string"
+                     "type":"string",
+                     "properties":{}
                   },
                   "country":{
-                     "type":"string"
+                     "type":"string",
+                     "properties":{}
                   }
                }
             }
@@ -148,11 +155,15 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 			want: `{
    "type":"array",
    "items":{
-      "type":"string"
+      "type":"string",
+      "properties":{
+         
+      }
    },
    "properties":{
       "name":{
-         "type":"string"
+         "type":"string",
+         "properties":{}
       }
    }
 }`,

@@ -36,23 +36,14 @@ type Definition struct {
 	Items *Definition `json:"items,omitempty"`
 }
 
-func (d *Definition) MarshalJSON() ([]byte, error) {
-	d.initializeProperties()
-	return json.Marshal(*d)
-}
-
-func (d *Definition) initializeProperties() {
+func (d Definition) MarshalJSON() ([]byte, error) {
 	if d.Properties == nil {
 		d.Properties = make(map[string]Definition)
-		return
 	}
-
-	for k, v := range d.Properties {
-		if v.Properties == nil {
-			v.Properties = make(map[string]Definition)
-		} else {
-			v.initializeProperties()
-		}
-		d.Properties[k] = v
-	}
+	type Alias Definition
+	return json.Marshal(struct {
+		Alias
+	}{
+		Alias: (Alias)(d),
+	})
 }

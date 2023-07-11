@@ -9,7 +9,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/sashabaranov/go-openai"
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"github.com/sashabaranov/go-openai/jsonschema"
@@ -105,15 +104,15 @@ func TestAPI(t *testing.T) {
 
 	_, err = c.CreateChatCompletion(
 		context.Background(),
-		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
-			Messages: []openai.ChatCompletionMessage{
+		ChatCompletionRequest{
+			Model: GPT3Dot5Turbo,
+			Messages: []ChatCompletionMessage{
 				{
-					Role:    openai.ChatMessageRoleUser,
+					Role:    ChatMessageRoleUser,
 					Content: "What is the weather like in Boston?",
 				},
 			},
-			Functions: []openai.FunctionDefinition{{
+			Functions: []FunctionDefinition{{
 				Name: "get_current_weather",
 				Parameters: jsonschema.Definition{
 					Type: jsonschema.Object,

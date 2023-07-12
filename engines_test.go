@@ -34,3 +34,14 @@ func TestListEngines(t *testing.T) {
 	_, err := client.ListEngines(context.Background())
 	checks.NoError(t, err, "ListEngines error")
 }
+
+func TestListEnginesReturnError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusTeapot)
+	})
+
+	_, err := client.ListEngines(context.Background())
+	checks.HasError(t, err, "ListEngines did not fail")
+}

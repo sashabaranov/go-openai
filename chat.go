@@ -52,50 +52,28 @@ type ChatCompletionRequest struct {
 	Stop             []string                `json:"stop,omitempty"`
 	PresencePenalty  float32                 `json:"presence_penalty,omitempty"`
 	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
-	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
-	User             string                  `json:"user,omitempty"`
-	Functions        []*FunctionDefine       `json:"functions,omitempty"`
-	FunctionCall     string                  `json:"function_call,omitempty"`
+	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
+	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
+	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
+	LogitBias    map[string]int       `json:"logit_bias,omitempty"`
+	User         string               `json:"user,omitempty"`
+	Functions    []FunctionDefinition `json:"functions,omitempty"`
+	FunctionCall any                  `json:"function_call,omitempty"`
 }
 
-type FunctionDefine struct {
+type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
-	// it's required in function call
-	Parameters *FunctionParams `json:"parameters"`
+	// Parameters is an object describing the function.
+	// You can pass a []byte describing the schema,
+	// or you can pass in a struct which serializes to the proper JSON schema.
+	// The jsonschema package is provided for convenience, but you should
+	// consider another specialized library if you require more complex schemas.
+	Parameters any `json:"parameters"`
 }
 
-type FunctionParams struct {
-	// the Type must be JSONSchemaTypeObject
-	Type       JSONSchemaType               `json:"type"`
-	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
-	Required   []string                     `json:"required,omitempty"`
-}
-
-type JSONSchemaType string
-
-const (
-	JSONSchemaTypeObject  JSONSchemaType = "object"
-	JSONSchemaTypeNumber  JSONSchemaType = "number"
-	JSONSchemaTypeString  JSONSchemaType = "string"
-	JSONSchemaTypeArray   JSONSchemaType = "array"
-	JSONSchemaTypeNull    JSONSchemaType = "null"
-	JSONSchemaTypeBoolean JSONSchemaType = "boolean"
-)
-
-// JSONSchemaDefine is a struct for JSON Schema.
-type JSONSchemaDefine struct {
-	// Type is a type of JSON Schema.
-	Type JSONSchemaType `json:"type,omitempty"`
-	// Description is a description of JSON Schema.
-	Description string `json:"description,omitempty"`
-	// Enum is a enum of JSON Schema. It used if Type is JSONSchemaTypeString.
-	Enum []string `json:"enum,omitempty"`
-	// Properties is a properties of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Properties map[string]*JSONSchemaDefine `json:"properties,omitempty"`
-	// Required is a required of JSON Schema. It used if Type is JSONSchemaTypeObject.
-	Required []string `json:"required,omitempty"`
-}
+// Deprecated: use FunctionDefinition instead.
+type FunctionDefine = FunctionDefinition
 
 type FinishReason string
 
@@ -146,7 +124,7 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	req, err := c.requestBuilder.Build(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), request)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), withBody(request))
 	if err != nil {
 		return
 	}

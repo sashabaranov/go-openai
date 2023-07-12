@@ -6,7 +6,9 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"os"
 	"testing"
+	"time"
 
 	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
@@ -297,6 +299,30 @@ func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 	var syntaxError *json.SyntaxError
 	if !errors.As(streamErr, &syntaxError) {
 		t.Errorf("TestCreateCompletionStreamBrokenJSONError did not return json.SyntaxError")
+	}
+}
+
+func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(10 * time.Nanosecond)
+	})
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Nanosecond)
+	defer cancel()
+
+	_, err := client.CreateCompletionStream(ctx, CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	})
+	if err == nil {
+		t.Fatal("Did not return error")
+	}
+	if !os.IsTimeout(err) {
+		t.Fatal("Did not return timeout error")
 	}
 }
 

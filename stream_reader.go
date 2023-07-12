@@ -10,6 +10,11 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
+var (
+	headerData  = []byte("data: ")
+	errorPrefix = []byte(`data: {"error":`)
+)
+
 type streamable interface {
 	ChatCompletionStreamResponse | CompletionResponse
 }
@@ -34,12 +39,16 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 	return
 }
 
+//nolint:gocognit
 func (stream *streamReader[T]) processLines() (T, error) {
-	var emptyMessagesCount uint
+	var (
+		emptyMessagesCount uint
+		hasErrorPrefix     bool
+	)
 
 	for {
 		rawLine, readErr := stream.reader.ReadBytes('\n')
-		if readErr != nil {
+		if readErr != nil || hasErrorPrefix {
 			respErr := stream.unmarshalError()
 			if respErr != nil {
 				return *new(T), fmt.Errorf("error, %w", respErr.Error)
@@ -47,9 +56,14 @@ func (stream *streamReader[T]) processLines() (T, error) {
 			return *new(T), readErr
 		}
 
-		var headerData = []byte("data: ")
 		noSpaceLine := bytes.TrimSpace(rawLine)
-		if !bytes.HasPrefix(noSpaceLine, headerData) {
+		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
+			hasErrorPrefix = true
+		}
+		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
+			if hasErrorPrefix {
+				noSpaceLine = bytes.TrimPrefix(noSpaceLine, headerData)
+			}
 			writeErr := stream.errAccumulator.Write(noSpaceLine)
 			if writeErr != nil {
 				return *new(T), writeErr

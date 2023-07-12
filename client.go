@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
@@ -45,6 +46,42 @@ func NewOrgClient(authToken, org string) *Client {
 	return NewClientWithConfig(config)
 }
 
+type requestOptions struct {
+	body   any
+	header http.Header
+}
+
+type requestOption func(*requestOptions)
+
+func withBody(body any) requestOption {
+	return func(args *requestOptions) {
+		args.body = body
+	}
+}
+
+func withContentType(contentType string) requestOption {
+	return func(args *requestOptions) {
+		args.header.Set("Content-Type", contentType)
+	}
+}
+
+func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
+	// Default Options
+	args := &requestOptions{
+		body:   nil,
+		header: make(http.Header),
+	}
+	for _, setter := range setters {
+		setter(args)
+	}
+	req, err := c.requestBuilder.Build(ctx, method, url, args.body, args.header)
+	if err != nil {
+		return nil, err
+	}
+	c.setCommonHeaders(req)
+	return req, nil
+}
+
 func (c *Client) sendRequest(req *http.Request, v any) error {
 	req.Header.Set("Accept", "application/json; charset=utf-8")
 
@@ -54,8 +91,6 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	if contentType == "" {
 		req.Header.Set("Content-Type", "application/json; charset=utf-8")
 	}
-
-	c.setCommonHeaders(req)
 
 	res, err := c.config.HTTPClient.Do(req)
 	if err != nil {
@@ -69,6 +104,41 @@ func (c *Client) sendRequest(req *http.Request, v any) error {
 	}
 
 	return decodeResponse(res.Body, v)
+}
+
+func (c *Client) sendRequestRaw(req *http.Request) (body io.ReadCloser, err error) {
+	resp, err := c.config.HTTPClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	if isFailureStatusCode(resp) {
+		err = c.handleErrorResp(resp)
+		return
+	}
+	return resp.Body, nil
+}
+
+func sendRequestStream[T streamable](client *Client, req *http.Request) (*streamReader[T], error) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+
+	resp, err := client.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
+	if err != nil {
+		return new(streamReader[T]), err
+	}
+	if isFailureStatusCode(resp) {
+		return new(streamReader[T]), client.handleErrorResp(resp)
+	}
+	return &streamReader[T]{
+		emptyMessagesLimit: client.config.EmptyMessagesLimit,
+		reader:             bufio.NewReader(resp.Body),
+		response:           resp,
+		errAccumulator:     utils.NewErrorAccumulator(),
+		unmarshaler:        &utils.JSONUnmarshaler{},
+	}, nil
 }
 
 func (c *Client) setCommonHeaders(req *http.Request) {
@@ -136,26 +206,6 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
-}
-
-func (c *Client) newStreamRequest(
-	ctx context.Context,
-	method string,
-	urlSuffix string,
-	body any,
-	model string) (*http.Request, error) {
-	req, err := c.requestBuilder.Build(ctx, method, c.fullURL(urlSuffix, model), body)
-	if err != nil {
-		return nil, err
-	}
-
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "text/event-stream")
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Connection", "keep-alive")
-
-	c.setCommonHeaders(req)
-	return req, nil
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {

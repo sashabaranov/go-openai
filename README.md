@@ -611,6 +611,67 @@ if errors.As(err, &e) {
 ```
 </details>
 
+<details>
+<summary>Fine Tune Model</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	client := openai.NewClient("your token")
+	ctx := context.Background()
+
+	//create a .jsonl file with your training data
+	//{"prompt": "<prompt text>", "completion": "<ideal generated text>"}
+	//{"prompt": "<prompt text>", "completion": "<ideal generated text>"}
+	//{"prompt": "<prompt text>", "completion": "<ideal generated text>"}
+
+	//you can use openai cli tool to validate the data
+	//For more info - https://platform.openai.com/docs/guides/fine-tuning
+
+	file, err := client.CreateFile(ctx, openai.FileRequest{
+		FilePath: "training_prepared.jsonl",
+		Purpose:  "fine-tune",
+	})
+	if err != nil {
+		fmt.Printf("Upload JSONL file error: %v\n", err)
+		return
+	}
+
+	//create a fine tune job
+	//Streams events until the job is done (this often takes minutes, but can take hours if there are many jobs in the queue or your dataset is large)
+	//use below get method to know the status of your model
+	tune, err := client.CreateFineTune(ctx, openai.FineTuneRequest{
+		TrainingFile: file.ID,
+		Model:        "ada",
+	})
+	if err != nil {
+		fmt.Printf("Creating new fine tune model error: %v\n", err)
+		return
+	}
+
+	getTune, err := client.GetFineTune(context.Background(), tune.ID)
+	if err != nil {
+		fmt.Printf("Getting fine tune model error: %v\n", err)
+		return
+	}
+
+	fmt.Println(getTune.Status)
+
+	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{})
+	if err != nil {
+		fmt.Printf("Create chat completion error %v\n", err)
+		return
+	}
+}
+```
+</details>
 See the `examples/` folder for more.
 
 ### Integration tests:

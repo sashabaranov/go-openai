@@ -649,26 +649,32 @@ func main() {
 	//use below get method to know the status of your model
 	tune, err := client.CreateFineTune(ctx, openai.FineTuneRequest{
 		TrainingFile: file.ID,
-		Model:        "ada",
+		Model:        "ada", //babbage,curie,davinci
 	})
 	if err != nil {
 		fmt.Printf("Creating new fine tune model error: %v\n", err)
 		return
 	}
 
-	getTune, err := client.GetFineTune(context.Background(), tune.ID)
+	getTune, err := client.GetFineTune(ctx, tune.ID)
 	if err != nil {
 		fmt.Printf("Getting fine tune model error: %v\n", err)
 		return
 	}
+	fmt.Println(getTune.FineTunedModel)
 
-	fmt.Println(getTune.Status)
+	//once the status of getTune is `succeeded`, you can use your fine tune model in Completion Request
 
-	resp, err := client.CreateChatCompletion(ctx, openai.ChatCompletionRequest{})
-	if err != nil {
-		fmt.Printf("Create chat completion error %v\n", err)
-		return
-	}
+	//resp, err := client.CreateCompletion(ctx, openai.CompletionRequest{
+	//	Model:  getTune.FineTunedModel,
+	//	Prompt: "your prompt",
+	//})
+	//if err != nil {
+	//	fmt.Printf("Create completion error %v\n", err)
+	//	return
+	//}
+	//
+	//fmt.Println(resp.Choices[0].Text)
 }
 ```
 </details>

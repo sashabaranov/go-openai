@@ -27,6 +27,18 @@ func TestModerations(t *testing.T) {
 	checks.NoError(t, err, "Moderation error")
 }
 
+// TestModerationsWithIncorrectModel Tests passing an incorrect model to Moderations request.
+func TestModerationsWithIncorrectModel(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
+	_, err := client.Moderations(context.Background(), ModerationRequest{
+		Model: GPT3Dot5Turbo,
+		Input: "I want to kill them.",
+	})
+	checks.ErrorIs(t, err, ErrModerationInvalidModel)
+}
+
 // handleModerationEndpoint Handles the moderation endpoint by the test server.
 func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error

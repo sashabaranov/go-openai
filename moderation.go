@@ -16,7 +16,8 @@ import (
 const (
 	ModerationTextStable = "text-moderation-stable"
 	ModerationTextLatest = "text-moderation-latest"
-	ModerationText001    = "text-moderation-001"
+	// Deprecated: use ModerationTextStable and ModerationTextLatest instead.
+	ModerationText001 = "text-moderation-001"
 )
 
 var (

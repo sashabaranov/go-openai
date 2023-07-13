@@ -27,6 +27,41 @@ func TestModerations(t *testing.T) {
 	checks.NoError(t, err, "Moderation error")
 }
 
+// TestModerationsWithIncorrectModel Tests passing valid and invalid models to moderations endpoint.
+func TestModerationsWithDifferentModelOptions(t *testing.T) {
+	var modelOptions []struct {
+		model  string
+		expect error
+	}
+	modelOptions = append(modelOptions,
+		getModerationModelTestOption(GPT3Dot5Turbo, ErrModerationInvalidModel),
+		getModerationModelTestOption(ModerationTextStable, nil),
+		getModerationModelTestOption(ModerationTextLatest, nil),
+		getModerationModelTestOption("", nil),
+	)
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
+	for _, modelTest := range modelOptions {
+		_, err := client.Moderations(context.Background(), ModerationRequest{
+			Model: modelTest.model,
+			Input: "I want to kill them.",
+		})
+		checks.ErrorIs(t, err, modelTest.expect,
+			fmt.Sprintf("Moderations(..) expects err: %v, actual err:%v", modelTest.expect, err))
+	}
+}
+
+func getModerationModelTestOption(model string, expect error) struct {
+	model  string
+	expect error
+} {
+	return struct {
+		model  string
+		expect error
+	}{model: model, expect: expect}
+}
+
 // handleModerationEndpoint Handles the moderation endpoint by the test server.
 func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error

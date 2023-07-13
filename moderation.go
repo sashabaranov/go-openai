@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"errors"
 	"net/http"
 )
 
@@ -15,8 +16,18 @@ import (
 const (
 	ModerationTextStable = "text-moderation-stable"
 	ModerationTextLatest = "text-moderation-latest"
-	ModerationText001    = "text-moderation-001"
+	// Deprecated: use ModerationTextStable and ModerationTextLatest instead.
+	ModerationText001 = "text-moderation-001"
 )
+
+var (
+	ErrModerationInvalidModel = errors.New("this model is not supported with moderation, please use text-moderation-stable or text-moderation-latest instead") //nolint:lll
+)
+
+var validModerationModel = map[string]struct{}{
+	ModerationTextStable: {},
+	ModerationTextLatest: {},
+}
 
 // ModerationRequest represents a request structure for moderation API.
 type ModerationRequest struct {
@@ -63,6 +74,10 @@ type ModerationResponse struct {
 // Moderations — perform a moderation api call over a string.
 // Input can be an array or slice but a string will reduce the complexity.
 func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (response ModerationResponse, err error) {
+	if _, ok := validModerationModel[request.Model]; len(request.Model) > 0 && !ok {
+		err = ErrModerationInvalidModel
+		return
+	}
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/moderations", request.Model), withBody(&request))
 	if err != nil {
 		return

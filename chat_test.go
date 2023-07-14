@@ -268,12 +268,12 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		res.Choices = append(res.Choices, ChatCompletionChoice{
 			Message: ChatCompletionMessage{
 				Role:    ChatMessageRoleAssistant,
-				Content: completionStr,
+				Content: EscapeString(completionStr),
 			},
 			Index: i,
 		})
 	}
-	inputTokens := numTokens(completionReq.Messages[0].Content) * n
+	inputTokens := numTokens(string(completionReq.Messages[0].Content)) * n
 	completionTokens := completionReq.MaxTokens * n
 	res.Usage = Usage{
 		PromptTokens:     inputTokens,

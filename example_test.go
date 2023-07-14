@@ -289,7 +289,7 @@ func Example_chatbot() {
 	for s.Scan() {
 		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: s.Text(),
+			Content: openai.EscapeString(s.Text()),
 		})
 		resp, err := client.CreateChatCompletion(context.Background(), req)
 		if err != nil {

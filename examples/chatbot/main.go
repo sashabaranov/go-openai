@@ -26,9 +26,10 @@ func main() {
 	fmt.Print("> ")
 	s := bufio.NewScanner(os.Stdin)
 	for s.Scan() {
+		content := s.Text()
 		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: openai.EscapeString(s.Text()),
+			Content: openai.EscapeString(content),
 		})
 		resp, err := client.CreateChatCompletion(context.Background(), req)
 		if err != nil {

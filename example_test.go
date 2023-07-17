@@ -349,11 +349,11 @@ func TestAzureContentFilter(t *testing.T) {
 	)
 
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
+		t.Errorf("ChatCompletion error: %v\n", err)
 		return
 	}
 
-	fmt.Println(resp.Choices[0].Message.Content)
+	t.Log(resp.Choices[0].Message.Content)
 }
 
 // Open-AI maintains clear documentation on how to handle API errors.

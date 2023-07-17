@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"testing"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -328,7 +329,8 @@ func ExampleDefaultAzureConfig() {
 	fmt.Println(resp.Choices[0].Message.Content)
 }
 
-func ExampleAzureContentFilter() {
+// TestAzureContentFilter see: https://go.microsoft.com/fwlink/?linkid=2198766
+func TestAzureContentFilter(t *testing.T) {
 	azureKey := os.Getenv("AZURE_OPENAI_API_KEY")       // Your azure API key
 	azureEndpoint := os.Getenv("AZURE_OPENAI_ENDPOINT") // Your azure OpenAI endpoint
 	config := openai.DefaultAzureConfig(azureKey, azureEndpoint)

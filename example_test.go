@@ -328,6 +328,32 @@ func ExampleDefaultAzureConfig() {
 	fmt.Println(resp.Choices[0].Message.Content)
 }
 
+func ExampleAzureContentFilter() {
+	azureKey := os.Getenv("AZURE_OPENAI_API_KEY")       // Your azure API key
+	azureEndpoint := os.Getenv("AZURE_OPENAI_ENDPOINT") // Your azure OpenAI endpoint
+	config := openai.DefaultAzureConfig(azureKey, azureEndpoint)
+	client := openai.NewClientWithConfig(config)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "帮我写一个直播话术，主题是：Basic House/ 百家好【不机洗】女法式连衣裙v领褶皱优雅珍珠中长裙。",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		return
+	}
+
+	fmt.Println(resp.Choices[0].Message.Content)
+}
+
 // Open-AI maintains clear documentation on how to handle API errors.
 //
 // see: https://platform.openai.com/docs/guides/error-codes/api-errors

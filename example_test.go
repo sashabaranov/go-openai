@@ -329,7 +329,7 @@ func ExampleDefaultAzureConfig() {
 	fmt.Println(resp.Choices[0].Message.Content)
 }
 
-// TestAzureContentFilter see: https://go.microsoft.com/fwlink/?linkid=2198766
+// TestAzureContentFilter， Content rating see: https://go.microsoft.com/fwlink/?linkid=2198766
 func TestAzureContentFilter(t *testing.T) {
 	azureKey := os.Getenv("AZURE_OPENAI_API_KEY")       // Your azure API key
 	azureEndpoint := os.Getenv("AZURE_OPENAI_ENDPOINT") // Your azure OpenAI endpoint

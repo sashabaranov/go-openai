@@ -21,6 +21,35 @@ var (
 	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
 )
 
+type Hate struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type SelfHarm struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Sexual struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Violence struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+
+type ContentFilterResults struct {
+	Hate     Hate     `json:"hate,omitempty"`
+	SelfHarm SelfHarm `json:"self_harm,omitempty"`
+	Sexual   SelfHarm `json:"sexual,omitempty"`
+	Violence Violence `json:"violence,omitempty"`
+}
+
+type PromptAnnotation struct {
+	PromptIndex          int                  `json:"prompt_index,omitempty"`
+	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
+}
+
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
@@ -65,7 +94,7 @@ type FunctionDefinition struct {
 	Name        string `json:"name"`
 	Description string `json:"description,omitempty"`
 	// Parameters is an object describing the function.
-	// You can pass json.RawMessage to describe the schema,
+	// You can pass a []byte describing the schema,
 	// or you can pass in a struct which serializes to the proper JSON schema.
 	// The jsonschema package is provided for convenience, but you should
 	// consider another specialized library if you require more complex schemas.

@@ -21,6 +21,35 @@ var (
 	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
 )
 
+type Hate struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type SelfHarm struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Sexual struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Violence struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+
+type ContentFilterResults struct {
+	Hate     Hate     `json:"hate,omitempty"`
+	SelfHarm SelfHarm `json:"self_harm,omitempty"`
+	Sexual   Sexual   `json:"sexual,omitempty"`
+	Violence Violence `json:"violence,omitempty"`
+}
+
+type PromptAnnotation struct {
+	PromptIndex          int                  `json:"prompt_index,omitempty"`
+	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
+}
+
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`

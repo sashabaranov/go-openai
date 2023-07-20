@@ -12,17 +12,19 @@ type ChatCompletionStreamChoiceDelta struct {
 }
 
 type ChatCompletionStreamChoice struct {
-	Index        int                             `json:"index"`
-	Delta        ChatCompletionStreamChoiceDelta `json:"delta"`
-	FinishReason FinishReason                    `json:"finish_reason"`
+	Index                int                             `json:"index"`
+	Delta                ChatCompletionStreamChoiceDelta `json:"delta"`
+	FinishReason         FinishReason                    `json:"finish_reason"`
+	ContentFilterResults ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
 type ChatCompletionStreamResponse struct {
-	ID      string                       `json:"id"`
-	Object  string                       `json:"object"`
-	Created int64                        `json:"created"`
-	Model   string                       `json:"model"`
-	Choices []ChatCompletionStreamChoice `json:"choices"`
+	ID                string                       `json:"id"`
+	Object            string                       `json:"object"`
+	Created           int64                        `json:"created"`
+	Model             string                       `json:"model"`
+	Choices           []ChatCompletionStreamChoice `json:"choices"`
+	PromptAnnotations []PromptAnnotation           `json:"prompt_annotations,omitempty"`
 }
 
 // ChatCompletionStream

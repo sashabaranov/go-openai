@@ -3,6 +3,7 @@ package openai_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -80,7 +81,11 @@ func TestChatCustomRequest(t *testing.T) {
 	teardown := ts.Close
 	config := DefaultConfig(test.GetTestToken())
 	config.CustomRequestModifier = func(ctx context.Context, r *http.Request) error {
-		r.Header.Add("X-Tracing-ID", ctx.Value(traceIDKey).(string))
+		traceID, ok := ctx.Value(traceIDKey).(string)
+		if !ok || traceID == "" {
+			return errors.New("traceID not found in context")
+		}
+		r.Header.Add("X-Tracing-ID", traceID)
 		return nil
 	}
 	config.BaseURL = ts.URL + "/v1"
@@ -106,6 +111,18 @@ func TestChatCustomRequest(t *testing.T) {
 		},
 	})
 	checks.NoError(t, err, "TestChatCustomRequest error")
+
+	_, err = client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.HasError(t, err, "CreateChatCompletion did not return error")
 }
 
 // TestChatCompletionsFunctions tests including a function call.

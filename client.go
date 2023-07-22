@@ -79,6 +79,13 @@ func (c *Client) newRequest(ctx context.Context, method, url string, setters ...
 		return nil, err
 	}
 	c.setCommonHeaders(req)
+
+	if c.config.CustomRequestModifier != nil {
+		if err = c.config.CustomRequestModifier(ctx, req); err != nil {
+			return nil, err
+		}
+	}
+
 	return req, nil
 }
 

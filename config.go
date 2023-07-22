@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"context"
 	"net/http"
 	"regexp"
 )
@@ -33,6 +34,9 @@ type ClientConfig struct {
 	APIVersion           string                    // required when APIType is APITypeAzure or APITypeAzureAD
 	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
 	HTTPClient           *http.Client
+
+	// allows additional modification of request before sending
+	CustomRequestModifier func(ctx context.Context, req *http.Request) error
 
 	EmptyMessagesLimit uint
 }

@@ -12,6 +12,7 @@ import (
 	"time"
 
 	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"github.com/sashabaranov/go-openai/jsonschema"
 )
@@ -66,6 +67,45 @@ func TestChatCompletions(t *testing.T) {
 		},
 	})
 	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
+// TestChatCustomRequest Tests whether config.CustomRequestModifier is effective.
+func TestChatCustomRequest(t *testing.T) {
+	type TraceIDKey struct{}
+	traceIDKey := TraceIDKey{}
+
+	server := test.NewTestServer()
+	ts := server.OpenAITestServer()
+	ts.Start()
+	teardown := ts.Close
+	config := DefaultConfig(test.GetTestToken())
+	config.CustomRequestModifier = func(ctx context.Context, r *http.Request) error {
+		r.Header.Add("X-Tracing-ID", ctx.Value(traceIDKey).(string))
+		return nil
+	}
+	config.BaseURL = ts.URL + "/v1"
+	client := NewClientWithConfig(config)
+
+	ctx := context.WithValue(context.Background(), traceIDKey, "test")
+
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("X-Tracing-ID") != "test" {
+			t.Errorf("Custom header not seen")
+		}
+		handleChatCompletionEndpoint(w, r)
+	})
+	_, err := client.CreateChatCompletion(ctx, ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "TestChatCustomRequest error")
 }
 
 // TestChatCompletionsFunctions tests including a function call.

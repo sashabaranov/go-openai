@@ -13,6 +13,12 @@ type APIError struct {
 	Param          *string `json:"param,omitempty"`
 	Type           string  `json:"type"`
 	HTTPStatusCode int     `json:"-"`
+	Innererror Innererror `json:"innererror，omitempty"`
+}
+// Azure Content filtering
+type Innererror struct {
+	Code string `json:"code,omitempty"`
+	ContentFilterResults ContentFilterResults `json:"content_filter_result,omitempty"`
 }
 
 // RequestError provides informations about generic request errors.
@@ -60,6 +66,14 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 			return
 		}
 	}
+
+	if _, ok := rawMap["innererror"]; ok {
+		err = json.Unmarshal(rawMap["innererror"], &e.Innererror)
+		if err != nil {
+			return
+		}
+	}
+
 
 	// optional fields
 	if _, ok := rawMap["param"]; ok {

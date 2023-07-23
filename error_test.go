@@ -58,6 +58,34 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			},
 		},
 		{
+			name:     "parse succeeds when the innererror is not null (Azure Openai)",
+			response: `{"message": "test","type": null,"param": "prompt","code": "content_filter","status": 400,"innererror": {"code": "ResponsibleAIPolicyViolation","content_filter_result": {"hate": {"filtered": false,"severity": "safe"},"self_harm": {"filtered": false,"severity": "safe"},"sexual": {"filtered": true,"severity": "medium"},"violence": {"filtered": false,"severity": "safe"}}}}`,
+			hasError: false,
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnererror(t, apiErr, Innererror{
+					Code: "ResponsibleAIPolicyViolation",
+					ContentFilterResults: ContentFilterResults{
+						Hate: Hate{
+							Filtered: false,
+							Severity: "safe",
+						},
+						SelfHarm: SelfHarm{
+							Filtered: false,
+							Severity: "safe",
+						},
+						Sexual: Sexual{
+							Filtered: true,
+							Severity: "medium",
+						},
+						Violence: Violence{
+							Filtered: false,
+							Severity: "safe",
+						},
+					},
+				})
+			},
+		},
+		{
 			name:     "parse failed when the message is object",
 			response: `{"message":{},"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: true,
@@ -149,6 +177,12 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 func assertAPIErrorMessage(t *testing.T, apiErr APIError, expected string) {
 	if apiErr.Message != expected {
 		t.Errorf("Unexpected APIError message: %v; expected: %s", apiErr, expected)
+	}
+}
+
+func assertAPIErrorInnererror(t *testing.T, apiErr APIError, expected Innererror) {
+	if apiErr.Innererror != expected {
+		t.Errorf("Unexpected APIError Innererror: %v; expected code: %s; ", apiErr, expected.Code)
 	}
 }
 

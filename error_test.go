@@ -58,6 +58,14 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			},
 		},
 		{
+			name:     "parse succeeds when the innerError is exists (Azure Openai)",
+			response: `{"message": "","type": null,"param": "","code": "","status": 0,"innererror": {}}`,
+			hasError: false,
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, InnerError{})
+			},
+		},
+		{
 			name:     "parse failed when the message is object",
 			response: `{"message":{},"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: true,
@@ -149,6 +157,12 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 func assertAPIErrorMessage(t *testing.T, apiErr APIError, expected string) {
 	if apiErr.Message != expected {
 		t.Errorf("Unexpected APIError message: %v; expected: %s", apiErr, expected)
+	}
+}
+
+func assertAPIErrorInnerError(t *testing.T, apiErr APIError, expected interface{}) {
+	if apiErr.InnerError != expected {
+		t.Errorf("Unexpected APIError InnerError: %v; expected: %v; ", apiErr, expected)
 	}
 }
 

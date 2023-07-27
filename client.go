@@ -142,12 +142,20 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 }
 
 func (c *Client) setCommonHeaders(req *http.Request) {
+
+	// https://openrouter.ai/docs#api-keys
+	// Set required header for OpenRouter API
+	if c.config.APIType == APITypeOpenRouter {
+		req.Header.Set("HTTP-Referer", c.config.OpenRouterConfig.HTTPReferer)
+		req.Header.Set("X-Title", c.config.OpenRouterConfig.AppName)
+	}
+
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
 	} else {
-		// OpenAI or Azure AD authentication
+		// OpenAI, OpenRouterAI or Azure AD authentication
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
 	if c.config.OrgID != "" {

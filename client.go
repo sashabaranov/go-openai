@@ -142,7 +142,6 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 }
 
 func (c *Client) setCommonHeaders(req *http.Request) {
-
 	// https://openrouter.ai/docs#api-keys
 	// Set required header for OpenRouter API
 	if c.config.APIType == APITypeOpenRouter {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -25,7 +26,9 @@ var (
 type EscapeString string
 
 func (esc EscapeString) MarshalJSON() ([]byte, error) {
-	return []byte(strconv.QuoteToASCII(string(esc))), nil
+	x := strings.ReplaceAll(strconv.QuoteToASCII(string(esc)), "\\U", "\\u")
+	return []byte(x), nil
+	//return []byte(strconv.QuoteToASCII(string(esc))), nil
 }
 
 type Hate struct {

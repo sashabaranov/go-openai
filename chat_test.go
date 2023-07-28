@@ -298,3 +298,34 @@ func getChatCompletionBody(r *http.Request) (ChatCompletionRequest, error) {
 	}
 	return completion, nil
 }
+
+func TestFinishReason(t *testing.T) {
+	c := &ChatCompletionChoice{
+		FinishReason: FinishReasonNull,
+	}
+	resBytes, _ := json.Marshal(c)
+	if !strings.Contains(string(resBytes), `"finish_reason":null`) {
+		t.Error("null should not be quoted")
+	}
+
+	c.FinishReason = ""
+
+	resBytes, _ = json.Marshal(c)
+	if !strings.Contains(string(resBytes), `"finish_reason":null`) {
+		t.Error("null should not be quoted")
+	}
+
+	otherReasons := []FinishReason{
+		FinishReasonStop,
+		FinishReasonLength,
+		FinishReasonFunctionCall,
+		FinishReasonContentFilter,
+	}
+	for _, r := range otherReasons {
+		c.FinishReason = r
+		resBytes, _ = json.Marshal(c)
+		if !strings.Contains(string(resBytes), fmt.Sprintf(`"finish_reason":"%s"`, r)) {
+			t.Errorf("%s should be quoted", r)
+		}
+	}
+}

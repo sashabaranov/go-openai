@@ -114,6 +114,13 @@ const (
 	FinishReasonNull          FinishReason = "null"
 )
 
+func (r FinishReason) MarshalJSON() ([]byte, error) {
+	if r == FinishReasonNull || r == "" {
+		return []byte("null"), nil
+	}
+	return []byte(`"` + string(r) + `"`), nil // best effort to not break future API changes
+}
+
 type ChatCompletionChoice struct {
 	Index   int                   `json:"index"`
 	Message ChatCompletionMessage `json:"message"`

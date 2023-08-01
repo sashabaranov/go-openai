@@ -180,7 +180,7 @@ func assertAPIErrorType(t *testing.T, apiErr APIError, typ string) {
 	}
 }
 
-func TestRequestErrorUnmarshalJSON(t *testing.T) {
+func TestRequestError(t *testing.T) {
 	var err error = &RequestError{
 		HTTPStatusCode: http.StatusTeapot,
 		Err:            errors.New("i am a teapot"),
@@ -200,7 +200,7 @@ func TestRequestErrorUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func TestErrorResponse(t *testing.T) {
+func TestErrorResponseUnmarshalJSON(t *testing.T) {
 	type testCase struct {
 		name     string
 		response string

@@ -180,7 +180,7 @@ func assertAPIErrorType(t *testing.T, apiErr APIError, typ string) {
 	}
 }
 
-func TestRequestError(t *testing.T) {
+func TestRequestErrorUnmarshalJSON(t *testing.T) {
 	var err error = &RequestError{
 		HTTPStatusCode: http.StatusTeapot,
 		Err:            errors.New("i am a teapot"),

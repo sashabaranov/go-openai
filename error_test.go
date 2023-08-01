@@ -228,6 +228,21 @@ func TestErrorResponse(t *testing.T) {
 			response: `{ "statusCode": 500, "message": 100 }`,
 			expected: `{ "statusCode": 500, "message": 100 }`,
 		},
+		{
+			name:     "parse when the message is string",
+			response: `{"error":{"message":"foo","type":"invalid_request_error","param":null,"code":null}}`,
+			expected: `foo`,
+		},
+		{
+			name:     "parse when the message is array with single item",
+			response: `{"error":{"message":["foo"],"type":"invalid_request_error","param":null,"code":null}}`,
+			expected: `foo`,
+		},
+		{
+			name:     "parse when the message is array with multiple items",
+			response: `{"error":{"message":["foo", "bar", "baz"],"type":"invalid_request_error","param":null,"code":null}}`,
+			expected: `foo, bar, baz`,
+		},
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {

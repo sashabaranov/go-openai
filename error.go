@@ -103,7 +103,7 @@ func (e *ErrorResponse) UnmarshalJSON(data []byte) (err error) {
 		e.Error = &APIError{
 			Code: "unknown",
 		}
-		if _, ok := rawMap["message"]; ok {
+		if _, okMessage := rawMap["message"]; okMessage {
 			if json.Unmarshal(rawMap["message"], &e.Error.Message) == nil {
 				return
 			}

@@ -199,3 +199,47 @@ func TestRequestError(t *testing.T) {
 		t.Fatalf("Empty request error occurred")
 	}
 }
+
+func TestErrorResponse(t *testing.T) {
+	type testCase struct {
+		name     string
+		response string
+		expected string
+	}
+	testCases := []testCase{
+		// testcase for message field
+		{
+			name:     "parse when the error is exists",
+			response: `{"error":{"code":"AccessDenied","message": "Access denied due to Virtual Network/Firewall rules."}}`,
+			expected: "Access denied due to Virtual Network/Firewall rules.",
+		},
+		{
+			name:     "parse when the error is not exists but message is exists",
+			response: `{ "statusCode": 500, "message": "Internal server error", "activityId": "" }`,
+			expected: "Internal server error",
+		},
+		{
+			name:     "parse when the error or message is not exists",
+			response: `{ "statusCode": 500, "activityId": "" }`,
+			expected: `{ "statusCode": 500, "activityId": "" }`,
+		},
+		{
+			name:     "parse when the  message is not string",
+			response: `{ "statusCode": 500, "message": 100 }`,
+			expected: `{ "statusCode": 500, "message": 100 }`,
+		},
+	}
+	for _, tc := range testCases {
+		t.Run(tc.name, func(t *testing.T) {
+			var errorResponse ErrorResponse
+			err := errorResponse.UnmarshalJSON([]byte(tc.response))
+			if err != nil {
+				t.Errorf("Unexpected error: %v", err)
+				t.Fail()
+			}
+			if errorResponse.Error.Error() != tc.expected {
+				t.Errorf("Unexpected ErrorResponse Error: %s; expected %s", errorResponse.Error.Error(), tc.expected)
+			}
+		})
+	}
+}

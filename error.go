@@ -92,3 +92,24 @@ func (e *RequestError) Error() string {
 func (e *RequestError) Unwrap() error {
 	return e.Err
 }
+
+func (e *ErrorResponse) UnmarshalJSON(data []byte) (err error) {
+	var rawMap map[string]json.RawMessage
+	err = json.Unmarshal(data, &rawMap)
+	if err != nil {
+		return
+	}
+	if _, ok := rawMap["error"]; !ok {
+		e.Error = &APIError{
+			Code: "unknown",
+		}
+		if _, ok := rawMap["message"]; ok {
+			if json.Unmarshal(rawMap["message"], &e.Error.Message) == nil {
+				return
+			}
+		}
+		e.Error.Message = string(data)
+		return
+	}
+	return json.Unmarshal(rawMap["error"], &e.Error)
+}

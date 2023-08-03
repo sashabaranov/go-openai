@@ -678,6 +678,37 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>Retry requests on Open AI errors</summary>
+
+```go
+...
+import (
+  "github.com/sashabaranov/go-openai"
+  "github.com/sashabaranov/go-openai/retry"
+)
+...
+err := retry.OnError(ctx, backOff, func() error {
+  // create context with some timeout for preventing long requests
+  ctx, cancel := context.WithTimeout(ctx, time.Minute)
+  defer cancel()
+
+  // call OpenAI API
+  resp, err = openAIClient.CreateEmbeddings(ctx,
+    openai.EmbeddingRequest{
+      Input: []string{text},
+      Model: openai.AdaEmbeddingV2,
+  })
+  return err
+})
+if err != nil {
+  return nil, errors.Wrap(err, "error getting embeddings")
+}
+```
+
+</details>
+
 See the `examples/` folder for more.
 
 ### Integration tests:

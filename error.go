@@ -7,16 +7,17 @@ import (
 )
 
 // APIError provides error information returned by the OpenAI API.
+// InnerError struct is only valid for Azure OpenAI Service.
 type APIError struct {
-	Code           any        `json:"code,omitempty"`
-	Message        string     `json:"message"`
-	Param          *string    `json:"param,omitempty"`
-	Type           string     `json:"type"`
-	HTTPStatusCode int        `json:"-"`
-	InnerError     InnerError `json:"innererror,omitempty"`
+	Code           any         `json:"code,omitempty"`
+	Message        string      `json:"message"`
+	Param          *string     `json:"param,omitempty"`
+	Type           string      `json:"type"`
+	HTTPStatusCode int         `json:"-"`
+	InnerError     *InnerError `json:"innererror,omitempty"`
 }
 
-// InnerError Azure Content filtering.
+// InnerError Azure Content filtering. Only valid for Azure OpenAI Service.
 type InnerError struct {
 	Code                 string               `json:"code,omitempty"`
 	ContentFilterResults ContentFilterResults `json:"content_filter_result,omitempty"`

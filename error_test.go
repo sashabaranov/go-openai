@@ -3,6 +3,7 @@ package openai_test
 import (
 	"errors"
 	"net/http"
+	"reflect"
 	"testing"
 
 	. "github.com/sashabaranov/go-openai"
@@ -58,11 +59,74 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			},
 		},
 		{
-			name:     "parse succeeds when the innerError is exists (Azure Openai)",
+			name: "parse succeeds when the innerError is not exists (Azure Openai)",
+			response: `{
+						"message": "test message",
+						"type": null,
+						"param": "prompt",
+						"code": "content_filter",
+						"status": 400,
+						"innererror": {
+							"code": "ResponsibleAIPolicyViolation",
+							"content_filter_result": {
+								"hate": {
+									"filtered": false,
+									"severity": "safe"
+								},
+								"self_harm": {
+									"filtered": false,
+									"severity": "safe"
+								},
+								"sexual": {
+									"filtered": true,
+									"severity": "medium"
+								},
+								"violence": {
+									"filtered": false,
+									"severity": "safe"
+								}
+							}
+						}
+					}`,
+			hasError: false,
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, &InnerError{
+					Code: "ResponsibleAIPolicyViolation",
+					ContentFilterResults: ContentFilterResults{
+						Hate: Hate{
+							Filtered: false,
+							Severity: "safe",
+						},
+						SelfHarm: SelfHarm{
+							Filtered: false,
+							Severity: "safe",
+						},
+						Sexual: Sexual{
+							Filtered: true,
+							Severity: "medium",
+						},
+						Violence: Violence{
+							Filtered: false,
+							Severity: "safe",
+						},
+					},
+				})
+			},
+		},
+		{
+			name:     "parse succeeds when the innerError is empty (Azure Openai)",
 			response: `{"message": "","type": null,"param": "","code": "","status": 0,"innererror": {}}`,
 			hasError: false,
 			checkFunc: func(t *testing.T, apiErr APIError) {
-				assertAPIErrorInnerError(t, apiErr, InnerError{})
+				assertAPIErrorInnerError(t, apiErr, &InnerError{})
+			},
+		},
+		{
+			name:     "parse succeeds when the innerError is not InnerError struct (Azure Openai)",
+			response: `{"message": "","type": null,"param": "","code": "","status": 0,"innererror": "test"}`,
+			hasError: true,
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, &InnerError{})
 			},
 		},
 		{
@@ -161,7 +225,7 @@ func assertAPIErrorMessage(t *testing.T, apiErr APIError, expected string) {
 }
 
 func assertAPIErrorInnerError(t *testing.T, apiErr APIError, expected interface{}) {
-	if apiErr.InnerError != expected {
+	if !reflect.DeepEqual(apiErr.InnerError, expected) {
 		t.Errorf("Unexpected APIError InnerError: %v; expected: %v; ", apiErr, expected)
 	}
 }

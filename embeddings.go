@@ -7,107 +7,42 @@ import (
 
 // EmbeddingModel enumerates the models which can be used
 // to generate Embedding vectors.
-type EmbeddingModel int
-
-// String implements the fmt.Stringer interface.
-func (e EmbeddingModel) String() string {
-	return enumToString[e]
-}
-
-// MarshalText implements the encoding.TextMarshaler interface.
-func (e EmbeddingModel) MarshalText() ([]byte, error) {
-	return []byte(e.String()), nil
-}
-
-// UnmarshalText implements the encoding.TextUnmarshaler interface.
-// On unrecognized value, it sets |e| to Unknown.
-func (e *EmbeddingModel) UnmarshalText(b []byte) error {
-	if val, ok := stringToEnum[(string(b))]; ok {
-		*e = val
-		return nil
-	}
-
-	*e = Unknown
-
-	return nil
-}
 
 const (
-	Unknown EmbeddingModel = iota
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	AdaSimilarity
+	AdaSimilarity = "text-similarity-ada-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	BabbageSimilarity
+	BabbageSimilarity = "text-similarity-babbage-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	CurieSimilarity
+	CurieSimilarity = "text-similarity-curie-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	DavinciSimilarity
+	DavinciSimilarity = "text-similarity-davinci-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	AdaSearchDocument
+	AdaSearchDocument = "text-search-ada-doc-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	AdaSearchQuery
+	AdaSearchQuery = "text-search-ada-query-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	BabbageSearchDocument
+	BabbageSearchDocument = "text-search-babbage-doc-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	BabbageSearchQuery
+	BabbageSearchQuery = "text-search-babbage-query-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	CurieSearchDocument
+	CurieSearchDocument = "text-search-curie-doc-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	CurieSearchQuery
+	CurieSearchQuery = "text-search-curie-query-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	DavinciSearchDocument
+	DavinciSearchDocument = "text-search-davinci-doc-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	DavinciSearchQuery
+	DavinciSearchQuery = "text-search-davinci-query-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	AdaCodeSearchCode
+	AdaCodeSearchCode = "code-search-ada-code-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	AdaCodeSearchText
+	AdaCodeSearchText = "code-search-ada-text-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	BabbageCodeSearchCode
+	BabbageCodeSearchCode = "code-search-babbage-code-001"
 	// Deprecated: Will be shut down on January 04, 2024. Use text-embedding-ada-002 instead.
-	BabbageCodeSearchText
-	AdaEmbeddingV2
+	BabbageCodeSearchText = "code-search-babbage-text-001"
+	AdaEmbeddingV2        = "text-embedding-ada-002"
 )
-
-var enumToString = map[EmbeddingModel]string{
-	AdaSimilarity:         "text-similarity-ada-001",
-	BabbageSimilarity:     "text-similarity-babbage-001",
-	CurieSimilarity:       "text-similarity-curie-001",
-	DavinciSimilarity:     "text-similarity-davinci-001",
-	AdaSearchDocument:     "text-search-ada-doc-001",
-	AdaSearchQuery:        "text-search-ada-query-001",
-	BabbageSearchDocument: "text-search-babbage-doc-001",
-	BabbageSearchQuery:    "text-search-babbage-query-001",
-	CurieSearchDocument:   "text-search-curie-doc-001",
-	CurieSearchQuery:      "text-search-curie-query-001",
-	DavinciSearchDocument: "text-search-davinci-doc-001",
-	DavinciSearchQuery:    "text-search-davinci-query-001",
-	AdaCodeSearchCode:     "code-search-ada-code-001",
-	AdaCodeSearchText:     "code-search-ada-text-001",
-	BabbageCodeSearchCode: "code-search-babbage-code-001",
-	BabbageCodeSearchText: "code-search-babbage-text-001",
-	AdaEmbeddingV2:        "text-embedding-ada-002",
-}
-
-var stringToEnum = map[string]EmbeddingModel{
-	"text-similarity-ada-001":       AdaSimilarity,
-	"text-similarity-babbage-001":   BabbageSimilarity,
-	"text-similarity-curie-001":     CurieSimilarity,
-	"text-similarity-davinci-001":   DavinciSimilarity,
-	"text-search-ada-doc-001":       AdaSearchDocument,
-	"text-search-ada-query-001":     AdaSearchQuery,
-	"text-search-babbage-doc-001":   BabbageSearchDocument,
-	"text-search-babbage-query-001": BabbageSearchQuery,
-	"text-search-curie-doc-001":     CurieSearchDocument,
-	"text-search-curie-query-001":   CurieSearchQuery,
-	"text-search-davinci-doc-001":   DavinciSearchDocument,
-	"text-search-davinci-query-001": DavinciSearchQuery,
-	"code-search-ada-code-001":      AdaCodeSearchCode,
-	"code-search-ada-text-001":      AdaCodeSearchText,
-	"code-search-babbage-code-001":  BabbageCodeSearchCode,
-	"code-search-babbage-text-001":  BabbageCodeSearchText,
-	"text-embedding-ada-002":        AdaEmbeddingV2,
-}
 
 // Embedding is a special format of data representation that can be easily utilized by machine
 // learning models and algorithms. The embedding is an information dense representation of the
@@ -123,10 +58,10 @@ type Embedding struct {
 
 // EmbeddingResponse is the response from a Create embeddings request.
 type EmbeddingResponse struct {
-	Object string         `json:"object"`
-	Data   []Embedding    `json:"data"`
-	Model  EmbeddingModel `json:"model"`
-	Usage  Usage          `json:"usage"`
+	Object string      `json:"object"`
+	Data   []Embedding `json:"data"`
+	Model  string      `json:"model"`
+	Usage  Usage       `json:"usage"`
 }
 
 type EmbeddingRequestConverter interface {
@@ -135,9 +70,9 @@ type EmbeddingRequestConverter interface {
 }
 
 type EmbeddingRequest struct {
-	Input any            `json:"input"`
-	Model EmbeddingModel `json:"model"`
-	User  string         `json:"user"`
+	Input any    `json:"input"`
+	Model string `json:"model"`
+	User  string `json:"user"`
 }
 
 func (r EmbeddingRequest) Convert() EmbeddingRequest {
@@ -155,7 +90,7 @@ type EmbeddingRequestStrings struct {
 	Input []string `json:"input"`
 	// ID of the model to use. You can use the List models API to see all of your available models,
 	// or see our Model overview for descriptions of them.
-	Model EmbeddingModel `json:"model"`
+	Model string `json:"model"`
 	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
 	User string `json:"user"`
 }
@@ -178,7 +113,7 @@ type EmbeddingRequestTokens struct {
 	Input [][]int `json:"input"`
 	// ID of the model to use. You can use the List models API to see all of your available models,
 	// or see our Model overview for descriptions of them.
-	Model EmbeddingModel `json:"model"`
+	Model string `json:"model"`
 	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
 	User string `json:"user"`
 }
@@ -198,7 +133,7 @@ func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 // for embedding groups of text already converted to tokens.
 func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConverter) (res EmbeddingResponse, err error) { //nolint:lll
 	baseReq := conv.Convert()
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model), withBody(baseReq))
 	if err != nil {
 		return
 	}

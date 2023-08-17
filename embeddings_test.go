@@ -1,19 +1,19 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"testing"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestEmbedding(t *testing.T) {
-	embeddedModels := []EmbeddingModel{
+	embeddedModels := []string{
 		AdaSimilarity,
 		BabbageSimilarity,
 		CurieSimilarity,
@@ -44,7 +44,7 @@ func TestEmbedding(t *testing.T) {
 		// the AdaSearchQuery type
 		marshaled, err := json.Marshal(embeddingReq)
 		checks.NoError(t, err, "Could not marshal embedding request")
-		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
+		if !bytes.Contains(marshaled, []byte(`"model":"`+model+`"`)) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}
 
@@ -58,7 +58,7 @@ func TestEmbedding(t *testing.T) {
 		}
 		marshaled, err = json.Marshal(embeddingReqStrings)
 		checks.NoError(t, err, "Could not marshal embedding request")
-		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
+		if !bytes.Contains(marshaled, []byte(`"model":"`+model+`"`)) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}
 
@@ -72,25 +72,9 @@ func TestEmbedding(t *testing.T) {
 		}
 		marshaled, err = json.Marshal(embeddingReqTokens)
 		checks.NoError(t, err, "Could not marshal embedding request")
-		if !bytes.Contains(marshaled, []byte(`"model":"`+model.String()+`"`)) {
+		if !bytes.Contains(marshaled, []byte(`"model":"`+model+`"`)) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}
-	}
-}
-
-func TestEmbeddingModel(t *testing.T) {
-	var em EmbeddingModel
-	err := em.UnmarshalText([]byte("text-similarity-ada-001"))
-	checks.NoError(t, err, "Could not marshal embedding model")
-
-	if em != AdaSimilarity {
-		t.Errorf("Model is not equal to AdaSimilarity")
-	}
-
-	err = em.UnmarshalText([]byte("some-non-existent-model"))
-	checks.NoError(t, err, "Could not marshal embedding model")
-	if em != Unknown {
-		t.Errorf("Model is not equal to Unknown")
 	}
 }
 

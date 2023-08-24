@@ -223,6 +223,18 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"ListFineTuneEvents", func() (any, error) {
 			return client.ListFineTuneEvents(ctx, "")
 		}},
+		{"CreateFineTuningJob", func() (any, error) {
+			return client.CreateFineTuningJob(ctx, FineTuningJobRequest{})
+		}},
+		{"CancelFineTuningJob", func() (any, error) {
+			return client.CancelFineTuningJob(ctx, "")
+		}},
+		{"RetrieveFineTuningJob", func() (any, error) {
+			return client.RetrieveFineTuningJob(ctx, "")
+		}},
+		{"ListFineTuningJobEvents", func() (any, error) {
+			return client.ListFineTuningJobEvents(ctx, "")
+		}},
 		{"Moderations", func() (any, error) {
 			return client.Moderations(ctx, ModerationRequest{})
 		}},

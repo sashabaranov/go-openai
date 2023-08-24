@@ -90,15 +90,15 @@ type listFineTuningJobEventsParameters struct {
 	limit *int
 }
 
-type listFineTuningJobEventsParameter func(*listFineTuningJobEventsParameters)
+type ListFineTuningJobEventsParameter func(*listFineTuningJobEventsParameters)
 
-func ListFineTuningJobEventsWithAfter(after string) listFineTuningJobEventsParameter {
+func ListFineTuningJobEventsWithAfter(after string) ListFineTuningJobEventsParameter {
 	return func(args *listFineTuningJobEventsParameters) {
 		args.after = &after
 	}
 }
 
-func ListFineTuningJobEventsWithLimit(limit int) listFineTuningJobEventsParameter {
+func ListFineTuningJobEventsWithLimit(limit int) ListFineTuningJobEventsParameter {
 	return func(args *listFineTuningJobEventsParameters) {
 		args.limit = &limit
 	}
@@ -108,7 +108,7 @@ func ListFineTuningJobEventsWithLimit(limit int) listFineTuningJobEventsParamete
 func (c *Client) ListFineTuningJobEvents(
 	ctx context.Context,
 	fineTuningJobID string,
-	setters ...listFineTuningJobEventsParameter,
+	setters ...ListFineTuningJobEventsParameter,
 ) (response FineTuningJobEventList, err error) {
 
 	parameters := &listFineTuningJobEventsParameters{

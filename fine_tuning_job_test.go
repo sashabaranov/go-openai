@@ -63,6 +63,6 @@ func TestFineTuningJob(t *testing.T) {
 	_, err = client.RetrieveFineTuningJob(ctx, testFineTuninigJobID)
 	checks.NoError(t, err, "RetrieveFineTuningJob error")
 
-	_, err = client.ListFineTuningJobEvents(ctx, testFineTuninigJobID, nil, nil)
+	_, err = client.ListFineTuningJobEvents(ctx, testFineTuninigJobID)
 	checks.NoError(t, err, "ListFineTuningJobEvents error")
 }

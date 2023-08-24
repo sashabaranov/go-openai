@@ -51,7 +51,10 @@ type FineTuningJobEvent struct {
 }
 
 // CreateFineTuningJob create a fine tuning job.
-func (c *Client) CreateFineTuningJob(ctx context.Context, request FineTuningJobRequest) (response FineTuningJob, err error) {
+func (c *Client) CreateFineTuningJob(
+	ctx context.Context,
+	request FineTuningJobRequest,
+) (response FineTuningJob, err error) {
 	urlSuffix := "/fine_tuning/jobs"
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
@@ -74,7 +77,10 @@ func (c *Client) CancelFineTuningJob(ctx context.Context, fineTuningJobID string
 }
 
 // RetrieveFineTuningJob retrieve a fine tuning job.
-func (c *Client) RetrieveFineTuningJob(ctx context.Context, fineTuningJobID string) (response FineTuningJob, err error) {
+func (c *Client) RetrieveFineTuningJob(
+	ctx context.Context,
+	fineTuningJobID string,
+) (response FineTuningJob, err error) {
 	urlSuffix := fmt.Sprintf("/fine_tuning/jobs/%s", fineTuningJobID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
@@ -110,7 +116,6 @@ func (c *Client) ListFineTuningJobEvents(
 	fineTuningJobID string,
 	setters ...ListFineTuningJobEventsParameter,
 ) (response FineTuningJobEventList, err error) {
-
 	parameters := &listFineTuningJobEventsParameters{
 		after: nil,
 		limit: nil,
@@ -135,7 +140,11 @@ func (c *Client) ListFineTuningJobEvents(
 		requestParamters = "?" + requestParamters
 	}
 
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+requestParamters))
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+requestParamters),
+	)
 	if err != nil {
 		return
 	}

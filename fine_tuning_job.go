@@ -41,13 +41,13 @@ type FineTuningJobEventList struct {
 }
 
 type FineTuningJobEvent struct {
-	Object    string      `json:"object"`
-	ID        string      `json:"id"`
-	CreatedAt int         `json:"created_at"`
-	Level     string      `json:"level"`
-	Message   string      `json:"message"`
-	Data      interface{} `json:"data"`
-	Type      string      `json:"type"`
+	Object    string `json:"object"`
+	ID        string `json:"id"`
+	CreatedAt int    `json:"created_at"`
+	Level     string `json:"level"`
+	Message   string `json:"message"`
+	Data      any    `json:"data"`
+	Type      string `json:"type"`
 }
 
 // CreateFineTuningJob create a fine tuning job.

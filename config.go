@@ -25,7 +25,7 @@ const AzureAPIKeyHeader = "api-key"
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	AuthToken string
+	authToken string
 
 	BaseURL              string
 	OrgID                string
@@ -39,7 +39,7 @@ type ClientConfig struct {
 
 func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
-		AuthToken: authToken,
+		authToken: authToken,
 		BaseURL:   openaiAPIURLv1,
 		APIType:   APITypeOpenAI,
 		OrgID:     "",
@@ -52,7 +52,7 @@ func DefaultConfig(authToken string) ClientConfig {
 
 func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
-		AuthToken:  apiKey,
+		authToken:  apiKey,
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAzure,

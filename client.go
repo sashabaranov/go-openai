@@ -21,12 +21,19 @@ type Client struct {
 }
 
 // NewClient creates new OpenAI API client.
-func NewClient(authToken string) *Client {
+func NewClient(authToken string, options ...ConfigOption) *Client {
 	config := DefaultConfig(authToken)
+
+	for _, opt := range options {
+		opt(&config)
+	}
+
 	return NewClientWithConfig(config)
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
+//
+// Deprecated: Please use NewClient with options
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
@@ -39,11 +46,9 @@ func NewClientWithConfig(config ClientConfig) *Client {
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
 //
-// Deprecated: Please use NewClientWithConfig.
+// Deprecated: Please use NewClient with options
 func NewOrgClient(authToken, org string) *Client {
-	config := DefaultConfig(authToken)
-	config.OrgID = org
-	return NewClientWithConfig(config)
+	return NewClient(authToken, WithOrgID(org))
 }
 
 type requestOptions struct {
@@ -145,10 +150,10 @@ func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure {
-		req.Header.Set(AzureAPIKeyHeader, c.config.AuthToken)
+		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
 	} else {
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.AuthToken))
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
 	}
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)

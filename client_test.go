@@ -23,17 +23,46 @@ func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any, _ htt
 func TestClient(t *testing.T) {
 	const mockToken = "mock token"
 	client := NewClient(mockToken)
-	if client.config.AuthToken != mockToken {
+	if client.config.authToken != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}
 
 	const mockOrg = "mock org"
 	client = NewOrgClient(mockToken, mockOrg)
-	if client.config.AuthToken != mockToken {
+	if client.config.authToken != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}
 	if client.config.OrgID != mockOrg {
 		t.Errorf("Client does not contain proper orgID")
+	}
+}
+
+func TestClientWithOptions(t *testing.T) {
+	const mockToken = "mock token"
+	const baseURL = "https://example.com"
+	const orgID = "myorg"
+	const apiType = APITypeAzure
+	const apiVersion = "2023-03-01"
+	const emptyMsgLimit = uint(10)
+	cli := NewClient(mockToken, WithBaseURL(baseURL), WithOrgID(orgID), WithAPIType(apiType), WithAPIVersion(apiVersion), WithEmptyMessagesLimit(emptyMsgLimit))
+
+	if cli.config.authToken != mockToken {
+		t.Errorf("Client does not contain proper token")
+	}
+	if cli.config.BaseURL != baseURL {
+		t.Errorf("Client does not contain proper baseURL")
+	}
+	if cli.config.OrgID != orgID {
+		t.Errorf("Client does not contain proper orgID")
+	}
+	if cli.config.APIType != apiType {
+		t.Errorf("Client does not contain proper apiType")
+	}
+	if cli.config.APIVersion != apiVersion {
+		t.Errorf("Client does not contain proper apiVersion")
+	}
+	if cli.config.EmptyMessagesLimit != emptyMsgLimit {
+		t.Errorf("Client does not contain proper emptyMessagesLimit")
 	}
 }
 

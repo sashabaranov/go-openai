@@ -27,12 +27,6 @@ func WithOrgID(orgID string) ConfigOption {
 	}
 }
 
-func WithModelMapperFunc(mapper func(model string) string) ConfigOption {
-	return func(config *ClientConfig) {
-		config.AzureModelMapperFunc = mapper
-	}
-}
-
 func WithEmptyMessagesLimit(limit uint) ConfigOption {
 	return func(config *ClientConfig) {
 		config.EmptyMessagesLimit = limit

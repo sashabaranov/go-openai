@@ -33,7 +33,7 @@ func NewClient(authToken string, options ...ConfigOption) *Client {
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
 //
-// Deprecated: Please use NewClient with options
+// Deprecated: Please use NewClient with options.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
@@ -46,7 +46,7 @@ func NewClientWithConfig(config ClientConfig) *Client {
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
 //
-// Deprecated: Please use NewClient with options
+// Deprecated: Please use NewClient with options.
 func NewOrgClient(authToken, org string) *Client {
 	return NewClient(authToken, WithOrgID(org))
 }

@@ -44,7 +44,13 @@ func TestClientWithOptions(t *testing.T) {
 	const apiType = APITypeAzure
 	const apiVersion = "2023-03-01"
 	const emptyMsgLimit = uint(10)
-	cli := NewClient(mockToken, WithBaseURL(baseURL), WithOrgID(orgID), WithAPIType(apiType), WithAPIVersion(apiVersion), WithEmptyMessagesLimit(emptyMsgLimit))
+	cli := NewClient(mockToken,
+		WithBaseURL(baseURL),
+		WithOrgID(orgID),
+		WithAPIType(apiType),
+		WithAPIVersion(apiVersion),
+		WithEmptyMessagesLimit(emptyMsgLimit),
+	)
 
 	if cli.config.authToken != mockToken {
 		t.Errorf("Client does not contain proper token")

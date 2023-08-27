@@ -44,9 +44,6 @@ func TestClientWithOptions(t *testing.T) {
 	const apiType = APITypeAzure
 	const apiVersion = "2023-03-01"
 	const emptyMsgLimit = uint(10)
-	mapper := func(model string) string {
-		return model
-	}
 	cli := NewClient(mockToken,
 		WithBaseURL(baseURL),
 		WithOrgID(orgID),

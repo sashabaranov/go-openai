@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type FineTuningJob struct {
@@ -125,25 +126,23 @@ func (c *Client) ListFineTuningJobEvents(
 		setter(parameters)
 	}
 
-	requestParamters := ""
+	urlValues := url.Values{}
 	if parameters.after != nil {
-		requestParamters += fmt.Sprintf("after=%s", *parameters.after)
+		urlValues.Add("after", *parameters.after)
 	}
 	if parameters.limit != nil {
-		if requestParamters != "" {
-			requestParamters += "&"
-		}
-		requestParamters += fmt.Sprintf("limit=%d", *parameters.limit)
+		urlValues.Add("limit", fmt.Sprintf("%d", *parameters.limit))
 	}
 
-	if requestParamters != "" {
-		requestParamters = "?" + requestParamters
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
 	}
 
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+requestParamters),
+		c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+encodedValues),
 	)
 	if err != nil {
 		return

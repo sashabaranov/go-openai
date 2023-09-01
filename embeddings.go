@@ -2,6 +2,9 @@ package openai
 
 import (
 	"context"
+	"encoding/base64"
+	"encoding/binary"
+	"math"
 	"net/http"
 )
 
@@ -129,15 +132,66 @@ type EmbeddingResponse struct {
 	Usage  Usage          `json:"usage"`
 }
 
+// base64Embedding is a container for base64 encoded embeddings.
+type base64Embedding struct {
+	Object    string `json:"object"`
+	Embedding string `json:"embedding"`
+	Index     int    `json:"index"`
+}
+
+// embeddingResponseBase64 is the response from a Create embeddings request with base64 encoding format.
+type embeddingResponseBase64 struct {
+	Object string            `json:"object"`
+	Data   []base64Embedding `json:"data"`
+	Model  EmbeddingModel    `json:"model"`
+	Usage  Usage             `json:"usage"`
+}
+
+// ToEmbeddingResponse converts an embeddingResponseBase64 to an EmbeddingResponse.
+func (r *embeddingResponseBase64) ToEmbeddingResponse() (EmbeddingResponse, error) {
+	data := make([]Embedding, len(r.Data))
+
+	for i, base64Embedding := range r.Data {
+		embedding, err := decodeBase64EmbeddingToFloat32Embedding(base64Embedding.Embedding)
+		if err != nil {
+			return EmbeddingResponse{}, err
+		}
+
+		data[i] = Embedding{
+			Object:    base64Embedding.Object,
+			Embedding: embedding,
+			Index:     base64Embedding.Index,
+		}
+	}
+
+	return EmbeddingResponse{
+		Object: r.Object,
+		Model:  r.Model,
+		Data:   data,
+		Usage:  r.Usage,
+	}, nil
+}
+
 type EmbeddingRequestConverter interface {
 	// Needs to be of type EmbeddingRequestStrings or EmbeddingRequestTokens
 	Convert() EmbeddingRequest
 }
 
+// EmbeddingEncodingFormat is the format of the embeddings data.
+// Currently, only "float" and "base64" are supported, however, "base64" is not officially documented.
+// If not specified OpenAI will use "float".
+type EmbeddingEncodingFormat string
+
+const (
+	EmbeddingEncodingFormatFloat  EmbeddingEncodingFormat = "float"
+	EmbeddingEncodingFormatBase64 EmbeddingEncodingFormat = "base64"
+)
+
 type EmbeddingRequest struct {
-	Input any            `json:"input"`
-	Model EmbeddingModel `json:"model"`
-	User  string         `json:"user"`
+	Input          any                     `json:"input"`
+	Model          EmbeddingModel          `json:"model"`
+	User           string                  `json:"user"`
+	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 }
 
 func (r EmbeddingRequest) Convert() EmbeddingRequest {
@@ -158,13 +212,18 @@ type EmbeddingRequestStrings struct {
 	Model EmbeddingModel `json:"model"`
 	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
 	User string `json:"user"`
+	// EmbeddingEncodingFormat is the format of the embeddings data.
+	// Currently, only "float" and "base64" are supported, however, "base64" is not officially documented.
+	// If not specified OpenAI will use "float".
+	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 }
 
 func (r EmbeddingRequestStrings) Convert() EmbeddingRequest {
 	return EmbeddingRequest{
-		Input: r.Input,
-		Model: r.Model,
-		User:  r.User,
+		Input:          r.Input,
+		Model:          r.Model,
+		User:           r.User,
+		EncodingFormat: r.EncodingFormat,
 	}
 }
 
@@ -181,13 +240,18 @@ type EmbeddingRequestTokens struct {
 	Model EmbeddingModel `json:"model"`
 	// A unique identifier representing your end-user, which will help OpenAI to monitor and detect abuse.
 	User string `json:"user"`
+	// EmbeddingEncodingFormat is the format of the embeddings data.
+	// Currently, only "float" and "base64" are supported, however, "base64" is not officially documented.
+	// If not specified OpenAI will use "float".
+	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 }
 
 func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 	return EmbeddingRequest{
-		Input: r.Input,
-		Model: r.Model,
-		User:  r.User,
+		Input:          r.Input,
+		Model:          r.Model,
+		User:           r.User,
+		EncodingFormat: r.EncodingFormat,
 	}
 }
 
@@ -203,7 +267,34 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 		return
 	}
 
-	err = c.sendRequest(req, &res)
+	var embeddingResponse any = &EmbeddingResponse{}
+	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
+		embeddingResponse = &embeddingResponseBase64{}
+	}
+
+	err = c.sendRequest(req, embeddingResponse)
+	if err != nil {
+		return
+	}
+
+	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
+		res, err = embeddingResponse.(*embeddingResponseBase64).ToEmbeddingResponse()
+		return
+	}
 
 	return
+}
+
+func decodeBase64EmbeddingToFloat32Embedding(data string) ([]float32, error) {
+	decodedData, err := base64.StdEncoding.DecodeString(data)
+	if err != nil {
+		return nil, err
+	}
+
+	floats := make([]float32, len(decodedData)/4)
+	for i := 0; i < len(floats); i++ {
+		floats[i] = math.Float32frombits(binary.LittleEndian.Uint32(decodedData[i*4 : (i+1)*4]))
+	}
+
+	return floats, nil
 }

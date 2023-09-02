@@ -1697,6 +1697,18 @@ func TestEmbeddingResponseBase64_ToEmbeddingResponse(t *testing.T) {
 			},
 			wantErr: false,
 		},
+		{
+			name: "Invalid embedding",
+			fields: fields{
+				Data: []Base64Embedding{
+					{
+						Embedding: "----",
+					},
+				},
+			},
+			want:    EmbeddingResponse{},
+			wantErr: true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

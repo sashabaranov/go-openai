@@ -290,13 +290,9 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 	}
 
 	err = c.sendRequest(req, embeddingResponse)
-	if err != nil {
-		return
-	}
 
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
 		res, err = embeddingResponse.(*EmbeddingResponseBase64).ToEmbeddingResponse()
-		return
 	}
 
 	return

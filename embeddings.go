@@ -291,7 +291,8 @@ func decodeBase64EmbeddingToFloat32Embedding(data string) ([]float32, error) {
 		return nil, err
 	}
 
-	floats := make([]float32, len(decodedData)/4)
+	const sizeOfFloat32 = 4
+	floats := make([]float32, len(decodedData)/sizeOfFloat32)
 	for i := 0; i < len(floats); i++ {
 		floats[i] = math.Float32frombits(binary.LittleEndian.Uint32(decodedData[i*4 : (i+1)*4]))
 	}

@@ -11,12 +11,44 @@ const (
 	ChatMessageRoleSystem    = "system"
 	ChatMessageRoleUser      = "user"
 	ChatMessageRoleAssistant = "assistant"
+	ChatMessageRoleFunction  = "function"
 )
+
+const chatCompletionsSuffix = "/chat/completions"
 
 var (
 	ErrChatCompletionInvalidModel       = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
 	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
 )
+
+type Hate struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type SelfHarm struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Sexual struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+type Violence struct {
+	Filtered bool   `json:"filtered"`
+	Severity string `json:"severity,omitempty"`
+}
+
+type ContentFilterResults struct {
+	Hate     Hate     `json:"hate,omitempty"`
+	SelfHarm SelfHarm `json:"self_harm,omitempty"`
+	Sexual   Sexual   `json:"sexual,omitempty"`
+	Violence Violence `json:"violence,omitempty"`
+}
+
+type PromptAnnotation struct {
+	PromptIndex          int                  `json:"prompt_index,omitempty"`
+	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
+}
 
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
@@ -27,6 +59,14 @@ type ChatCompletionMessage struct {
 	// - https://github.com/openai/openai-python/blob/main/chatml.md
 	// - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 	Name string `json:"name,omitempty"`
+
+	FunctionCall *FunctionCall `json:"function_call,omitempty"`
+}
+
+type FunctionCall struct {
+	Name string `json:"name,omitempty"`
+	// call function with arguments in JSON format
+	Arguments string `json:"arguments,omitempty"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.
@@ -41,14 +81,57 @@ type ChatCompletionRequest struct {
 	Stop             []string                `json:"stop,omitempty"`
 	PresencePenalty  float32                 `json:"presence_penalty,omitempty"`
 	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
-	LogitBias        map[string]int          `json:"logit_bias,omitempty"`
-	User             string                  `json:"user,omitempty"`
+	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
+	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
+	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
+	LogitBias    map[string]int       `json:"logit_bias,omitempty"`
+	User         string               `json:"user,omitempty"`
+	Functions    []FunctionDefinition `json:"functions,omitempty"`
+	FunctionCall any                  `json:"function_call,omitempty"`
+}
+
+type FunctionDefinition struct {
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	// Parameters is an object describing the function.
+	// You can pass json.RawMessage to describe the schema,
+	// or you can pass in a struct which serializes to the proper JSON schema.
+	// The jsonschema package is provided for convenience, but you should
+	// consider another specialized library if you require more complex schemas.
+	Parameters any `json:"parameters"`
+}
+
+// Deprecated: use FunctionDefinition instead.
+type FunctionDefine = FunctionDefinition
+
+type FinishReason string
+
+const (
+	FinishReasonStop          FinishReason = "stop"
+	FinishReasonLength        FinishReason = "length"
+	FinishReasonFunctionCall  FinishReason = "function_call"
+	FinishReasonContentFilter FinishReason = "content_filter"
+	FinishReasonNull          FinishReason = "null"
+)
+
+func (r FinishReason) MarshalJSON() ([]byte, error) {
+	if r == FinishReasonNull || r == "" {
+		return []byte("null"), nil
+	}
+	return []byte(`"` + string(r) + `"`), nil // best effort to not break future API changes
 }
 
 type ChatCompletionChoice struct {
-	Index        int                   `json:"index"`
-	Message      ChatCompletionMessage `json:"message"`
-	FinishReason string                `json:"finish_reason"`
+	Index   int                   `json:"index"`
+	Message ChatCompletionMessage `json:"message"`
+	// FinishReason
+	// stop: API returned complete message,
+	// or a message terminated by one of the stop sequences provided via the stop parameter
+	// length: Incomplete model output due to max_tokens parameter or token limit
+	// function_call: The model decided to call a function
+	// content_filter: Omitted content due to a flag from our content filters
+	// null: API response still in progress or incomplete
+	FinishReason FinishReason `json:"finish_reason"`
 }
 
 // ChatCompletionResponse represents a response structure for chat completion API.
@@ -71,13 +154,13 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	urlSuffix := "/chat/completions"
+	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
 	}
 
-	req, err := c.requestBuilder.build(ctx, http.MethodPost, c.fullURL(urlSuffix), request)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), withBody(request))
 	if err != nil {
 		return
 	}

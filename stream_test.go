@@ -1,16 +1,17 @@
 package openai_test
 
 import (
-	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"net/http"
-	"net/http/httptest"
+	"os"
 	"testing"
+	"time"
+
+	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestCompletionsStreamWrongModel(t *testing.T) {
@@ -31,7 +32,9 @@ func TestCompletionsStreamWrongModel(t *testing.T) {
 }
 
 func TestCreateCompletionStream(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -51,28 +54,14 @@ func TestCreateCompletionStream(t *testing.T) {
 
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
-	}))
-	defer server.Close()
+	})
 
-	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
-	}
-
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	}
-
-	stream, err := client.CreateCompletionStream(ctx, request)
+	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -115,7 +104,9 @@ func TestCreateCompletionStream(t *testing.T) {
 }
 
 func TestCreateCompletionStreamError(t *testing.T) {
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -136,28 +127,14 @@ func TestCreateCompletionStreamError(t *testing.T) {
 
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
-	}))
-	defer server.Close()
+	})
 
-	// Client portion of the test
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = server.URL + "/v1"
-	config.HTTPClient.Transport = &tokenRoundTripper{
-		test.GetTestToken(),
-		http.DefaultTransport,
-	}
-
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	request := CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		MaxTokens: 5,
 		Model:     GPT3TextDavinci003,
 		Prompt:    "Hello!",
 		Stream:    true,
-	}
-
-	stream, err := client.CreateCompletionStream(ctx, request)
+	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -171,27 +148,182 @@ func TestCreateCompletionStreamError(t *testing.T) {
 	t.Logf("%+v\n", apiErr)
 }
 
-// A "tokenRoundTripper" is a struct that implements the RoundTripper
-// interface, specifically to handle the authentication token by adding a token
-// to the request header. We need this because the API requires that each
-// request include a valid API token in the headers for authentication and
-// authorization.
-type tokenRoundTripper struct {
-	token    string
-	fallback http.RoundTripper
+func TestCreateCompletionStreamRateLimitError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(429)
+
+		// Send test responses
+		dataBytes := []byte(`{"error":{` +
+			`"message": "You are sending requests too quickly.",` +
+			`"type":"rate_limit_reached",` +
+			`"param":null,` +
+			`"code":"rate_limit_reached"}}`)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	var apiErr *APIError
+	_, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Ada,
+		Prompt:    "Hello!",
+		Stream:    true,
+	})
+	if !errors.As(err, &apiErr) {
+		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
+	}
+	t.Logf("%+v\n", apiErr)
 }
 
-// RoundTrip takes an *http.Request as input and returns an
-// *http.Response and an error.
-//
-// It is expected to use the provided request to create a connection to an HTTP
-// server and return the response, or an error if one occurred. The returned
-// Response should have its Body closed. If the RoundTrip method returns an
-// error, the Client's Get, Head, Post, and PostForm methods return the same
-// error.
-func (t *tokenRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	req.Header.Set("Authorization", "Bearer "+t.token)
-	return t.fallback.RoundTrip(req)
+func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Totally 301 empty messages (300 is the limit)
+		for i := 0; i < 299; i++ {
+			dataBytes = append(dataBytes, '\n')
+		}
+
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data = `{"id":"2","object":"completion","created":1598069255,"model":"text-davinci-002","choices":[{"text":"response2","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: done\n")...)
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, ErrTooManyEmptyStreamMessages) {
+		t.Errorf("TestCreateCompletionStreamTooManyEmptyStreamMessagesError did not return ErrTooManyEmptyStreamMessages")
+	}
+}
+
+func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Stream is terminated without sending "done" message
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("TestCreateCompletionStreamUnexpectedTerminatedError did not return io.EOF")
+	}
+}
+
+func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		dataBytes := []byte{}
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"text-davinci-002","choices":[{"text":"response1","finish_reason":"max_tokens"}]}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		// Send broken json
+		dataBytes = append(dataBytes, []byte("event: message\n")...)
+		data = `{"id":"2","object":"completion","created":1598069255,"model":`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("event: done\n")...)
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	_, _ = stream.Recv()
+	_, streamErr := stream.Recv()
+	var syntaxError *json.SyntaxError
+	if !errors.As(streamErr, &syntaxError) {
+		t.Errorf("TestCreateCompletionStreamBrokenJSONError did not return json.SyntaxError")
+	}
+}
+
+func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+		time.Sleep(10 * time.Nanosecond)
+	})
+	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(ctx, time.Nanosecond)
+	defer cancel()
+
+	_, err := client.CreateCompletionStream(ctx, CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     "text-davinci-002",
+		MaxTokens: 10,
+		Stream:    true,
+	})
+	if err == nil {
+		t.Fatal("Did not return error")
+	}
+	if !os.IsTimeout(err) {
+		t.Fatal("Did not return timeout error")
+	}
 }
 
 // Helper funcs.

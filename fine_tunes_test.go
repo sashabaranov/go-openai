@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -16,7 +15,8 @@ const testFineTuneID = "fine-tune-id"
 
 // TestFineTunes Tests the fine tunes endpoint of the API using the mocked server.
 func TestFineTunes(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler(
 		"/v1/fine-tunes",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -59,18 +59,9 @@ func TestFineTunes(t *testing.T) {
 		},
 	)
 
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
 	ctx := context.Background()
 
-	_, err = client.ListFineTunes(ctx)
+	_, err := client.ListFineTunes(ctx)
 	checks.NoError(t, err, "ListFineTunes error")
 
 	_, err = client.CreateFineTune(ctx, FineTuneRequest{})

@@ -5,9 +5,10 @@ import (
 	"context"
 	"fmt"
 	"io"
-	"mime/multipart"
 	"net/http"
 	"os"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
@@ -15,18 +16,52 @@ const (
 	Whisper1 = "whisper-1"
 )
 
+// Response formats; Whisper uses AudioResponseFormatJSON by default.
+type AudioResponseFormat string
+
+const (
+	AudioResponseFormatJSON        AudioResponseFormat = "json"
+	AudioResponseFormatText        AudioResponseFormat = "text"
+	AudioResponseFormatSRT         AudioResponseFormat = "srt"
+	AudioResponseFormatVerboseJSON AudioResponseFormat = "verbose_json"
+	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
+)
+
 // AudioRequest represents a request structure for audio API.
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
-	Model       string
-	FilePath    string
+	Model string
+
+	// FilePath is either an existing file in your filesystem or a filename representing the contents of Reader.
+	FilePath string
+
+	// Reader is an optional io.Reader when you do not want to use an existing file.
+	Reader io.Reader
+
 	Prompt      string // For translation, it should be in English
 	Temperature float32
 	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
+	Format      AudioResponseFormat
 }
 
 // AudioResponse represents a response structure for audio API.
 type AudioResponse struct {
+	Task     string  `json:"task"`
+	Language string  `json:"language"`
+	Duration float64 `json:"duration"`
+	Segments []struct {
+		ID               int     `json:"id"`
+		Seek             int     `json:"seek"`
+		Start            float64 `json:"start"`
+		End              float64 `json:"end"`
+		Text             string  `json:"text"`
+		Tokens           []int   `json:"tokens"`
+		Temperature      float64 `json:"temperature"`
+		AvgLogprob       float64 `json:"avg_logprob"`
+		CompressionRatio float64 `json:"compression_ratio"`
+		NoSpeechProb     float64 `json:"no_speech_prob"`
+		Transient        bool    `json:"transient"`
+	} `json:"segments"`
 	Text string `json:"text"`
 }
 
@@ -35,8 +70,7 @@ func (c *Client) CreateTranscription(
 	ctx context.Context,
 	request AudioRequest,
 ) (response AudioResponse, err error) {
-	response, err = c.callAudioAPI(ctx, request, "transcriptions")
-	return
+	return c.callAudioAPI(ctx, request, "transcriptions")
 }
 
 // CreateTranslation — API call to translate audio into English.
@@ -44,8 +78,7 @@ func (c *Client) CreateTranslation(
 	ctx context.Context,
 	request AudioRequest,
 ) (response AudioResponse, err error) {
-	response, err = c.callAudioAPI(ctx, request, "translations")
-	return
+	return c.callAudioAPI(ctx, request, "translations")
 }
 
 // callAudioAPI — API call to an audio endpoint.
@@ -55,92 +88,104 @@ func (c *Client) callAudioAPI(
 	endpointSuffix string,
 ) (response AudioResponse, err error) {
 	var formBody bytes.Buffer
-	w := multipart.NewWriter(&formBody)
+	builder := c.createFormBuilder(&formBody)
 
-	if err = audioMultipartForm(request, w); err != nil {
-		return
+	if err = audioMultipartForm(request, builder); err != nil {
+		return AudioResponse{}, err
 	}
 
 	urlSuffix := fmt.Sprintf("/audio/%s", endpointSuffix)
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, c.fullURL(urlSuffix), &formBody)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model),
+		withBody(&formBody), withContentType(builder.FormDataContentType()))
 	if err != nil {
-		return
+		return AudioResponse{}, err
 	}
-	req.Header.Add("Content-Type", w.FormDataContentType())
 
-	err = c.sendRequest(req, &response)
+	if request.HasJSONResponse() {
+		err = c.sendRequest(req, &response)
+	} else {
+		err = c.sendRequest(req, &response.Text)
+	}
+	if err != nil {
+		return AudioResponse{}, err
+	}
 	return
+}
+
+// HasJSONResponse returns true if the response format is JSON.
+func (r AudioRequest) HasJSONResponse() bool {
+	return r.Format == "" || r.Format == AudioResponseFormatJSON || r.Format == AudioResponseFormatVerboseJSON
 }
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
 // audio processing.
-func audioMultipartForm(request AudioRequest, w *multipart.Writer) error {
-	f, err := os.Open(request.FilePath)
+func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
+	err := createFileField(request, b)
 	if err != nil {
-		return fmt.Errorf("opening audio file: %w", err)
+		return err
 	}
-	defer f.Close()
 
-	fw, err := w.CreateFormFile("file", f.Name())
+	err = b.WriteField("model", request.Model)
 	if err != nil {
-		return fmt.Errorf("creating form file: %w", err)
-	}
-
-	if _, err = io.Copy(fw, f); err != nil {
-		return fmt.Errorf("reading from opened audio file: %w", err)
-	}
-
-	fw, err = w.CreateFormField("model")
-	if err != nil {
-		return fmt.Errorf("creating form field: %w", err)
-	}
-
-	modelName := bytes.NewReader([]byte(request.Model))
-	if _, err = io.Copy(fw, modelName); err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
 
 	// Create a form field for the prompt (if provided)
 	if request.Prompt != "" {
-		fw, err = w.CreateFormField("prompt")
+		err = b.WriteField("prompt", request.Prompt)
 		if err != nil {
-			return fmt.Errorf("creating form field: %w", err)
-		}
-
-		prompt := bytes.NewReader([]byte(request.Prompt))
-		if _, err = io.Copy(fw, prompt); err != nil {
 			return fmt.Errorf("writing prompt: %w", err)
+		}
+	}
+
+	// Create a form field for the format (if provided)
+	if request.Format != "" {
+		err = b.WriteField("response_format", string(request.Format))
+		if err != nil {
+			return fmt.Errorf("writing format: %w", err)
 		}
 	}
 
 	// Create a form field for the temperature (if provided)
 	if request.Temperature != 0 {
-		fw, err = w.CreateFormField("temperature")
+		err = b.WriteField("temperature", fmt.Sprintf("%.2f", request.Temperature))
 		if err != nil {
-			return fmt.Errorf("creating form field: %w", err)
-		}
-
-		temperature := bytes.NewReader([]byte(fmt.Sprintf("%.2f", request.Temperature)))
-		if _, err = io.Copy(fw, temperature); err != nil {
 			return fmt.Errorf("writing temperature: %w", err)
 		}
 	}
 
 	// Create a form field for the language (if provided)
 	if request.Language != "" {
-		fw, err = w.CreateFormField("language")
+		err = b.WriteField("language", request.Language)
 		if err != nil {
-			return fmt.Errorf("creating form field: %w", err)
-		}
-
-		language := bytes.NewReader([]byte(request.Language))
-		if _, err = io.Copy(fw, language); err != nil {
 			return fmt.Errorf("writing language: %w", err)
 		}
 	}
 
 	// Close the multipart writer
-	w.Close()
+	return b.Close()
+}
+
+// createFileField creates the "file" form field from either an existing file or by using the reader.
+func createFileField(request AudioRequest, b utils.FormBuilder) error {
+	if request.Reader != nil {
+		err := b.CreateFormFileReader("file", request.Reader, request.FilePath)
+		if err != nil {
+			return fmt.Errorf("creating form using reader: %w", err)
+		}
+		return nil
+	}
+
+	f, err := os.Open(request.FilePath)
+	if err != nil {
+		return fmt.Errorf("opening audio file: %w", err)
+	}
+	defer f.Close()
+
+	err = b.CreateFormFile("file", f)
+	if err != nil {
+		return fmt.Errorf("creating form file: %w", err)
+	}
 
 	return nil
 }

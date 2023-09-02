@@ -1,26 +1,30 @@
 package openai
 
 import (
-	"bufio"
 	"context"
+	"net/http"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
-	Content string `json:"content"`
+	Content      string        `json:"content,omitempty"`
+	Role         string        `json:"role,omitempty"`
+	FunctionCall *FunctionCall `json:"function_call,omitempty"`
 }
 
 type ChatCompletionStreamChoice struct {
-	Index        int                             `json:"index"`
-	Delta        ChatCompletionStreamChoiceDelta `json:"delta"`
-	FinishReason string                          `json:"finish_reason"`
+	Index                int                             `json:"index"`
+	Delta                ChatCompletionStreamChoiceDelta `json:"delta"`
+	FinishReason         FinishReason                    `json:"finish_reason"`
+	ContentFilterResults ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
 type ChatCompletionStreamResponse struct {
-	ID      string                       `json:"id"`
-	Object  string                       `json:"object"`
-	Created int64                        `json:"created"`
-	Model   string                       `json:"model"`
-	Choices []ChatCompletionStreamChoice `json:"choices"`
+	ID                string                       `json:"id"`
+	Object            string                       `json:"object"`
+	Created           int64                        `json:"created"`
+	Model             string                       `json:"model"`
+	Choices           []ChatCompletionStreamChoice `json:"choices"`
+	PromptAnnotations []PromptAnnotation           `json:"prompt_annotations,omitempty"`
 }
 
 // ChatCompletionStream
@@ -37,31 +41,24 @@ func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (stream *ChatCompletionStream, err error) {
-	urlSuffix := "/chat/completions"
+	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return
 	}
 
 	request.Stream = true
-	req, err := c.newStreamRequest(ctx, "POST", urlSuffix, request)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model), withBody(request))
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := sendRequestStream[ChatCompletionStreamResponse](c, req)
 	if err != nil {
 		return
 	}
-
-	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
-	if err != nil {
-		return
-	}
-
 	stream = &ChatCompletionStream{
-		streamReader: &streamReader[ChatCompletionStreamResponse]{
-			emptyMessagesLimit: c.config.EmptyMessagesLimit,
-			reader:             bufio.NewReader(resp.Body),
-			response:           resp,
-			errAccumulator:     newErrorAccumulator(),
-			unmarshaler:        &jsonUnmarshaler{},
-		},
+		streamReader: resp,
 	}
 	return
 }

@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 )
 
@@ -40,11 +41,24 @@ type ModelsList struct {
 // ListModels Lists the currently available models,
 // and provides basic information about each model such as the model id and parent.
 func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) {
-	req, err := c.requestBuilder.build(ctx, http.MethodGet, c.fullURL("/models"), nil)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/models"))
 	if err != nil {
 		return
 	}
 
 	err = c.sendRequest(req, &models)
+	return
+}
+
+// GetModel Retrieves a model instance, providing basic information about
+// the model such as the owner and permissioning.
+func (c *Client) GetModel(ctx context.Context, modelID string) (model Model, err error) {
+	urlSuffix := fmt.Sprintf("/models/%s", modelID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &model)
 	return
 }

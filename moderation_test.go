@@ -2,7 +2,6 @@ package openai_test
 
 import (
 	. "github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -18,27 +17,49 @@ import (
 
 // TestModeration Tests the moderations endpoint of the API using the mocked server.
 func TestModerations(t *testing.T) {
-	server := test.NewTestServer()
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
-	// create the test server
-	var err error
-	ts := server.OpenAITestServer()
-	ts.Start()
-	defer ts.Close()
-
-	config := DefaultConfig(test.GetTestToken())
-	config.BaseURL = ts.URL + "/v1"
-	client := NewClientWithConfig(config)
-	ctx := context.Background()
-
-	// create an edit request
-	model := "text-moderation-stable"
-	moderationReq := ModerationRequest{
-		Model: &model,
+	_, err := client.Moderations(context.Background(), ModerationRequest{
+		Model: ModerationTextStable,
 		Input: "I want to kill them.",
-	}
-	_, err = client.Moderations(ctx, moderationReq)
+	})
 	checks.NoError(t, err, "Moderation error")
+}
+
+// TestModerationsWithIncorrectModel Tests passing valid and invalid models to moderations endpoint.
+func TestModerationsWithDifferentModelOptions(t *testing.T) {
+	var modelOptions []struct {
+		model  string
+		expect error
+	}
+	modelOptions = append(modelOptions,
+		getModerationModelTestOption(GPT3Dot5Turbo, ErrModerationInvalidModel),
+		getModerationModelTestOption(ModerationTextStable, nil),
+		getModerationModelTestOption(ModerationTextLatest, nil),
+		getModerationModelTestOption("", nil),
+	)
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/moderations", handleModerationEndpoint)
+	for _, modelTest := range modelOptions {
+		_, err := client.Moderations(context.Background(), ModerationRequest{
+			Model: modelTest.model,
+			Input: "I want to kill them.",
+		})
+		checks.ErrorIs(t, err, modelTest.expect,
+			fmt.Sprintf("Moderations(..) expects err: %v, actual err:%v", modelTest.expect, err))
+	}
+}
+
+func getModerationModelTestOption(model string, expect error) struct {
+	model  string
+	expect error
+} {
+	return struct {
+		model  string
+		expect error
+	}{model: model, expect: expect}
 }
 
 // handleModerationEndpoint Handles the moderation endpoint by the test server.
@@ -77,7 +98,7 @@ func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	res := ModerationResponse{
 		ID:    strconv.Itoa(int(time.Now().Unix())),
-		Model: *moderationReq.Model,
+		Model: moderationReq.Model,
 	}
 	res.Results = append(res.Results, result)
 

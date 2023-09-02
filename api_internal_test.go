@@ -42,6 +42,7 @@ func TestRequestAuthHeader(t *testing.T) {
 		APIType   APIType
 		HeaderKey string
 		Token     string
+		OrgID     string
 		Expect    string
 	}{
 		{
@@ -49,6 +50,15 @@ func TestRequestAuthHeader(t *testing.T) {
 			"",
 			"Authorization",
 			"dummy-token-openai",
+			"",
+			"Bearer dummy-token-openai",
+		},
+		{
+			"OpenAIOrg",
+			APITypeOpenAI,
+			"Authorization",
+			"dummy-token-openai",
+			"dummy-org-openai",
 			"Bearer dummy-token-openai",
 		},
 		{
@@ -56,6 +66,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeOpenAI,
 			"Authorization",
 			"dummy-token-openai",
+			"",
 			"Bearer dummy-token-openai",
 		},
 		{
@@ -63,6 +74,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeAzureAD,
 			"Authorization",
 			"dummy-token-azure",
+			"",
 			"Bearer dummy-token-azure",
 		},
 		{
@@ -70,6 +82,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			APITypeAzure,
 			AzureAPIKeyHeader,
 			"dummy-api-key-here",
+			"",
 			"dummy-api-key-here",
 		},
 	}
@@ -78,9 +91,10 @@ func TestRequestAuthHeader(t *testing.T) {
 		t.Run(c.Name, func(t *testing.T) {
 			az := DefaultConfig(c.Token)
 			az.APIType = c.APIType
+			az.OrgID = c.OrgID
 
 			cli := NewClientWithConfig(az)
-			req, err := cli.newStreamRequest(context.Background(), "POST", "/chat/completions", nil)
+			req, err := cli.newRequest(context.Background(), "POST", "/chat/completions")
 			if err != nil {
 				t.Errorf("Failed to create request: %v", err)
 			}
@@ -95,35 +109,38 @@ func TestRequestAuthHeader(t *testing.T) {
 
 func TestAzureFullURL(t *testing.T) {
 	cases := []struct {
-		Name    string
-		BaseURL string
-		Engine  string
-		Expect  string
+		Name             string
+		BaseURL          string
+		AzureModelMapper map[string]string
+		Model            string
+		Expect           string
 	}{
 		{
 			"AzureBaseURLWithSlashAutoStrip",
 			"https://httpbin.org/",
+			nil,
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
-				"/chat/completions?api-version=2023-03-15-preview",
+				"/chat/completions?api-version=2023-05-15",
 		},
 		{
 			"AzureBaseURLWithoutSlashOK",
 			"https://httpbin.org",
+			nil,
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
-				"/chat/completions?api-version=2023-03-15-preview",
+				"/chat/completions?api-version=2023-05-15",
 		},
 	}
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultAzureConfig("dummy", c.BaseURL, c.Engine)
+			az := DefaultAzureConfig("dummy", c.BaseURL)
 			cli := NewClientWithConfig(az)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
-			actual := cli.fullURL("/chat/completions")
+			actual := cli.fullURL("/chat/completions", c.Model)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

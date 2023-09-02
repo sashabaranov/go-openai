@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
-	"fmt"
 	"math"
 	"net/http"
 )
@@ -136,8 +135,6 @@ type EmbeddingResponse struct {
 type base64String string
 
 func (b base64String) Decode() ([]float32, error) {
-
-	fmt.Println(b)
 	decodedData, err := base64.StdEncoding.DecodeString(string(b))
 	if err != nil {
 		return nil, err

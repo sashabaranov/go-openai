@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
+	"fmt"
 	"math"
 	"net/http"
 )
@@ -132,27 +133,46 @@ type EmbeddingResponse struct {
 	Usage  Usage          `json:"usage"`
 }
 
-// base64Embedding is a container for base64 encoded embeddings.
-type base64Embedding struct {
-	Object    string `json:"object"`
-	Embedding string `json:"embedding"`
-	Index     int    `json:"index"`
+type base64String string
+
+func (b base64String) Decode() ([]float32, error) {
+
+	fmt.Println(b)
+	decodedData, err := base64.StdEncoding.DecodeString(string(b))
+	if err != nil {
+		return nil, err
+	}
+
+	const sizeOfFloat32 = 4
+	floats := make([]float32, len(decodedData)/sizeOfFloat32)
+	for i := 0; i < len(floats); i++ {
+		floats[i] = math.Float32frombits(binary.LittleEndian.Uint32(decodedData[i*4 : (i+1)*4]))
+	}
+
+	return floats, nil
 }
 
-// embeddingResponseBase64 is the response from a Create embeddings request with base64 encoding format.
-type embeddingResponseBase64 struct {
+// Base64Embedding is a container for base64 encoded embeddings.
+type Base64Embedding struct {
+	Object    string       `json:"object"`
+	Embedding base64String `json:"embedding"`
+	Index     int          `json:"index"`
+}
+
+// EmbeddingResponseBase64 is the response from a Create embeddings request with base64 encoding format.
+type EmbeddingResponseBase64 struct {
 	Object string            `json:"object"`
-	Data   []base64Embedding `json:"data"`
+	Data   []Base64Embedding `json:"data"`
 	Model  EmbeddingModel    `json:"model"`
 	Usage  Usage             `json:"usage"`
 }
 
 // ToEmbeddingResponse converts an embeddingResponseBase64 to an EmbeddingResponse.
-func (r *embeddingResponseBase64) ToEmbeddingResponse() (EmbeddingResponse, error) {
+func (r *EmbeddingResponseBase64) ToEmbeddingResponse() (EmbeddingResponse, error) {
 	data := make([]Embedding, len(r.Data))
 
 	for i, base64Embedding := range r.Data {
-		embedding, err := decodeBase64EmbeddingToFloat32Embedding(base64Embedding.Embedding)
+		embedding, err := base64Embedding.Embedding.Decode()
 		if err != nil {
 			return EmbeddingResponse{}, err
 		}
@@ -269,7 +289,7 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 
 	var embeddingResponse any = &EmbeddingResponse{}
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
-		embeddingResponse = &embeddingResponseBase64{}
+		embeddingResponse = &EmbeddingResponseBase64{}
 	}
 
 	err = c.sendRequest(req, embeddingResponse)
@@ -278,24 +298,9 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 	}
 
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
-		res, err = embeddingResponse.(*embeddingResponseBase64).ToEmbeddingResponse()
+		res, err = embeddingResponse.(*EmbeddingResponseBase64).ToEmbeddingResponse()
 		return
 	}
 
 	return
-}
-
-func decodeBase64EmbeddingToFloat32Embedding(data string) ([]float32, error) {
-	decodedData, err := base64.StdEncoding.DecodeString(data)
-	if err != nil {
-		return nil, err
-	}
-
-	const sizeOfFloat32 = 4
-	floats := make([]float32, len(decodedData)/sizeOfFloat32)
-	for i := 0; i < len(floats); i++ {
-		floats[i] = math.Float32frombits(binary.LittleEndian.Uint32(decodedData[i*4 : (i+1)*4]))
-	}
-
-	return floats, nil
 }

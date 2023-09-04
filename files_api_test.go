@@ -64,7 +64,6 @@ func handleCreateFile(w http.ResponseWriter, r *http.Request) {
 		Purpose:   purpose,
 		CreatedAt: time.Now().Unix(),
 		Object:    "test-objecct",
-		Owner:     "test-owner",
 	}
 
 	resBytes, _ = json.Marshal(fileReq)

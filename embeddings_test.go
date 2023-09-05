@@ -98,33 +98,51 @@ func TestEmbeddingModel(t *testing.T) {
 func TestEmbeddingEndpoint(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
+
+	sampleEmbeddings := []Embedding{
+		{Embedding: []float32{1.23, 4.56, 7.89}},
+		{Embedding: []float32{-0.006968617, -0.0052718227, 0.011901081}},
+	}
+
 	server.RegisterHandler(
 		"/v1/embeddings",
 		func(w http.ResponseWriter, r *http.Request) {
-			resBytes, _ := json.Marshal(EmbeddingResponse{})
+			resBytes, _ := json.Marshal(EmbeddingResponse{Data: sampleEmbeddings})
 			fmt.Fprintln(w, string(resBytes))
 		},
 	)
 	// test create embeddings with strings (simple embedding request)
-	_, err := client.CreateEmbeddings(context.Background(), EmbeddingRequest{})
+	res, err := client.CreateEmbeddings(context.Background(), EmbeddingRequest{})
 	checks.NoError(t, err, "CreateEmbeddings error")
+	if len(res.Data) != len(sampleEmbeddings) {
+		t.Errorf("Expected %d embeddings, got %d", len(sampleEmbeddings), len(res.Data))
+	}
 
 	// test create embeddings with strings (simple embedding request)
-	_, err = client.CreateEmbeddings(
+	res, err = client.CreateEmbeddings(
 		context.Background(),
 		EmbeddingRequest{
 			EncodingFormat: EmbeddingEncodingFormatBase64,
 		},
 	)
 	checks.NoError(t, err, "CreateEmbeddings error")
+	if len(res.Data) != len(sampleEmbeddings) {
+		t.Errorf("Expected %d embeddings, got %d", len(sampleEmbeddings), len(res.Data))
+	}
 
 	// test create embeddings with strings
-	_, err = client.CreateEmbeddings(context.Background(), EmbeddingRequestStrings{})
+	res, err = client.CreateEmbeddings(context.Background(), EmbeddingRequestStrings{})
 	checks.NoError(t, err, "CreateEmbeddings strings error")
+	if len(res.Data) != len(sampleEmbeddings) {
+		t.Errorf("Expected %d embeddings, got %d", len(sampleEmbeddings), len(res.Data))
+	}
 
 	// test create embeddings with tokens
-	_, err = client.CreateEmbeddings(context.Background(), EmbeddingRequestTokens{})
+	res, err = client.CreateEmbeddings(context.Background(), EmbeddingRequestTokens{})
 	checks.NoError(t, err, "CreateEmbeddings tokens error")
+	if len(res.Data) != len(sampleEmbeddings) {
+		t.Errorf("Expected %d embeddings, got %d", len(sampleEmbeddings), len(res.Data))
+	}
 }
 
 func TestEmbeddingResponseBase64_ToEmbeddingResponse(t *testing.T) {

@@ -284,7 +284,7 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 		return
 	}
 
-	var embeddingResponse any = &EmbeddingResponse{}
+	var embeddingResponse any = &res
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
 		embeddingResponse = &EmbeddingResponseBase64{}
 	}

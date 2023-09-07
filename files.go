@@ -17,13 +17,14 @@ type FileRequest struct {
 
 // File struct represents an OpenAPI file.
 type File struct {
-	Bytes     int    `json:"bytes"`
-	CreatedAt int64  `json:"created_at"`
-	ID        string `json:"id"`
-	FileName  string `json:"filename"`
-	Object    string `json:"object"`
-	Owner     string `json:"owner"`
-	Purpose   string `json:"purpose"`
+	Bytes         int    `json:"bytes"`
+	CreatedAt     int64  `json:"created_at"`
+	ID            string `json:"id"`
+	FileName      string `json:"filename"`
+	Object        string `json:"object"`
+	Status        string `json:"status"`
+	Purpose       string `json:"purpose"`
+	StatusDetails string `json:"status_details"`
 }
 
 // FilesList is a list of files that belong to the user or organization.

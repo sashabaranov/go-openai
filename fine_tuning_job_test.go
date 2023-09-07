@@ -87,4 +87,26 @@ func TestFineTuningJob(t *testing.T) {
 		ListFineTuningJobEventsWithLimit(10),
 	)
 	checks.NoError(t, err, "ListFineTuningJobEvents error")
+
+	_, err = client.ListFineTuningJobs(ctx)
+	checks.NoError(t, err, "ListFineTuningJobs error")
+
+	_, err = client.ListFineTuningJobs(
+		ctx,
+		ListFineTuningJobsWithAfter("last-event-id"),
+	)
+	checks.NoError(t, err, "ListFineTuningJobs error")
+
+	_, err = client.ListFineTuningJobs(
+		ctx,
+		ListFineTuningJobsWithLimit(10),
+	)
+	checks.NoError(t, err, "ListFineTuningJobs error")
+
+	_, err = client.ListFineTuningJobs(
+		ctx,
+		ListFineTuningJobsWithAfter("last-event-id"),
+		ListFineTuningJobsWithLimit(10),
+	)
+	checks.NoError(t, err, "ListFineTuningJobs error")
 }

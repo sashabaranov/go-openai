@@ -51,6 +51,12 @@ type FineTuningJobEvent struct {
 	Type      string `json:"type"`
 }
 
+type FineTuningJobsList struct {
+	Object  string          `json:"object"`
+	Data    []FineTuningJob `json:"data"`
+	HasMore bool            `json:"has_more"`
+}
+
 // CreateFineTuningJob create a fine tuning job.
 func (c *Client) CreateFineTuningJob(
 	ctx context.Context,
@@ -143,6 +149,64 @@ func (c *Client) ListFineTuningJobEvents(
 		ctx,
 		http.MethodGet,
 		c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+encodedValues),
+	)
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+type listFineTuningJobsParameters struct {
+	after *string
+	limit *int
+}
+
+type ListFineTuningJobsParameter func(*listFineTuningJobsParameters)
+
+func ListFineTuningJobsWithAfter(after string) ListFineTuningJobsParameter {
+	return func(args *listFineTuningJobsParameters) {
+		args.after = &after
+	}
+}
+
+func ListFineTuningJobsWithLimit(limit int) ListFineTuningJobsParameter {
+	return func(args *listFineTuningJobsParameters) {
+		args.limit = &limit
+	}
+}
+
+func (c *Client) ListFineTuningJobs(
+	ctx context.Context,
+	setters ...ListFineTuningJobsParameter,
+) (response FineTuningJobsList, err error) {
+	parameters := &listFineTuningJobsParameters{
+		after: nil,
+		limit: nil,
+	}
+
+	for _, setter := range setters {
+		setter(parameters)
+	}
+
+	urlValues := url.Values{}
+	if parameters.after != nil {
+		urlValues.Add("after", *parameters.after)
+	}
+	if parameters.limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *parameters.limit))
+	}
+
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
+	}
+
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL("/fine_tuning/jobs"+encodedValues),
 	)
 	if err != nil {
 		return

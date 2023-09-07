@@ -235,6 +235,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"ListFineTuningJobEvents", func() (any, error) {
 			return client.ListFineTuningJobEvents(ctx, "")
 		}},
+		{"ListFineTuningJobs", func() (any, error) {
+			return client.ListFineTuningJobs(ctx)
+		}},
 		{"Moderations", func() (any, error) {
 			return client.Moderations(ctx, ModerationRequest{})
 		}},

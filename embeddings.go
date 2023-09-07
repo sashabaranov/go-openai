@@ -277,14 +277,16 @@ func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 //
 // Body should be of type EmbeddingRequestStrings for embedding strings or EmbeddingRequestTokens
 // for embedding groups of text already converted to tokens.
-func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConverter) (res EmbeddingResponse, err error) { //nolint:lll
+func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConverter) (EmbeddingResponse, error) { //nolint:lll
 	baseReq := conv.Convert()
+	response := EmbeddingResponse{}
+
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
 	if err != nil {
-		return
+		return response, err
 	}
 
-	var embeddingResponse any = &res
+	var embeddingResponse any = &response
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
 		embeddingResponse = &EmbeddingResponseBase64{}
 	}
@@ -292,8 +294,8 @@ func (c *Client) CreateEmbeddings(ctx context.Context, conv EmbeddingRequestConv
 	err = c.sendRequest(req, embeddingResponse)
 
 	if baseReq.EncodingFormat == EmbeddingEncodingFormatBase64 {
-		res, err = embeddingResponse.(*EmbeddingResponseBase64).ToEmbeddingResponse()
+		response, err = embeddingResponse.(*EmbeddingResponseBase64).ToEmbeddingResponse()
 	}
 
-	return
+	return response, err
 }

@@ -119,12 +119,14 @@ func TestEmbeddingEndpoint(t *testing.T) {
 			_ = json.NewDecoder(r.Body).Decode(&req)
 
 			var resBytes []byte
-			if req.User == "invalid" {
+			switch {
+			case req.User == "invalid":
+
 				w.WriteHeader(http.StatusBadRequest)
 				return
-			} else if req.EncodingFormat == EmbeddingEncodingFormatBase64 {
+			case req.EncodingFormat == EmbeddingEncodingFormatBase64:
 				resBytes, _ = json.Marshal(EmbeddingResponseBase64{Data: sampleBase64Embeddings})
-			} else {
+			default:
 				resBytes, _ = json.Marshal(EmbeddingResponse{Data: sampleEmbeddings})
 			}
 			fmt.Fprintln(w, string(resBytes))
@@ -164,7 +166,7 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	}
 
 	// test failed sendRequest
-	res, err = client.CreateEmbeddings(context.Background(), EmbeddingRequest{
+	_, err = client.CreateEmbeddings(context.Background(), EmbeddingRequest{
 		User:           "invalid",
 		EncodingFormat: EmbeddingEncodingFormatBase64,
 	})

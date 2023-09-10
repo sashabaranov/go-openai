@@ -121,7 +121,6 @@ func TestEmbeddingEndpoint(t *testing.T) {
 			var resBytes []byte
 			switch {
 			case req.User == "invalid":
-
 				w.WriteHeader(http.StatusBadRequest)
 				return
 			case req.EncodingFormat == EmbeddingEncodingFormatBase64:

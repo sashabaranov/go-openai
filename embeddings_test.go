@@ -114,11 +114,15 @@ func TestEmbeddingEndpoint(t *testing.T) {
 		func(w http.ResponseWriter, r *http.Request) {
 			var req struct {
 				EncodingFormat EmbeddingEncodingFormat `json:"encoding_format"`
+				User           string                  `json:"user"`
 			}
 			_ = json.NewDecoder(r.Body).Decode(&req)
 
 			var resBytes []byte
-			if req.EncodingFormat == EmbeddingEncodingFormatBase64 {
+			if req.User == "invalid" {
+				w.WriteHeader(http.StatusBadRequest)
+				return
+			} else if req.EncodingFormat == EmbeddingEncodingFormatBase64 {
 				resBytes, _ = json.Marshal(EmbeddingResponseBase64{Data: sampleBase64Embeddings})
 			} else {
 				resBytes, _ = json.Marshal(EmbeddingResponse{Data: sampleEmbeddings})
@@ -158,6 +162,13 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	if !reflect.DeepEqual(res.Data, sampleEmbeddings) {
 		t.Errorf("Expected %#v embeddings, got %#v", sampleEmbeddings, res.Data)
 	}
+
+	// test failed sendRequest
+	res, err = client.CreateEmbeddings(context.Background(), EmbeddingRequest{
+		User:           "invalid",
+		EncodingFormat: EmbeddingEncodingFormatBase64,
+	})
+	checks.HasError(t, err, "CreateEmbeddings error")
 }
 
 func TestEmbeddingResponseBase64_ToEmbeddingResponse(t *testing.T) {

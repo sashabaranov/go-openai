@@ -4,9 +4,12 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
+	"errors"
 	"math"
 	"net/http"
 )
+
+var ErrVectorLengthMismatch = errors.New("vector length mismatch")
 
 // EmbeddingModel enumerates the models which can be used
 // to generate Embedding vectors.
@@ -122,6 +125,23 @@ type Embedding struct {
 	Object    string    `json:"object"`
 	Embedding []float32 `json:"embedding"`
 	Index     int       `json:"index"`
+}
+
+// DotProduct calculates the dot product of the embedding vector with another
+// embedding vector. Both vectors must have the same length; otherwise, an
+// ErrVectorLengthMismatch is returned. The method returns the calculated dot
+// product as a float32 value.
+func (e *Embedding) DotProduct(other *Embedding) (float32, error) {
+	if len(e.Embedding) != len(other.Embedding) {
+		return 0, ErrVectorLengthMismatch
+	}
+
+	var dotProduct float32
+	for i := range e.Embedding {
+		dotProduct += e.Embedding[i] * other.Embedding[i]
+	}
+
+	return dotProduct, nil
 }
 
 // EmbeddingResponse is the response from a Create embeddings request.

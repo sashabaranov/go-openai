@@ -40,7 +40,7 @@ func TestListEngines(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
-		engines := make([]Engine, 5)
+		engines := make([]Engine, test.RandomInt(5))
 		for i := range engines {
 			engines[i] = RandomEngine()
 		}

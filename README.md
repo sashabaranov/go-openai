@@ -484,7 +484,7 @@ func main() {
 </details>
 
 <detail>
-<summary>Embedding Similarity Search</summary>
+<summary>Embedding Semantic Similarity</summary>
 
 ```go
 package main

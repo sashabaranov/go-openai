@@ -271,6 +271,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"GetModel", func() (any, error) {
 			return client.GetModel(ctx, "text-davinci-003")
 		}},
+		{"DeleteFineTuneModel", func() (any, error) {
+			return client.DeleteFineTuneModel(ctx, "")
+		}},
 	}
 
 	for _, testCase := range testCases {

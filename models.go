@@ -33,6 +33,13 @@ type Permission struct {
 	IsBlocking         bool        `json:"is_blocking"`
 }
 
+// FineTuneModelDeleteResponse represents the deletion status of a fine-tuned model.
+type FineTuneModelDeleteResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+}
+
 // ModelsList is a list of models, including those that belong to the user or organization.
 type ModelsList struct {
 	Models []Model `json:"data"`
@@ -60,5 +67,18 @@ func (c *Client) GetModel(ctx context.Context, modelID string) (model Model, err
 	}
 
 	err = c.sendRequest(req, &model)
+	return
+}
+
+// DeleteFineTuneModel Deletes a fine-tune model. You must have the Owner
+// role in your organization to delete a model.
+func (c *Client) DeleteFineTuneModel(ctx context.Context, modelID string) (
+	response FineTuneModelDeleteResponse, err error) {
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL("/models/"+modelID))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
 	return
 }

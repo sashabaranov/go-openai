@@ -14,6 +14,8 @@ import (
 	"testing"
 )
 
+const testFineTuneModelID = "fine-tune-model-id"
+
 // TestListModels Tests the list models endpoint of the API using the mocked server.
 func TestListModels(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
@@ -77,4 +79,17 @@ func TestGetModelReturnTimeoutError(t *testing.T) {
 	if !os.IsTimeout(err) {
 		t.Fatal("Did not return timeout error")
 	}
+}
+
+func TestDeleteFineTuneModel(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/models/"+testFineTuneModelID, handleDeleteFineTuneModelEndpoint)
+	_, err := client.DeleteFineTuneModel(context.Background(), testFineTuneModelID)
+	checks.NoError(t, err, "DeleteFineTuneModel error")
+}
+
+func handleDeleteFineTuneModelEndpoint(w http.ResponseWriter, _ *http.Request) {
+	resBytes, _ := json.Marshal(FineTuneModelDeleteResponse{})
+	fmt.Fprintln(w, string(resBytes))
 }

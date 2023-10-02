@@ -483,6 +483,62 @@ func main() {
 ```
 </details>
 
+<detail>
+<summary>Embedding Semantic Similarity</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"log"
+	openai "github.com/sashabaranov/go-openai"
+
+)
+
+func main() {
+	client := openai.NewClient("your-token")
+
+	// Create an EmbeddingRequest for the user query
+	queryReq := openai.EmbeddingRequest{
+		Input: []string{"How many chucks would a woodchuck chuck"},
+		Model: openai.AdaEmbeddingv2,
+	}
+
+	// Create an embedding for the user query
+	queryResponse, err := client.CreateEmbeddings(context.Background(), queryReq)
+	if err != nil {
+		log.Fatal("Error creating query embedding:", err)
+	}
+
+	// Create an EmbeddingRequest for the target text
+	targetReq := openai.EmbeddingRequest{
+		Input: []string{"How many chucks would a woodchuck chuck if the woodchuck could chuck wood"},
+		Model: openai.AdaEmbeddingv2,
+	}
+
+	// Create an embedding for the target text
+	targetResponse, err := client.CreateEmbeddings(context.Background(), targetReq)
+	if err != nil {
+		log.Fatal("Error creating target embedding:", err)
+	}
+
+	// Now that we have the embeddings for the user query and the target text, we
+	// can calculate their similarity.
+	queryEmbedding := queryResponse.Data[0]
+	targetEmbedding := targetResponse.Data[0]
+
+	similarity, err := queryEmbedding.DotProduct(&targetEmbedding)
+	if err != nil {
+		log.Fatal("Error calculating dot product:", err)
+	}
+
+	log.Printf("The similarity score between the query and the target is %f", similarity)
+}
+
+```
+</detail>
+
 <details>
 <summary>Azure OpenAI Embeddings</summary>
 

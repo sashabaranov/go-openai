@@ -21,7 +21,6 @@ func TestFineTuningJob(t *testing.T) {
 	server.RegisterHandler(
 		"/v1/fine_tuning/jobs",
 		func(w http.ResponseWriter, r *http.Request) {
-			nEpochs := "auto"
 			resBytes, _ := json.Marshal(FineTuningJob{
 				Object:         "fine_tuning.job",
 				ID:             testFineTuninigJobID,
@@ -35,10 +34,7 @@ func TestFineTuningJob(t *testing.T) {
 				ValidationFile: "",
 				TrainingFile:   "file-abc123",
 				Hyperparameters: Hyperparameters{
-					Epochs: &HyperparameterNEpochs{
-						IntValue:    nil,
-						StringValue: &nEpochs,
-					},
+					Epochs: "auto",
 				},
 				TrainedTokens: 5768,
 			})

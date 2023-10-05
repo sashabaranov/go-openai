@@ -2,7 +2,6 @@ package openai
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,40 +23,8 @@ type FineTuningJob struct {
 	TrainedTokens   int             `json:"trained_tokens"`
 }
 
-type HyperparameterNEpochs struct {
-	IntValue    *int    `json:"-"`
-	StringValue *string `json:"-"`
-}
-
-func (h *HyperparameterNEpochs) UnmarshalJSON(data []byte) error {
-	var intValue int
-	var stringValue string
-
-	if err := json.Unmarshal(data, &intValue); err == nil {
-		h.IntValue = &intValue
-		return nil
-	}
-
-	if err := json.Unmarshal(data, &stringValue); err != nil {
-		return err
-	}
-
-	h.StringValue = &stringValue
-	return nil
-}
-
-func (h *HyperparameterNEpochs) MarshalJSON() ([]byte, error) {
-	if h.IntValue != nil {
-		return json.Marshal(*h.IntValue)
-	} else if h.StringValue != nil {
-		return json.Marshal(*h.StringValue)
-	}
-
-	return nil, fmt.Errorf("invalid hyperparameter n_epochs")
-}
-
 type Hyperparameters struct {
-	Epochs *HyperparameterNEpochs `json:"n_epochs,omitempty"`
+	Epochs any `json:"n_epochs,omitempty"`
 }
 
 type FineTuningJobRequest struct {

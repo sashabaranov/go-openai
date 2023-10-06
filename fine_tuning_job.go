@@ -24,7 +24,7 @@ type FineTuningJob struct {
 }
 
 type Hyperparameters struct {
-	Epochs int `json:"n_epochs"`
+	Epochs any `json:"n_epochs,omitempty"`
 }
 
 type FineTuningJobRequest struct {

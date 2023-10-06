@@ -21,8 +21,23 @@ func TestFineTuningJob(t *testing.T) {
 	server.RegisterHandler(
 		"/v1/fine_tuning/jobs",
 		func(w http.ResponseWriter, r *http.Request) {
-			var resBytes []byte
-			resBytes, _ = json.Marshal(FineTuningJob{})
+			resBytes, _ := json.Marshal(FineTuningJob{
+				Object:         "fine_tuning.job",
+				ID:             testFineTuninigJobID,
+				Model:          "davinci-002",
+				CreatedAt:      1692661014,
+				FinishedAt:     1692661190,
+				FineTunedModel: "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
+				OrganizationID: "org-123",
+				ResultFiles:    []string{"file-abc123"},
+				Status:         "succeeded",
+				ValidationFile: "",
+				TrainingFile:   "file-abc123",
+				Hyperparameters: Hyperparameters{
+					Epochs: "auto",
+				},
+				TrainedTokens: 5768,
+			})
 			fmt.Fprintln(w, string(resBytes))
 		},
 	)

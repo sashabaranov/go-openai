@@ -151,7 +151,7 @@ type EmbeddingResponse struct {
 	Model  EmbeddingModel `json:"model"`
 	Usage  Usage          `json:"usage"`
 
-	headers
+	httpHeader
 }
 
 type base64String string
@@ -185,7 +185,7 @@ type EmbeddingResponseBase64 struct {
 	Model  EmbeddingModel    `json:"model"`
 	Usage  Usage             `json:"usage"`
 
-	headers
+	httpHeader
 }
 
 // ToEmbeddingResponse converts an embeddingResponseBase64 to an EmbeddingResponse.

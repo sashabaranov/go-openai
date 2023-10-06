@@ -29,7 +29,7 @@ type EditsResponse struct {
 	Usage   Usage         `json:"usage"`
 	Choices []EditsChoice `json:"choices"`
 
-	headers
+	httpHeader
 }
 
 // Edits Perform an API call to the Edits endpoint.

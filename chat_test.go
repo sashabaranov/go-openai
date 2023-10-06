@@ -90,9 +90,9 @@ func TestChatCompletionsWithHeaders(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateChatCompletion error")
 
-	a := resp.Headers().Get(xCustomHeader)
+	a := resp.Header().Get(xCustomHeader)
 	_ = a
-	if resp.Headers().Get(xCustomHeader) != xCustomHeaderValue {
+	if resp.Header().Get(xCustomHeader) != xCustomHeaderValue {
 		t.Errorf("expected header %s to be %s", xCustomHeader, xCustomHeaderValue)
 	}
 }

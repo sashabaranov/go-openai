@@ -42,7 +42,7 @@ type FineTune struct {
 	TrainingFiles     []File              `json:"training_files"`
 	UpdatedAt         int64               `json:"updated_at"`
 
-	headers
+	httpHeader
 }
 
 // Deprecated: On August 22nd, 2023, OpenAI announced the deprecation of the /v1/fine-tunes API.
@@ -72,7 +72,7 @@ type FineTuneList struct {
 	Object string     `json:"object"`
 	Data   []FineTune `json:"data"`
 
-	headers
+	httpHeader
 }
 
 // Deprecated: On August 22nd, 2023, OpenAI announced the deprecation of the /v1/fine-tunes API.
@@ -82,7 +82,7 @@ type FineTuneEventList struct {
 	Object string          `json:"object"`
 	Data   []FineTuneEvent `json:"data"`
 
-	headers
+	httpHeader
 }
 
 // Deprecated: On August 22nd, 2023, OpenAI announced the deprecation of the /v1/fine-tunes API.
@@ -93,7 +93,7 @@ type FineTuneDeleteResponse struct {
 	Object  string `json:"object"`
 	Deleted bool   `json:"deleted"`
 
-	headers
+	httpHeader
 }
 
 // Deprecated: On August 22nd, 2023, OpenAI announced the deprecation of the /v1/fine-tunes API.

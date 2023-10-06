@@ -22,7 +22,7 @@ type FineTuningJob struct {
 	ResultFiles     []string        `json:"result_files"`
 	TrainedTokens   int             `json:"trained_tokens"`
 
-	headers
+	httpHeader
 }
 
 type Hyperparameters struct {
@@ -42,7 +42,7 @@ type FineTuningJobEventList struct {
 	Data    []FineTuneEvent `json:"data"`
 	HasMore bool            `json:"has_more"`
 
-	headers
+	httpHeader
 }
 
 type FineTuningJobEvent struct {

@@ -21,16 +21,16 @@ type Client struct {
 }
 
 type Response interface {
-	SetHeaders(http.Header)
+	SetHeader(http.Header)
 }
 
-type headers http.Header
+type httpHeader http.Header
 
-func (h *headers) SetHeaders(httpHeader http.Header) {
-	*h = headers(httpHeader)
+func (h *httpHeader) SetHeader(header http.Header) {
+	*h = httpHeader(header)
 }
 
-func (h headers) Headers() http.Header {
+func (h httpHeader) Header() http.Header {
 	return http.Header(h)
 }
 
@@ -118,7 +118,7 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 	}
 
 	if v != nil {
-		v.SetHeaders(res.Header)
+		v.SetHeader(res.Header)
 	}
 
 	return decodeResponse(res.Body, v)

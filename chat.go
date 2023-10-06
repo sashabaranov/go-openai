@@ -143,7 +143,7 @@ type ChatCompletionResponse struct {
 	Choices []ChatCompletionChoice `json:"choices"`
 	Usage   Usage                  `json:"usage"`
 
-	headers
+	httpHeader
 }
 
 // CreateChatCompletion — API call to Create a completion for the chat message.

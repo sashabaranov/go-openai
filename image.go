@@ -34,7 +34,7 @@ type ImageResponse struct {
 	Created int64                    `json:"created,omitempty"`
 	Data    []ImageResponseDataInner `json:"data,omitempty"`
 
-	headers
+	httpHeader
 }
 
 // ImageResponseDataInner represents a response data structure for image API.

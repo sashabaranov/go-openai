@@ -64,19 +64,19 @@ type AudioResponse struct {
 	} `json:"segments"`
 	Text string `json:"text"`
 
-	headers
+	httpHeader
 }
 
 type audioTextResponse struct {
 	Text string `json:"text"`
 
-	headers
+	httpHeader
 }
 
 func (r *audioTextResponse) ToAudioResponse() AudioResponse {
 	return AudioResponse{
-		Text:    r.Text,
-		headers: r.headers,
+		Text:       r.Text,
+		httpHeader: r.httpHeader,
 	}
 }
 

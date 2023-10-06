@@ -70,7 +70,7 @@ type ModerationResponse struct {
 	Model   string   `json:"model"`
 	Results []Result `json:"results"`
 
-	headers
+	httpHeader
 }
 
 // Moderations — perform a moderation api call over a string.

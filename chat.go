@@ -142,6 +142,8 @@ type ChatCompletionResponse struct {
 	Model   string                 `json:"model"`
 	Choices []ChatCompletionChoice `json:"choices"`
 	Usage   Usage                  `json:"usage"`
+
+	headers
 }
 
 // CreateChatCompletion — API call to Create a completion for the chat message.

@@ -91,7 +91,7 @@ func (c *Client) DeleteFineTuneModel(ctx context.Context, modelID string) (
 	return
 }
 
-// RateLimitHeaders struct represents Openai rate limits headers
+// RateLimitHeaders struct represents Openai rate limits headers.
 type RateLimitHeaders struct {
 	createTime        time.Time
 	LimitRequests     int    `json:"x-ratelimit-limit-requests"`

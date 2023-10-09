@@ -109,3 +109,10 @@ func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {
 func (stream *streamReader[T]) Close() {
 	stream.response.Body.Close()
 }
+
+func (stream *streamReader[T]) Header() http.Header {
+	if stream.response != nil {
+		return stream.response.Header
+	}
+	return map[string][]string{}
+}

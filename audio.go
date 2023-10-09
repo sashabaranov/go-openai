@@ -63,6 +63,21 @@ type AudioResponse struct {
 		Transient        bool    `json:"transient"`
 	} `json:"segments"`
 	Text string `json:"text"`
+
+	httpHeader
+}
+
+type audioTextResponse struct {
+	Text string `json:"text"`
+
+	httpHeader
+}
+
+func (r *audioTextResponse) ToAudioResponse() AudioResponse {
+	return AudioResponse{
+		Text:       r.Text,
+		httpHeader: r.httpHeader,
+	}
 }
 
 // CreateTranscription — API call to create a transcription. Returns transcribed text.
@@ -104,7 +119,9 @@ func (c *Client) callAudioAPI(
 	if request.HasJSONResponse() {
 		err = c.sendRequest(req, &response)
 	} else {
-		err = c.sendRequest(req, &response.Text)
+		var textResponse audioTextResponse
+		err = c.sendRequest(req, &textResponse)
+		response = textResponse.ToAudioResponse()
 	}
 	if err != nil {
 		return AudioResponse{}, err

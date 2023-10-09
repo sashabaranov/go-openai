@@ -16,6 +16,11 @@ import (
 	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
+const (
+	xCustomHeader      = "X-CUSTOM-HEADER"
+	xCustomHeaderValue = "test"
+)
+
 func TestChatCompletionsWrongModel(t *testing.T) {
 	config := DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
@@ -66,6 +71,30 @@ func TestChatCompletions(t *testing.T) {
 		},
 	})
 	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
+// TestCompletions Tests the completions endpoint of the API using the mocked server.
+func TestChatCompletionsWithHeaders(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	resp, err := client.CreateChatCompletion(context.Background(), ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     GPT3Dot5Turbo,
+		Messages: []ChatCompletionMessage{
+			{
+				Role:    ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateChatCompletion error")
+
+	a := resp.Header().Get(xCustomHeader)
+	_ = a
+	if resp.Header().Get(xCustomHeader) != xCustomHeaderValue {
+		t.Errorf("expected header %s to be %s", xCustomHeader, xCustomHeaderValue)
+	}
 }
 
 // TestChatCompletionsFunctions tests including a function call.
@@ -281,6 +310,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		TotalTokens:      inputTokens + completionTokens,
 	}
 	resBytes, _ = json.Marshal(res)
+	w.Header().Set(xCustomHeader, xCustomHeaderValue)
 	fmt.Fprintln(w, string(resBytes))
 }
 

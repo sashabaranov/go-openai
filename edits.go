@@ -28,6 +28,8 @@ type EditsResponse struct {
 	Created int64         `json:"created"`
 	Usage   Usage         `json:"usage"`
 	Choices []EditsChoice `json:"choices"`
+
+	httpHeader
 }
 
 // Edits Perform an API call to the Edits endpoint.

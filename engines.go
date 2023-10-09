@@ -12,11 +12,15 @@ type Engine struct {
 	Object string `json:"object"`
 	Owner  string `json:"owner"`
 	Ready  bool   `json:"ready"`
+
+	httpHeader
 }
 
 // EnginesList is a list of engines.
 type EnginesList struct {
 	Engines []Engine `json:"data"`
+
+	httpHeader
 }
 
 // ListEngines Lists the currently available engines, and provides basic

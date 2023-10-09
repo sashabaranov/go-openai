@@ -136,6 +136,12 @@ func TestChatCompletionsWithRateLimitHeaders(t *testing.T) {
 	if string(bs1) != string(bs2) {
 		t.Errorf("expected rate limit header %s to be %s", bs2, bs1)
 	}
+	headers.ResetRequests = "xxx"
+	headers.ResetTokens = "xxx"
+	_, err = headers.ParseResetRequestsTime()
+	checks.HasError(t, err, "ParseResetRequestsTime not error")
+	_, err = headers.ParseResetTokensTime()
+	checks.HasError(t, err, "ParseResetTokensTime not error")
 }
 
 // TestChatCompletionsFunctions tests including a function call.

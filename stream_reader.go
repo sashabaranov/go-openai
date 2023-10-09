@@ -111,10 +111,7 @@ func (stream *streamReader[T]) Close() {
 }
 
 func (stream *streamReader[T]) Header() http.Header {
-	if stream.response != nil {
-		return stream.response.Header
-	}
-	return map[string][]string{}
+	return stream.response.Header
 }
 
 func (stream *streamReader[T]) GetRateLimitHeaders() RateLimitHeaders {

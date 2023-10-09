@@ -34,6 +34,10 @@ func (h *httpHeader) Header() http.Header {
 	return http.Header(*h)
 }
 
+func (h *httpHeader) GetRateLimitHeaders() RateLimitHeaders {
+	return NewRateLimitHeaders(h.Header())
+}
+
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)

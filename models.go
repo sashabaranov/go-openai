@@ -4,6 +4,8 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"strconv"
+	"time"
 )
 
 // Model struct represents an OpenAPI model.
@@ -87,4 +89,47 @@ func (c *Client) DeleteFineTuneModel(ctx context.Context, modelID string) (
 
 	err = c.sendRequest(req, &response)
 	return
+}
+
+// RateLimitHeaders struct represents Openai rate limits headers
+type RateLimitHeaders struct {
+	createTime        time.Time
+	LimitRequests     int    `json:"x-ratelimit-limit-requests"`
+	LimitTokens       int    `json:"x-ratelimit-limit-tokens"`
+	RemainingRequests int    `json:"x-ratelimit-remaining-requests"`
+	RemainingTokens   int    `json:"x-ratelimit-remaining-tokens"`
+	ResetRequests     string `json:"x-ratelimit-reset-requests"`
+	ResetTokens       string `json:"x-ratelimit-reset-tokens"`
+}
+
+func NewRateLimitHeaders(h http.Header) RateLimitHeaders {
+	limitReq, _ := strconv.Atoi(h.Get("x-ratelimit-limit-requests"))
+	limitTokens, _ := strconv.Atoi(h.Get("x-ratelimit-limit-tokens"))
+	remainingReq, _ := strconv.Atoi(h.Get("x-ratelimit-remaining-requests"))
+	remainingTokens, _ := strconv.Atoi(h.Get("x-ratelimit-remaining-tokens"))
+	return RateLimitHeaders{
+		createTime:        time.Now(),
+		LimitRequests:     limitReq,
+		LimitTokens:       limitTokens,
+		RemainingRequests: remainingReq,
+		RemainingTokens:   remainingTokens,
+		ResetRequests:     h.Get("x-ratelimit-reset-requests"),
+		ResetTokens:       h.Get("x-ratelimit-reset-tokens"),
+	}
+}
+
+func (r RateLimitHeaders) ParseResetRequestsTime() (time.Time, error) {
+	d, err := time.ParseDuration(r.ResetRequests)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return r.createTime.Add(d), nil
+}
+
+func (r RateLimitHeaders) ParseResetTokensTime() (time.Time, error) {
+	d, err := time.ParseDuration(r.ResetTokens)
+	if err != nil {
+		return time.Time{}, err
+	}
+	return r.createTime.Add(d), nil
 }

@@ -116,3 +116,7 @@ func (stream *streamReader[T]) Header() http.Header {
 	}
 	return map[string][]string{}
 }
+
+func (stream *streamReader[T]) GetRateLimitHeaders() RateLimitHeaders {
+	return NewRateLimitHeaders(stream.Header())
+}

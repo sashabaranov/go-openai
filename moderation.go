@@ -69,6 +69,8 @@ type ModerationResponse struct {
 	ID      string   `json:"id"`
 	Model   string   `json:"model"`
 	Results []Result `json:"results"`
+
+	httpHeader
 }
 
 // Moderations — perform a moderation api call over a string.

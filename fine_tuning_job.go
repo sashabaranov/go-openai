@@ -21,6 +21,8 @@ type FineTuningJob struct {
 	ValidationFile  string          `json:"validation_file,omitempty"`
 	ResultFiles     []string        `json:"result_files"`
 	TrainedTokens   int             `json:"trained_tokens"`
+
+	httpHeader
 }
 
 type Hyperparameters struct {
@@ -39,6 +41,8 @@ type FineTuningJobEventList struct {
 	Object  string          `json:"object"`
 	Data    []FineTuneEvent `json:"data"`
 	HasMore bool            `json:"has_more"`
+
+	httpHeader
 }
 
 type FineTuningJobEvent struct {

@@ -15,6 +15,8 @@ type Model struct {
 	Permission []Permission `json:"permission"`
 	Root       string       `json:"root"`
 	Parent     string       `json:"parent"`
+
+	httpHeader
 }
 
 // Permission struct represents an OpenAPI permission.
@@ -38,11 +40,15 @@ type FineTuneModelDeleteResponse struct {
 	ID      string `json:"id"`
 	Object  string `json:"object"`
 	Deleted bool   `json:"deleted"`
+
+	httpHeader
 }
 
 // ModelsList is a list of models, including those that belong to the user or organization.
 type ModelsList struct {
 	Models []Model `json:"data"`
+
+	httpHeader
 }
 
 // ListModels Lists the currently available models,

@@ -25,11 +25,15 @@ type File struct {
 	Status        string `json:"status"`
 	Purpose       string `json:"purpose"`
 	StatusDetails string `json:"status_details"`
+
+	httpHeader
 }
 
 // FilesList is a list of files that belong to the user or organization.
 type FilesList struct {
 	Files []File `json:"data"`
+
+	httpHeader
 }
 
 // CreateFile uploads a jsonl file to GPT3

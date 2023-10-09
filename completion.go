@@ -154,6 +154,8 @@ type CompletionResponse struct {
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
 	Usage   Usage              `json:"usage"`
+
+	httpHeader
 }
 
 // CreateCompletion — API call to create a completion. This is the main endpoint of the API. Returns new text as well

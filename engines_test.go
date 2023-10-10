@@ -24,15 +24,22 @@ func RandomEngine() Engine {
 
 // TestGetEngine Tests the retrieve engine endpoint of the API using the mocked server.
 func TestGetEngine(t *testing.T) {
+	test.Seed(42) // Seed the RNG
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
+
+	expectedEngine := RandomEngine() // move outside of handler per code review comment
 	server.RegisterHandler("/v1/engines/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
-		engine := RandomEngine()
-		resBytes, _ := json.Marshal(engine)
+		resBytes, _ := json.Marshal(expectedEngine)
 		fmt.Fprintln(w, string(resBytes))
 	})
-	_, err := client.GetEngine(context.Background(), "text-davinci-003")
+	actualEngine, err := client.GetEngine(context.Background(), "text-davinci-003")
 	checks.NoError(t, err, "GetEngine error")
+
+	// Compare the two using only one field per code review comment
+	if actualEngine.ID != expectedEngine.ID {
+		t.Errorf("Engine ID mismatch: got %s, expected %s", actualEngine.ID, expectedEngine.ID)
+	}
 }
 
 // TestListEngines Tests the list engines endpoint of the API using the mocked server.

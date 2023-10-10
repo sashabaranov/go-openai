@@ -1,7 +1,6 @@
 package test
 
 import (
-	"log"
 	"math/rand"
 	"os"
 	"strconv"
@@ -11,24 +10,26 @@ import (
 
 const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 const strLen = 10
-const bitLen = 0xFF
+
+// #nosec G404
+var r = rand.New(rand.NewSource(time.Now().UnixNano()))
+
+// Seeding func.
+// #nosec G404
+func Seed(s int64) {
+	r = rand.New(rand.NewSource(s))
+}
 
 // See StackOverflow answer:
 // https://stackoverflow.com/questions/22892120/how-to-generate-a-random-string-of-a-fixed-length-in-go
-// RandomString generates a cryptographically secure random string of length
+// RandomString generates a random string of length
 // strLen.
 func RandomString() string {
 	sb := strings.Builder{}
 	sb.Grow(strLen)
 
 	for i := 0; i < strLen; i++ {
-		randomByte := make([]byte, 1)
-		// #nosec G404
-		_, err := rand.Read(randomByte)
-		if err != nil {
-			log.Fatalf("Error generating random string: %v", err)
-		}
-		randomIndex := randomByte[0] % byte(len(letters))
+		randomIndex := r.Intn(len(letters))
 		sb.WriteByte(letters[randomIndex])
 	}
 
@@ -36,33 +37,16 @@ func RandomString() string {
 }
 
 // RandomInt generates a random integer between 0 (inclusive) and 'max'
-// (exclusive). We uses the crypto/rand library for generating random
-// bytes. It then performs a bitwise AND operation with 0xFF to keep only the
-// least significant 8 bits, effectively converting the byte to an integer. The
-// resulting integer is then modulo'd with 'max'.
+// (exclusive).
 func RandomInt(max int) int {
-	var b [1]byte
-	// #nosec G404
-	_, err := rand.Read(b[:])
-	if err != nil {
-		log.Fatalf("Error generating random int: %v", err)
-	}
-	n := int(b[0]&bitLen) % max
-	return n
+	return r.Intn(max)
 }
 
-// RandomBool generates a cryptographically secure random boolean value.
-// It reads a single byte from the crypto/rand library and uses its least
-// significant bit to determine the boolean value. The function returns
-// true if the least significant bit is 1, and false otherwise.
+// RandomBool generates a random boolean value.
+// #nosec G404
 func RandomBool() bool {
-	var b [1]byte
-	// #nosec G404
-	_, err := rand.Read(b[:])
-	if err != nil {
-		log.Fatalf("Error generating random bool: %v", err)
-	}
-	return b[0]&1 == 1
+	n := 2 // #gomnd (golangci-lint magic number suppression)
+	return r.Intn(n) == 1
 }
 
 // MaybeSeedRNG optionally seeds the random number generator based on the

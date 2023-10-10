@@ -11,6 +11,7 @@ var (
 
 type CompletionStream struct {
 	*streamReader[CompletionResponse]
+	httpHeader
 }
 
 // CreateCompletionStream — API call to create a completion w/ streaming
@@ -44,6 +45,7 @@ func (c *Client) CreateCompletionStream(
 	}
 	stream = &CompletionStream{
 		streamReader: resp,
+		httpHeader:   httpHeader(resp.response.Header),
 	}
 	return
 }

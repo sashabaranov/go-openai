@@ -30,8 +30,12 @@ func (h *httpHeader) SetHeader(header http.Header) {
 	*h = httpHeader(header)
 }
 
-func (h httpHeader) Header() http.Header {
-	return http.Header(h)
+func (h *httpHeader) Header() http.Header {
+	return http.Header(*h)
+}
+
+func (h *httpHeader) GetRateLimitHeaders() RateLimitHeaders {
+	return newRateLimitHeaders(h.Header())
 }
 
 // NewClient creates new OpenAI API client.
@@ -156,6 +160,7 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 		response:           resp,
 		errAccumulator:     utils.NewErrorAccumulator(),
 		unmarshaler:        &utils.JSONUnmarshaler{},
+		httpHeader:         httpHeader(resp.Header),
 	}, nil
 }
 

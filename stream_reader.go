@@ -27,6 +27,8 @@ type streamReader[T streamable] struct {
 	response       *http.Response
 	errAccumulator utils.ErrorAccumulator
 	unmarshaler    utils.Unmarshaler
+
+	httpHeader
 }
 
 func (stream *streamReader[T]) Recv() (response T, err error) {

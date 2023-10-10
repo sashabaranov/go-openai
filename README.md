@@ -483,7 +483,7 @@ func main() {
 ```
 </details>
 
-<detail>
+<details>
 <summary>Embedding Semantic Similarity</summary>
 
 ```go
@@ -537,7 +537,7 @@ func main() {
 }
 
 ```
-</detail>
+</details>
 
 <details>
 <summary>Azure OpenAI Embeddings</summary>

@@ -23,4 +23,11 @@ func main() {
 		return
 	}
 	fmt.Println(resp.Choices[0].Text)
+
+	fmt.Println("Ratelimit limit requests:", resp.RatelimitLimitRequests())
+	fmt.Println("Ratelimit limit tokens:", resp.RatelimitLimitTokens())
+	fmt.Println("Ratelimit remaining requests:", resp.RatelimitRemainingRequests())
+	fmt.Println("Ratelimit remaining tokens:", resp.RatelimitRemainingTokens())
+	fmt.Println("Ratelimit reset requests:", resp.RatelimitResetRequests())
+	fmt.Println("Ratelimit reset tokens:", resp.RatelimitResetTokens())
 }

@@ -12,6 +12,16 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
+// OpenAI headers https://platform.openai.com/docs/guides/rate-limits/rate-limits-in-headers
+const (
+	xRatelimitLimitRequests     = "x-ratelimit-limit-requests"
+	xRatelimitLimitTokens       = "x-ratelimit-limit-tokens"
+	xRatelimitRemainingRequests = "x-ratelimit-remaining-requests"
+	xRatelimitRemainingTokens   = "x-ratelimit-remaining-tokens"
+	xRatelimitResetRequests     = "x-ratelimit-reset-requests"
+	xRatelimitResetTokens       = "x-ratelimit-reset-tokens"
+)
+
 // Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
@@ -32,6 +42,30 @@ func (h *httpHeader) SetHeader(header http.Header) {
 
 func (h httpHeader) Header() http.Header {
 	return http.Header(h)
+}
+
+func (h httpHeader) RatelimitLimitRequests() string {
+	return h.Header().Get(xRatelimitLimitRequests)
+}
+
+func (h httpHeader) RatelimitLimitTokens() string {
+	return h.Header().Get(xRatelimitLimitTokens)
+}
+
+func (h httpHeader) RatelimitRemainingRequests() string {
+	return h.Header().Get(xRatelimitRemainingRequests)
+}
+
+func (h httpHeader) RatelimitRemainingTokens() string {
+	return h.Header().Get(xRatelimitRemainingTokens)
+}
+
+func (h httpHeader) RatelimitResetRequests() string {
+	return h.Header().Get(xRatelimitResetRequests)
+}
+
+func (h httpHeader) RatelimitResetTokens() string {
+	return h.Header().Get(xRatelimitResetTokens)
 }
 
 // NewClient creates new OpenAI API client.

@@ -126,22 +126,20 @@ func TestChatCompletionsWithRateLimitHeaders(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 
 	headers := resp.GetRateLimitHeaders()
-	resetReqTime, err := headers.ParseResetRequestsTime()
-	checks.NoError(t, err, "ParseResetRequestsTime error")
-	resetTokensTime, err := headers.ParseResetTokensTime()
-	checks.NoError(t, err, "ParseResetTokensTime error")
-	t.Logf("reset requests time: %s, reset tokens time: %s", resetReqTime, resetTokensTime)
+	resetRequests := headers.ResetRequests.String()
+	if resetRequests != rateLimitHeaders["x-ratelimit-reset-requests"] {
+		t.Errorf("expected resetRequests %s to be %s", resetRequests, rateLimitHeaders["x-ratelimit-reset-requests"])
+	}
+	resetRequestsTime := headers.ResetRequests.Time()
+	if resetRequestsTime.Before(time.Now()) {
+		t.Errorf("unexpected reset requetsts: %v", resetRequestsTime)
+	}
+
 	bs1, _ := json.Marshal(headers)
 	bs2, _ := json.Marshal(rateLimitHeaders)
 	if string(bs1) != string(bs2) {
 		t.Errorf("expected rate limit header %s to be %s", bs2, bs1)
 	}
-	headers.ResetRequests = "xxx"
-	headers.ResetTokens = "xxx"
-	_, err = headers.ParseResetRequestsTime()
-	checks.HasError(t, err, "ParseResetRequestsTime not error")
-	_, err = headers.ParseResetTokensTime()
-	checks.HasError(t, err, "ParseResetTokensTime not error")
 }
 
 // TestChatCompletionsFunctions tests including a function call.

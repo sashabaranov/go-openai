@@ -94,12 +94,23 @@ func (c *Client) DeleteFineTuneModel(ctx context.Context, modelID string) (
 // RateLimitHeaders struct represents Openai rate limits headers.
 type RateLimitHeaders struct {
 	createTime        time.Time
-	LimitRequests     int    `json:"x-ratelimit-limit-requests"`
-	LimitTokens       int    `json:"x-ratelimit-limit-tokens"`
-	RemainingRequests int    `json:"x-ratelimit-remaining-requests"`
-	RemainingTokens   int    `json:"x-ratelimit-remaining-tokens"`
-	ResetRequests     string `json:"x-ratelimit-reset-requests"`
-	ResetTokens       string `json:"x-ratelimit-reset-tokens"`
+	LimitRequests     int       `json:"x-ratelimit-limit-requests"`
+	LimitTokens       int       `json:"x-ratelimit-limit-tokens"`
+	RemainingRequests int       `json:"x-ratelimit-remaining-requests"`
+	RemainingTokens   int       `json:"x-ratelimit-remaining-tokens"`
+	ResetRequests     ResetTime `json:"x-ratelimit-reset-requests"`
+	ResetTokens       ResetTime `json:"x-ratelimit-reset-tokens"`
+}
+
+type ResetTime string
+
+func (r ResetTime) String() string {
+	return string(r)
+}
+
+func (r ResetTime) Time() time.Time {
+	d, _ := time.ParseDuration(string(r))
+	return time.Now().Add(d)
 }
 
 func newRateLimitHeaders(h http.Header) RateLimitHeaders {
@@ -113,23 +124,7 @@ func newRateLimitHeaders(h http.Header) RateLimitHeaders {
 		LimitTokens:       limitTokens,
 		RemainingRequests: remainingReq,
 		RemainingTokens:   remainingTokens,
-		ResetRequests:     h.Get("x-ratelimit-reset-requests"),
-		ResetTokens:       h.Get("x-ratelimit-reset-tokens"),
+		ResetRequests:     ResetTime(h.Get("x-ratelimit-reset-requests")),
+		ResetTokens:       ResetTime(h.Get("x-ratelimit-reset-tokens")),
 	}
-}
-
-func (r RateLimitHeaders) ParseResetRequestsTime() (time.Time, error) {
-	d, err := time.ParseDuration(r.ResetRequests)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return r.createTime.Add(d), nil
-}
-
-func (r RateLimitHeaders) ParseResetTokensTime() (time.Time, error) {
-	d, err := time.ParseDuration(r.ResetTokens)
-	if err != nil {
-		return time.Time{}, err
-	}
-	return r.createTime.Add(d), nil
 }

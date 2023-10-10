@@ -483,7 +483,7 @@ func main() {
 ```
 </details>
 
-<detail>
+<details>
 <summary>Embedding Semantic Similarity</summary>
 
 ```go
@@ -537,7 +537,7 @@ func main() {
 }
 
 ```
-</detail>
+</details>
 
 <details>
 <summary>Azure OpenAI Embeddings</summary>
@@ -740,6 +740,46 @@ func main() {
 	// }
 	//
 	// fmt.Println(resp.Choices[0].Text)
+}
+```
+</details>
+
+<details>
+<summary>Headers</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"os"
+
+	"github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+	resp, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			Model:     openai.GPT3Ada,
+			MaxTokens: 5,
+			Prompt:    "Lorem ipsum",
+		},
+	)
+	if err != nil {
+		fmt.Printf("Completion error: %v\n", err)
+		return
+	}
+	fmt.Println(resp.Choices[0].Text)
+
+	fmt.Println("Ratelimit limit requests:", resp.RatelimitLimitRequests())
+	fmt.Println("Ratelimit limit tokens:", resp.RatelimitLimitTokens())
+	fmt.Println("Ratelimit remaining requests:", resp.RatelimitRemainingRequests())
+	fmt.Println("Ratelimit remaining tokens:", resp.RatelimitRemainingTokens())
+	fmt.Println("Ratelimit reset requests:", resp.RatelimitResetRequests())
+	fmt.Println("Ratelimit reset tokens:", resp.RatelimitResetTokens())
 }
 ```
 </details>

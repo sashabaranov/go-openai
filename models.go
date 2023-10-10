@@ -102,7 +102,7 @@ type RateLimitHeaders struct {
 	ResetTokens       string `json:"x-ratelimit-reset-tokens"`
 }
 
-func NewRateLimitHeaders(h http.Header) RateLimitHeaders {
+func newRateLimitHeaders(h http.Header) RateLimitHeaders {
 	limitReq, _ := strconv.Atoi(h.Get("x-ratelimit-limit-requests"))
 	limitTokens, _ := strconv.Atoi(h.Get("x-ratelimit-limit-tokens"))
 	remainingReq, _ := strconv.Atoi(h.Get("x-ratelimit-remaining-requests"))

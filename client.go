@@ -15,11 +15,11 @@ import (
 // OpenAI headers https://platform.openai.com/docs/guides/rate-limits/rate-limits-in-headers
 const (
 	xRatelimitLimitRequests     = "x-ratelimit-limit-requests"
-	xRatelimitLimitTokens       = "x-ratelimit-limit-tokens"
+	xRatelimitLimitTokens       = "x-ratelimit-limit-tokens" // #nosec G101
 	xRatelimitRemainingRequests = "x-ratelimit-remaining-requests"
-	xRatelimitRemainingTokens   = "x-ratelimit-remaining-tokens"
+	xRatelimitRemainingTokens   = "x-ratelimit-remaining-tokens" // #nosec G101
 	xRatelimitResetRequests     = "x-ratelimit-reset-requests"
-	xRatelimitResetTokens       = "x-ratelimit-reset-tokens"
+	xRatelimitResetTokens       = "x-ratelimit-reset-tokens" // #nosec G101
 )
 
 // Client is OpenAI GPT-3 API client.

@@ -154,15 +154,14 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 	if isFailureStatusCode(resp) {
 		return new(streamReader[T]), client.handleErrorResp(resp)
 	}
-	reader := &streamReader[T]{
+	return &streamReader[T]{
 		emptyMessagesLimit: client.config.EmptyMessagesLimit,
 		reader:             bufio.NewReader(resp.Body),
 		response:           resp,
 		errAccumulator:     utils.NewErrorAccumulator(),
 		unmarshaler:        &utils.JSONUnmarshaler{},
-	}
-	reader.SetHeader(resp.Header)
-	return reader, nil
+		httpHeader:         httpHeader(resp.Header),
+	}, nil
 }
 
 func (c *Client) setCommonHeaders(req *http.Request) {

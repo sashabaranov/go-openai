@@ -21,7 +21,7 @@ const (
 	xCustomHeaderValue = "test"
 )
 
-var testHttpHeaders = map[string]string{
+var testHTTPHeaders = map[string]string{
 	"X-CUSTOM-HEADER":                "test",
 	"x-ratelimit-limit-requests":     "3000",
 	"x-ratelimit-limit-tokens":       "250000",
@@ -100,33 +100,33 @@ func TestChatCompletionsWithHeaders(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateChatCompletion error")
 
-	if resp.RatelimitLimitRequests() != testHttpHeaders["x-ratelimit-limit-requests"] {
+	if resp.RatelimitLimitRequests() != testHTTPHeaders["x-ratelimit-limit-requests"] {
 		t.Errorf("expected header %s to be %s", "x-ratelimit-limit-requests",
-			testHttpHeaders["x-ratelimit-limit-requests"])
+			testHTTPHeaders["x-ratelimit-limit-requests"])
 	}
 
-	if resp.RatelimitLimitTokens() != testHttpHeaders["x-ratelimit-limit-tokens"] {
+	if resp.RatelimitLimitTokens() != testHTTPHeaders["x-ratelimit-limit-tokens"] {
 		t.Errorf("expected header %s to be %s", "x-ratelimit-limit-tokens",
-			testHttpHeaders["x-ratelimit-limit-tokens"])
+			testHTTPHeaders["x-ratelimit-limit-tokens"])
 	}
 
-	if resp.RatelimitRemainingRequests() != testHttpHeaders["x-ratelimit-remaining-requests"] {
+	if resp.RatelimitRemainingRequests() != testHTTPHeaders["x-ratelimit-remaining-requests"] {
 		t.Errorf("expected header %s to be %s", "x-ratelimit-remaining-requests",
-			testHttpHeaders["x-ratelimit-remaining-requests"])
+			testHTTPHeaders["x-ratelimit-remaining-requests"])
 	}
 
-	if resp.RatelimitRemainingTokens() != testHttpHeaders["x-ratelimit-remaining-tokens"] {
+	if resp.RatelimitRemainingTokens() != testHTTPHeaders["x-ratelimit-remaining-tokens"] {
 		t.Errorf("expected header %s to be %s", "x-ratelimit-remaining-tokens",
-			testHttpHeaders["x-ratelimit-remaining-tokens"])
+			testHTTPHeaders["x-ratelimit-remaining-tokens"])
 	}
 
-	if resp.RatelimitResetRequests() != testHttpHeaders["x-ratelimit-reset-requests"] {
+	if resp.RatelimitResetRequests() != testHTTPHeaders["x-ratelimit-reset-requests"] {
 		t.Errorf("expected header %s to be %s", "x-ratelimit-reset-requests",
-			testHttpHeaders["x-ratelimit-reset-requests"])
+			testHTTPHeaders["x-ratelimit-reset-requests"])
 	}
 
-	if resp.RatelimitResetTokens() != testHttpHeaders["x-ratelimit-reset-tokens"] {
-		t.Errorf("expected header %s to be %s", "x-ratelimit-reset-tokens", testHttpHeaders["x-ratelimit-reset-tokens"])
+	if resp.RatelimitResetTokens() != testHTTPHeaders["x-ratelimit-reset-tokens"] {
+		t.Errorf("expected header %s to be %s", "x-ratelimit-reset-tokens", testHTTPHeaders["x-ratelimit-reset-tokens"])
 	}
 
 	if resp.Header().Get("x-custom-header") != xCustomHeaderValue {
@@ -348,7 +348,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	resBytes, _ = json.Marshal(res)
 	// set test headers
-	for k, v := range testHttpHeaders {
+	for k, v := range testHTTPHeaders {
 		w.Header().Set(k, v)
 	}
 	fmt.Fprintln(w, string(resBytes))

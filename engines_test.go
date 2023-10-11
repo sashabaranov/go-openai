@@ -24,7 +24,6 @@ func RandomEngine() Engine {
 
 // TestGetEngine Tests the retrieve engine endpoint of the API using the mocked server.
 func TestGetEngine(t *testing.T) {
-	test.Seed(42) // Seed the RNG
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 

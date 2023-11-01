@@ -502,7 +502,7 @@ func main() {
 	// Create an EmbeddingRequest for the user query
 	queryReq := openai.EmbeddingRequest{
 		Input: []string{"How many chucks would a woodchuck chuck"},
-		Model: openai.AdaEmbeddingv2,
+		Model: openai.AdaEmbeddingV2,
 	}
 
 	// Create an embedding for the user query
@@ -514,7 +514,7 @@ func main() {
 	// Create an EmbeddingRequest for the target text
 	targetReq := openai.EmbeddingRequest{
 		Input: []string{"How many chucks would a woodchuck chuck if the woodchuck could chuck wood"},
-		Model: openai.AdaEmbeddingv2,
+		Model: openai.AdaEmbeddingV2,
 	}
 
 	// Create an embedding for the target text

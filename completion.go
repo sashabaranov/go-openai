@@ -22,7 +22,10 @@ const (
 	GPT432K               = "gpt-4-32k"
 	GPT40613              = "gpt-4-0613"
 	GPT40314              = "gpt-4-0314"
+	GPT4TurboPreview      = "gpt-4-1106-preview"
+	GPT4VisionPreview     = "gpt-4-vision-preview"
 	GPT4                  = "gpt-4"
+	GPT3Dot5Turbo1106     = "gpt-3.5-turbo-1106"
 	GPT3Dot5Turbo0613     = "gpt-3.5-turbo-0613"
 	GPT3Dot5Turbo0301     = "gpt-3.5-turbo-0301"
 	GPT3Dot5Turbo16K      = "gpt-3.5-turbo-16k"
@@ -69,9 +72,12 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT3Dot5Turbo:        true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,
+		GPT3Dot5Turbo1106:    true,
 		GPT3Dot5Turbo16K:     true,
 		GPT3Dot5Turbo16K0613: true,
 		GPT4:                 true,
+		GPT4TurboPreview:     true,
+		GPT4VisionPreview:    true,
 		GPT40314:             true,
 		GPT40613:             true,
 		GPT432K:              true,

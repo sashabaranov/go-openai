@@ -17,20 +17,21 @@ var (
 // GPT3 Models are designed for text-based tasks. For code-specific
 // tasks, please refer to the Codex series of models.
 const (
-	GPT4Turbo1106Preview   = "gpt-4-1106-preview"
-	GPT4TurboVisionPreview = "gpt-4-vision-preview"
-	GPT432K0613            = "gpt-4-32k-0613"
-	GPT432K0314            = "gpt-4-32k-0314"
-	GPT432K                = "gpt-4-32k"
-	GPT40613               = "gpt-4-0613"
-	GPT40314               = "gpt-4-0314"
-	GPT4                   = "gpt-4"
-	GPT3Dot5Turbo0613      = "gpt-3.5-turbo-0613"
-	GPT3Dot5Turbo0301      = "gpt-3.5-turbo-0301"
-	GPT3Dot5Turbo16K       = "gpt-3.5-turbo-16k"
-	GPT3Dot5Turbo16K0613   = "gpt-3.5-turbo-16k-0613"
-	GPT3Dot5Turbo          = "gpt-3.5-turbo"
-	GPT3Dot5TurboInstruct  = "gpt-3.5-turbo-instruct"
+	GPT432K0613           = "gpt-4-32k-0613"
+	GPT432K0314           = "gpt-4-32k-0314"
+	GPT432K               = "gpt-4-32k"
+	GPT40613              = "gpt-4-0613"
+	GPT40314              = "gpt-4-0314"
+	GPT4TurboPreview      = "gpt-4-1106-preview"
+	GPT4VisionPreview     = "gpt-4-vision-preview"
+	GPT4                  = "gpt-4"
+	GPT3Dot5Turbo1106     = "gpt-3.5-turbo-1106"
+	GPT3Dot5Turbo0613     = "gpt-3.5-turbo-0613"
+	GPT3Dot5Turbo0301     = "gpt-3.5-turbo-0301"
+	GPT3Dot5Turbo16K      = "gpt-3.5-turbo-16k"
+	GPT3Dot5Turbo16K0613  = "gpt-3.5-turbo-16k-0613"
+	GPT3Dot5Turbo         = "gpt-3.5-turbo"
+	GPT3Dot5TurboInstruct = "gpt-3.5-turbo-instruct"
 	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci003 = "text-davinci-003"
 	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
@@ -71,9 +72,12 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT3Dot5Turbo:        true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,
+		GPT3Dot5Turbo1106:    true,
 		GPT3Dot5Turbo16K:     true,
 		GPT3Dot5Turbo16K0613: true,
 		GPT4:                 true,
+		GPT4TurboPreview:     true,
+		GPT4VisionPreview:    true,
 		GPT40314:             true,
 		GPT40613:             true,
 		GPT432K:              true,

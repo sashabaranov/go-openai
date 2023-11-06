@@ -40,7 +40,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 	}
 
 	var failForField string
-	mockBuilder.mockWriteField = func(fieldname, value string) error {
+	mockBuilder.mockWriteField = func(fieldname, _ string) error {
 		if fieldname == failForField {
 			return mockFailedErr
 		}

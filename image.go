@@ -27,6 +27,7 @@ type ImageRequest struct {
 	Size           string `json:"size,omitempty"`
 	ResponseFormat string `json:"response_format,omitempty"`
 	User           string `json:"user,omitempty"`
+	Model          string `json:"model,omitempty"`
 }
 
 // ImageResponse represents a response structure for image API.

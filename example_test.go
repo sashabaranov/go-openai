@@ -28,7 +28,6 @@ func Example() {
 			},
 		},
 	)
-
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
 		return
@@ -319,7 +318,6 @@ func ExampleDefaultAzureConfig() {
 			},
 		},
 	)
-
 	if err != nil {
 		fmt.Printf("ChatCompletion error: %v\n", err)
 		return

@@ -34,11 +34,11 @@ const (
 )
 
 type CreateSpeechRequest struct {
-	Model          SpeechModel           `json:"model"`
-	Input          string                `json:"input"`
-	Voice          SpeechVoice           `json:"voice"`
-	ResponseFormat *SpeechResponseFormat `json:"response_format,omitempty"` // Optional, default to mp3
-	Speed          *float64              `json:"speed,omitempty"`           // Optional, default to 1.0
+	Model          SpeechModel          `json:"model"`
+	Input          string               `json:"input"`
+	Voice          SpeechVoice          `json:"voice"`
+	ResponseFormat SpeechResponseFormat `json:"response_format,omitempty"` // Optional, default to mp3
+	Speed          float64              `json:"speed,omitempty"`           // Optional, default to 1.0
 }
 
 func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response io.ReadCloser, err error) {

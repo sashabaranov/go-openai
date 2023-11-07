@@ -5,13 +5,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
 	"testing"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"github.com/telia-oss/go-openai"
+	"github.com/telia-oss/go-openai/internal/test/checks"
 )
 
 func TestChatCompletionsStreamWrongModel(t *testing.T) {
@@ -118,14 +117,14 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	}
 
 	_, streamErr := stream.Recv()
-	if !errors.Is(streamErr, io.EOF) {
+	if !errors.Is(streamErr, openai.ErrSteamFinished) {
 		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
 	}
 
 	_, streamErr = stream.Recv()
 
-	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
-	if !errors.Is(streamErr, io.EOF) {
+	checks.ErrorIs(t, streamErr, openai.ErrSteamFinished, "stream.Recv() did not return EOF when the stream is finished")
+	if !errors.Is(streamErr, openai.ErrSteamFinished) {
 		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
 	}
 }

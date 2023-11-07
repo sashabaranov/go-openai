@@ -3,16 +3,17 @@ package openai
 import (
 	"bufio"
 	"bytes"
+	"errors"
 	"fmt"
-	"io"
 	"net/http"
 
-	utils "github.com/sashabaranov/go-openai/internal"
+	utils "github.com/telia-oss/go-openai/internal"
 )
 
 var (
-	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"error":`)
+	headerData       = []byte("data: ")
+	errorPrefix      = []byte(`data: {"error":`)
+	ErrSteamFinished = errors.New("stream finished")
 )
 
 type streamable interface {
@@ -33,7 +34,7 @@ type streamReader[T streamable] struct {
 
 func (stream *streamReader[T]) Recv() (response T, err error) {
 	if stream.isFinished {
-		err = io.EOF
+		err = ErrSteamFinished
 		return
 	}
 
@@ -81,7 +82,7 @@ func (stream *streamReader[T]) processLines() (T, error) {
 		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
 		if string(noPrefixLine) == "[DONE]" {
 			stream.isFinished = true
-			return *new(T), io.EOF
+			return *new(T), ErrSteamFinished
 		}
 
 		var response T

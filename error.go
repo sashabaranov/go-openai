@@ -51,7 +51,7 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 	err = json.Unmarshal(rawMap["message"], &e.Message)
 	if err != nil {
 		// If the parameter field of a function call is invalid as a JSON schema
-		// refs: https://github.com/sashabaranov/go-openai/issues/381
+		// refs: https://github.com/telia-oss/go-openai/issues/381
 		var messages []string
 		err = json.Unmarshal(rawMap["message"], &messages)
 		if err != nil {
@@ -61,7 +61,7 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 	}
 
 	// optional fields for azure openai
-	// refs: https://github.com/sashabaranov/go-openai/issues/343
+	// refs: https://github.com/telia-oss/go-openai/issues/343
 	if _, ok := rawMap["type"]; ok {
 		err = json.Unmarshal(rawMap["type"], &e.Type)
 		if err != nil {

@@ -13,13 +13,33 @@ import (
 // TestMessages Tests the messages endpoint of the API using the mocked server.
 func TestMessages(t *testing.T) {
 	threadID := "thread_abc123"
-	messageId := "msg_abc123"
+	messageID := "msg_abc123"
+	fileID := "file_abc123"
 
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 
 	server.RegisterHandler(
-		"/v1/threads/"+threadID+"/messages/"+messageId,
+		"/v1/threads/"+threadID+"/messages/"+messageID+"/files/"+fileID,
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				resBytes, _ := json.Marshal(
+					openai.MessageFile{
+						Id:        fileID,
+						Object:    "thread.message.file",
+						CreatedAt: 1699061776,
+						MessageId: messageID,
+					})
+				fmt.Fprintln(w, string(resBytes))
+			default:
+				t.Fatalf("unsupported messages http method: %s", r.Method)
+			}
+		},
+	)
+
+	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/messages/"+messageID,
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodPost:
@@ -29,7 +49,7 @@ func TestMessages(t *testing.T) {
 
 				resBytes, _ := json.Marshal(
 					openai.Message{
-						Id:        messageId,
+						Id:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
 						ThreadId:  threadID,
@@ -50,7 +70,7 @@ func TestMessages(t *testing.T) {
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(
 					openai.Message{
-						Id:        messageId,
+						Id:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
 						ThreadId:  threadID,
@@ -80,7 +100,7 @@ func TestMessages(t *testing.T) {
 			switch r.Method {
 			case http.MethodPost:
 				resBytes, _ := json.Marshal(openai.Message{
-					Id:        messageId,
+					Id:        messageID,
 					Object:    "thread.message",
 					CreatedAt: 1234567890,
 					ThreadId:  threadID,
@@ -101,7 +121,7 @@ func TestMessages(t *testing.T) {
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(openai.MessagesList{
 					Messages: []openai.Message{{
-						Id:        messageId,
+						Id:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
 						ThreadId:  threadID,
@@ -144,18 +164,26 @@ func TestMessages(t *testing.T) {
 		t.Fatalf("unexpected length of fetched messages")
 	}
 
-	msg, err = client.RetrieveMessage(ctx, threadID, messageId)
+	msg, err = client.RetrieveMessage(ctx, threadID, messageID)
 	checks.NoError(t, err, "RetrieveMessage error")
-	if msg.Id != messageId {
+	if msg.Id != messageID {
 		t.Fatalf("unexpected message id: '%s'", msg.Id)
 	}
 
-	msg, err = client.ModifyMessage(ctx, threadID, messageId,
+	msg, err = client.ModifyMessage(ctx, threadID, messageID,
 		map[string]any{
 			"foo": "bar",
 		})
 	checks.NoError(t, err, "ModifyMessage error")
 	if msg.Metadata["foo"] != "bar" {
 		t.Fatalf("expected message metadata to get modified")
+	}
+
+	// message files
+	var msgFile openai.MessageFile
+	msgFile, err = client.RetrieveMessageFile(ctx, threadID, messageID, fileID)
+	checks.NoError(t, err, "RetrieveMessageFile error")
+	if msgFile.Id != fileID {
+		t.Fatalf("unexpected message file id: '%s'", msgFile.Id)
 	}
 }

@@ -48,6 +48,21 @@ type MessageRequest struct {
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
+type MessageFile struct {
+	Id        string `json:"id"`
+	Object    string `json:"object"`
+	CreatedAt int    `json:"created_at"`
+	MessageId string `json:"message_id"`
+
+	httpHeader
+}
+
+type MessageFilesList struct {
+	MessageFiles []MessageFile `json:"data"`
+
+	httpHeader
+}
+
 // CreateMessage creates a new message.
 func (c *Client) CreateMessage(ctx context.Context, threadID string, request MessageRequest) (msg Message, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s%s", threadID, messagesSuffix)
@@ -123,5 +138,20 @@ func (c *Client) ModifyMessage(
 	}
 
 	err = c.sendRequest(req, &msg)
+	return
+}
+
+// RetrieveMessageFile fetches a message file
+func (c *Client) RetrieveMessageFile(
+	ctx context.Context,
+	threadID, messageID, fileID string,
+) (file MessageFile, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s%s/%s/files/%s", threadID, messagesSuffix, messageID, fileID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &file)
 	return
 }

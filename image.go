@@ -13,7 +13,7 @@ const (
 	CreateImageSize256x256   = "256x256"
 	CreateImageSize512x512   = "512x512"
 	CreateImageSize1024x1024 = "1024x1024"
-	// dall-e-3 supported only
+	// dall-e-3 supported only.
 	CreateImageSize1792x1024 = "1792x1024"
 	CreateImageSize1024x1792 = "1024x1792"
 )

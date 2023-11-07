@@ -59,7 +59,8 @@ func TestChatRequestOmitEmpty(t *testing.T) {
 	checks.NoError(t, err)
 
 	// response_format is also set b/c it's a non-pointer struct
-	const expected = `{"model":"gpt-4","response_format":{}}`
+	// and messages is also required
+	const expected = `{"model":"gpt-4","messages":null,"response_format":{}}`
 	if string(data) != expected {
 		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
 	}

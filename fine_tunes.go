@@ -6,6 +6,10 @@ import (
 	"net/http"
 )
 
+const (
+	fineTunesPath = "/fine-tunes"
+)
+
 // Deprecated: On August 22nd, 2023, OpenAI announced the deprecation of the /v1/fine-tunes API.
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
@@ -100,8 +104,7 @@ type FineTuneDeleteResponse struct {
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) CreateFineTune(ctx context.Context, request FineTuneRequest) (response FineTune, err error) {
-	urlSuffix := "/fine-tunes"
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(fineTunesPath), withBody(request))
 	if err != nil {
 		return
 	}
@@ -115,8 +118,7 @@ func (c *Client) CreateFineTune(ctx context.Context, request FineTuneRequest) (r
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) CancelFineTune(ctx context.Context, fineTuneID string) (response FineTune, err error) {
-	//nolint:goconst
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/fine-tunes/"+fineTuneID+"/cancel"))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(fineTunesPath+"/"+fineTuneID+"/cancel"))
 	if err != nil {
 		return
 	}
@@ -129,8 +131,7 @@ func (c *Client) CancelFineTune(ctx context.Context, fineTuneID string) (respons
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) ListFineTunes(ctx context.Context) (response FineTuneList, err error) {
-	//nolint:goconst
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/fine-tunes"))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(fineTunesPath))
 	if err != nil {
 		return
 	}
@@ -143,8 +144,7 @@ func (c *Client) ListFineTunes(ctx context.Context) (response FineTuneList, err 
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) GetFineTune(ctx context.Context, fineTuneID string) (response FineTune, err error) {
-	//nolint:goconst
-	urlSuffix := fmt.Sprintf("/fine-tunes/%s", fineTuneID)
+	urlSuffix := fmt.Sprintf("%s/%s", fineTunesPath, fineTuneID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
@@ -158,7 +158,7 @@ func (c *Client) GetFineTune(ctx context.Context, fineTuneID string) (response F
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) DeleteFineTune(ctx context.Context, fineTuneID string) (response FineTuneDeleteResponse, err error) {
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL("/fine-tunes/"+fineTuneID))
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(fineTunesPath+"/"+fineTuneID))
 	if err != nil {
 		return
 	}
@@ -171,7 +171,7 @@ func (c *Client) DeleteFineTune(ctx context.Context, fineTuneID string) (respons
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) ListFineTuneEvents(ctx context.Context, fineTuneID string) (response FineTuneEventList, err error) {
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/fine-tunes/"+fineTuneID+"/events"))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(fineTunesPath+"/"+fineTuneID+"/events"))
 	if err != nil {
 		return
 	}

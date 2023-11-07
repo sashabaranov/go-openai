@@ -17,7 +17,8 @@ func TestAssistant(t *testing.T) {
 	assistantID := "asst_abc123"
 	assistantName := "Ambrogio"
 	assistantDescription := "Ambrogio is a friendly assistant."
-	assitantInstructions := "You are a personal math tutor. When asked a question, write and run Python code to answer the question."
+	assitantInstructions := `You are a personal math tutor. 
+When asked a question, write and run Python code to answer the question.`
 	assistantFileID := "file-wB6RM6wHdA49HfS2DJ9fEyrH"
 	limit := 20
 	order := "desc"
@@ -82,7 +83,8 @@ func TestAssistant(t *testing.T) {
 	server.RegisterHandler(
 		"/v1/assistants/"+assistantID,
 		func(w http.ResponseWriter, r *http.Request) {
-			if r.Method == http.MethodGet {
+			switch r.Method {
+			case http.MethodGet:
 				resBytes, _ := json.Marshal(openai.Assistant{
 					ID:           assistantID,
 					Object:       "assistant",
@@ -93,7 +95,7 @@ func TestAssistant(t *testing.T) {
 					Instructions: &assitantInstructions,
 				})
 				fmt.Fprintln(w, string(resBytes))
-			} else if r.Method == http.MethodPost {
+			case http.MethodPost:
 				var request openai.AssistantRequest
 				err := json.NewDecoder(r.Body).Decode(&request)
 				checks.NoError(t, err, "Decode error")
@@ -109,7 +111,7 @@ func TestAssistant(t *testing.T) {
 					Tools:        request.Tools,
 				})
 				fmt.Fprintln(w, string(resBytes))
-			} else if r.Method == http.MethodDelete {
+			case http.MethodDelete:
 				fmt.Fprintln(w, `{
 					"id": "asst_abc123",
 					"object": "assistant.deleted",
@@ -122,7 +124,6 @@ func TestAssistant(t *testing.T) {
 	server.RegisterHandler(
 		"/v1/assistants",
 		func(w http.ResponseWriter, r *http.Request) {
-
 			if r.Method == http.MethodPost {
 				var request openai.AssistantRequest
 				err := json.NewDecoder(r.Body).Decode(&request)
@@ -198,5 +199,4 @@ func TestAssistant(t *testing.T) {
 
 	err = client.DeleteAssistantFile(ctx, assistantID, assistantFileID)
 	checks.NoError(t, err, "DeleteAssistantFile error")
-
 }

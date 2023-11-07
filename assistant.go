@@ -135,7 +135,7 @@ func (c *Client) DeleteAssistant(
 	return
 }
 
-// ListAssistants Lists the currently available assistants
+// ListAssistants Lists the currently available assistants.
 func (c *Client) ListAssistants(
 	ctx context.Context,
 	limit *int,
@@ -221,7 +221,7 @@ func (c *Client) DeleteAssistantFile(
 	return
 }
 
-// ListAssistantFiles Lists the currently available files for an assistant,
+// ListAssistantFiles Lists the currently available files for an assistant.
 func (c *Client) ListAssistantFiles(
 	ctx context.Context,
 	assistantID string,

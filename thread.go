@@ -6,7 +6,7 @@ import (
 )
 
 const (
-	threadsPath = "/threads"
+	threadsSuffix = "/threads"
 )
 
 type Thread struct {
@@ -35,7 +35,7 @@ type ThreadMessage struct {
 
 // CreateThread creates a new thread.
 func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (response Thread, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsPath), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsSuffix), withBody(request))
 	if err != nil {
 		return
 	}
@@ -46,7 +46,7 @@ func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (respo
 
 // RetrieveThread retrieves a thread.
 func (c *Client) RetrieveThread(ctx context.Context, threadID string) (response Thread, err error) {
-	urlSuffix := threadsPath + "/" + threadID
+	urlSuffix := threadsSuffix + "/" + threadID
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
@@ -62,7 +62,7 @@ func (c *Client) ModifyThread(
 	threadID string,
 	request ModifyThreadRequest,
 ) (response Thread, err error) {
-	urlSuffix := threadsPath + "/" + threadID
+	urlSuffix := threadsSuffix + "/" + threadID
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
@@ -74,7 +74,7 @@ func (c *Client) ModifyThread(
 
 // DeleteThread deletes a thread.
 func (c *Client) DeleteThread(ctx context.Context, threadID string) (err error) {
-	urlSuffix := threadsPath + "/" + threadID
+	urlSuffix := threadsSuffix + "/" + threadID
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
 	if err != nil {
 		return

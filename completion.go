@@ -67,6 +67,13 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
+// Response formats for the completion API.
+const (
+	// JSON format.
+	CompletionResponseFormatJSON = "json_object"
+	CompletionResponseFormatText = "text"
+)
+
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
 		GPT3Dot5Turbo:        true,
@@ -129,6 +136,7 @@ type CompletionRequest struct {
 	PresencePenalty  float32  `json:"presence_penalty,omitempty"`
 	FrequencyPenalty float32  `json:"frequency_penalty,omitempty"`
 	BestOf           int      `json:"best_of,omitempty"`
+	ResponseFormat   string   `json:"response_format,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias

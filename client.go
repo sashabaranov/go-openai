@@ -83,6 +83,12 @@ func withContentType(contentType string) requestOption {
 	}
 }
 
+func withHeader(key, value string) requestOption {
+	return func(args *requestOptions) {
+		args.header.Set(key, value)
+	}
+}
+
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
 	args := &requestOptions{

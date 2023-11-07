@@ -14,9 +14,9 @@ func TestSpeechIntegration(t *testing.T) {
 	client := openai.NewClient("sk-xyz")
 
 	res, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-		Model: openai.TTS_MODEL_1,
+		Model: openai.TTSModel1,
 		Input: "Hello!",
-		Voice: openai.VOICE_ALLOY,
+		Voice: openai.VoiceAlloy,
 	})
 	checks.NoError(t, err, "CreateSpeech error")
 	defer res.Close()

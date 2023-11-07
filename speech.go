@@ -9,28 +9,28 @@ import (
 type SpeechModel string
 
 const (
-	TTS_MODEL_1    SpeechModel = "tts-1"
-	TTS_MODEL_1_HD SpeechModel = "tts-1-hd"
+	TTSModel1   SpeechModel = "tts-1"
+	TTsModel1HD SpeechModel = "tts-1-hd"
 )
 
 type SpeechVoice string
 
 const (
-	VOICE_ALLOY   SpeechVoice = "alloy"
-	VOICE_ECHO    SpeechVoice = "echo"
-	VOICE_FABLE   SpeechVoice = "fable"
-	VOICE_ONYX    SpeechVoice = "onyx"
-	VOICE_NOVA    SpeechVoice = "nova"
-	VOICE_SHIMMER SpeechVoice = "shimmer"
+	VoiceAlloy   SpeechVoice = "alloy"
+	VoiceEcho    SpeechVoice = "echo"
+	VoiceFable   SpeechVoice = "fable"
+	VoiceOnyx    SpeechVoice = "onyx"
+	VoiceNova    SpeechVoice = "nova"
+	VoiceShimmer SpeechVoice = "shimmer"
 )
 
 type SpeechResponseFormat string
 
 const (
-	SPEECH_RESPONSE_FORMAT_MP3  SpeechResponseFormat = "mp3"
-	SPEECH_RESPONSE_FORMAT_OPUS SpeechResponseFormat = "opus"
-	SPEECH_RESPONSE_FORMAT_AAC  SpeechResponseFormat = "aac"
-	SPEECH_RESPONSE_FORMAT_FLAC SpeechResponseFormat = "flac"
+	SpeechResponseFormatMp3  SpeechResponseFormat = "mp3"
+	SpeechResponseFormatOpus SpeechResponseFormat = "opus"
+	SpeechResponseFormatAac  SpeechResponseFormat = "aac"
+	SpeechResponseFormatFlac SpeechResponseFormat = "flac"
 )
 
 type CreateSpeechRequest struct {
@@ -42,14 +42,6 @@ type CreateSpeechRequest struct {
 }
 
 func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response io.ReadCloser, err error) {
-	if request.Speed == nil {
-		defaultSpeed := float64(1.0)
-		request.Speed = &defaultSpeed
-	}
-	if request.ResponseFormat == nil {
-		defaultResponseFormat := SPEECH_RESPONSE_FORMAT_MP3
-		request.ResponseFormat = &defaultResponseFormat
-	}
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/audio/speech", request.Model),
 		withBody(request),
 		withContentType("application/json; charset=utf-8"),

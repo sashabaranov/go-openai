@@ -67,7 +67,7 @@ type ChatCompletionMessage struct {
 	ToolCalls []ToolCall `json:"tool_calls,omitempty"`
 
 	// For Role=TOOL prompts this should be set to the ID given in the assistant's prior request to call a tool.
-	ToolCallID string `json:"tool_call_id"`
+	ToolCallID string `json:"tool_call_id,omitempty"`
 }
 
 type ToolCall struct {
@@ -89,13 +89,13 @@ const (
 )
 
 type ChatCompletionResponseFormat struct {
-	Type ChatCompletionResponseFormatType `json:"type"`
+	Type ChatCompletionResponseFormatType `json:"type,omitempty"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
 	Model            string                       `json:"model"`
-	Messages         []ChatCompletionMessage      `json:"messages"`
+	Messages         []ChatCompletionMessage      `json:"messages,omitempty"`
 	MaxTokens        int                          `json:"max_tokens,omitempty"`
 	Temperature      float32                      `json:"temperature,omitempty"`
 	TopP             float32                      `json:"top_p,omitempty"`
@@ -103,7 +103,7 @@ type ChatCompletionRequest struct {
 	Stream           bool                         `json:"stream,omitempty"`
 	Stop             []string                     `json:"stop,omitempty"`
 	PresencePenalty  float32                      `json:"presence_penalty,omitempty"`
-	ResponseFormat   ChatCompletionResponseFormat `json:"response_format,omitempty"`
+	ResponseFormat   ChatCompletionResponseFormat `json:"response_format"`
 	Seed             *int                         `json:"seed,omitempty"`
 	FrequencyPenalty float32                      `json:"frequency_penalty,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.

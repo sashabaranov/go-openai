@@ -59,8 +59,9 @@ type ImageResponse struct {
 
 // ImageResponseDataInner represents a response data structure for image API.
 type ImageResponseDataInner struct {
-	URL     string `json:"url,omitempty"`
-	B64JSON string `json:"b64_json,omitempty"`
+	URL           string `json:"url,omitempty"`
+	B64JSON       string `json:"b64_json,omitempty"`
+	RevisedPrompt string `json:"revised_prompt,omitempty"`
 }
 
 // CreateImage - API call to create an image. This is the main endpoint of the DALL-E API.

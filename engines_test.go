@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
@@ -15,8 +15,8 @@ import (
 func TestGetEngine(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/engines/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(Engine{})
+	server.RegisterHandler("/v1/engines/text-davinci-003", func(w http.ResponseWriter, _ *http.Request) {
+		resBytes, _ := json.Marshal(openai.Engine{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.GetEngine(context.Background(), "text-davinci-003")
@@ -27,8 +27,8 @@ func TestGetEngine(t *testing.T) {
 func TestListEngines(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(EnginesList{})
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, _ *http.Request) {
+		resBytes, _ := json.Marshal(openai.EnginesList{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.ListEngines(context.Background())
@@ -38,7 +38,7 @@ func TestListEngines(t *testing.T) {
 func TestListEnginesReturnError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusTeapot)
 	})
 

@@ -95,7 +95,7 @@ func (c *Client) RetrieveAssistant(
 	assistantID string,
 ) (response Assistant, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}

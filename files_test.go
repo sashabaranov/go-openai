@@ -1,14 +1,14 @@
 package openai //nolint:testpackage // testing private field
 
 import (
-	utils "github.com/sashabaranov/go-openai/internal"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-
 	"context"
 	"fmt"
 	"io"
 	"os"
 	"testing"
+
+	utils "github.com/sashabaranov/go-openai/internal"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestFileUploadWithFailingFormBuilder(t *testing.T) {

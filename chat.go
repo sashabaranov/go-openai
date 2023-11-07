@@ -12,6 +12,7 @@ const (
 	ChatMessageRoleUser      = "user"
 	ChatMessageRoleAssistant = "assistant"
 	ChatMessageRoleFunction  = "function"
+	ChatMessageRoleTool      = "tool"
 )
 
 const chatCompletionsSuffix = "/chat/completions"
@@ -61,6 +62,12 @@ type ChatCompletionMessage struct {
 	Name string `json:"name,omitempty"`
 
 	FunctionCall *FunctionCall `json:"function_call,omitempty"`
+	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
+}
+
+type ToolCall struct {
+	ID       string       `json:"id"`
+	Function FunctionCall `json:"function"`
 }
 
 type FunctionCall struct {
@@ -69,25 +76,63 @@ type FunctionCall struct {
 	Arguments string `json:"arguments,omitempty"`
 }
 
+type ChatCompletionResponseFormatType string
+
+const (
+	ChatCompletionResponseFormatTypeJSONObject ChatCompletionResponseFormatType = "json_object"
+	ChatCompletionResponseFormatTypeText       ChatCompletionResponseFormatType = "text"
+)
+
+type ChatCompletionResponseFormat struct {
+	Type ChatCompletionResponseFormatType `json:"type"`
+}
+
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
-	Model            string                  `json:"model"`
-	Messages         []ChatCompletionMessage `json:"messages"`
-	MaxTokens        int                     `json:"max_tokens,omitempty"`
-	Temperature      float32                 `json:"temperature,omitempty"`
-	TopP             float32                 `json:"top_p,omitempty"`
-	N                int                     `json:"n,omitempty"`
-	Stream           bool                    `json:"stream,omitempty"`
-	Stop             []string                `json:"stop,omitempty"`
-	PresencePenalty  float32                 `json:"presence_penalty,omitempty"`
-	FrequencyPenalty float32                 `json:"frequency_penalty,omitempty"`
+	Model            string                       `json:"model"`
+	Messages         []ChatCompletionMessage      `json:"messages"`
+	MaxTokens        int                          `json:"max_tokens,omitempty"`
+	Temperature      float32                      `json:"temperature,omitempty"`
+	TopP             float32                      `json:"top_p,omitempty"`
+	N                int                          `json:"n,omitempty"`
+	Stream           bool                         `json:"stream,omitempty"`
+	Stop             []string                     `json:"stop,omitempty"`
+	PresencePenalty  float32                      `json:"presence_penalty,omitempty"`
+	ResponseFormat   ChatCompletionResponseFormat `json:"response_format,omitempty"`
+	Seed             *int                         `json:"seed,omitempty"`
+	FrequencyPenalty float32                      `json:"frequency_penalty,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
-	LogitBias    map[string]int       `json:"logit_bias,omitempty"`
-	User         string               `json:"user,omitempty"`
-	Functions    []FunctionDefinition `json:"functions,omitempty"`
-	FunctionCall any                  `json:"function_call,omitempty"`
+	LogitBias map[string]int `json:"logit_bias,omitempty"`
+	User      string         `json:"user,omitempty"`
+	// Deprecated: use Tools instead.
+	Functions []FunctionDefinition `json:"functions,omitempty"`
+	// Deprecated: use ToolChoice instead.
+	FunctionCall any    `json:"function_call,omitempty"`
+	Tools        []Tool `json:"tools,omitempty"`
+	// This can be either a string or an ToolChoice object.
+	ToolChoiche any `json:"tool_choice,omitempty"`
+}
+
+type ToolType string
+
+const (
+	ToolTypeFunction ToolType = "function"
+)
+
+type Tool struct {
+	Type     ToolType           `json:"type"`
+	Function FunctionDefinition `json:"function,omitempty"`
+}
+
+type ToolChoiche struct {
+	Type     ToolType     `json:"type"`
+	Function ToolFunction `json:"function,omitempty"`
+}
+
+type ToolFunction struct {
+	Name string `json:"name"`
 }
 
 type FunctionDefinition struct {
@@ -110,6 +155,7 @@ const (
 	FinishReasonStop          FinishReason = "stop"
 	FinishReasonLength        FinishReason = "length"
 	FinishReasonFunctionCall  FinishReason = "function_call"
+	FinishReasonToolCalls     FinishReason = "tool_calls"
 	FinishReasonContentFilter FinishReason = "content_filter"
 	FinishReasonNull          FinishReason = "null"
 )

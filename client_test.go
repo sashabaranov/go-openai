@@ -274,6 +274,33 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"DeleteFineTuneModel", func() (any, error) {
 			return client.DeleteFineTuneModel(ctx, "")
 		}},
+		{"CreateAssistant", func() (any, error) {
+			return client.CreateAssistant(ctx, AssistantRequest{})
+		}},
+		{"RetrieveAssistant", func() (any, error) {
+			return client.RetrieveAssistant(ctx, "")
+		}},
+		{"ModifyAssistant", func() (any, error) {
+			return client.ModifyAssistant(ctx, "", AssistantRequest{})
+		}},
+		{"DeleteAssistant", func() (any, error) {
+			return client.DeleteAssistant(ctx, "")
+		}},
+		{"ListAssistants", func() (any, error) {
+			return client.ListAssistants(ctx, nil, nil, nil, nil)
+		}},
+		{"CreateAssistantFile", func() (any, error) {
+			return client.CreateAssistantFile(ctx, "", AssistantFileRequest{})
+		}},
+		{"ListAssistantFiles", func() (any, error) {
+			return client.ListAssistantFiles(ctx, "", nil, nil, nil, nil)
+		}},
+		{"RetrieveAssistantFile", func() (any, error) {
+			return client.RetrieveAssistantFile(ctx, "", "")
+		}},
+		{"DeleteAssistantFile", func() (any, error) {
+			return nil, client.DeleteAssistantFile(ctx, "", "")
+		}},
 	}
 
 	for _, testCase := range testCases {

@@ -12,7 +12,7 @@ import (
 	"strings"
 	"testing"
 
-	. "github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
@@ -26,7 +26,7 @@ func TestAudio(t *testing.T) {
 
 	testcases := []struct {
 		name     string
-		createFn func(context.Context, AudioRequest) (AudioResponse, error)
+		createFn func(context.Context, openai.AudioRequest) (openai.AudioResponse, error)
 	}{
 		{
 			"transcribe",
@@ -48,7 +48,7 @@ func TestAudio(t *testing.T) {
 			path := filepath.Join(dir, "fake.mp3")
 			test.CreateTestFile(t, path)
 
-			req := AudioRequest{
+			req := openai.AudioRequest{
 				FilePath: path,
 				Model:    "whisper-3",
 			}
@@ -57,7 +57,7 @@ func TestAudio(t *testing.T) {
 		})
 
 		t.Run(tc.name+" (with reader)", func(t *testing.T) {
-			req := AudioRequest{
+			req := openai.AudioRequest{
 				FilePath: "fake.webm",
 				Reader:   bytes.NewBuffer([]byte(`some webm binary data`)),
 				Model:    "whisper-3",
@@ -76,7 +76,7 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 
 	testcases := []struct {
 		name     string
-		createFn func(context.Context, AudioRequest) (AudioResponse, error)
+		createFn func(context.Context, openai.AudioRequest) (openai.AudioResponse, error)
 	}{
 		{
 			"transcribe",
@@ -98,13 +98,13 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 			path := filepath.Join(dir, "fake.mp3")
 			test.CreateTestFile(t, path)
 
-			req := AudioRequest{
+			req := openai.AudioRequest{
 				FilePath:    path,
 				Model:       "whisper-3",
 				Prompt:      "用简体中文",
 				Temperature: 0.5,
 				Language:    "zh",
-				Format:      AudioResponseFormatSRT,
+				Format:      openai.AudioResponseFormatSRT,
 			}
 			_, err := tc.createFn(ctx, req)
 			checks.NoError(t, err, "audio API error")

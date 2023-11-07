@@ -8,8 +8,8 @@ import (
 )
 
 const (
-	assistantsPath      = "/assistants"
-	assistantsFilesPath = "/files"
+	assistantsSuffix      = "/assistants"
+	assistantsFilesSuffix = "/files"
 )
 
 type Assistant struct {
@@ -80,7 +80,7 @@ type AssistantFilesList struct {
 
 // CreateAssistant creates a new assistant.
 func (c *Client) CreateAssistant(ctx context.Context, request AssistantRequest) (response Assistant, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsPath), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsSuffix), withBody(request))
 	if err != nil {
 		return
 	}
@@ -94,7 +94,8 @@ func (c *Client) RetrieveAssistant(
 	ctx context.Context,
 	assistantID string,
 ) (response Assistant, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsPath+"/"+assistantID))
+	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -109,7 +110,8 @@ func (c *Client) ModifyAssistant(
 	assistantID string,
 	request AssistantRequest,
 ) (response Assistant, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsPath+"/"+assistantID), withBody(request))
+	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
 	}
@@ -123,7 +125,8 @@ func (c *Client) DeleteAssistant(
 	ctx context.Context,
 	assistantID string,
 ) (response Assistant, err error) {
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(assistantsPath+"/"+assistantID))
+	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -132,8 +135,7 @@ func (c *Client) DeleteAssistant(
 	return
 }
 
-// ListFiles Lists the currently available files,
-// and provides basic information about each file such as the file name and purpose.
+// ListAssistants Lists the currently available assistants,
 func (c *Client) ListAssistants(
 	ctx context.Context,
 	limit *int,
@@ -160,7 +162,8 @@ func (c *Client) ListAssistants(
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(assistantsPath+encodedValues))
+	urlSuffix := fmt.Sprintf("%s%s", assistantsSuffix, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -169,12 +172,14 @@ func (c *Client) ListAssistants(
 	return
 }
 
+// CreateAssistantFile creates a new assistant file.
 func (c *Client) CreateAssistantFile(
 	ctx context.Context,
 	assistantID string,
 	request AssistantFileRequest,
 ) (response AssistantFile, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsPath+"/"+assistantID+assistantsPath),
+	urlSuffix := fmt.Sprintf("%s/%s%s", assistantsSuffix, assistantID, assistantsFilesSuffix)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBody(request))
 	if err != nil {
 		return
@@ -184,13 +189,14 @@ func (c *Client) CreateAssistantFile(
 	return
 }
 
+// RetrieveAssistantFile retrieves an assistant file.
 func (c *Client) RetrieveAssistantFile(
 	ctx context.Context,
 	assistantID string,
 	fileID string,
 ) (response AssistantFile, err error) {
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(assistantsPath+"/"+
-		assistantID+assistantsFilesPath+"/"+fileID))
+	urlSuffix := fmt.Sprintf("%s/%s%s/%s", assistantsSuffix, assistantID, assistantsFilesSuffix, fileID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -199,13 +205,14 @@ func (c *Client) RetrieveAssistantFile(
 	return
 }
 
+// DeleteAssistantFile deletes an existing file.
 func (c *Client) DeleteAssistantFile(
 	ctx context.Context,
 	assistantID string,
 	fileID string,
 ) (err error) {
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(assistantsPath+"/"+
-		assistantID+assistantsFilesPath+"/"+fileID))
+	urlSuffix := fmt.Sprintf("%s/%s%s/%s", assistantsSuffix, assistantID, assistantsFilesSuffix, fileID)
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -214,6 +221,7 @@ func (c *Client) DeleteAssistantFile(
 	return
 }
 
+// ListAssistantFiles Lists the currently available files for an assistant,
 func (c *Client) ListAssistantFiles(
 	ctx context.Context,
 	assistantID string,
@@ -241,8 +249,8 @@ func (c *Client) ListAssistantFiles(
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(assistantsPath+"/"+
-		assistantID+"/files"+encodedValues))
+	urlSuffix := fmt.Sprintf("%s/%s%s%s", assistantsSuffix, assistantID, assistantsFilesSuffix, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}

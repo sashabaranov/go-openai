@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 const (
@@ -22,6 +23,12 @@ type Message struct {
 	RunId       string           `json:"run_id"`
 	Metadata    struct {
 	} `json:"metadata"`
+
+	httpHeader
+}
+
+type MessagesList struct {
+	Messages []Message `json:"data"`
 
 	httpHeader
 }
@@ -51,5 +58,40 @@ func (c *Client) CreateMessage(ctx context.Context, threadId string, request Mes
 	}
 
 	err = c.sendRequest(req, &msg)
+	return
+}
+
+// ListMessage fetches all messages in the thread.
+func (c *Client) ListMessage(ctx context.Context, threadId string,
+	limit *int,
+	order *string,
+	after *string,
+	before *string,
+) (messages MessagesList, err error) {
+	urlValues := url.Values{}
+	if limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	}
+	if order != nil {
+		urlValues.Add("order", *order)
+	}
+	if after != nil {
+		urlValues.Add("after", *after)
+	}
+	if before != nil {
+		urlValues.Add("before", *before)
+	}
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
+	}
+
+	urlSuffix := fmt.Sprintf("/threads/%s%s%s", threadId, messagesSuffix, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &messages)
 	return
 }

@@ -10,28 +10,28 @@ import (
 	"strconv"
 	"testing"
 
-	. "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestChatCompletionsStreamWrongModel(t *testing.T) {
-	config := DefaultConfig("whatever")
+	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
-	client := NewClientWithConfig(config)
+	client := openai.NewClientWithConfig(config)
 	ctx := context.Background()
 
-	req := ChatCompletionRequest{
+	req := openai.ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     "ada",
-		Messages: []ChatCompletionMessage{
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
 	}
 	_, err := client.CreateChatCompletionStream(ctx, req)
-	if !errors.Is(err, ErrChatCompletionInvalidModel) {
+	if !errors.Is(err, openai.ErrChatCompletionInvalidModel) {
 		t.Fatalf("CreateChatCompletion should return ErrChatCompletionInvalidModel, but returned: %v", err)
 	}
 }
@@ -61,12 +61,12 @@ func TestCreateChatCompletionStream(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -75,15 +75,15 @@ func TestCreateChatCompletionStream(t *testing.T) {
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
-	expectedResponses := []ChatCompletionStreamResponse{
+	expectedResponses := []openai.ChatCompletionStreamResponse{
 		{
 			ID:      "1",
 			Object:  "completion",
 			Created: 1598069254,
-			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{
+			Model:   openai.GPT3Dot5Turbo,
+			Choices: []openai.ChatCompletionStreamChoice{
 				{
-					Delta: ChatCompletionStreamChoiceDelta{
+					Delta: openai.ChatCompletionStreamChoiceDelta{
 						Content: "response1",
 					},
 					FinishReason: "max_tokens",
@@ -94,10 +94,10 @@ func TestCreateChatCompletionStream(t *testing.T) {
 			ID:      "2",
 			Object:  "completion",
 			Created: 1598069255,
-			Model:   GPT3Dot5Turbo,
-			Choices: []ChatCompletionStreamChoice{
+			Model:   openai.GPT3Dot5Turbo,
+			Choices: []openai.ChatCompletionStreamChoice{
 				{
-					Delta: ChatCompletionStreamChoiceDelta{
+					Delta: openai.ChatCompletionStreamChoiceDelta{
 						Content: "response2",
 					},
 					FinishReason: "max_tokens",
@@ -156,12 +156,12 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -173,7 +173,7 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 	_, streamErr := stream.Recv()
 	checks.HasError(t, streamErr, "stream.Recv() did not return error")
 
-	var apiErr *APIError
+	var apiErr *openai.APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")
 	}
@@ -196,12 +196,12 @@ func TestCreateChatCompletionStreamWithHeaders(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -239,12 +239,12 @@ func TestCreateChatCompletionStreamWithRatelimitHeaders(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -276,12 +276,12 @@ func TestCreateChatCompletionStreamErrorWithDataPrefix(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -293,7 +293,7 @@ func TestCreateChatCompletionStreamErrorWithDataPrefix(t *testing.T) {
 	_, streamErr := stream.Recv()
 	checks.HasError(t, streamErr, "stream.Recv() did not return error")
 
-	var apiErr *APIError
+	var apiErr *openai.APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")
 	}
@@ -317,18 +317,18 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		_, err := w.Write(dataBytes)
 		checks.NoError(t, err, "Write error")
 	})
-	_, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	_, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
 		Stream: true,
 	})
-	var apiErr *APIError
+	var apiErr *openai.APIError
 	if !errors.As(err, &apiErr) {
 		t.Errorf("TestCreateChatCompletionStreamRateLimitError did not return APIError")
 	}
@@ -355,13 +355,13 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 			checks.NoError(t, err, "Write error")
 		})
 
-	apiErr := &APIError{}
-	_, err := client.CreateChatCompletionStream(context.Background(), ChatCompletionRequest{
+	apiErr := &openai.APIError{}
+	_, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
-		Model:     GPT3Dot5Turbo,
-		Messages: []ChatCompletionMessage{
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    ChatMessageRoleUser,
+				Role:    openai.ChatMessageRoleUser,
 				Content: "Hello!",
 			},
 		},
@@ -387,7 +387,7 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 }
 
 // Helper funcs.
-func compareChatResponses(r1, r2 ChatCompletionStreamResponse) bool {
+func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 	if r1.ID != r2.ID || r1.Object != r2.Object || r1.Created != r2.Created || r1.Model != r2.Model {
 		return false
 	}
@@ -402,7 +402,7 @@ func compareChatResponses(r1, r2 ChatCompletionStreamResponse) bool {
 	return true
 }
 
-func compareChatStreamResponseChoices(c1, c2 ChatCompletionStreamChoice) bool {
+func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) bool {
 	if c1.Index != c2.Index {
 		return false
 	}

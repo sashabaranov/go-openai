@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"testing"
 
-	. "github.com/sashabaranov/go-openai"
+	openai "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
@@ -16,7 +16,7 @@ func TestGetEngine(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/engines/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(Engine{})
+		resBytes, _ := json.Marshal(openai.Engine{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.GetEngine(context.Background(), "text-davinci-003")
@@ -28,7 +28,7 @@ func TestListEngines(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/engines", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(EnginesList{})
+		resBytes, _ := json.Marshal(openai.EnginesList{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.ListEngines(context.Background())

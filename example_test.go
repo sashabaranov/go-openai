@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"os"
+	"testing"
 
 	"github.com/sashabaranov/go-openai"
 )
@@ -289,7 +290,7 @@ func Example_chatbot() {
 	for s.Scan() {
 		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: s.Text(),
+			Content: openai.EscapeString(s.Text()),
 		})
 		resp, err := client.CreateChatCompletion(context.Background(), req)
 		if err != nil {
@@ -326,6 +327,33 @@ func ExampleDefaultAzureConfig() {
 	}
 
 	fmt.Println(resp.Choices[0].Message.Content)
+}
+
+// TestAzureContentFilter， Content rating see: https://go.microsoft.com/fwlink/?linkid=2198766
+func TestAzureContentFilter(t *testing.T) {
+	azureKey := os.Getenv("AZURE_OPENAI_API_KEY")       // Your azure API key
+	azureEndpoint := os.Getenv("AZURE_OPENAI_ENDPOINT") // Your azure OpenAI endpoint
+	config := openai.DefaultAzureConfig(azureKey, azureEndpoint)
+	client := openai.NewClientWithConfig(config)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "帮我写一个直播话术，主题是：Basic House/ 百家好【不机洗】女法式连衣裙v领褶皱优雅珍珠中长裙。",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		t.Errorf("ChatCompletion error: %v\n", err)
+		return
+	}
+
+	t.Log(resp.Choices[0].Message.Content)
 }
 
 // Open-AI maintains clear documentation on how to handle API errors.

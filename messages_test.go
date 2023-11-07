@@ -39,6 +39,25 @@ func TestMessages(t *testing.T) {
 	)
 
 	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/messages/"+messageID+"/files",
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				resBytes, _ := json.Marshal(
+					openai.MessageFilesList{MessageFiles: []openai.MessageFile{{
+						Id:        fileID,
+						Object:    "thread.message.file",
+						CreatedAt: 0,
+						MessageId: messageID,
+					}}})
+				fmt.Fprintln(w, string(resBytes))
+			default:
+				t.Fatalf("unsupported messages http method: %s", r.Method)
+			}
+		},
+	)
+
+	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/messages/"+messageID,
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
@@ -185,5 +204,15 @@ func TestMessages(t *testing.T) {
 	checks.NoError(t, err, "RetrieveMessageFile error")
 	if msgFile.Id != fileID {
 		t.Fatalf("unexpected message file id: '%s'", msgFile.Id)
+	}
+
+	var msgFiles openai.MessageFilesList
+	msgFiles, err = client.ListMessageFiles(ctx, threadID, messageID)
+	checks.NoError(t, err, "RetrieveMessageFile error")
+	if len(msgFiles.MessageFiles) != 1 {
+		t.Fatalf("unexpected count of message files: %d", len(msgFiles.MessageFiles))
+	}
+	if msgFiles.MessageFiles[0].Id != fileID {
+		t.Fatalf("unexpected message file id: '%s' in list message files", msgFiles.MessageFiles[0].Id)
 	}
 }

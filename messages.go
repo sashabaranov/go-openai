@@ -155,3 +155,18 @@ func (c *Client) RetrieveMessageFile(
 	err = c.sendRequest(req, &file)
 	return
 }
+
+// ListMessageFiles fetches all files attached to a message
+func (c *Client) ListMessageFiles(
+	ctx context.Context,
+	threadID, messageID string,
+) (files MessageFilesList, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s%s/%s/files", threadID, messagesSuffix, messageID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &files)
+	return
+}

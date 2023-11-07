@@ -12,15 +12,15 @@ const (
 )
 
 type Message struct {
-	Id          string           `json:"id"`
+	ID          string           `json:"id"`
 	Object      string           `json:"object"`
 	CreatedAt   int              `json:"created_at"`
-	ThreadId    string           `json:"thread_id"`
+	ThreadID    string           `json:"thread_id"`
 	Role        string           `json:"role"`
 	Content     []MessageContent `json:"content"`
 	FileIds     []interface{}    `json:"file_ids"`
-	AssistantId string           `json:"assistant_id"`
-	RunId       string           `json:"run_id"`
+	AssistantID string           `json:"assistant_id"`
+	RunID       string           `json:"run_id"`
 	Metadata    map[string]any   `json:"metadata"`
 
 	httpHeader
@@ -49,10 +49,10 @@ type MessageRequest struct {
 }
 
 type MessageFile struct {
-	Id        string `json:"id"`
+	ID        string `json:"id"`
 	Object    string `json:"object"`
 	CreatedAt int    `json:"created_at"`
-	MessageId string `json:"message_id"`
+	MessageID string `json:"message_id"`
 
 	httpHeader
 }
@@ -141,7 +141,7 @@ func (c *Client) ModifyMessage(
 	return
 }
 
-// RetrieveMessageFile fetches a message file
+// RetrieveMessageFile fetches a message file.
 func (c *Client) RetrieveMessageFile(
 	ctx context.Context,
 	threadID, messageID, fileID string,
@@ -156,7 +156,7 @@ func (c *Client) RetrieveMessageFile(
 	return
 }
 
-// ListMessageFiles fetches all files attached to a message
+// ListMessageFiles fetches all files attached to a message.
 func (c *Client) ListMessageFiles(
 	ctx context.Context,
 	threadID, messageID string,

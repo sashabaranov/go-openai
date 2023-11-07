@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
 	"net/http"
 	"testing"
+
+	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 // TestMessages Tests the messages endpoint of the API using the mocked server.
@@ -26,10 +27,10 @@ func TestMessages(t *testing.T) {
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(
 					openai.MessageFile{
-						Id:        fileID,
+						ID:        fileID,
 						Object:    "thread.message.file",
 						CreatedAt: 1699061776,
-						MessageId: messageID,
+						MessageID: messageID,
 					})
 				fmt.Fprintln(w, string(resBytes))
 			default:
@@ -45,10 +46,10 @@ func TestMessages(t *testing.T) {
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(
 					openai.MessageFilesList{MessageFiles: []openai.MessageFile{{
-						Id:        fileID,
+						ID:        fileID,
 						Object:    "thread.message.file",
 						CreatedAt: 0,
-						MessageId: messageID,
+						MessageID: messageID,
 					}}})
 				fmt.Fprintln(w, string(resBytes))
 			default:
@@ -68,10 +69,10 @@ func TestMessages(t *testing.T) {
 
 				resBytes, _ := json.Marshal(
 					openai.Message{
-						Id:        messageID,
+						ID:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
-						ThreadId:  threadID,
+						ThreadID:  threadID,
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
@@ -81,18 +82,18 @@ func TestMessages(t *testing.T) {
 							},
 						}},
 						FileIds:     nil,
-						AssistantId: "",
-						RunId:       "",
+						AssistantID: "",
+						RunID:       "",
 						Metadata:    metadata,
 					})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(
 					openai.Message{
-						Id:        messageID,
+						ID:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
-						ThreadId:  threadID,
+						ThreadID:  threadID,
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
@@ -102,8 +103,8 @@ func TestMessages(t *testing.T) {
 							},
 						}},
 						FileIds:     nil,
-						AssistantId: "",
-						RunId:       "",
+						AssistantID: "",
+						RunID:       "",
 						Metadata:    nil,
 					})
 				fmt.Fprintln(w, string(resBytes))
@@ -119,10 +120,10 @@ func TestMessages(t *testing.T) {
 			switch r.Method {
 			case http.MethodPost:
 				resBytes, _ := json.Marshal(openai.Message{
-					Id:        messageID,
+					ID:        messageID,
 					Object:    "thread.message",
 					CreatedAt: 1234567890,
-					ThreadId:  threadID,
+					ThreadID:  threadID,
 					Role:      "user",
 					Content: []openai.MessageContent{{
 						Type: "text",
@@ -132,18 +133,18 @@ func TestMessages(t *testing.T) {
 						},
 					}},
 					FileIds:     nil,
-					AssistantId: "",
-					RunId:       "",
+					AssistantID: "",
+					RunID:       "",
 					Metadata:    nil,
 				})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(openai.MessagesList{
 					Messages: []openai.Message{{
-						Id:        messageID,
+						ID:        messageID,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
-						ThreadId:  threadID,
+						ThreadID:  threadID,
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
@@ -153,8 +154,8 @@ func TestMessages(t *testing.T) {
 							},
 						}},
 						FileIds:     nil,
-						AssistantId: "",
-						RunId:       "",
+						AssistantID: "",
+						RunID:       "",
 						Metadata:    nil,
 					}}})
 				fmt.Fprintln(w, string(resBytes))
@@ -175,6 +176,9 @@ func TestMessages(t *testing.T) {
 		Metadata: nil,
 	})
 	checks.NoError(t, err, "CreateMessage error")
+	if msg.ID != messageID {
+		t.Fatalf("unexpected message id: '%s'", msg.ID)
+	}
 
 	var msgs openai.MessagesList
 	msgs, err = client.ListMessage(ctx, threadID, nil, nil, nil, nil)
@@ -185,8 +189,8 @@ func TestMessages(t *testing.T) {
 
 	msg, err = client.RetrieveMessage(ctx, threadID, messageID)
 	checks.NoError(t, err, "RetrieveMessage error")
-	if msg.Id != messageID {
-		t.Fatalf("unexpected message id: '%s'", msg.Id)
+	if msg.ID != messageID {
+		t.Fatalf("unexpected message id: '%s'", msg.ID)
 	}
 
 	msg, err = client.ModifyMessage(ctx, threadID, messageID,
@@ -202,8 +206,8 @@ func TestMessages(t *testing.T) {
 	var msgFile openai.MessageFile
 	msgFile, err = client.RetrieveMessageFile(ctx, threadID, messageID, fileID)
 	checks.NoError(t, err, "RetrieveMessageFile error")
-	if msgFile.Id != fileID {
-		t.Fatalf("unexpected message file id: '%s'", msgFile.Id)
+	if msgFile.ID != fileID {
+		t.Fatalf("unexpected message file id: '%s'", msgFile.ID)
 	}
 
 	var msgFiles openai.MessageFilesList
@@ -212,7 +216,7 @@ func TestMessages(t *testing.T) {
 	if len(msgFiles.MessageFiles) != 1 {
 		t.Fatalf("unexpected count of message files: %d", len(msgFiles.MessageFiles))
 	}
-	if msgFiles.MessageFiles[0].Id != fileID {
-		t.Fatalf("unexpected message file id: '%s' in list message files", msgFiles.MessageFiles[0].Id)
+	if msgFiles.MessageFiles[0].ID != fileID {
+		t.Fatalf("unexpected message file id: '%s' in list message files", msgFiles.MessageFiles[0].ID)
 	}
 }

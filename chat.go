@@ -109,15 +109,13 @@ const (
 )
 
 type Tool struct {
-	Type ToolType `json:"type"`
-	// Function will be filled only if Type is ToolTypeFunction.
-	Function *FunctionDefinition `json:"function,omitempty"`
+	Type     ToolType           `json:"type"`
+	Function FunctionDefinition `json:"function,omitempty"`
 }
 
 type ToolChoiche struct {
-	Type ToolType `json:"type"`
-	// Function will be filled only if Type is ToolTypeFunction.
-	Function *ToolFunction `json:"function,omitempty"`
+	Type     ToolType     `json:"type"`
+	Function ToolFunction `json:"function,omitempty"`
 }
 
 type ToolFunction struct {

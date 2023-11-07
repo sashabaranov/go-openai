@@ -1,7 +1,7 @@
 package openai_test
 
 import (
-	openai "github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -17,30 +17,30 @@ import (
 )
 
 func TestCompletionsWrongModel(t *testing.T) {
-	config := openai.DefaultConfig("whatever")
+	config := DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
-	client := openai.NewClientWithConfig(config)
+	client := NewClientWithConfig(config)
 
 	_, err := client.CreateCompletion(
 		context.Background(),
-		openai.CompletionRequest{
+		CompletionRequest{
 			MaxTokens: 5,
-			Model:     openai.GPT3Dot5Turbo,
+			Model:     GPT3Dot5Turbo,
 		},
 	)
-	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+	if !errors.Is(err, ErrCompletionUnsupportedModel) {
 		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
 	}
 }
 
 func TestCompletionWithStream(t *testing.T) {
-	config := openai.DefaultConfig("whatever")
-	client := openai.NewClientWithConfig(config)
+	config := DefaultConfig("whatever")
+	client := NewClientWithConfig(config)
 
 	ctx := context.Background()
-	req := openai.CompletionRequest{Stream: true}
+	req := CompletionRequest{Stream: true}
 	_, err := client.CreateCompletion(ctx, req)
-	if !errors.Is(err, openai.ErrCompletionStreamNotSupported) {
+	if !errors.Is(err, ErrCompletionStreamNotSupported) {
 		t.Fatalf("CreateCompletion didn't return ErrCompletionStreamNotSupported")
 	}
 }
@@ -50,7 +50,7 @@ func TestCompletions(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/completions", handleCompletionEndpoint)
-	req := openai.CompletionRequest{
+	req := CompletionRequest{
 		MaxTokens: 5,
 		Model:     "ada",
 		Prompt:    "Lorem ipsum",
@@ -68,12 +68,12 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-	var completionReq openai.CompletionRequest
+	var completionReq CompletionRequest
 	if completionReq, err = getCompletionBody(r); err != nil {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
-	res := openai.CompletionResponse{
+	res := CompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
 		Created: time.Now().Unix(),
@@ -93,14 +93,14 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		if completionReq.Echo {
 			completionStr = completionReq.Prompt.(string) + completionStr
 		}
-		res.Choices = append(res.Choices, openai.CompletionChoice{
+		res.Choices = append(res.Choices, CompletionChoice{
 			Text:  completionStr,
 			Index: i,
 		})
 	}
 	inputTokens := numTokens(completionReq.Prompt.(string)) * n
 	completionTokens := completionReq.MaxTokens * n
-	res.Usage = openai.Usage{
+	res.Usage = Usage{
 		PromptTokens:     inputTokens,
 		CompletionTokens: completionTokens,
 		TotalTokens:      inputTokens + completionTokens,
@@ -110,16 +110,16 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 // getCompletionBody Returns the body of the request to create a completion.
-func getCompletionBody(r *http.Request) (openai.CompletionRequest, error) {
-	completion := openai.CompletionRequest{}
+func getCompletionBody(r *http.Request) (CompletionRequest, error) {
+	completion := CompletionRequest{}
 	// read the request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		return openai.CompletionRequest{}, err
+		return CompletionRequest{}, err
 	}
 	err = json.Unmarshal(reqBody, &completion)
 	if err != nil {
-		return openai.CompletionRequest{}, err
+		return CompletionRequest{}, err
 	}
 	return completion, nil
 }

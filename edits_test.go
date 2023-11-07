@@ -1,7 +1,7 @@
 package openai_test
 
 import (
-	openai "github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -20,7 +20,7 @@ func TestEdits(t *testing.T) {
 	server.RegisterHandler("/v1/edits", handleEditEndpoint)
 	// create an edit request
 	model := "ada"
-	editReq := openai.EditsRequest{
+	editReq := EditsRequest{
 		Model: &model,
 		Input: "Lorem ipsum dolor sit amet, consectetur adipiscing elit, " +
 			"sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim" +
@@ -45,14 +45,14 @@ func handleEditEndpoint(w http.ResponseWriter, r *http.Request) {
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
-	var editReq openai.EditsRequest
+	var editReq EditsRequest
 	editReq, err = getEditBody(r)
 	if err != nil {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
 	// create a response
-	res := openai.EditsResponse{
+	res := EditsResponse{
 		Object:  "test-object",
 		Created: time.Now().Unix(),
 	}
@@ -62,12 +62,12 @@ func handleEditEndpoint(w http.ResponseWriter, r *http.Request) {
 	completionTokens := int(float32(len(editString))/4) * editReq.N
 	for i := 0; i < editReq.N; i++ {
 		// instruction will be hidden and only seen by OpenAI
-		res.Choices = append(res.Choices, openai.EditsChoice{
+		res.Choices = append(res.Choices, EditsChoice{
 			Text:  editReq.Input + editString,
 			Index: i,
 		})
 	}
-	res.Usage = openai.Usage{
+	res.Usage = Usage{
 		PromptTokens:     inputTokens,
 		CompletionTokens: completionTokens,
 		TotalTokens:      inputTokens + completionTokens,
@@ -77,16 +77,16 @@ func handleEditEndpoint(w http.ResponseWriter, r *http.Request) {
 }
 
 // getEditBody Returns the body of the request to create an edit.
-func getEditBody(r *http.Request) (openai.EditsRequest, error) {
-	edit := openai.EditsRequest{}
+func getEditBody(r *http.Request) (EditsRequest, error) {
+	edit := EditsRequest{}
 	// read the request body
 	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
-		return openai.EditsRequest{}, err
+		return EditsRequest{}, err
 	}
 	err = json.Unmarshal(reqBody, &edit)
 	if err != nil {
-		return openai.EditsRequest{}, err
+		return EditsRequest{}, err
 	}
 	return edit, nil
 }

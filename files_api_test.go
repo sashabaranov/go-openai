@@ -12,7 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
@@ -20,7 +20,7 @@ func TestFileUpload(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files", handleCreateFile)
-	req := openai.FileRequest{
+	req := FileRequest{
 		FileName: "test.go",
 		FilePath: "client.go",
 		Purpose:  "fine-tune",
@@ -57,7 +57,7 @@ func handleCreateFile(w http.ResponseWriter, r *http.Request) {
 	}
 	defer file.Close()
 
-	var fileReq = openai.File{
+	var fileReq = File{
 		Bytes:     int(header.Size),
 		ID:        strconv.Itoa(int(time.Now().Unix())),
 		FileName:  header.Filename,
@@ -82,7 +82,7 @@ func TestListFile(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(openai.FilesList{})
+		resBytes, _ := json.Marshal(FilesList{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.ListFiles(context.Background())
@@ -93,7 +93,7 @@ func TestGetFile(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files/deadbeef", func(w http.ResponseWriter, r *http.Request) {
-		resBytes, _ := json.Marshal(openai.File{})
+		resBytes, _ := json.Marshal(File{})
 		fmt.Fprintln(w, string(resBytes))
 	})
 	_, err := client.GetFile(context.Background(), "deadbeef")
@@ -148,7 +148,7 @@ func TestGetFileContentReturnError(t *testing.T) {
 		t.Fatal("Did not return error")
 	}
 
-	apiErr := &openai.APIError{}
+	apiErr := &APIError{}
 	if !errors.As(err, &apiErr) {
 		t.Fatalf("Did not return APIError: %+v\n", apiErr)
 	}

@@ -10,23 +10,23 @@ import (
 	"testing"
 	"time"
 
-	openai "github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestCompletionsStreamWrongModel(t *testing.T) {
-	config := openai.DefaultConfig("whatever")
+	config := DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
-	client := openai.NewClientWithConfig(config)
+	client := NewClientWithConfig(config)
 
 	_, err := client.CreateCompletionStream(
 		context.Background(),
-		openai.CompletionRequest{
+		CompletionRequest{
 			MaxTokens: 5,
-			Model:     openai.GPT3Dot5Turbo,
+			Model:     GPT3Dot5Turbo,
 		},
 	)
-	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+	if !errors.Is(err, ErrCompletionUnsupportedModel) {
 		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
 	}
 }
@@ -56,7 +56,7 @@ func TestCreateCompletionStream(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
@@ -65,20 +65,20 @@ func TestCreateCompletionStream(t *testing.T) {
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
-	expectedResponses := []openai.CompletionResponse{
+	expectedResponses := []CompletionResponse{
 		{
 			ID:      "1",
 			Object:  "completion",
 			Created: 1598069254,
 			Model:   "text-davinci-002",
-			Choices: []openai.CompletionChoice{{Text: "response1", FinishReason: "max_tokens"}},
+			Choices: []CompletionChoice{{Text: "response1", FinishReason: "max_tokens"}},
 		},
 		{
 			ID:      "2",
 			Object:  "completion",
 			Created: 1598069255,
 			Model:   "text-davinci-002",
-			Choices: []openai.CompletionChoice{{Text: "response2", FinishReason: "max_tokens"}},
+			Choices: []CompletionChoice{{Text: "response2", FinishReason: "max_tokens"}},
 		},
 	}
 
@@ -129,9 +129,9 @@ func TestCreateCompletionStreamError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		MaxTokens: 5,
-		Model:     openai.GPT3TextDavinci003,
+		Model:     GPT3TextDavinci003,
 		Prompt:    "Hello!",
 		Stream:    true,
 	})
@@ -141,7 +141,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 	_, streamErr := stream.Recv()
 	checks.HasError(t, streamErr, "stream.Recv() did not return error")
 
-	var apiErr *openai.APIError
+	var apiErr *APIError
 	if !errors.As(streamErr, &apiErr) {
 		t.Errorf("stream.Recv() did not return APIError")
 	}
@@ -166,10 +166,10 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	var apiErr *openai.APIError
-	_, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	var apiErr *APIError
+	_, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		MaxTokens: 5,
-		Model:     openai.GPT3Ada,
+		Model:     GPT3Ada,
 		Prompt:    "Hello!",
 		Stream:    true,
 	})
@@ -209,7 +209,7 @@ func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
@@ -220,7 +220,7 @@ func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 
 	_, _ = stream.Recv()
 	_, streamErr := stream.Recv()
-	if !errors.Is(streamErr, openai.ErrTooManyEmptyStreamMessages) {
+	if !errors.Is(streamErr, ErrTooManyEmptyStreamMessages) {
 		t.Errorf("TestCreateCompletionStreamTooManyEmptyStreamMessagesError did not return ErrTooManyEmptyStreamMessages")
 	}
 }
@@ -244,7 +244,7 @@ func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
@@ -285,7 +285,7 @@ func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 		checks.NoError(t, err, "Write error")
 	})
 
-	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+	stream, err := client.CreateCompletionStream(context.Background(), CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
@@ -312,7 +312,7 @@ func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
 	ctx, cancel := context.WithTimeout(ctx, time.Nanosecond)
 	defer cancel()
 
-	_, err := client.CreateCompletionStream(ctx, openai.CompletionRequest{
+	_, err := client.CreateCompletionStream(ctx, CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
@@ -327,7 +327,7 @@ func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
 }
 
 // Helper funcs.
-func compareResponses(r1, r2 openai.CompletionResponse) bool {
+func compareResponses(r1, r2 CompletionResponse) bool {
 	if r1.ID != r2.ID || r1.Object != r2.Object || r1.Created != r2.Created || r1.Model != r2.Model {
 		return false
 	}
@@ -342,7 +342,7 @@ func compareResponses(r1, r2 openai.CompletionResponse) bool {
 	return true
 }
 
-func compareResponseChoices(c1, c2 openai.CompletionChoice) bool {
+func compareResponseChoices(c1, c2 CompletionChoice) bool {
 	if c1.Text != c2.Text || c1.FinishReason != c2.FinishReason {
 		return false
 	}

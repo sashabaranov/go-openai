@@ -5,28 +5,28 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/sashabaranov/go-openai/jsonschema"
+	. "github.com/sashabaranov/go-openai/jsonschema"
 )
 
 func TestDefinition_MarshalJSON(t *testing.T) {
 	tests := []struct {
 		name string
-		def  jsonschema.Definition
+		def  Definition
 		want string
 	}{
 		{
 			name: "Test with empty Definition",
-			def:  jsonschema.Definition{},
+			def:  Definition{},
 			want: `{"properties":{}}`,
 		},
 		{
 			name: "Test with Definition properties set",
-			def: jsonschema.Definition{
-				Type:        jsonschema.String,
+			def: Definition{
+				Type:        String,
 				Description: "A string type",
-				Properties: map[string]jsonschema.Definition{
+				Properties: map[string]Definition{
 					"name": {
-						Type: jsonschema.String,
+						Type: String,
 					},
 				},
 			},
@@ -43,17 +43,17 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "Test with nested Definition properties",
-			def: jsonschema.Definition{
-				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
+			def: Definition{
+				Type: Object,
+				Properties: map[string]Definition{
 					"user": {
-						Type: jsonschema.Object,
-						Properties: map[string]jsonschema.Definition{
+						Type: Object,
+						Properties: map[string]Definition{
 							"name": {
-								Type: jsonschema.String,
+								Type: String,
 							},
 							"age": {
-								Type: jsonschema.Integer,
+								Type: Integer,
 							},
 						},
 					},
@@ -80,26 +80,26 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "Test with complex nested Definition",
-			def: jsonschema.Definition{
-				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
+			def: Definition{
+				Type: Object,
+				Properties: map[string]Definition{
 					"user": {
-						Type: jsonschema.Object,
-						Properties: map[string]jsonschema.Definition{
+						Type: Object,
+						Properties: map[string]Definition{
 							"name": {
-								Type: jsonschema.String,
+								Type: String,
 							},
 							"age": {
-								Type: jsonschema.Integer,
+								Type: Integer,
 							},
 							"address": {
-								Type: jsonschema.Object,
-								Properties: map[string]jsonschema.Definition{
+								Type: Object,
+								Properties: map[string]Definition{
 									"city": {
-										Type: jsonschema.String,
+										Type: String,
 									},
 									"country": {
-										Type: jsonschema.String,
+										Type: String,
 									},
 								},
 							},
@@ -141,14 +141,14 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 		},
 		{
 			name: "Test with Array type Definition",
-			def: jsonschema.Definition{
-				Type: jsonschema.Array,
-				Items: &jsonschema.Definition{
-					Type: jsonschema.String,
+			def: Definition{
+				Type: Array,
+				Items: &Definition{
+					Type: String,
 				},
-				Properties: map[string]jsonschema.Definition{
+				Properties: map[string]Definition{
 					"name": {
-						Type: jsonschema.String,
+						Type: String,
 					},
 				},
 			},

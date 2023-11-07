@@ -4,7 +4,7 @@ import (
 	"os"
 	"time"
 
-	openai "github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"context"
@@ -35,7 +35,7 @@ func TestAzureListModels(t *testing.T) {
 
 // handleListModelsEndpoint Handles the list models endpoint by the test server.
 func handleListModelsEndpoint(w http.ResponseWriter, _ *http.Request) {
-	resBytes, _ := json.Marshal(openai.ModelsList{})
+	resBytes, _ := json.Marshal(ModelsList{})
 	fmt.Fprintln(w, string(resBytes))
 }
 
@@ -58,7 +58,7 @@ func TestAzureGetModel(t *testing.T) {
 
 // handleGetModelsEndpoint Handles the get model endpoint by the test server.
 func handleGetModelEndpoint(w http.ResponseWriter, _ *http.Request) {
-	resBytes, _ := json.Marshal(openai.Model{})
+	resBytes, _ := json.Marshal(Model{})
 	fmt.Fprintln(w, string(resBytes))
 }
 
@@ -90,6 +90,6 @@ func TestDeleteFineTuneModel(t *testing.T) {
 }
 
 func handleDeleteFineTuneModelEndpoint(w http.ResponseWriter, _ *http.Request) {
-	resBytes, _ := json.Marshal(openai.FineTuneModelDeleteResponse{})
+	resBytes, _ := json.Marshal(FineTuneModelDeleteResponse{})
 	fmt.Fprintln(w, string(resBytes))
 }

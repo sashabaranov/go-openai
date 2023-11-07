@@ -6,7 +6,7 @@ import (
 	"reflect"
 	"testing"
 
-	openai "github.com/sashabaranov/go-openai"
+	. "github.com/sashabaranov/go-openai"
 )
 
 func TestAPIErrorUnmarshalJSON(t *testing.T) {
@@ -14,7 +14,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 		name      string
 		response  string
 		hasError  bool
-		checkFunc func(t *testing.T, apiErr openai.APIError)
+		checkFunc func(t *testing.T, apiErr APIError)
 	}
 	testCases := []testCase{
 		// testcase for message field
@@ -22,7 +22,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the message is string",
 			response: `{"message":"foo","type":"invalid_request_error","param":null,"code":null}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorMessage(t, apiErr, "foo")
 			},
 		},
@@ -30,7 +30,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the message is array with single item",
 			response: `{"message":["foo"],"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorMessage(t, apiErr, "foo")
 			},
 		},
@@ -38,7 +38,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the message is array with multiple items",
 			response: `{"message":["foo", "bar", "baz"],"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorMessage(t, apiErr, "foo, bar, baz")
 			},
 		},
@@ -46,7 +46,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the message is empty array",
 			response: `{"message":[],"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorMessage(t, apiErr, "")
 			},
 		},
@@ -54,7 +54,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the message is null",
 			response: `{"message":null,"type":"invalid_request_error","param":null,"code":null}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorMessage(t, apiErr, "")
 			},
 		},
@@ -89,23 +89,23 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 						}
 					}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
-				assertAPIErrorInnerError(t, apiErr, &openai.InnerError{
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, &InnerError{
 					Code: "ResponsibleAIPolicyViolation",
-					ContentFilterResults: openai.ContentFilterResults{
-						Hate: openai.Hate{
+					ContentFilterResults: ContentFilterResults{
+						Hate: Hate{
 							Filtered: false,
 							Severity: "safe",
 						},
-						SelfHarm: openai.SelfHarm{
+						SelfHarm: SelfHarm{
 							Filtered: false,
 							Severity: "safe",
 						},
-						Sexual: openai.Sexual{
+						Sexual: Sexual{
 							Filtered: true,
 							Severity: "medium",
 						},
-						Violence: openai.Violence{
+						Violence: Violence{
 							Filtered: false,
 							Severity: "safe",
 						},
@@ -117,16 +117,16 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the innerError is empty (Azure Openai)",
 			response: `{"message": "","type": null,"param": "","code": "","status": 0,"innererror": {}}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
-				assertAPIErrorInnerError(t, apiErr, &openai.InnerError{})
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, &InnerError{})
 			},
 		},
 		{
 			name:     "parse succeeds when the innerError is not InnerError struct (Azure Openai)",
 			response: `{"message": "","type": null,"param": "","code": "","status": 0,"innererror": "test"}`,
 			hasError: true,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
-				assertAPIErrorInnerError(t, apiErr, &openai.InnerError{})
+			checkFunc: func(t *testing.T, apiErr APIError) {
+				assertAPIErrorInnerError(t, apiErr, &InnerError{})
 			},
 		},
 		{
@@ -159,7 +159,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the code is int",
 			response: `{"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorCode(t, apiErr, 418)
 			},
 		},
@@ -167,7 +167,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the code is string",
 			response: `{"code":"teapot","message":"I'm a teapot","param":"prompt","type":"teapot_error"}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorCode(t, apiErr, "teapot")
 			},
 		},
@@ -175,7 +175,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse succeeds when the code is not exists",
 			response: `{"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`,
 			hasError: false,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorCode(t, apiErr, nil)
 			},
 		},
@@ -196,7 +196,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			name:     "parse failed when the response is invalid json",
 			response: `--- {"code":418,"message":"I'm a teapot","param":"prompt","type":"teapot_error"}`,
 			hasError: true,
-			checkFunc: func(t *testing.T, apiErr openai.APIError) {
+			checkFunc: func(t *testing.T, apiErr APIError) {
 				assertAPIErrorCode(t, apiErr, nil)
 				assertAPIErrorMessage(t, apiErr, "")
 				assertAPIErrorParam(t, apiErr, nil)
@@ -206,7 +206,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 	}
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
-			var apiErr openai.APIError
+			var apiErr APIError
 			err := apiErr.UnmarshalJSON([]byte(tc.response))
 			if (err != nil) != tc.hasError {
 				t.Errorf("Unexpected error: %v", err)
@@ -218,19 +218,19 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 	}
 }
 
-func assertAPIErrorMessage(t *testing.T, apiErr openai.APIError, expected string) {
+func assertAPIErrorMessage(t *testing.T, apiErr APIError, expected string) {
 	if apiErr.Message != expected {
 		t.Errorf("Unexpected APIError message: %v; expected: %s", apiErr, expected)
 	}
 }
 
-func assertAPIErrorInnerError(t *testing.T, apiErr openai.APIError, expected interface{}) {
+func assertAPIErrorInnerError(t *testing.T, apiErr APIError, expected interface{}) {
 	if !reflect.DeepEqual(apiErr.InnerError, expected) {
 		t.Errorf("Unexpected APIError InnerError: %v; expected: %v; ", apiErr, expected)
 	}
 }
 
-func assertAPIErrorCode(t *testing.T, apiErr openai.APIError, expected interface{}) {
+func assertAPIErrorCode(t *testing.T, apiErr APIError, expected interface{}) {
 	switch v := apiErr.Code.(type) {
 	case int:
 		if v != expected {
@@ -246,25 +246,25 @@ func assertAPIErrorCode(t *testing.T, apiErr openai.APIError, expected interface
 	}
 }
 
-func assertAPIErrorParam(t *testing.T, apiErr openai.APIError, expected *string) {
+func assertAPIErrorParam(t *testing.T, apiErr APIError, expected *string) {
 	if apiErr.Param != expected {
 		t.Errorf("Unexpected APIError param: %v; expected: %s", apiErr, *expected)
 	}
 }
 
-func assertAPIErrorType(t *testing.T, apiErr openai.APIError, typ string) {
+func assertAPIErrorType(t *testing.T, apiErr APIError, typ string) {
 	if apiErr.Type != typ {
 		t.Errorf("Unexpected API type: %v; expected: %s", apiErr, typ)
 	}
 }
 
 func TestRequestError(t *testing.T) {
-	var err error = &openai.RequestError{
+	var err error = &RequestError{
 		HTTPStatusCode: http.StatusTeapot,
 		Err:            errors.New("i am a teapot"),
 	}
 
-	var reqErr *openai.RequestError
+	var reqErr *RequestError
 	if !errors.As(err, &reqErr) {
 		t.Fatalf("Error is not a RequestError: %+v", err)
 	}

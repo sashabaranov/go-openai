@@ -21,8 +21,7 @@ type Message struct {
 	FileIds     []interface{}    `json:"file_ids"`
 	AssistantId string           `json:"assistant_id"`
 	RunId       string           `json:"run_id"`
-	Metadata    struct {
-	} `json:"metadata"`
+	Metadata    map[string]any   `json:"metadata"`
 
 	httpHeader
 }
@@ -100,13 +99,29 @@ func (c *Client) ListMessage(ctx context.Context, threadID string,
 func (c *Client) RetrieveMessage(
 	ctx context.Context,
 	threadID, messageID string,
-) (response Assistant, err error) {
+) (msg Message, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s%s/%s", threadID, messagesSuffix, messageID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
 
-	err = c.sendRequest(req, &response)
+	err = c.sendRequest(req, &msg)
+	return
+}
+
+// ModifyMessage modifies a message.
+func (c *Client) ModifyMessage(
+	ctx context.Context,
+	threadID, messageID string,
+	metadata map[string]any,
+) (msg Message, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s%s/%s", threadID, messagesSuffix, messageID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(metadata))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &msg)
 	return
 }

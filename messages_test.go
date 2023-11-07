@@ -19,6 +19,62 @@ func TestMessages(t *testing.T) {
 	defer teardown()
 
 	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/messages/"+messageId,
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodPost:
+				metadata := map[string]any{}
+				err := json.NewDecoder(r.Body).Decode(&metadata)
+				checks.NoError(t, err, "unable to decode metadata in modify message call")
+
+				resBytes, _ := json.Marshal(
+					openai.Message{
+						Id:        messageId,
+						Object:    "thread.message",
+						CreatedAt: 1234567890,
+						ThreadId:  threadID,
+						Role:      "user",
+						Content: []openai.MessageContent{{
+							Type: "text",
+							Text: openai.MessageText{
+								Value:       "How does AI work?",
+								Annotations: nil,
+							},
+						}},
+						FileIds:     nil,
+						AssistantId: "",
+						RunId:       "",
+						Metadata:    metadata,
+					})
+				fmt.Fprintln(w, string(resBytes))
+			case http.MethodGet:
+				resBytes, _ := json.Marshal(
+					openai.Message{
+						Id:        messageId,
+						Object:    "thread.message",
+						CreatedAt: 1234567890,
+						ThreadId:  threadID,
+						Role:      "user",
+						Content: []openai.MessageContent{{
+							Type: "text",
+							Text: openai.MessageText{
+								Value:       "How does AI work?",
+								Annotations: nil,
+							},
+						}},
+						FileIds:     nil,
+						AssistantId: "",
+						RunId:       "",
+						Metadata:    nil,
+					})
+				fmt.Fprintln(w, string(resBytes))
+			default:
+				t.Fatalf("unsupported messages http method: %s", r.Method)
+			}
+		},
+	)
+
+	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/messages",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
@@ -39,7 +95,7 @@ func TestMessages(t *testing.T) {
 					FileIds:     nil,
 					AssistantId: "",
 					RunId:       "",
-					Metadata:    struct{}{},
+					Metadata:    nil,
 				})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodGet:
@@ -60,39 +116,8 @@ func TestMessages(t *testing.T) {
 						FileIds:     nil,
 						AssistantId: "",
 						RunId:       "",
-						Metadata:    struct{}{},
+						Metadata:    nil,
 					}}})
-				fmt.Fprintln(w, string(resBytes))
-			default:
-				t.Fatalf("unsupported messages http method: %s", r.Method)
-			}
-		},
-	)
-
-	server.RegisterHandler(
-		"/v1/threads/"+threadID+"/messages/"+messageId,
-		func(w http.ResponseWriter, r *http.Request) {
-			switch r.Method {
-			case http.MethodGet:
-				resBytes, _ := json.Marshal(
-					openai.Message{
-						Id:        messageId,
-						Object:    "thread.message",
-						CreatedAt: 1234567890,
-						ThreadId:  threadID,
-						Role:      "user",
-						Content: []openai.MessageContent{{
-							Type: "text",
-							Text: openai.MessageText{
-								Value:       "How does AI work?",
-								Annotations: nil,
-							},
-						}},
-						FileIds:     nil,
-						AssistantId: "",
-						RunId:       "",
-						Metadata:    struct{}{},
-					})
 				fmt.Fprintln(w, string(resBytes))
 			default:
 				t.Fatalf("unsupported messages http method: %s", r.Method)
@@ -102,7 +127,9 @@ func TestMessages(t *testing.T) {
 
 	ctx := context.Background()
 
-	_, err := client.CreateMessage(ctx, threadID, openai.MessageRequest{
+	// static assertion of return type
+	var msg openai.Message
+	msg, err := client.CreateMessage(ctx, threadID, openai.MessageRequest{
 		Role:     "user",
 		Content:  "How does AI work?",
 		FileIds:  nil,
@@ -110,12 +137,25 @@ func TestMessages(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateMessage error")
 
-	msgs, err := client.ListMessage(ctx, threadID, nil, nil, nil, nil)
+	var msgs openai.MessagesList
+	msgs, err = client.ListMessage(ctx, threadID, nil, nil, nil, nil)
 	checks.NoError(t, err, "ListMessages error")
 	if len(msgs.Messages) != 1 {
 		t.Fatalf("unexpected length of fetched messages")
 	}
 
-	_, err = client.RetrieveMessage(ctx, threadID, messageId)
+	msg, err = client.RetrieveMessage(ctx, threadID, messageId)
 	checks.NoError(t, err, "RetrieveMessage error")
+	if msg.Id != messageId {
+		t.Fatalf("unexpected message id: '%s'", msg.Id)
+	}
+
+	msg, err = client.ModifyMessage(ctx, threadID, messageId,
+		map[string]any{
+			"foo": "bar",
+		})
+	checks.NoError(t, err, "ModifyMessage error")
+	if msg.Metadata["foo"] != "bar" {
+		t.Fatalf("expected message metadata to get modified")
+	}
 }

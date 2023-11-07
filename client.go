@@ -83,9 +83,9 @@ func withContentType(contentType string) requestOption {
 	}
 }
 
-func withHeader(key, value string) requestOption {
+func withBetaAssistantV1() requestOption {
 	return func(args *requestOptions) {
-		args.header.Set(key, value)
+		args.header.Set("OpenAI-Beta", "assistants=v1")
 	}
 }
 

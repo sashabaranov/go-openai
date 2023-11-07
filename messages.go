@@ -50,8 +50,8 @@ type MessageRequest struct {
 }
 
 // CreateMessage creates a new message.
-func (c *Client) CreateMessage(ctx context.Context, threadId string, request MessageRequest) (msg Message, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s", threadId, messagesSuffix)
+func (c *Client) CreateMessage(ctx context.Context, threadID string, request MessageRequest) (msg Message, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s%s", threadID, messagesSuffix)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
@@ -62,7 +62,7 @@ func (c *Client) CreateMessage(ctx context.Context, threadId string, request Mes
 }
 
 // ListMessage fetches all messages in the thread.
-func (c *Client) ListMessage(ctx context.Context, threadId string,
+func (c *Client) ListMessage(ctx context.Context, threadID string,
 	limit *int,
 	order *string,
 	after *string,
@@ -86,12 +86,27 @@ func (c *Client) ListMessage(ctx context.Context, threadId string,
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	urlSuffix := fmt.Sprintf("/threads/%s%s%s", threadId, messagesSuffix, encodedValues)
+	urlSuffix := fmt.Sprintf("/threads/%s%s%s", threadID, messagesSuffix, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
 
 	err = c.sendRequest(req, &messages)
+	return
+}
+
+// RetrieveMessage retrieves a Message.
+func (c *Client) RetrieveMessage(
+	ctx context.Context,
+	threadID, messageID string,
+) (response Assistant, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s%s/%s", threadID, messagesSuffix, messageID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
 	return
 }

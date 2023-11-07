@@ -13,6 +13,7 @@ import (
 // TestMessages Tests the messages endpoint of the API using the mocked server.
 func TestMessages(t *testing.T) {
 	threadID := "thread_abc123"
+	messageId := "msg_abc123"
 
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
@@ -23,10 +24,10 @@ func TestMessages(t *testing.T) {
 			switch r.Method {
 			case http.MethodPost:
 				resBytes, _ := json.Marshal(openai.Message{
-					Id:        "msg_abc123",
+					Id:        messageId,
 					Object:    "thread.message",
 					CreatedAt: 1234567890,
-					ThreadId:  "thread_abc123",
+					ThreadId:  threadID,
 					Role:      "user",
 					Content: []openai.MessageContent{{
 						Type: "text",
@@ -44,10 +45,10 @@ func TestMessages(t *testing.T) {
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(openai.MessagesList{
 					Messages: []openai.Message{{
-						Id:        "msg_abc123",
+						Id:        messageId,
 						Object:    "thread.message",
 						CreatedAt: 1234567890,
-						ThreadId:  "thread_abc123",
+						ThreadId:  threadID,
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
@@ -68,6 +69,37 @@ func TestMessages(t *testing.T) {
 		},
 	)
 
+	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/messages/"+messageId,
+		func(w http.ResponseWriter, r *http.Request) {
+			switch r.Method {
+			case http.MethodGet:
+				resBytes, _ := json.Marshal(
+					openai.Message{
+						Id:        messageId,
+						Object:    "thread.message",
+						CreatedAt: 1234567890,
+						ThreadId:  threadID,
+						Role:      "user",
+						Content: []openai.MessageContent{{
+							Type: "text",
+							Text: openai.MessageText{
+								Value:       "How does AI work?",
+								Annotations: nil,
+							},
+						}},
+						FileIds:     nil,
+						AssistantId: "",
+						RunId:       "",
+						Metadata:    struct{}{},
+					})
+				fmt.Fprintln(w, string(resBytes))
+			default:
+				t.Fatalf("unsupported messages http method: %s", r.Method)
+			}
+		},
+	)
+
 	ctx := context.Background()
 
 	_, err := client.CreateMessage(ctx, threadID, openai.MessageRequest{
@@ -78,6 +110,12 @@ func TestMessages(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateMessage error")
 
-	_, err = client.ListMessage(ctx, threadID, nil, nil, nil, nil)
+	msgs, err := client.ListMessage(ctx, threadID, nil, nil, nil, nil)
 	checks.NoError(t, err, "ListMessages error")
+	if len(msgs.Messages) != 1 {
+		t.Fatalf("unexpected length of fetched messages")
+	}
+
+	_, err = client.RetrieveMessage(ctx, threadID, messageId)
+	checks.NoError(t, err, "RetrieveMessage error")
 }

@@ -19,7 +19,14 @@ func TestImages(t *testing.T) {
 	defer teardown()
 	server.RegisterHandler("/v1/images/generations", handleImageEndpoint)
 	_, err := client.CreateImage(context.Background(), ImageRequest{
-		Prompt: "Lorem ipsum",
+		Prompt:         "Lorem ipsum",
+		Model:          CreateImageModelDallE3,
+		N:              1,
+		Quality:        CreateImageQualityHD,
+		Size:           CreateImageSize1024x1024,
+		Style:          CreateImageStyleVivid,
+		ResponseFormat: CreateImageResponseFormatURL,
+		User:           "user",
 	})
 	checks.NoError(t, err, "CreateImage error")
 }

@@ -72,6 +72,7 @@ type ChatCompletionMessage struct {
 
 type ToolCall struct {
 	ID       string       `json:"id"`
+	Type     ToolType     `json:"type"`
 	Function FunctionCall `json:"function"`
 }
 

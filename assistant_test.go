@@ -12,8 +12,6 @@ import (
 	"testing"
 )
 
-// const testFineTuninigJobID = "fine-tuning-job-id"
-
 // TestAssistant Tests the assistant endpoint of the API using the mocked server.
 func TestAssistant(t *testing.T) {
 	assistantID := "asst_abc123"
@@ -179,7 +177,7 @@ func TestAssistant(t *testing.T) {
 		Model:        openai.GPT4TurboPreview,
 		Instructions: &assitantInstructions,
 	})
-	checks.NoError(t, err, "CreateAssistant error")
+	checks.NoError(t, err, "ModifyAssistant error")
 
 	_, err = client.DeleteAssistant(ctx, assistantID)
 	checks.NoError(t, err, "DeleteAssistant error")

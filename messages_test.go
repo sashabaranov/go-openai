@@ -187,6 +187,17 @@ func TestMessages(t *testing.T) {
 		t.Fatalf("unexpected length of fetched messages")
 	}
 
+	// with pagination options set
+	limit := 1
+	order := "desc"
+	after := "obj_foo"
+	before := "obj_bar"
+	msgs, err = client.ListMessage(ctx, threadID, &limit, &order, &after, &before)
+	checks.NoError(t, err, "ListMessages error")
+	if len(msgs.Messages) != 1 {
+		t.Fatalf("unexpected length of fetched messages")
+	}
+
 	msg, err = client.RetrieveMessage(ctx, threadID, messageID)
 	checks.NoError(t, err, "RetrieveMessage error")
 	if msg.ID != messageID {

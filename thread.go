@@ -10,10 +10,10 @@ const (
 )
 
 type Thread struct {
-	ID       string         `json:"id"`
-	Object   string         `json:"object"`
-	Created  int64          `json:"created"`
-	Metadata map[string]any `json:"metadata"`
+	ID        string         `json:"id"`
+	Object    string         `json:"object"`
+	CreatedAt int64          `json:"created_at"`
+	Metadata  map[string]any `json:"metadata"`
 
 	httpHeader
 }
@@ -26,11 +26,17 @@ type ModifyThreadRequest struct {
 	Metadata map[string]any `json:"metadata"`
 }
 
+type ThreadMessageRole string
+
+const (
+	ThreadMessageRoleUser ThreadMessageRole = "user"
+)
+
 type ThreadMessage struct {
-	Role     string         `json:"role"`
-	Content  string         `json:"content"`
-	FileIDs  []string       `json:"file_ids"`
-	Metadata map[string]any `json:"metadata"`
+	Role     ThreadMessageRole `json:"role"`
+	Content  string            `json:"content"`
+	FileIDs  []string          `json:"file_ids"`
+	Metadata map[string]any    `json:"metadata"`
 }
 
 // CreateThread creates a new thread.

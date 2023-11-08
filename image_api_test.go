@@ -19,7 +19,14 @@ func TestImages(t *testing.T) {
 	defer teardown()
 	server.RegisterHandler("/v1/images/generations", handleImageEndpoint)
 	_, err := client.CreateImage(context.Background(), openai.ImageRequest{
-		Prompt: "Lorem ipsum",
+		Prompt:         "Lorem ipsum",
+		Model:          openai.CreateImageModelDallE3,
+		N:              1,
+		Quality:        openai.CreateImageQualityHD,
+		Size:           openai.CreateImageSize1024x1024,
+		Style:          openai.CreateImageStyleVivid,
+		ResponseFormat: openai.CreateImageResponseFormatURL,
+		User:           "user",
 	})
 	checks.NoError(t, err, "CreateImage error")
 }

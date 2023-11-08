@@ -83,6 +83,12 @@ func withContentType(contentType string) requestOption {
 	}
 }
 
+func withBetaAssistantV1() requestOption {
+	return func(args *requestOptions) {
+		args.header.Set("OpenAI-Beta", "assistants=v1")
+	}
+}
+
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
 	args := &requestOptions{

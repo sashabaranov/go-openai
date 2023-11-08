@@ -2,11 +2,17 @@ package openai_test
 
 import (
 	"context"
+	"encoding/json"
+	"fmt"
 	"io"
+	"mime"
+	"net/http"
 	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 

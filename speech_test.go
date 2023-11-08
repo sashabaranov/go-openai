@@ -47,7 +47,6 @@ func TestSpeechIntegration(t *testing.T) {
 		var params map[string]interface{}
 		err = json.NewDecoder(r.Body).Decode(&params)
 		if err != nil {
-
 			http.Error(w, "failed to parse request body", http.StatusBadRequest)
 			return
 		}
@@ -78,7 +77,6 @@ func TestSpeechIntegration(t *testing.T) {
 			http.Error(w, "failed to write body", http.StatusInternalServerError)
 			return
 		}
-
 	})
 
 	res, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{

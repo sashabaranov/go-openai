@@ -39,6 +39,14 @@ type ThreadMessage struct {
 	Metadata map[string]any    `json:"metadata"`
 }
 
+type ThreadDeleteResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+
+	httpHeader
+}
+
 // CreateThread creates a new thread.
 func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (response Thread, err error) {
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsSuffix), withBody(request))
@@ -79,13 +87,16 @@ func (c *Client) ModifyThread(
 }
 
 // DeleteThread deletes a thread.
-func (c *Client) DeleteThread(ctx context.Context, threadID string) (err error) {
+func (c *Client) DeleteThread(
+	ctx context.Context,
+	threadID string,
+) (response ThreadDeleteResponse, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
 
-	err = c.sendRequest(req, nil)
+	err = c.sendRequest(req, &response)
 	return
 }

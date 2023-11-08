@@ -301,6 +301,18 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"DeleteAssistantFile", func() (any, error) {
 			return nil, client.DeleteAssistantFile(ctx, "", "")
 		}},
+		{"CreateThread", func() (any, error) {
+			return client.CreateThread(ctx, ThreadRequest{})
+		}},
+		{"RetrieveThread", func() (any, error) {
+			return client.RetrieveThread(ctx, "")
+		}},
+		{"ModifyThread", func() (any, error) {
+			return client.ModifyThread(ctx, "", ModifyThreadRequest{})
+		}},
+		{"DeleteThread", func() (any, error) {
+			return client.DeleteThread(ctx, "")
+		}},
 	}
 
 	for _, testCase := range testCases {

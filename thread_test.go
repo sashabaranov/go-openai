@@ -90,6 +90,6 @@ func TestThread(t *testing.T) {
 	})
 	checks.NoError(t, err, "ModifyThread error")
 
-	err = client.DeleteThread(ctx, threadID)
+	_, err = client.DeleteThread(ctx, threadID)
 	checks.NoError(t, err, "DeleteThread error")
 }

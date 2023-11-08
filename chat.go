@@ -104,7 +104,7 @@ type ChatCompletionRequest struct {
 	Stream           bool                          `json:"stream,omitempty"`
 	Stop             []string                      `json:"stop,omitempty"`
 	PresencePenalty  float32                       `json:"presence_penalty,omitempty"`
-	ResponseFormat   *ChatCompletionResponseFormat `json:"response_format"`
+	ResponseFormat   *ChatCompletionResponseFormat `json:"response_format,omitempty"`
 	Seed             *int                          `json:"seed,omitempty"`
 	FrequencyPenalty float32                       `json:"frequency_penalty,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.

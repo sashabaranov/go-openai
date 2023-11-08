@@ -56,6 +56,14 @@ type AssistantsList struct {
 	httpHeader
 }
 
+type AssistantDeleteResponse struct {
+	ID      string `json:"id"`
+	Object  string `json:"object"`
+	Deleted bool   `json:"deleted"`
+
+	httpHeader
+}
+
 type AssistantFile struct {
 	ID          string `json:"id"`
 	Object      string `json:"object"`
@@ -124,7 +132,7 @@ func (c *Client) ModifyAssistant(
 func (c *Client) DeleteAssistant(
 	ctx context.Context,
 	assistantID string,
-) (response Assistant, err error) {
+) (response AssistantDeleteResponse, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
 		withBetaAssistantV1())

@@ -29,7 +29,8 @@ const (
 )
 
 const (
-	CreateImageQualityHD = "hd"
+	CreateImageQualityHD       = "hd"
+	CreateImageQualityStandard = "standard"
 )
 
 const (

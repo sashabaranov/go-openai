@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"net/url"
 )
 
 type Run struct {
@@ -69,7 +70,6 @@ const (
 )
 
 type RunRequest struct {
-	ThreadID     string  `json:"-"`
 	AssistantID  string  `json:"assistant_id"`
 	Model        *string `json:"model,omitempty"`
 	Instructions *string `json:"instructions,omitempty"`
@@ -77,10 +77,99 @@ type RunRequest struct {
 	Metadata     map[string]any
 }
 
+type RunModifyRequest struct {
+	Metadata map[string]any `json:"metadata,omitempty"`
+}
+
+// RunList is a list of assistants.
+type RunList struct {
+	Runs []Run `json:"data"`
+
+	httpHeader
+}
+
 // CreateRun creates a new run.
-func (c *Client) CreateRun(ctx context.Context, request RunRequest) (response Run, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s/run", request.ThreadID)
+func (c *Client) CreateRun(
+	ctx context.Context,
+	threadID string,
+	request RunRequest,
+) (response Run, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/run", threadID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// RetrieveRun retrieves a run.
+func (c *Client) RetrieveRun(
+	ctx context.Context,
+	threadID string,
+	runID string,
+) (response Run, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/run/%s", threadID, runID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// ModifyRun modifies a run.
+func (c *Client) ModifyRun(
+	ctx context.Context,
+	threadID string,
+	runID string,
+	request RunModifyRequest,
+) (response Run, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/run/%s", threadID, runID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// ListRuns lists runs.
+func (c *Client) ListRuns(
+	ctx context.Context,
+	threadID string,
+	limit *int,
+	order *string,
+	after *string,
+	before *string,
+) (response RunList, err error) {
+	urlValues := url.Values{}
+	if limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	}
+	if order != nil {
+		urlValues.Add("order", *order)
+	}
+	if after != nil {
+		urlValues.Add("after", *after)
+	}
+	if before != nil {
+		urlValues.Add("before", *before)
+	}
+
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
+	}
+
+	urlSuffix := fmt.Sprintf("/threads/%s/run%s", threadID, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantV1())
 	if err != nil {
 		return

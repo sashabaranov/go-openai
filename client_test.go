@@ -311,6 +311,136 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	}
 }
 
+func TestClientWithCustomConfigReturnsRequestBuilderErrors(t *testing.T) {
+	config := CustomConfig(test.GetTestToken(), test.GetTestAPIEndpoint())
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+	ctx := context.Background()
+
+	type TestCase struct {
+		Name     string
+		TestFunc func() (any, error)
+	}
+
+	testCases := []TestCase{
+		{"CreateCompletion", func() (any, error) {
+			return client.CreateCompletion(ctx, CompletionRequest{Prompt: "testing"})
+		}},
+		{"CreateCompletionStream", func() (any, error) {
+			return client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
+		}},
+		{"CreateChatCompletion", func() (any, error) {
+			return client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateChatCompletionStream", func() (any, error) {
+			return client.CreateChatCompletionStream(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
+		}},
+		{"CreateFineTune", func() (any, error) {
+			return client.CreateFineTune(ctx, FineTuneRequest{})
+		}},
+		{"ListFineTunes", func() (any, error) {
+			return client.ListFineTunes(ctx)
+		}},
+		{"CancelFineTune", func() (any, error) {
+			return client.CancelFineTune(ctx, "")
+		}},
+		{"GetFineTune", func() (any, error) {
+			return client.GetFineTune(ctx, "")
+		}},
+		{"DeleteFineTune", func() (any, error) {
+			return client.DeleteFineTune(ctx, "")
+		}},
+		{"ListFineTuneEvents", func() (any, error) {
+			return client.ListFineTuneEvents(ctx, "")
+		}},
+		{"CreateFineTuningJob", func() (any, error) {
+			return client.CreateFineTuningJob(ctx, FineTuningJobRequest{})
+		}},
+		{"CancelFineTuningJob", func() (any, error) {
+			return client.CancelFineTuningJob(ctx, "")
+		}},
+		{"RetrieveFineTuningJob", func() (any, error) {
+			return client.RetrieveFineTuningJob(ctx, "")
+		}},
+		{"ListFineTuningJobEvents", func() (any, error) {
+			return client.ListFineTuningJobEvents(ctx, "")
+		}},
+		{"Moderations", func() (any, error) {
+			return client.Moderations(ctx, ModerationRequest{})
+		}},
+		{"Edits", func() (any, error) {
+			return client.Edits(ctx, EditsRequest{})
+		}},
+		{"CreateEmbeddings", func() (any, error) {
+			return client.CreateEmbeddings(ctx, EmbeddingRequest{})
+		}},
+		{"CreateImage", func() (any, error) {
+			return client.CreateImage(ctx, ImageRequest{})
+		}},
+		{"DeleteFile", func() (any, error) {
+			return nil, client.DeleteFile(ctx, "")
+		}},
+		{"GetFile", func() (any, error) {
+			return client.GetFile(ctx, "")
+		}},
+		{"GetFileContent", func() (any, error) {
+			return client.GetFileContent(ctx, "")
+		}},
+		{"ListFiles", func() (any, error) {
+			return client.ListFiles(ctx)
+		}},
+		{"ListEngines", func() (any, error) {
+			return client.ListEngines(ctx)
+		}},
+		{"GetEngine", func() (any, error) {
+			return client.GetEngine(ctx, "")
+		}},
+		{"ListModels", func() (any, error) {
+			return client.ListModels(ctx)
+		}},
+		{"GetModel", func() (any, error) {
+			return client.GetModel(ctx, "text-davinci-003")
+		}},
+		{"DeleteFineTuneModel", func() (any, error) {
+			return client.DeleteFineTuneModel(ctx, "")
+		}},
+		{"CreateAssistant", func() (any, error) {
+			return client.CreateAssistant(ctx, AssistantRequest{})
+		}},
+		{"RetrieveAssistant", func() (any, error) {
+			return client.RetrieveAssistant(ctx, "")
+		}},
+		{"ModifyAssistant", func() (any, error) {
+			return client.ModifyAssistant(ctx, "", AssistantRequest{})
+		}},
+		{"DeleteAssistant", func() (any, error) {
+			return client.DeleteAssistant(ctx, "")
+		}},
+		{"ListAssistants", func() (any, error) {
+			return client.ListAssistants(ctx, nil, nil, nil, nil)
+		}},
+		{"CreateAssistantFile", func() (any, error) {
+			return client.CreateAssistantFile(ctx, "", AssistantFileRequest{})
+		}},
+		{"ListAssistantFiles", func() (any, error) {
+			return client.ListAssistantFiles(ctx, "", nil, nil, nil, nil)
+		}},
+		{"RetrieveAssistantFile", func() (any, error) {
+			return client.RetrieveAssistantFile(ctx, "", "")
+		}},
+		{"DeleteAssistantFile", func() (any, error) {
+			return nil, client.DeleteAssistantFile(ctx, "", "")
+		}},
+	}
+
+	for _, testCase := range testCases {
+		_, err := testCase.TestFunc()
+		if !errors.Is(err, errTestRequestBuilderFailed) {
+			t.Fatalf("%s did not return error when request builder failed: %v", testCase.Name, err)
+		}
+	}
+}
+
 func TestClientReturnsRequestBuilderErrorsAddtion(t *testing.T) {
 	config := DefaultConfig(test.GetTestToken())
 	client := NewClientWithConfig(config)

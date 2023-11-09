@@ -6,7 +6,9 @@ import (
 )
 
 const (
-	openaiAPIURLv1                 = "https://api.openai.com/v1"
+	OpenaiAPIURLv1       = "https://api.openai.com/v1"
+	RayEndpointsAPIURLv1 = "https://api.endpoints.anyscale.com/v1"
+
 	defaultEmptyMessagesLimit uint = 300
 
 	azureAPIPrefix         = "openai"
@@ -40,7 +42,7 @@ type ClientConfig struct {
 func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
 		authToken: authToken,
-		BaseURL:   openaiAPIURLv1,
+		BaseURL:   OpenaiAPIURLv1,
 		APIType:   APITypeOpenAI,
 		OrgID:     "",
 
@@ -60,6 +62,19 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 		AzureModelMapperFunc: func(model string) string {
 			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
 		},
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}
+
+func CustomConfig(authToken string, apiURL string) ClientConfig {
+	return ClientConfig{
+		authToken: authToken,
+		BaseURL:   apiURL,
+		APIType:   APITypeOpenAI,
+		OrgID:     "",
 
 		HTTPClient: &http.Client{},
 

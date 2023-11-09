@@ -8,9 +8,14 @@ import (
 )
 
 const testAPI = "this-is-my-secure-token-do-not-steal!!"
+const testAPIEndpoint = "this-is-my-secure-api-endpoint-do-not-steal!!"
 
 func GetTestToken() string {
 	return testAPI
+}
+
+func GetTestAPIEndpoint() string {
+	return testAPIEndpoint
 }
 
 type ServerTest struct {

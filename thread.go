@@ -19,7 +19,8 @@ type Thread struct {
 }
 
 type ThreadRequest struct {
-	Messages []ThreadMessage `json:"messages"`
+	Messages []ThreadMessage `json:"messages,omitempty"`
+	Metadata map[string]any  `json:"metadata,omitempty"`
 }
 
 type ModifyThreadRequest struct {
@@ -35,8 +36,8 @@ const (
 type ThreadMessage struct {
 	Role     ThreadMessageRole `json:"role"`
 	Content  string            `json:"content"`
-	FileIDs  []string          `json:"file_ids"`
-	Metadata map[string]any    `json:"metadata"`
+	FileIDs  []string          `json:"file_ids,omitempty"`
+	Metadata map[string]any    `json:"metadata,omitempty"`
 }
 
 type ThreadDeleteResponse struct {
@@ -49,7 +50,8 @@ type ThreadDeleteResponse struct {
 
 // CreateThread creates a new thread.
 func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (response Thread, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsSuffix), withBody(request),
+		withBetaAssistantV1())
 	if err != nil {
 		return
 	}
@@ -61,7 +63,8 @@ func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (respo
 // RetrieveThread retrieves a thread.
 func (c *Client) RetrieveThread(ctx context.Context, threadID string) (response Thread, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
 	if err != nil {
 		return
 	}
@@ -77,7 +80,8 @@ func (c *Client) ModifyThread(
 	request ModifyThreadRequest,
 ) (response Thread, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+		withBetaAssistantV1())
 	if err != nil {
 		return
 	}
@@ -92,7 +96,8 @@ func (c *Client) DeleteThread(
 	threadID string,
 ) (response ThreadDeleteResponse, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
 	if err != nil {
 		return
 	}

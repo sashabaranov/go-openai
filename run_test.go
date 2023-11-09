@@ -42,7 +42,7 @@ func TestRun(t *testing.T) {
 	)
 
 	server.RegisterHandler(
-		"/v1/threads/"+threadID+"/runs/"+runID+"/steps/",
+		"/v1/threads/"+threadID+"/runs/"+runID+"/steps",
 		func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
 				resBytes, _ := json.Marshal(openai.RunStepList{
@@ -211,7 +211,7 @@ func TestRun(t *testing.T) {
 	checks.NoError(t, err, "CreateThreadAndRun error")
 
 	_, err = client.RetrieveRunStep(ctx, threadID, runID, stepID)
-	checks.NoError(t, err, "CreateThreadAndRun error")
+	checks.NoError(t, err, "RetrieveRunStep error")
 
 	_, err = client.ListRunSteps(ctx, threadID, runID, &limit, &order, &after, &before)
 	checks.NoError(t, err, "ListRunSteps error")

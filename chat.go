@@ -71,6 +71,8 @@ type ChatCompletionMessage struct {
 }
 
 type ToolCall struct {
+	// Index is not nil only in chat completion chunk object
+	Index    *int         `json:"index,omitempty"`
 	ID       string       `json:"id"`
 	Type     ToolType     `json:"type"`
 	Function FunctionCall `json:"function"`

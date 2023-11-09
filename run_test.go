@@ -185,7 +185,16 @@ func TestRun(t *testing.T) {
 	})
 	checks.NoError(t, err, "ModifyRun error")
 
-	_, err = client.ListRuns(ctx, threadID, &limit, &order, &after, &before)
+	_, err = client.ListRuns(
+		ctx,
+		threadID,
+		openai.Pagination{
+			Limit:  &limit,
+			Order:  &order,
+			After:  &after,
+			Before: &before,
+		},
+	)
 	checks.NoError(t, err, "ListRuns error")
 
 	_, err = client.SubmitToolOutputs(ctx, threadID, runID,
@@ -213,6 +222,16 @@ func TestRun(t *testing.T) {
 	_, err = client.RetrieveRunStep(ctx, threadID, runID, stepID)
 	checks.NoError(t, err, "RetrieveRunStep error")
 
-	_, err = client.ListRunSteps(ctx, threadID, runID, &limit, &order, &after, &before)
+	_, err = client.ListRunSteps(
+		ctx,
+		threadID,
+		runID,
+		openai.Pagination{
+			Limit:  &limit,
+			Order:  &order,
+			After:  &after,
+			Before: &before,
+		},
+	)
 	checks.NoError(t, err, "ListRunSteps error")
 }

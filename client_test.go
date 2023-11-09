@@ -323,7 +323,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 			return client.ModifyRun(ctx, "", "", RunModifyRequest{})
 		}},
 		{"ListRuns", func() (any, error) {
-			return client.ListRuns(ctx, "", nil, nil, nil, nil)
+			return client.ListRuns(ctx, "", Pagination{})
 		}},
 		{"SubmitToolOutputs", func() (any, error) {
 			return client.SubmitToolOutputs(ctx, "", "", SubmitToolOutputsRequest{})
@@ -338,7 +338,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 			return client.RetrieveRunStep(ctx, "", "", "")
 		}},
 		{"ListRunSteps", func() (any, error) {
-			return client.ListRunSteps(ctx, "", "", nil, nil, nil, nil)
+			return client.ListRunSteps(ctx, "", "", Pagination{})
 		}},
 	}
 

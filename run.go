@@ -160,6 +160,13 @@ type RunStepList struct {
 	httpHeader
 }
 
+type Pagination struct {
+	Limit  *int
+	Order  *string
+	After  *string
+	Before *string
+}
+
 // CreateRun creates a new run.
 func (c *Client) CreateRun(
 	ctx context.Context,
@@ -230,23 +237,20 @@ func (c *Client) ModifyRun(
 func (c *Client) ListRuns(
 	ctx context.Context,
 	threadID string,
-	limit *int,
-	order *string,
-	after *string,
-	before *string,
+	pagination Pagination,
 ) (response RunList, err error) {
 	urlValues := url.Values{}
-	if limit != nil {
-		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	if pagination.Limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *pagination.Limit))
 	}
-	if order != nil {
-		urlValues.Add("order", *order)
+	if pagination.Order != nil {
+		urlValues.Add("order", *pagination.Order)
 	}
-	if after != nil {
-		urlValues.Add("after", *after)
+	if pagination.After != nil {
+		urlValues.Add("after", *pagination.After)
 	}
-	if before != nil {
-		urlValues.Add("before", *before)
+	if pagination.Before != nil {
+		urlValues.Add("before", *pagination.Before)
 	}
 
 	encodedValues := ""
@@ -358,23 +362,20 @@ func (c *Client) ListRunSteps(
 	ctx context.Context,
 	threadID string,
 	runID string,
-	limit *int,
-	order *string,
-	after *string,
-	before *string,
+	pagination Pagination,
 ) (response RunStepList, err error) {
 	urlValues := url.Values{}
-	if limit != nil {
-		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	if pagination.Limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *pagination.Limit))
 	}
-	if order != nil {
-		urlValues.Add("order", *order)
+	if pagination.Order != nil {
+		urlValues.Add("order", *pagination.Order)
 	}
-	if after != nil {
-		urlValues.Add("after", *after)
+	if pagination.After != nil {
+		urlValues.Add("after", *pagination.After)
 	}
-	if before != nil {
-		urlValues.Add("before", *before)
+	if pagination.Before != nil {
+		urlValues.Add("before", *pagination.Before)
 	}
 
 	encodedValues := ""

@@ -167,8 +167,13 @@ func (c *Client) CreateRun(
 	request RunRequest,
 ) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs", threadID)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix),
+		withBody(request),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -184,8 +189,12 @@ func (c *Client) RetrieveRun(
 	runID string,
 ) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL(urlSuffix),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -202,8 +211,13 @@ func (c *Client) ModifyRun(
 	request RunModifyRequest,
 ) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix),
+		withBody(request),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -241,8 +255,12 @@ func (c *Client) ListRuns(
 	}
 
 	urlSuffix := fmt.Sprintf("/threads/%s/runs%s", threadID, encodedValues)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL(urlSuffix),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -258,8 +276,13 @@ func (c *Client) SubmitToolOutputs(
 	runID string,
 	request SubmitToolOutputsRequest) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/submit_tool_outputs", threadID, runID)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix),
+		withBody(request),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -274,8 +297,12 @@ func (c *Client) CancelRun(
 	threadID string,
 	runID string) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -289,8 +316,13 @@ func (c *Client) CreateThreadAndRun(
 	ctx context.Context,
 	request CreateThreadAndRunRequest) (response Run, err error) {
 	urlSuffix := "/threads/runs"
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix),
+		withBody(request),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -307,8 +339,12 @@ func (c *Client) RetrieveRunStep(
 	stepID string,
 ) (response RunStep, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/steps/%s", threadID, runID, stepID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL(urlSuffix),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}
@@ -347,8 +383,12 @@ func (c *Client) ListRunSteps(
 	}
 
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/steps%s", threadID, runID, encodedValues)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+	req, err := c.newRequest(
+		ctx,
+		http.MethodGet,
+		c.fullURL(urlSuffix),
+		withBetaAssistantV1(),
+	)
 	if err != nil {
 		return
 	}

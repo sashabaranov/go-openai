@@ -80,6 +80,35 @@ type ChatCompletionMessage struct {
 	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
 }
 
+type ChatCompletionChoiceMessage struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+
+	// This property isn't in the official documentation, but it's in
+	// the documentation for the official library for python:
+	// - https://github.com/openai/openai-python/blob/main/chatml.md
+	// - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
+	Name string `json:"name,omitempty"`
+
+	FunctionCall *FunctionCall `json:"function_call,omitempty"`
+	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
+}
+
+func (message ChatCompletionChoiceMessage) ToChatCompleteMessage() ChatCompletionMessage {
+	return ChatCompletionMessage{
+		Role: message.Role,
+		Content: []ChatMessageContent{
+			{
+				Type: ChatMessageContentTypeText,
+				Text: message.Content,
+			},
+		},
+		Name:         message.Name,
+		FunctionCall: message.FunctionCall,
+		ToolCalls:    message.ToolCalls,
+	}
+}
+
 type ToolCall struct {
 	ID       string       `json:"id"`
 	Function FunctionCall `json:"function"`
@@ -183,8 +212,8 @@ func (r FinishReason) MarshalJSON() ([]byte, error) {
 }
 
 type ChatCompletionChoice struct {
-	Index   int                   `json:"index"`
-	Message ChatCompletionMessage `json:"message"`
+	Index   int                         `json:"index"`
+	Message ChatCompletionChoiceMessage `json:"message"`
 	// FinishReason
 	// stop: API returned complete message,
 	// or a message terminated by one of the stop sequences provided via the stop parameter

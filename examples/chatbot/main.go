@@ -45,8 +45,8 @@ func main() {
 			fmt.Printf("ChatCompletion error: %v\n", err)
 			continue
 		}
-		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content[0].Text)
-		req.Messages = append(req.Messages, resp.Choices[0].Message)
+		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content)
+		req.Messages = append(req.Messages, resp.Choices[0].Message.ToChatCompleteMessage())
 		fmt.Print("> ")
 	}
 }

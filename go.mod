@@ -1,3 +1,3 @@
-module github.com/go-openai-anyscale
+module github.com/binsquare/go-openai-anyscale
 
 go 1.21

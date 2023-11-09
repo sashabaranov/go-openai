@@ -301,6 +301,18 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"DeleteAssistantFile", func() (any, error) {
 			return nil, client.DeleteAssistantFile(ctx, "", "")
 		}},
+		{"CreateRun", func() (any, error) {
+			return client.CreateRun(ctx, "", RunRequest{})
+		}},
+		{"RetrieveRun", func() (any, error) {
+			return client.RetrieveRun(ctx, "", "")
+		}},
+		{"ModifyRun", func() (any, error) {
+			return client.ModifyRun(ctx, "", "", RunModifyRequest{})
+		}},
+		{"ListRuns", func() (any, error) {
+			return client.ListRuns(ctx, "", nil, nil, nil, nil)
+		}},
 	}
 
 	for _, testCase := range testCases {

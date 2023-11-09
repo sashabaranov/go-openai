@@ -94,7 +94,7 @@ func (c *Client) CreateRun(
 	threadID string,
 	request RunRequest,
 ) (response Run, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s/run", threadID)
+	urlSuffix := fmt.Sprintf("/threads/%s/runs", threadID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
 		withBetaAssistantV1())
 	if err != nil {
@@ -111,7 +111,7 @@ func (c *Client) RetrieveRun(
 	threadID string,
 	runID string,
 ) (response Run, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s/run/%s", threadID, runID)
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantV1())
 	if err != nil {
@@ -129,7 +129,7 @@ func (c *Client) ModifyRun(
 	runID string,
 	request RunModifyRequest,
 ) (response Run, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s/run/%s", threadID, runID)
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s", threadID, runID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
 		withBetaAssistantV1())
 	if err != nil {
@@ -168,7 +168,7 @@ func (c *Client) ListRuns(
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	urlSuffix := fmt.Sprintf("/threads/%s/run%s", threadID, encodedValues)
+	urlSuffix := fmt.Sprintf("/threads/%s/runs%s", threadID, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantV1())
 	if err != nil {

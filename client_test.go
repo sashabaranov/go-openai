@@ -325,6 +325,15 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"ListRuns", func() (any, error) {
 			return client.ListRuns(ctx, "", nil, nil, nil, nil)
 		}},
+		{"SubmitToolOutputs", func() (any, error) {
+			return client.SubmitToolOutputs(ctx, "", "", SubmitToolOutputsRequest{})
+		}},
+		{"CancelRun", func() (any, error) {
+			return client.CancelRun(ctx, "", "")
+		}},
+		{"CreateThreadAndRun", func() (any, error) {
+			return client.CreateThreadAndRun(ctx, CreateThreadAndRunRequest{})
+		}},
 	}
 
 	for _, testCase := range testCases {

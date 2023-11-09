@@ -99,7 +99,56 @@ type ToolOutput struct {
 
 type CreateThreadAndRunRequest struct {
 	RunRequest
-	// Thread *ThreadRequest `json:"thread,omitempty"` uncomment when thread is implemented
+	Thread ThreadRequest `json:"thread"`
+}
+
+type RunStep struct {
+	ID          string         `json:"id"`
+	Object      string         `json:"object"`
+	CreatedAt   int64          `json:"created_at"`
+	AssistantID string         `json:"assistant_id"`
+	ThreadID    string         `json:"thread_id"`
+	RunID       string         `json:"run_id"`
+	Type        RunStepType    `json:"type"`
+	Status      RunStepStatus  `json:"status"`
+	StepDetails StepDetails    `json:"step_details"`
+	LastError   *RunLastError  `json:"last_error,omitempty"`
+	ExpiredAt   *int64         `json:"expired_at,omitempty"`
+	CancelledAt *int64         `json:"cancelled_at,omitempty"`
+	FailedAt    *int64         `json:"failed_at,omitempty"`
+	CompletedAt *int64         `json:"completed_at,omitempty"`
+	Metadata    map[string]any `json:"metadata"`
+}
+
+type RunStepStatus string
+
+const (
+	RunStepStatusInProgress RunStatus = "in_progress"
+	RunStepStatusCancelling RunStatus = "cancelled"
+	RunStepStatusFailed     RunStatus = "failed"
+	RunStepStatusCompleted  RunStatus = "completed"
+	RunStepStatusExpired    RunStatus = "expired"
+)
+
+type RunStepType string
+
+const (
+	RunStepTypeMessageCreation RunStepType = "message_creation"
+	RunStepTypeToolCalls       RunStepType = "tool_calls"
+)
+
+type StepDetails struct {
+	Type            RunStepType                 `json:"type"`
+	MessageCreation *StepDetailsMessageCreation `json:"message_creation,omitempty"`
+	ToolCalls       *StepDetailsToolCalls       `json:"tool_calls,omitempty"`
+}
+
+type StepDetailsMessageCreation struct {
+	MessageID string `json:"message_id"`
+}
+
+type StepDetailsToolCalls struct {
+	ToolCalls []ToolCall `json:"tool_calls"`
 }
 
 // CreateRun creates a new run.
@@ -214,8 +263,7 @@ func (c *Client) SubmitToolOutputs(
 func (c *Client) CancelRun(
 	ctx context.Context,
 	threadID string,
-	runID string,
-	request SubmitToolOutputsRequest) (response Run, err error) {
+	runID string) (response Run, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBetaAssistantV1())

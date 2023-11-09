@@ -26,6 +26,36 @@ func TestRun(t *testing.T) {
 	defer teardown()
 
 	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/runs/"+runID+"/cancel",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				resBytes, _ := json.Marshal(openai.Run{
+					ID:        runID,
+					Object:    "run",
+					CreatedAt: 1234567890,
+					Status:    openai.RunStatusCancelling,
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
+		},
+	)
+
+	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/runs/"+runID+"/submit_tool_outputs",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				resBytes, _ := json.Marshal(openai.Run{
+					ID:        runID,
+					Object:    "run",
+					CreatedAt: 1234567890,
+					Status:    openai.RunStatusCancelling,
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
+		},
+	)
+
+	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/runs/"+runID,
 		func(w http.ResponseWriter, r *http.Request) {
 			if r.Method == http.MethodGet {
@@ -84,6 +114,25 @@ func TestRun(t *testing.T) {
 		},
 	)
 
+	server.RegisterHandler(
+		"/v1/threads/runs",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				var request openai.CreateThreadAndRunRequest
+				err := json.NewDecoder(r.Body).Decode(&request)
+				checks.NoError(t, err, "Decode error")
+
+				resBytes, _ := json.Marshal(openai.Run{
+					ID:        runID,
+					Object:    "run",
+					CreatedAt: 1234567890,
+					Status:    openai.RunStatusQueued,
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
+		},
+	)
+
 	ctx := context.Background()
 
 	_, err := client.CreateRun(ctx, threadID, openai.RunRequest{
@@ -103,4 +152,26 @@ func TestRun(t *testing.T) {
 
 	_, err = client.ListRuns(ctx, threadID, &limit, &order, &after, &before)
 	checks.NoError(t, err, "ListRuns error")
+
+	_, err = client.SubmitToolOutputs(ctx, threadID, runID,
+		openai.SubmitToolOutputsRequest{})
+	checks.NoError(t, err, "SubmitToolOutputs error")
+
+	_, err = client.CancelRun(ctx, threadID, runID)
+	checks.NoError(t, err, "CancelRun error")
+
+	_, err = client.CreateThreadAndRun(ctx, openai.CreateThreadAndRunRequest{
+		RunRequest: openai.RunRequest{
+			AssistantID: assistantID,
+		},
+		Thread: openai.ThreadRequest{
+			Messages: []openai.ThreadMessage{
+				{
+					Role:    openai.ThreadMessageRoleUser,
+					Content: "Hello, World!",
+				},
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateThreadAndRun error")
 }

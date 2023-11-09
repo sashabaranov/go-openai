@@ -51,6 +51,20 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	checks.ErrorIs(t, err, openai.ErrChatCompletionInvalidModel, msg)
 }
 
+func TestChatRequestOmitEmpty(t *testing.T) {
+	data, err := json.Marshal(openai.ChatCompletionRequest{
+		// We set model b/c it's required, so omitempty doesn't make sense
+		Model: "gpt-4",
+	})
+	checks.NoError(t, err)
+
+	// messages is also required so isn't omitted
+	const expected = `{"model":"gpt-4","messages":null}`
+	if string(data) != expected {
+		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
+	}
+}
+
 func TestChatCompletionsWithStream(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"

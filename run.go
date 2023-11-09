@@ -81,7 +81,7 @@ type RunModifyRequest struct {
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
-// RunList is a list of assistants.
+// RunList is a list of runs.
 type RunList struct {
 	Runs []Run `json:"data"`
 
@@ -118,16 +118,18 @@ type RunStep struct {
 	FailedAt    *int64         `json:"failed_at,omitempty"`
 	CompletedAt *int64         `json:"completed_at,omitempty"`
 	Metadata    map[string]any `json:"metadata"`
+
+	httpHeader
 }
 
 type RunStepStatus string
 
 const (
-	RunStepStatusInProgress RunStatus = "in_progress"
-	RunStepStatusCancelling RunStatus = "cancelled"
-	RunStepStatusFailed     RunStatus = "failed"
-	RunStepStatusCompleted  RunStatus = "completed"
-	RunStepStatusExpired    RunStatus = "expired"
+	RunStepStatusInProgress RunStepStatus = "in_progress"
+	RunStepStatusCancelling RunStepStatus = "cancelled"
+	RunStepStatusFailed     RunStepStatus = "failed"
+	RunStepStatusCompleted  RunStepStatus = "completed"
+	RunStepStatusExpired    RunStepStatus = "expired"
 )
 
 type RunStepType string
@@ -149,6 +151,13 @@ type StepDetailsMessageCreation struct {
 
 type StepDetailsToolCalls struct {
 	ToolCalls []ToolCall `json:"tool_calls"`
+}
+
+// RunStepList is a list of steps.
+type RunStepList struct {
+	RunSteps []RunStep `json:"data"`
+
+	httpHeader
 }
 
 // CreateRun creates a new run.
@@ -281,6 +290,64 @@ func (c *Client) CreateThreadAndRun(
 	request CreateThreadAndRunRequest) (response Run, err error) {
 	urlSuffix := "/threads/runs"
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// RetrieveRunStep retrieves a run step.
+func (c *Client) RetrieveRunStep(
+	ctx context.Context,
+	threadID string,
+	runID string,
+	stepID string,
+) (response RunStep, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/steps/%s", threadID, runID, stepID)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// ListRunSteps lists run steps.
+func (c *Client) ListRunSteps(
+	ctx context.Context,
+	threadID string,
+	runID string,
+	limit *int,
+	order *string,
+	after *string,
+	before *string,
+) (response RunStepList, err error) {
+	urlValues := url.Values{}
+	if limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	}
+	if order != nil {
+		urlValues.Add("order", *order)
+	}
+	if after != nil {
+		urlValues.Add("after", *after)
+	}
+	if before != nil {
+		urlValues.Add("before", *before)
+	}
+
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
+	}
+
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/steps%s", threadID, runID, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantV1())
 	if err != nil {
 		return

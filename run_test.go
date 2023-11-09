@@ -17,6 +17,7 @@ func TestRun(t *testing.T) {
 	assistantID := "asst_abc123"
 	threadID := "thread_abc123"
 	runID := "run_abc123"
+	stepID := "step_abc123"
 	limit := 20
 	order := "desc"
 	after := "asst_abc122"
@@ -24,6 +25,40 @@ func TestRun(t *testing.T) {
 
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
+
+	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/runs/"+runID+"/steps/"+stepID,
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				resBytes, _ := json.Marshal(openai.RunStep{
+					ID:        runID,
+					Object:    "run",
+					CreatedAt: 1234567890,
+					Status:    openai.RunStepStatusCompleted,
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
+		},
+	)
+
+	server.RegisterHandler(
+		"/v1/threads/"+threadID+"/runs/"+runID+"/steps/",
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodGet {
+				resBytes, _ := json.Marshal(openai.RunStepList{
+					RunSteps: []openai.RunStep{
+						{
+							ID:        runID,
+							Object:    "run",
+							CreatedAt: 1234567890,
+							Status:    openai.RunStepStatusCompleted,
+						},
+					},
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
+		},
+	)
 
 	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/runs/"+runID+"/cancel",
@@ -173,5 +208,8 @@ func TestRun(t *testing.T) {
 			},
 		},
 	})
+	checks.NoError(t, err, "CreateThreadAndRun error")
+
+	_, err = client.RetrieveRunStep(ctx, threadID, runID, stepID)
 	checks.NoError(t, err, "CreateThreadAndRun error")
 }

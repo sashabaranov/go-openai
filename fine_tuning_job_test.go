@@ -42,7 +42,7 @@ func TestFineTuningJob(t *testing.T) {
 	)
 
 	server.RegisterHandler(
-		"/fine_tuning/jobs/"+testFineTuninigJobID+"/cancel",
+		"/v1/fine_tuning/jobs/"+testFineTuninigJobID+"/cancel",
 		func(w http.ResponseWriter, _ *http.Request) {
 			resBytes, _ := json.Marshal(openai.FineTuningJob{})
 			fmt.Fprintln(w, string(resBytes))

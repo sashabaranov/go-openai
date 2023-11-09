@@ -313,6 +313,33 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"DeleteThread", func() (any, error) {
 			return client.DeleteThread(ctx, "")
 		}},
+		{"CreateRun", func() (any, error) {
+			return client.CreateRun(ctx, "", RunRequest{})
+		}},
+		{"RetrieveRun", func() (any, error) {
+			return client.RetrieveRun(ctx, "", "")
+		}},
+		{"ModifyRun", func() (any, error) {
+			return client.ModifyRun(ctx, "", "", RunModifyRequest{})
+		}},
+		{"ListRuns", func() (any, error) {
+			return client.ListRuns(ctx, "", Pagination{})
+		}},
+		{"SubmitToolOutputs", func() (any, error) {
+			return client.SubmitToolOutputs(ctx, "", "", SubmitToolOutputsRequest{})
+		}},
+		{"CancelRun", func() (any, error) {
+			return client.CancelRun(ctx, "", "")
+		}},
+		{"CreateThreadAndRun", func() (any, error) {
+			return client.CreateThreadAndRun(ctx, CreateThreadAndRunRequest{})
+		}},
+		{"RetrieveRunStep", func() (any, error) {
+			return client.RetrieveRunStep(ctx, "", "", "")
+		}},
+		{"ListRunSteps", func() (any, error) {
+			return client.ListRunSteps(ctx, "", "", Pagination{})
+		}},
 	}
 
 	for _, testCase := range testCases {

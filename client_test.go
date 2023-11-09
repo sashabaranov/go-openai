@@ -334,6 +334,12 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"CreateThreadAndRun", func() (any, error) {
 			return client.CreateThreadAndRun(ctx, CreateThreadAndRunRequest{})
 		}},
+		{"RetrieveRunStep", func() (any, error) {
+			return client.RetrieveRunStep(ctx, "", "", "")
+		}},
+		{"ListRunSteps", func() (any, error) {
+			return client.ListRunSteps(ctx, "", "", nil, nil, nil, nil)
+		}},
 	}
 
 	for _, testCase := range testCases {

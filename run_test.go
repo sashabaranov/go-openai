@@ -212,4 +212,7 @@ func TestRun(t *testing.T) {
 
 	_, err = client.RetrieveRunStep(ctx, threadID, runID, stepID)
 	checks.NoError(t, err, "CreateThreadAndRun error")
+
+	_, err = client.ListRunSteps(ctx, threadID, runID, &limit, &order, &after, &before)
+	checks.NoError(t, err, "ListRunSteps error")
 }

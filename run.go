@@ -43,8 +43,8 @@ const (
 )
 
 type RunRequiredAction struct {
-	Type              RequiredActionType    `json:"type"`
-	SubmitToolOutputs *RunSubmitToolOutputs `json:"submit_tool_outputs,omitempty"`
+	Type              RequiredActionType `json:"type"`
+	SubmitToolOutputs *SubmitToolOutputs `json:"submit_tool_outputs,omitempty"`
 }
 
 type RequiredActionType string
@@ -53,7 +53,7 @@ const (
 	RequiredActionTypeSubmitToolOutputs RequiredActionType = "submit_tool_outputs"
 )
 
-type RunSubmitToolOutputs struct {
+type SubmitToolOutputs struct {
 	ToolCalls []ToolCall `json:"tool_calls"`
 }
 
@@ -86,6 +86,20 @@ type RunList struct {
 	Runs []Run `json:"data"`
 
 	httpHeader
+}
+
+type SubmitToolOutputsRequest struct {
+	ToolOutputs []ToolOutput `json:"tool_outputs"`
+}
+
+type ToolOutput struct {
+	ToolCallID string `json:"tool_call_id"`
+	Output     any    `json:"output"`
+}
+
+type CreateThreadAndRunRequest struct {
+	RunRequest
+	// Thread *ThreadRequest `json:"thread,omitempty"` uncomment when thread is implemented
 }
 
 // CreateRun creates a new run.
@@ -170,6 +184,55 @@ func (c *Client) ListRuns(
 
 	urlSuffix := fmt.Sprintf("/threads/%s/runs%s", threadID, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// SubmitToolOutputs submits tool outputs.
+func (c *Client) SubmitToolOutputs(
+	ctx context.Context,
+	threadID string,
+	runID string,
+	request SubmitToolOutputsRequest) (response Run, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/submit_tool_outputs", threadID, runID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// CancelRun cancels a run.
+func (c *Client) CancelRun(
+	ctx context.Context,
+	threadID string,
+	runID string,
+	request SubmitToolOutputsRequest) (response Run, err error) {
+	urlSuffix := fmt.Sprintf("/threads/%s/runs/%s/cancel", threadID, runID)
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
+		withBetaAssistantV1())
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+// CreateThreadAndRun submits tool outputs.
+func (c *Client) CreateThreadAndRun(
+	ctx context.Context,
+	request CreateThreadAndRunRequest) (response Run, err error) {
+	urlSuffix := "/threads/runs"
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
 		withBetaAssistantV1())
 	if err != nil {
 		return

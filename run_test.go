@@ -17,11 +17,6 @@ func TestRun(t *testing.T) {
 	assistantID := "asst_abc123"
 	threadID := "thread_abc123"
 	runID := "run_abc123"
-	// 	assistantName := "Ambrogio"
-	// 	assistantDescription := "Ambrogio is a friendly assistant."
-	// 	assitantInstructions := `You are a personal math tutor.
-	// When asked a question, write and run Python code to answer the question.`
-	// 	assistantFileID := "file-wB6RM6wHdA49HfS2DJ9fEyrH"
 	limit := 20
 	order := "desc"
 	after := "asst_abc122"

@@ -42,9 +42,11 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -78,9 +80,11 @@ func TestChatCompletions(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -99,9 +103,11 @@ func TestChatCompletionsWithHeaders(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -126,9 +132,9 @@ func TestChatCompletionsWithRateLimitHeaders(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!"},
 				},
 			},
 		},
@@ -166,9 +172,11 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role: openai.ChatMessageRoleUser,
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},
@@ -194,9 +202,11 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role: openai.ChatMessageRoleUser,
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},
@@ -214,9 +224,11 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role: openai.ChatMessageRoleUser,
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},
@@ -254,9 +266,11 @@ func TestChatCompletionsFunctions(t *testing.T) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role: openai.ChatMessageRoleUser,
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},
@@ -299,9 +313,9 @@ func TestAzureChatCompletions(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!"},
 				},
 			},
 		},
@@ -367,15 +381,17 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 		res.Choices = append(res.Choices, openai.ChatCompletionChoice{
 			Message: openai.ChatCompletionMessage{
 				Role: openai.ChatMessageRoleAssistant,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: completionStr,
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: completionStr,
+					},
 				},
 			},
 			Index: i,
 		})
 	}
-	inputTokens := numTokens(completionReq.Messages[0].Content.Text) * n
+	inputTokens := numTokens(completionReq.Messages[0].Content[0].Text) * n
 	completionTokens := completionReq.MaxTokens * n
 	res.Usage = openai.Usage{
 		PromptTokens:     inputTokens,

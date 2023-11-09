@@ -26,9 +26,11 @@ func TestChatCompletionsStreamWrongModel(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -70,9 +72,11 @@ func TestCreateChatCompletionStream(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -168,9 +172,11 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -211,9 +217,11 @@ func TestCreateChatCompletionStreamWithHeaders(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -257,9 +265,11 @@ func TestCreateChatCompletionStreamWithRatelimitHeaders(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -297,9 +307,11 @@ func TestCreateChatCompletionStreamErrorWithDataPrefix(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -341,9 +353,11 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -383,9 +397,11 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleUser,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "Hello!",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},

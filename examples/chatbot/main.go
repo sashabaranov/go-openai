@@ -17,9 +17,11 @@ func main() {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role: openai.ChatMessageRoleSystem,
-				Content: &openai.ChatMessageContent{
-					Type: openai.ChatMessageContentTypeText,
-					Text: "you are a helpful chatbot",
+				Content: []openai.ChatMessageContent{
+					{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "you are a helpful chatbot",
+					},
 				},
 			},
 		},
@@ -31,9 +33,11 @@ func main() {
 	for s.Scan() {
 		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
 			Role: openai.ChatMessageRoleUser,
-			Content: &openai.ChatMessageContent{
-				Type: openai.ChatMessageContentTypeText,
-				Text: s.Text(),
+			Content: []openai.ChatMessageContent{
+				{
+					Type: openai.ChatMessageContentTypeText,
+					Text: s.Text(),
+				},
 			},
 		})
 		resp, err := client.CreateChatCompletion(context.Background(), req)
@@ -41,7 +45,7 @@ func main() {
 			fmt.Printf("ChatCompletion error: %v\n", err)
 			continue
 		}
-		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content.Text)
+		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content[0].Text)
 		req.Messages = append(req.Messages, resp.Choices[0].Message)
 		fmt.Print("> ")
 	}

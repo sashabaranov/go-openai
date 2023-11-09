@@ -67,8 +67,8 @@ type ChatMessageContent struct {
 }
 
 type ChatCompletionMessage struct {
-	Role    string              `json:"role"`
-	Content *ChatMessageContent `json:"content"`
+	Role    string               `json:"role"`
+	Content []ChatMessageContent `json:"content"`
 
 	// This property isn't in the official documentation, but it's in
 	// the documentation for the official library for python:

@@ -54,9 +54,11 @@ func TestAPI(t *testing.T) {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role: openai.ChatMessageRoleUser,
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},
@@ -73,9 +75,11 @@ func TestAPI(t *testing.T) {
 				{
 					Role: openai.ChatMessageRoleUser,
 					Name: "John_Doe",
-					Content: &openai.ChatMessageContent{
-						Type: openai.ChatMessageContentTypeText,
-						Text: "Hello!",
+					Content: []openai.ChatMessageContent{
+						{
+							Type: openai.ChatMessageContentTypeText,
+							Text: "Hello!",
+						},
 					},
 				},
 			},

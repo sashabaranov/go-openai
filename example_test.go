@@ -22,8 +22,11 @@ func Example() {
 			Model: openai.GPT3Dot5Turbo,
 			Messages: []openai.ChatCompletionMessage{
 				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
+					Role: openai.ChatMessageRoleUser,
+					Content: &openai.ChatMessageContent{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Hello!",
+					},
 				},
 			},
 		},
@@ -46,8 +49,11 @@ func ExampleClient_CreateChatCompletionStream() {
 			MaxTokens: 20,
 			Messages: []openai.ChatCompletionMessage{
 				{
-					Role:    openai.ChatMessageRoleUser,
-					Content: "Lorem ipsum",
+					Role: openai.ChatMessageRoleUser,
+					Content: &openai.ChatMessageContent{
+						Type: openai.ChatMessageContentTypeText,
+						Text: "Lorem ipsum",
+					},
 				},
 			},
 			Stream: true,
@@ -276,8 +282,11 @@ func Example_chatbot() {
 		Model: openai.GPT3Dot5Turbo,
 		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    openai.ChatMessageRoleSystem,
-				Content: "you are a helpful chatbot",
+				Role: openai.ChatMessageRoleSystem,
+				Content: &openai.ChatMessageContent{
+					Type: openai.ChatMessageContentTypeText,
+					Text: "you are a helpful chatbot",
+				},
 			},
 		},
 	}
@@ -288,14 +297,14 @@ func Example_chatbot() {
 	for s.Scan() {
 		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
 			Role:    openai.ChatMessageRoleUser,
-			Content: s.Text(),
+			Content: &openai.ChatMessageContent{Type: openai.ChatMessageContentTypeText, Text: s.Text()},
 		})
 		resp, err := client.CreateChatCompletion(context.Background(), req)
 		if err != nil {
 			fmt.Printf("ChatCompletion error: %v\n", err)
 			continue
 		}
-		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content)
+		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content.Text)
 		req.Messages = append(req.Messages, resp.Choices[0].Message)
 		fmt.Print("> ")
 	}
@@ -313,7 +322,7 @@ func ExampleDefaultAzureConfig() {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello Azure OpenAI!",
+					Content: &openai.ChatMessageContent{Type: openai.ChatMessageContentTypeText, Text: "Hello Azure OpenAI!"},
 				},
 			},
 		},

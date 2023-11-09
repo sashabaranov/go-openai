@@ -40,7 +40,10 @@ func main() {
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
-					Content: "Hello!",
+					Content: &openai.ChatMessageContent{
+				    	Type: openai.ChatMessageContentTypeText,
+				    	Text: "Hello!",
+				    },
 				},
 			},
 		},
@@ -93,7 +96,10 @@ func main() {
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleUser,
-				Content: "Lorem ipsum",
+				Content: &openai.ChatMessageContent{
+                    Type: openai.ChatMessageContentTypeText,
+                    Text: "Lorem ipsum",
+                }
 			},
 		},
 		Stream: true,

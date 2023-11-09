@@ -15,6 +15,11 @@ const (
 	ChatMessageRoleTool      = "tool"
 )
 
+const (
+	ChatMessageContentTypeText  = "text"
+	ChatMessageContentTypeImage = "image_url"
+)
+
 const chatCompletionsSuffix = "/chat/completions"
 
 var (
@@ -51,9 +56,19 @@ type PromptAnnotation struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
 }
 
+type ChatMessageImageURL struct {
+	URL string `json:"url"`
+}
+
+type ChatMessageContent struct {
+	Type     string               `json:"type"`
+	Text     string               `json:"text,omitempty"`
+	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+}
+
 type ChatCompletionMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role    string              `json:"role"`
+	Content *ChatMessageContent `json:"content"`
 
 	// This property isn't in the official documentation, but it's in
 	// the documentation for the official library for python:

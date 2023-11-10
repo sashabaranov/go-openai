@@ -16,6 +16,15 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+func contains[T comparable](s []T, e T) bool {
+	for _, v := range s {
+		if v == e {
+			return true
+		}
+	}
+	return false
+}
+
 func TestSpeechIntegration(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
@@ -61,6 +70,20 @@ func TestSpeechIntegration(t *testing.T) {
 			}
 		}
 
+		// Check if the model is valid
+		if !contains([]string{string(openai.TTSModel1), string(openai.TTsModel1HD)}, params["model"].(string)) {
+			http.Error(w, "invalid model", http.StatusBadRequest)
+			return
+		}
+
+		// Check if the voice is valid
+		if !contains([]string{string(openai.VoiceAlloy), string(openai.VoiceEcho), string(openai.VoiceFable),
+			string(openai.VoiceOnyx), string(openai.VoiceNova), string(openai.VoiceShimmer)},
+			params["voice"].(string)) {
+			http.Error(w, "invalid voice", http.StatusBadRequest)
+			return
+		}
+
 		// read audio file content
 		audioFile, err := os.ReadFile(path)
 		if err != nil {
@@ -79,18 +102,28 @@ func TestSpeechIntegration(t *testing.T) {
 		}
 	})
 
-	res, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-		Model: openai.TTSModel1,
-		Input: "Hello!",
-		Voice: openai.VoiceAlloy,
+	t.Run("happy path", func(t *testing.T) {
+		res, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
+			Model: openai.TTSModel1,
+			Input: "Hello!",
+			Voice: openai.VoiceAlloy,
+		})
+		checks.NoError(t, err, "CreateSpeech error")
+		defer res.Close()
+
+		buf, err := io.ReadAll(res)
+		checks.NoError(t, err, "ReadAll error")
+
+		// save buf to file as mp3
+		err = os.WriteFile("test.mp3", buf, 0644)
+		checks.NoError(t, err, "Create error")
 	})
-	checks.NoError(t, err, "CreateSpeech error")
-	defer res.Close()
-
-	buf, err := io.ReadAll(res)
-	checks.NoError(t, err, "ReadAll error")
-
-	// save buf to file as mp3
-	err = os.WriteFile("test.mp3", buf, 0644)
-	checks.NoError(t, err, "Create error")
+	t.Run("invalid model", func(t *testing.T) {
+		_, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
+			Model: "invalid_model",
+			Input: "Hello!",
+			Voice: "abc",
+		})
+		checks.HasError(t, err, "CreateSpeech error")
+	})
 }

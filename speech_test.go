@@ -16,25 +16,6 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
-func contains[T comparable](s []T, e T) bool {
-	for _, v := range s {
-		if v == e {
-			return true
-		}
-	}
-	return false
-}
-
-func isValidSpeechModel(model openai.SpeechModel) bool {
-	return contains([]openai.SpeechModel{openai.TTSModel1, openai.TTsModel1HD}, model)
-}
-
-func isValidVoice(voice openai.SpeechVoice) bool {
-	return contains([]openai.SpeechVoice{openai.VoiceAlloy, openai.VoiceEcho, openai.VoiceFable,
-		openai.VoiceOnyx, openai.VoiceNova, openai.VoiceShimmer}, voice)
-}
-
-//nolint:gocognit
 func TestSpeechIntegration(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
@@ -80,18 +61,6 @@ func TestSpeechIntegration(t *testing.T) {
 			}
 		}
 
-		// Check if the model is valid
-		if !isValidSpeechModel(openai.SpeechModel(params["model"].(string))) {
-			http.Error(w, "invalid model", http.StatusBadRequest)
-			return
-		}
-
-		// Check if the voice is valid
-		if !isValidVoice(openai.SpeechVoice(params["voice"].(string))) {
-			http.Error(w, "invalid voice", http.StatusBadRequest)
-			return
-		}
-
 		// read audio file content
 		audioFile, err := os.ReadFile(path)
 		if err != nil {
@@ -130,8 +99,17 @@ func TestSpeechIntegration(t *testing.T) {
 		_, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
 			Model: "invalid_model",
 			Input: "Hello!",
-			Voice: "abc",
+			Voice: openai.VoiceAlloy,
 		})
-		checks.HasError(t, err, "CreateSpeech error")
+		checks.ErrorIs(t, err, openai.ErrInvalidSpeechModel, "CreateSpeech error")
+	})
+
+	t.Run("invalid voice", func(t *testing.T) {
+		_, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
+			Model: openai.TTSModel1,
+			Input: "Hello!",
+			Voice: "invalid_voice",
+		})
+		checks.ErrorIs(t, err, openai.ErrInvalidVoice, "CreateSpeech error")
 	})
 }

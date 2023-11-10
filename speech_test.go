@@ -25,6 +25,16 @@ func contains[T comparable](s []T, e T) bool {
 	return false
 }
 
+func isValidSpeechModel(model openai.SpeechModel) bool {
+	return contains([]openai.SpeechModel{openai.TTSModel1, openai.TTsModel1HD}, model)
+}
+
+func isValidVoice(voice openai.SpeechVoice) bool {
+	return contains([]openai.SpeechVoice{openai.VoiceAlloy, openai.VoiceEcho, openai.VoiceFable,
+		openai.VoiceOnyx, openai.VoiceNova, openai.VoiceShimmer}, voice)
+}
+
+//nolint:gocognit
 func TestSpeechIntegration(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
@@ -71,15 +81,13 @@ func TestSpeechIntegration(t *testing.T) {
 		}
 
 		// Check if the model is valid
-		if !contains([]string{string(openai.TTSModel1), string(openai.TTsModel1HD)}, params["model"].(string)) {
+		if !isValidSpeechModel(openai.SpeechModel(params["model"].(string))) {
 			http.Error(w, "invalid model", http.StatusBadRequest)
 			return
 		}
 
 		// Check if the voice is valid
-		if !contains([]string{string(openai.VoiceAlloy), string(openai.VoiceEcho), string(openai.VoiceFable),
-			string(openai.VoiceOnyx), string(openai.VoiceNova), string(openai.VoiceShimmer)},
-			params["voice"].(string)) {
+		if !isValidVoice(openai.SpeechVoice(params["voice"].(string))) {
 			http.Error(w, "invalid voice", http.StatusBadRequest)
 			return
 		}

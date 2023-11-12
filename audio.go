@@ -3,6 +3,7 @@ package openai
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -10,6 +11,79 @@ import (
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
+
+// Voice param for TTS API endpoint, represents one of supported voices
+type AudioSpeechVoice string
+
+const (
+	AudioVoiceAlloy   AudioSpeechVoice = "alloy"
+	AudioVoiceEcho    AudioSpeechVoice = "echo"
+	AudioVoiceFable   AudioSpeechVoice = "fable"
+	AudioVoiceOnyx    AudioSpeechVoice = "onyx"
+	AudioVoiceNova    AudioSpeechVoice = "nova"
+	AudioVoiceShimmer AudioSpeechVoice = "shimmer"
+)
+
+// TTS model 
+type AudioSpeechModel string
+
+const (
+	AudioSpeachModelTTS1   AudioSpeechModel = "tts-1"
+	AudioSpeachModelTTS1HD AudioSpeechModel = "tts-1-hd"
+)
+
+// TTS output audio format
+type AudioSpeechResponseFormat string
+
+const (
+	AudioSpeachResponseMp3  AudioSpeechResponseFormat = "mp3"
+	AudioSpeachResponseOpus AudioSpeechResponseFormat = "opus"
+	AudioSpeachResponseAac  AudioSpeechResponseFormat = "aac"
+	AudioSpeachResponseFlac AudioSpeechResponseFormat = "flac"
+)
+
+// type AudioSpeechOutputType string
+
+// const (
+// 	AudioSpeechChan AudioSpeechOutputType = "channel"
+// 	AudioSpeechFile AudioSpeechOutputType = "file"
+// )
+
+type SpeechRequest struct {
+	Model          AudioSpeechModel          `json:"model"`
+	Prompt          string                    `json:"input"`
+	Voice          AudioSpeechVoice          `json:"voice"`
+	ResponseFormat AudioSpeechResponseFormat `json:"response_format"`
+	Speed          float32                   `json:"speed"`
+}
+
+type speechRequestOption func (opts *SpeechRequest)
+
+func WithSpeed(speed float32) speechRequestOption {
+	return func(opts *SpeechRequest) {
+		opts.Speed = speed
+	}
+}
+
+func WithResponseFormat(format AudioSpeechResponseFormat) speechRequestOption {
+	return func(opts *SpeechRequest) {
+		opts.ResponseFormat = format
+	}
+}
+
+func NewSpeechRequest(text string, model AudioSpeechModel, voice AudioSpeechVoice, opts ...speechRequestOption) SpeechRequest {
+	request := SpeechRequest{
+		Prompt: text,
+		Model: model,
+		Voice: voice,
+		Speed: 1.0,
+		ResponseFormat: AudioSpeachResponseMp3,
+	}
+	for _, setter := range opts {
+		setter(&request)
+	}
+	return request
+}
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
 const (
@@ -78,6 +152,27 @@ func (r *audioTextResponse) ToAudioResponse() AudioResponse {
 		Text:       r.Text,
 		httpHeader: r.httpHeader,
 	}
+}
+
+// CreateSpeech - API call to create Text To Speach request. Returns speech audio stream with requestd format.
+func (c *Client) CreateSpeechRaw(
+	ctx context.Context,
+	request SpeechRequest,
+) (response io.ReadCloser, err error) {
+	if ok, err := validateSpeed(request.Speed); !ok {
+		return nil, err
+	}
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL("audio/speech"),
+		withContentType("application/json"),
+		withBody(request),
+	)
+	if err != nil {
+		return nil, err
+	}
+	return c.sendRequestRaw(req)
 }
 
 // CreateTranscription — API call to create a transcription. Returns transcribed text.
@@ -205,4 +300,11 @@ func createFileField(request AudioRequest, b utils.FormBuilder) error {
 	}
 
 	return nil
+}
+
+func validateSpeed(speed float32) (ok bool, err error) {
+	if speed < 0.25 || speed > 4.0 {
+		return false, errors.New("speed should be from 0.25f up to 4.0f")
+	}
+	return true, nil
 }

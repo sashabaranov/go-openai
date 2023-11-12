@@ -8,7 +8,7 @@ import (
 )
 
 const (
-	messagesSuffix = "/messages"
+	messagesSuffix = "messages"
 )
 
 type Message struct {
@@ -38,8 +38,8 @@ type MessageContent struct {
 	ImageFile *ImageFile   `json:"image_file,omitempty"`
 }
 type MessageText struct {
-	Value       string        `json:"value"`
-	Annotations []interface{} `json:"annotations"`
+	Value       string `json:"value"`
+	Annotations []any  `json:"annotations"`
 }
 
 type ImageFile struct {
@@ -70,7 +70,7 @@ type MessageFilesList struct {
 
 // CreateMessage creates a new message.
 func (c *Client) CreateMessage(ctx context.Context, threadID string, request MessageRequest) (msg Message, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s", threadID, messagesSuffix)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s", threadID, messagesSuffix)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
@@ -105,7 +105,7 @@ func (c *Client) ListMessage(ctx context.Context, threadID string,
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	urlSuffix := fmt.Sprintf("/threads/%s%s%s", threadID, messagesSuffix, encodedValues)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s%s", threadID, messagesSuffix, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withBetaAssistantV1())
 	if err != nil {
 		return
@@ -120,7 +120,7 @@ func (c *Client) RetrieveMessage(
 	ctx context.Context,
 	threadID, messageID string,
 ) (msg Message, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s/%s", threadID, messagesSuffix, messageID)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s/%s", threadID, messagesSuffix, messageID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withBetaAssistantV1())
 	if err != nil {
 		return
@@ -136,7 +136,7 @@ func (c *Client) ModifyMessage(
 	threadID, messageID string,
 	metadata map[string]any,
 ) (msg Message, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s/%s", threadID, messagesSuffix, messageID)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s/%s", threadID, messagesSuffix, messageID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBody(metadata), withBetaAssistantV1())
 	if err != nil {
@@ -152,7 +152,7 @@ func (c *Client) RetrieveMessageFile(
 	ctx context.Context,
 	threadID, messageID, fileID string,
 ) (file MessageFile, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s/%s/files/%s", threadID, messagesSuffix, messageID, fileID)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s/%s/files/%s", threadID, messagesSuffix, messageID, fileID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withBetaAssistantV1())
 	if err != nil {
 		return
@@ -167,7 +167,7 @@ func (c *Client) ListMessageFiles(
 	ctx context.Context,
 	threadID, messageID string,
 ) (files MessageFilesList, err error) {
-	urlSuffix := fmt.Sprintf("/threads/%s%s/%s/files", threadID, messagesSuffix, messageID)
+	urlSuffix := fmt.Sprintf("/threads/%s/%s/%s/files", threadID, messagesSuffix, messageID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withBetaAssistantV1())
 	if err != nil {
 		return

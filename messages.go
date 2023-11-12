@@ -19,8 +19,8 @@ type Message struct {
 	Role        string           `json:"role"`
 	Content     []MessageContent `json:"content"`
 	FileIds     []interface{}    `json:"file_ids"`
-	AssistantID string           `json:"assistant_id"`
-	RunID       string           `json:"run_id"`
+	AssistantID *string           `json:"assistant_id,omit_empty"`
+	RunID       *string           `json:"run_id,omit_empty"`
 	Metadata    map[string]any   `json:"metadata"`
 
 	httpHeader

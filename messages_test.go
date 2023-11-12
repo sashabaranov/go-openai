@@ -11,6 +11,8 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+var emptyStr = ""
+
 // TestMessages Tests the messages endpoint of the API using the mocked server.
 func TestMessages(t *testing.T) {
 	threadID := "thread_abc123"
@@ -76,14 +78,14 @@ func TestMessages(t *testing.T) {
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
-							Text: openai.MessageText{
+							Text: &openai.MessageText{
 								Value:       "How does AI work?",
 								Annotations: nil,
 							},
 						}},
 						FileIds:     nil,
-						AssistantID: "",
-						RunID:       "",
+						AssistantID: &emptyStr,
+						RunID:       &emptyStr,
 						Metadata:    metadata,
 					})
 				fmt.Fprintln(w, string(resBytes))
@@ -97,14 +99,14 @@ func TestMessages(t *testing.T) {
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
-							Text: openai.MessageText{
+							Text: &openai.MessageText{
 								Value:       "How does AI work?",
 								Annotations: nil,
 							},
 						}},
 						FileIds:     nil,
-						AssistantID: "",
-						RunID:       "",
+						AssistantID: &emptyStr,
+						RunID:       &emptyStr,
 						Metadata:    nil,
 					})
 				fmt.Fprintln(w, string(resBytes))
@@ -127,14 +129,14 @@ func TestMessages(t *testing.T) {
 					Role:      "user",
 					Content: []openai.MessageContent{{
 						Type: "text",
-						Text: openai.MessageText{
+						Text: &openai.MessageText{
 							Value:       "How does AI work?",
 							Annotations: nil,
 						},
 					}},
 					FileIds:     nil,
-					AssistantID: "",
-					RunID:       "",
+					AssistantID: &emptyStr,
+					RunID:       &emptyStr,
 					Metadata:    nil,
 				})
 				fmt.Fprintln(w, string(resBytes))
@@ -148,14 +150,14 @@ func TestMessages(t *testing.T) {
 						Role:      "user",
 						Content: []openai.MessageContent{{
 							Type: "text",
-							Text: openai.MessageText{
+							Text: &openai.MessageText{
 								Value:       "How does AI work?",
 								Annotations: nil,
 							},
 						}},
 						FileIds:     nil,
-						AssistantID: "",
-						RunID:       "",
+						AssistantID: &emptyStr,
+						RunID:       &emptyStr,
 						Metadata:    nil,
 					}}})
 				fmt.Fprintln(w, string(resBytes))

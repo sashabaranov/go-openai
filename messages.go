@@ -18,9 +18,9 @@ type Message struct {
 	ThreadID    string           `json:"thread_id"`
 	Role        string           `json:"role"`
 	Content     []MessageContent `json:"content"`
-	FileIds     []string    `json:"file_ids"`
-	AssistantID *string           `json:"assistant_id,omit_empty"`
-	RunID       *string           `json:"run_id,omit_empty"`
+	FileIds     []string         `json:"file_ids"`
+	AssistantID *string          `json:"assistant_id,omitempty"`
+	RunID       *string          `json:"run_id,omitempty"`
 	Metadata    map[string]any   `json:"metadata"`
 
 	httpHeader
@@ -33,12 +33,17 @@ type MessagesList struct {
 }
 
 type MessageContent struct {
-	Type string      `json:"type"`
-	Text MessageText `json:"text"`
+	Type      string       `json:"type"`
+	Text      *MessageText `json:"text,omitempty"`
+	ImageFile *ImageFile   `json:"image_file,omitempty"`
 }
 type MessageText struct {
 	Value       string        `json:"value"`
 	Annotations []interface{} `json:"annotations"`
+}
+
+type ImageFile struct {
+	FileID string `json:"file_id"`
 }
 
 type MessageRequest struct {

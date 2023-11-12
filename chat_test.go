@@ -144,7 +144,7 @@ func TestChatCompletionsWithRateLimitHeaders(t *testing.T) {
 	}
 	resetRequestsTime := headers.ResetRequests.Time()
 	if resetRequestsTime.Before(time.Now()) {
-		t.Errorf("unexpected reset requetsts: %v", resetRequestsTime)
+		t.Errorf("unexpected reset requests: %v", resetRequestsTime)
 	}
 
 	bs1, _ := json.Marshal(headers)

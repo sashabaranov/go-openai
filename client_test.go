@@ -318,7 +318,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		}},
 		{"ListMessageFiles", func() (any, error) {
 			return client.ListMessageFiles(ctx, "", "")
-    }},
+		}},
 		{"CreateThread", func() (any, error) {
 			return client.CreateThread(ctx, ThreadRequest{})
 		}},

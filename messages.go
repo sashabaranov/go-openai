@@ -18,7 +18,7 @@ type Message struct {
 	ThreadID    string           `json:"thread_id"`
 	Role        string           `json:"role"`
 	Content     []MessageContent `json:"content"`
-	FileIds     []interface{}    `json:"file_ids"`
+	FileIds     []string    `json:"file_ids"`
 	AssistantID *string           `json:"assistant_id,omit_empty"`
 	RunID       *string           `json:"run_id,omit_empty"`
 	Metadata    map[string]any   `json:"metadata"`

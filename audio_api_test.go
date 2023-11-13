@@ -112,6 +112,80 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 	}
 }
 
+func TestAudioSpeechWithIncorrectParam(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	type args struct {
+		request openai.SpeechRequest
+		handler func(w http.ResponseWriter, r *http.Request)
+	}
+	tests := []struct {
+		name string
+		wantErr bool
+		args args
+		wantBytes []byte
+	}{
+		{
+			name: "NewSpeechRequest should return error on 500 status code",
+			args: args{
+				request: openai.NewSpeechRequest("test", openai.AudioSpeachModelTTS1, openai.AudioVoiceFable),
+				handler: func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(500)
+					w.Write([]byte(`Internal server error`))
+				},
+			},
+			wantErr: true,
+			wantBytes: nil,
+		},
+		{
+			name: "NewSpeechRequest should return error on 404 status code",
+			args: args{
+				request: openai.NewSpeechRequest("test", openai.AudioSpeachModelTTS1, openai.AudioVoiceFable),
+				handler: func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(404)
+					w.Write([]byte(`{ "error": { "message": "The model '1' does not exist", "type": "invalid_request_error", "param": null, "code": "model_not_found" }}`))
+				},
+			},
+			wantErr: true,
+			wantBytes: nil,
+		},
+		{
+			name: "NewSpeechRequest should return proper bytes",
+			args: args{
+				request: openai.NewSpeechRequest("test", openai.AudioSpeachModelTTS1, openai.AudioVoiceFable),
+				handler: func(w http.ResponseWriter, r *http.Request) {
+					w.WriteHeader(200)
+					w.Write([]byte{
+						0x01, 0x02, 0x03,
+					})
+				},
+			},
+			wantErr: false,
+			wantBytes: []byte{
+				0x01, 0x02, 0x03,
+			},
+		},
+	}
+	ctx := context.Background()
+	for _, tt := range tests {
+		server.RegisterHandler("/v1/audio/speech", tt.args.handler)
+		t.Run(tt.name, func(t *testing.T) {
+			resp, err := client.CreateSpeechRaw(ctx, tt.args.request) 
+			if (err != nil) != tt.wantErr {
+				t.Errorf("CreateSpeechRaw error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				if ok, err := bytesEqual(resp, tt.wantBytes); ok && err != nil {
+					t.Errorf("CreateSpeechRaw return incorrect bytes")
+					return
+				}
+			}
+		})
+	}
+
+}
+
 // handleAudioEndpoint Handles the completion endpoint by the test server.
 func handleAudioEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
@@ -159,4 +233,21 @@ func handleAudioEndpoint(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "failed to write body", http.StatusInternalServerError)
 		return
 	}
+}
+
+func bytesEqual(reader io.ReadCloser, bytes []byte) (ok bool, err error) {
+	reads := make([]byte, 256)
+	n, err := reader.Read(reads)
+	if err != nil && err != io.EOF {
+		return false, err
+	}
+	if len(bytes) != n {
+		return false, err
+	}
+	for i := 0; i < n; i++ {
+		if reads[i] != bytes[i] {
+			return false, nil
+		}
+	}
+	return true, nil
 }

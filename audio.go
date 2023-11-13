@@ -12,7 +12,7 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
-// Voice param for TTS API endpoint, represents one of supported voices
+// Voice param for TTS API endpoint, represents one of supported voices.
 type AudioSpeechVoice string
 
 const (
@@ -24,7 +24,7 @@ const (
 	AudioVoiceShimmer AudioSpeechVoice = "shimmer"
 )
 
-// TTS model 
+// TTS model.
 type AudioSpeechModel string
 
 const (
@@ -32,7 +32,7 @@ const (
 	AudioSpeachModelTTS1HD AudioSpeechModel = "tts-1-hd"
 )
 
-// TTS output audio format
+// TTS output audio format.
 type AudioSpeechResponseFormat string
 
 const (
@@ -43,7 +43,7 @@ const (
 )
 
 // SpeechRequest represents API request for TTS endpoint
-// It is highly recommended to use NewSpeechRequest to create a request
+// It is highly recommended to use NewSpeechRequest to create a request.
 type SpeechRequest struct {
 	Model          AudioSpeechModel          `json:"model"`
 	Prompt          string                    `json:"input"`
@@ -54,14 +54,14 @@ type SpeechRequest struct {
 
 type speechRequestOption func (opts *SpeechRequest)
 
-// WithSpeed allows to set up speech speed option. Should be in between 0.25 and 4.0 with default value of 1.0
+// WithSpeed allows to set up speech speed option. Should be in between 0.25 and 4.0 with default value of 1.0.
 func WithSpeed(speed float32) speechRequestOption {
 	return func(opts *SpeechRequest) {
 		opts.Speed = speed
 	}
 }
 
-// WithResponseFormat allows to set up audio format, by default MP3 is used
+// WithResponseFormat allows to set up audio format, by default MP3 is used.
 func WithResponseFormat(format AudioSpeechResponseFormat) speechRequestOption {
 	return func(opts *SpeechRequest) {
 		opts.ResponseFormat = format
@@ -71,7 +71,7 @@ func WithResponseFormat(format AudioSpeechResponseFormat) speechRequestOption {
 // NewSpeechRequest creates SpeechRequest with predefined parameters
 // text - text to convert to speach
 // model - TTS model to use, only AudioSpeachModelTTS1 and AudioSpeachModelTTS1HD are currently supported by API
-// voice - TTS voice to be used, one of AudioVoiceAlloy, AudioVoiceEcho, AudioVoiceFable, AudioVoiceOnyx, AudioVoiceNova or AudioVoiceShimmer AudioSpeechVoice currently suported by API
+// voice - TTS voice to be used, one of AudioVoiceAlloy, AudioVoiceEcho, AudioVoiceFable, AudioVoiceOnyx, AudioVoiceNova or AudioVoiceShimmer AudioSpeechVoice currently suported by API.
 func NewSpeechRequest(text string, model AudioSpeechModel, voice AudioSpeechVoice, opts ...speechRequestOption) SpeechRequest {
 	request := SpeechRequest{
 		Prompt: text,

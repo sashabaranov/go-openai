@@ -301,6 +301,24 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"DeleteAssistantFile", func() (any, error) {
 			return nil, client.DeleteAssistantFile(ctx, "", "")
 		}},
+		{"CreateMessage", func() (any, error) {
+			return client.CreateMessage(ctx, "", MessageRequest{})
+		}},
+		{"ListMessage", func() (any, error) {
+			return client.ListMessage(ctx, "", nil, nil, nil, nil)
+		}},
+		{"RetrieveMessage", func() (any, error) {
+			return client.RetrieveMessage(ctx, "", "")
+		}},
+		{"ModifyMessage", func() (any, error) {
+			return client.ModifyMessage(ctx, "", "", nil)
+		}},
+		{"RetrieveMessageFile", func() (any, error) {
+			return client.RetrieveMessageFile(ctx, "", "", "")
+		}},
+		{"ListMessageFiles", func() (any, error) {
+			return client.ListMessageFiles(ctx, "", "")
+		}},
 		{"CreateThread", func() (any, error) {
 			return client.CreateThread(ctx, ThreadRequest{})
 		}},

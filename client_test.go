@@ -341,7 +341,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 			return client.ListRunSteps(ctx, "", "", Pagination{})
 		}},
 		{"CreateSpeech", func() (any, error) {
-			return client.CreateSpeech(ctx, CreateSpeechRequest{})
+			return client.CreateSpeech(ctx, CreateSpeechRequest{Model: TTSModel1, Voice: VoiceAlloy})
 		}},
 	}
 

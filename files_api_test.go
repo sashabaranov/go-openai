@@ -16,6 +16,19 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+func TestFileBytesUpload(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	req := openai.FileBytesRequest{
+		Name:    "foo",
+		Bytes:   []byte("foo"),
+		Purpose: openai.PurposeFineTune,
+	}
+	_, err := client.CreateFileBytes(context.Background(), req)
+	checks.NoError(t, err, "CreateFile error")
+}
+
 func TestFileUpload(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

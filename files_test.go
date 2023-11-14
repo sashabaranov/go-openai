@@ -48,7 +48,7 @@ func TestFileBytesUploadWithFailingFormBuilder(t *testing.T) {
 	mockBuilder.mockWriteField = func(string, string) error {
 		return nil
 	}
-	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
+	mockBuilder.mockCreateFormFileReader = func(string, io.Reader, string) error {
 		return nil
 	}
 	mockBuilder.mockClose = func() error {
@@ -102,6 +102,9 @@ func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 		return mockError
 	}
 	_, err = client.CreateFile(ctx, req)
+	if err == nil {
+		t.Fatal("CreateFile should return error if form builder fails")
+	}
 	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
 }
 

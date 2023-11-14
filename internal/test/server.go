@@ -16,11 +16,15 @@ func GetTestToken() string {
 
 type ServerTest struct {
 	handlers map[string]handler
+	authKey  string
 }
 type handler func(w http.ResponseWriter, r *http.Request)
 
-func NewTestServer() *ServerTest {
-	return &ServerTest{handlers: make(map[string]handler)}
+func NewTestServer(authKeyIn string) *ServerTest {
+	return &ServerTest{
+		handlers: make(map[string]handler),
+		authKey:  authKeyIn,
+	}
 }
 
 func (ts *ServerTest) RegisterHandler(path string, handler handler) {
@@ -36,7 +40,7 @@ func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 		log.Printf("received a %s request at path %q\n", r.Method, r.URL.Path)
 
 		// check auth
-		if r.Header.Get("Authorization") != "Bearer "+GetTestToken() && r.Header.Get("api-key") != GetTestToken() {
+		if r.Header.Get("Authorization") != "Bearer "+ts.authKey && r.Header.Get("api-key") != ts.authKey {
 			w.WriteHeader(http.StatusUnauthorized)
 			return
 		}

@@ -6,18 +6,23 @@ import (
 )
 
 func setupOpenAITestServer() (client *openai.Client, server *test.ServerTest, teardown func()) {
-	server = test.NewTestServer()
+	return setupOpenAITestServerWithAuth(test.GetTestToken())
+}
+
+func setupOpenAITestServerWithAuth(authKey string) (client *openai.Client, server *test.ServerTest, teardown func()) {
+	server = test.NewTestServer(authKey)
 	ts := server.OpenAITestServer()
 	ts.Start()
 	teardown = ts.Close
-	config := openai.DefaultConfig(test.GetTestToken())
+	config := openai.DefaultConfig(authKey)
 	config.BaseURL = ts.URL + "/v1"
+	config.DashboardBaseURL = ts.URL + "/dashboard"
 	client = openai.NewClientWithConfig(config)
 	return
 }
 
 func setupAzureTestServer() (client *openai.Client, server *test.ServerTest, teardown func()) {
-	server = test.NewTestServer()
+	server = test.NewTestServer(test.GetTestToken())
 	ts := server.OpenAITestServer()
 	ts.Start()
 	teardown = ts.Close

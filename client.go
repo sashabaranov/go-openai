@@ -284,6 +284,13 @@ func (c *Client) baseURLWithAzureDeployment(baseURL, suffix, model string) (newB
 	return baseURL
 }
 
+// fullDashboardURL returns full URL for a dashboard request.
+func (c *Client) fullDashboardURL(suffix string, _ ...any) string {
+	// @todo this needs to be updated for c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD
+
+	return fmt.Sprintf("%s%s", c.config.DashboardBaseURL, suffix)
+}
+
 func (c *Client) handleErrorResp(resp *http.Response) error {
 	var errRes ErrorResponse
 	err := json.NewDecoder(resp.Body).Decode(&errRes)

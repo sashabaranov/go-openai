@@ -142,6 +142,8 @@ When asked a question, write and run Python code to answer the question.`
 				fmt.Fprintln(w, string(resBytes))
 			} else if r.Method == http.MethodGet {
 				resBytes, _ := json.Marshal(openai.AssistantsList{
+					LastID:  &assistantID,
+					FirstID: &assistantID,
 					Assistants: []openai.Assistant{
 						{
 							ID:           assistantID,

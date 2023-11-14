@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"net/http"
 )
@@ -51,9 +52,32 @@ type PromptAnnotation struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
 }
 
+const (
+	ImageURLDetailHigh = "high"
+	ImageURLDetailLow  = "low"
+	ImageURLDetailAuto = "auto"
+)
+
+type ChatMessageImageURL struct {
+	URL    string `json:"url,omitempty"`
+	Detail string `json:"detail,omitempty"`
+}
+
+const (
+	ChatMessagePartTypeText     string = "text"
+	ChatMessagePartTypeImageURL string = "image_url"
+)
+
+type ChatMessagePart struct {
+	Type     string               `json:"type,omitempty"`
+	Text     string               `json:"text,omitempty"`
+	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+}
+
 type ChatCompletionMessage struct {
-	Role    string `json:"role"`
-	Content string `json:"content"`
+	Role         string `json:"role"`
+	Content      string `json:"content"`
+	MultiContent []ChatMessagePart
 
 	// This property isn't in the official documentation, but it's in
 	// the documentation for the official library for python:
@@ -68,6 +92,64 @@ type ChatCompletionMessage struct {
 
 	// For Role=tool prompts this should be set to the ID given in the assistant's prior request to call a tool.
 	ToolCallID string `json:"tool_call_id,omitempty"`
+}
+
+func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
+	if m.Content != "" && m.MultiContent != nil {
+		return nil, errors.New("can't use both Content and MultiContent files simultaneously")
+	}
+	if len(m.MultiContent) > 0 {
+		msg := struct {
+			Role         string            `json:"role"`
+			Content      string            `json:"-"`
+			MultiContent []ChatMessagePart `json:"content,omitempty"`
+			Name         string            `json:"name,omitempty"`
+			FunctionCall *FunctionCall     `json:"function_call,omitempty"`
+			ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
+			ToolCallID   string            `json:"tool_call_id,omitempty"`
+		}(m)
+		return json.Marshal(msg)
+	}
+	msg := struct {
+		Role         string            `json:"role"`
+		Content      string            `json:"content"`
+		MultiContent []ChatMessagePart `json:"-"`
+		Name         string            `json:"name,omitempty"`
+		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
+		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
+		ToolCallID   string            `json:"tool_call_id,omitempty"`
+	}(m)
+	return json.Marshal(msg)
+}
+
+func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
+	multiMsg := struct {
+		Role         string `json:"role"`
+		Content      string
+		MultiContent []ChatMessagePart `json:"content"`
+		Name         string            `json:"name,omitempty"`
+		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
+		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
+		ToolCallID   string            `json:"tool_call_id,omitempty"`
+	}{}
+	if err := json.Unmarshal(bs, &multiMsg); err == nil {
+		*m = ChatCompletionMessage(multiMsg)
+		return nil
+	}
+	msg := struct {
+		Role         string `json:"role"`
+		Content      string `json:"content"`
+		MultiContent []ChatMessagePart
+		Name         string        `json:"name,omitempty"`
+		FunctionCall *FunctionCall `json:"function_call,omitempty"`
+		ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
+		ToolCallID   string        `json:"tool_call_id,omitempty"`
+	}{}
+	if err := json.Unmarshal(bs, &msg); err != nil {
+		return err
+	}
+	*m = ChatCompletionMessage(msg)
+	return nil
 }
 
 type ToolCall struct {

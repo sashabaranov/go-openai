@@ -37,6 +37,18 @@ type ClientConfig struct {
 	EmptyMessagesLimit uint
 }
 
+func DefaultBaseUrlConfig(BaseURL, authToken string) ClientConfig {
+	return ClientConfig{
+		authToken: authToken,
+		BaseURL:   BaseURL,
+		APIType:   APITypeOpenAI,
+		OrgID:     "",
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}
 func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
 		authToken: authToken,

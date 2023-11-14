@@ -44,6 +44,12 @@ func NewClient(authToken string) *Client {
 	return NewClientWithConfig(config)
 }
 
+// NewClient creates new OpenAI API client.
+func NewClientWithBaseURL(BaseURL, authToken string) *Client {
+	config := DefaultBaseUrlConfig(BaseURL, authToken)
+	return NewClientWithConfig(config)
+}
+
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{

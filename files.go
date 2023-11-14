@@ -15,6 +15,14 @@ type FileRequest struct {
 	Purpose  string `json:"purpose"`
 }
 
+// File purposes defined by the OpenAI API.
+const (
+	FilePurposeFineTune         = "fine-tune"
+	FilePurposeFineTuneResults  = "fine-tune-results"
+	FilePurposeAssistants       = "assistants"
+	FilePurposeAssistantsOutput = "assistants_output"
+)
+
 // File struct represents an OpenAPI file.
 type File struct {
 	Bytes         int    `json:"bytes"`

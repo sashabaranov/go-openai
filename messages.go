@@ -29,6 +29,11 @@ type Message struct {
 type MessagesList struct {
 	Messages []Message `json:"data"`
 
+	Object  string  `json:"object"`
+	FirstID *string `json:"first_id"`
+	LastID  *string `json:"last_id"`
+	HasMore bool    `json:"has_more"`
+
 	httpHeader
 }
 

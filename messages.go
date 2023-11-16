@@ -129,7 +129,15 @@ func (c *Client) RetrieveMessage(
 	err = c.sendRequest(req, &msg)
 	return
 }
-
+// To facilitate the update of the message, a method is provided to convert the message into a MessageRequest.
+func (c *Client) Message2MessageRequest(msg Message) MessageRequest {
+	return MessageRequest{
+		Role:     msg.Role,
+		Content:  msg.Content[0].Text.Value,
+		FileIds:  msg.FileIds,
+		Metadata: msg.Metadata,
+	}
+}
 // ModifyMessage modifies a message.
 func (c *Client) ModifyMessage(
 	ctx context.Context,

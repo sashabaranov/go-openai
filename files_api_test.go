@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"testing"
 	"time"
@@ -20,13 +21,72 @@ func TestFileUpload(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files", handleCreateFile)
+	{
+		req := openai.FileRequest{
+			FileName: "test.go",
+			FilePath: "client.go",
+			Purpose:  openai.PurposeAssistants,
+		}
+		f, err := client.CreateFile(context.Background(), req)
+		checks.NoError(t, err, "CreateFile error")
+		if n := fileSize(req.FilePath); n != f.Bytes {
+			t.Errorf("file size: want %d, got %d", n, f.Bytes)
+		}
+		if f.FileName != req.FileName {
+			t.Errorf("file name: want %q, got %q", req.FileName, f.FileName)
+		}
+	}
+	{
+		fname := "client_test.go"
+		r, err := os.Open(fname)
+		if err != nil {
+			abs, _ := filepath.Abs(fname)
+			panic(abs)
+		}
+		req := openai.FileRequest{
+			FileName: "test.go",
+			File:     r,
+			FilePath: "client.go", // red herring
+			Purpose:  openai.PurposeAssistants,
+		}
+		f, err := client.CreateFile(context.Background(), req)
+		r.Close()
+		checks.NoError(t, err, "CreateFile error")
+		if n := fileSize(fname); n != f.Bytes {
+			t.Errorf("file size: want %d, got %d", n, f.Bytes)
+		}
+		if f.FileName != req.FileName {
+			t.Errorf("file name: want %q, got %q", req.FileName, f.FileName)
+		}
+	}
+}
+
+func TestFileUploadWithBadPurpose(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
 	req := openai.FileRequest{
 		FileName: "test.go",
 		FilePath: "client.go",
-		Purpose:  "fine-tune",
 	}
 	_, err := client.CreateFile(context.Background(), req)
+	checks.HasError(t, err, "CreateFile with no purpose")
+
+	req.Purpose = "fine-tune"
+	_, err = client.CreateFile(context.Background(), req)
+	checks.HasError(t, err, "CreateFile with bad file format")
+
+	req.FileName = "test.jsonl"
+	_, err = client.CreateFile(context.Background(), req)
 	checks.NoError(t, err, "CreateFile error")
+}
+
+func fileSize(fpath string) int {
+	info, err := os.Stat(fpath)
+	if err != nil {
+		return -1
+	}
+	return int(info.Size())
 }
 
 // handleCreateFile Handles the images endpoint by the test server.

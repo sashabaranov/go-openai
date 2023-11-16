@@ -7,12 +7,22 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
+	"strings"
+)
+
+type Purpose string
+
+const (
+	PurposeAssistants Purpose = "assistants"
+	PurposeFineTune   Purpose = "fine-tune"
 )
 
 type FileRequest struct {
-	FileName string `json:"file"`
-	FilePath string `json:"-"`
-	Purpose  string `json:"purpose"`
+	Purpose  Purpose   `json:"purpose"`
+	FilePath string    `json:"-"`
+	FileName string    `json:"file"` // must be set if FilePath is not set
+	File     io.Reader `json:"-"`    // also
 }
 
 // File struct represents an OpenAPI file.
@@ -36,38 +46,62 @@ type FilesList struct {
 	httpHeader
 }
 
-// CreateFile uploads a jsonl file to GPT3
-// FilePath must be a local file path.
+// CreateFile uploads a file that can be used across various endpoints.
+//
+// If the request does not set io.Reader, the client will try to open and read
+// the file from local filesystem using FilePath. The size of all the files
+// uploaded by one organization can be up to 100 GB. The size of individual
+// files can be a maximum of 512 MB.
+//
+// The Fine-tuning API only supports .jsonl files.
+
 func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File, err error) {
+	fname := request.FileName
+	if fname == "" {
+		fname = path.Base(request.FilePath)
+	}
+	switch request.Purpose {
+	case "":
+		err = fmt.Errorf("openai: file with no purpose")
+		return
+	case PurposeFineTune:
+		if strings.HasSuffix(fname, ".jsonl") {
+			break
+		}
+		err = fmt.Errorf("openai: fine-tuning only supports .jsonl files")
+		return
+	}
 	var b bytes.Buffer
 	builder := c.createFormBuilder(&b)
-
-	err = builder.WriteField("purpose", request.Purpose)
+	err = builder.WriteField("purpose", string(request.Purpose))
 	if err != nil {
 		return
 	}
-
-	fileData, err := os.Open(request.FilePath)
+	switch r, fpath := request.File, request.FilePath; {
+	case r != nil:
+		err = builder.CreateFormFileReader("file", r, fname)
+	case fpath != "":
+		f, ret := os.Open(fpath)
+		if ret != nil {
+			return file, ret
+		}
+		defer f.Close()
+		err = builder.CreateFormFileReader("file", f, fname)
+	default:
+		err = fmt.Errorf("openai: no reader or file path")
+	}
 	if err != nil {
 		return
 	}
-
-	err = builder.CreateFormFile("file", fileData)
-	if err != nil {
+	if err = builder.Close(); err != nil {
 		return
 	}
-
-	err = builder.Close()
-	if err != nil {
-		return
+	req, ret := c.newRequest(ctx, http.MethodPost, c.fullURL("/files"),
+		withBody(&b),
+		withContentType(builder.FormDataContentType()))
+	if ret != nil {
+		return file, ret
 	}
-
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/files"),
-		withBody(&b), withContentType(builder.FormDataContentType()))
-	if err != nil {
-		return
-	}
-
 	err = c.sendRequest(req, &file)
 	return
 }

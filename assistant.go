@@ -114,7 +114,16 @@ func (c *Client) RetrieveAssistant(
 	err = c.sendRequest(req, &response)
 	return
 }
-
+//Assistant2AssistantRequest 
+func (c *Client) Assistant2AssistantRequest(assistant Assistant) AssistantRequest {
+	return AssistantRequest{
+		Model:        assistant.Model,
+		Name:         assistant.Name,
+		Description:  assistant.Description,
+		Instructions: assistant.Instructions,
+		Tools:        assistant.Tools,
+	}
+}
 // ModifyAssistant modifies an assistant.
 func (c *Client) ModifyAssistant(
 	ctx context.Context,

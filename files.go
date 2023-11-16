@@ -15,13 +15,25 @@ type FileRequest struct {
 	Purpose  string `json:"purpose"`
 }
 
-// File purposes defined by the OpenAI API.
+// PurposeType represents the purpose of the file when uploading.
+type PurposeType string
+
 const (
-	FilePurposeFineTune         = "fine-tune"
-	FilePurposeFineTuneResults  = "fine-tune-results"
-	FilePurposeAssistants       = "assistants"
-	FilePurposeAssistantsOutput = "assistants_output"
+	PurposeFineTune         PurposeType = "fine-tune"
+  PurposeFineTuneResults  PurposeType  = "fine-tune-results"
+	PurposeAssistants       PurposeType = "assistants"
+  PurposeAssistantsOutput PurposeType = "assistants_output"
 )
+
+// FileBytesRequest represents a file upload request.
+type FileBytesRequest struct {
+	// the name of the uploaded file in OpenAI
+	Name string
+	// the bytes of the file
+	Bytes []byte
+	// the purpose of the file
+	Purpose PurposeType
+}
 
 // File struct represents an OpenAPI file.
 type File struct {
@@ -42,6 +54,37 @@ type FilesList struct {
 	Files []File `json:"data"`
 
 	httpHeader
+}
+
+// CreateFileBytes uploads bytes directly to OpenAI without requiring a local file.
+func (c *Client) CreateFileBytes(ctx context.Context, request FileBytesRequest) (file File, err error) {
+	var b bytes.Buffer
+	reader := bytes.NewReader(request.Bytes)
+	builder := c.createFormBuilder(&b)
+
+	err = builder.WriteField("purpose", string(request.Purpose))
+	if err != nil {
+		return
+	}
+
+	err = builder.CreateFormFileReader("file", reader, request.Name)
+	if err != nil {
+		return
+	}
+
+	err = builder.Close()
+	if err != nil {
+		return
+	}
+
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/files"),
+		withBody(&b), withContentType(builder.FormDataContentType()))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &file)
+	return
 }
 
 // CreateFile uploads a jsonl file to GPT3

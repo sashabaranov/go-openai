@@ -71,7 +71,7 @@ type MessageFilesList struct {
 // CreateMessage creates a new message.
 func (c *Client) CreateMessage(ctx context.Context, threadID string, request MessageRequest) (msg Message, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/%s", threadID, messagesSuffix)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request), withBetaAssistantV1())
 	if err != nil {
 		return
 	}

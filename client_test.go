@@ -247,6 +247,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"CreateImage", func() (any, error) {
 			return client.CreateImage(ctx, ImageRequest{})
 		}},
+		{"CreateFileBytes", func() (any, error) {
+			return client.CreateFileBytes(ctx, FileBytesRequest{})
+		}},
 		{"DeleteFile", func() (any, error) {
 			return nil, client.DeleteFile(ctx, "")
 		}},

@@ -11,6 +11,53 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+func TestFileBytesUploadWithFailingFormBuilder(t *testing.T) {
+	config := DefaultConfig("")
+	config.BaseURL = ""
+	client := NewClientWithConfig(config)
+	mockBuilder := &mockFormBuilder{}
+	client.createFormBuilder = func(io.Writer) utils.FormBuilder {
+		return mockBuilder
+	}
+
+	ctx := context.Background()
+	req := FileBytesRequest{
+		Name:    "foo",
+		Bytes:   []byte("foo"),
+		Purpose: PurposeAssistants,
+	}
+
+	mockError := fmt.Errorf("mockWriteField error")
+	mockBuilder.mockWriteField = func(string, string) error {
+		return mockError
+	}
+	_, err := client.CreateFileBytes(ctx, req)
+	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
+
+	mockError = fmt.Errorf("mockCreateFormFile error")
+	mockBuilder.mockWriteField = func(string, string) error {
+		return nil
+	}
+	mockBuilder.mockCreateFormFileReader = func(string, io.Reader, string) error {
+		return mockError
+	}
+	_, err = client.CreateFileBytes(ctx, req)
+	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
+
+	mockError = fmt.Errorf("mockClose error")
+	mockBuilder.mockWriteField = func(string, string) error {
+		return nil
+	}
+	mockBuilder.mockCreateFormFileReader = func(string, io.Reader, string) error {
+		return nil
+	}
+	mockBuilder.mockClose = func() error {
+		return mockError
+	}
+	_, err = client.CreateFileBytes(ctx, req)
+	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
+}
+
 func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 	config := DefaultConfig("")
 	config.BaseURL = ""
@@ -55,6 +102,9 @@ func TestFileUploadWithFailingFormBuilder(t *testing.T) {
 		return mockError
 	}
 	_, err = client.CreateFile(ctx, req)
+	if err == nil {
+		t.Fatal("CreateFile should return error if form builder fails")
+	}
 	checks.ErrorIs(t, err, mockError, "CreateFile should return error if form builder fails")
 }
 

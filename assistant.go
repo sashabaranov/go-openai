@@ -22,6 +22,8 @@ type Assistant struct {
 	Model        string          `json:"model"`
 	Instructions *string         `json:"instructions,omitempty"`
 	Tools        []AssistantTool `json:"tools,omitempty"`
+	FileIDs      []string        `json:"file_ids,omitempty"`
+	Metadata     map[string]any  `json:"metadata,omitempty"`
 
 	httpHeader
 }
@@ -52,7 +54,9 @@ type AssistantRequest struct {
 // AssistantsList is a list of assistants.
 type AssistantsList struct {
 	Assistants []Assistant `json:"data"`
-
+	LastID     *string     `json:"last_id"`
+	FirstID    *string     `json:"first_id"`
+	HasMore    bool        `json:"has_more"`
 	httpHeader
 }
 

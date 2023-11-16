@@ -20,9 +20,9 @@ type PurposeType string
 
 const (
 	PurposeFineTune         PurposeType = "fine-tune"
-  PurposeFineTuneResults  PurposeType  = "fine-tune-results"
+	PurposeFineTuneResults  PurposeType = "fine-tune-results"
 	PurposeAssistants       PurposeType = "assistants"
-  PurposeAssistantsOutput PurposeType = "assistants_output"
+	PurposeAssistantsOutput PurposeType = "assistants_output"
 )
 
 // FileBytesRequest represents a file upload request.

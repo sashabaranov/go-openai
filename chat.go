@@ -15,7 +15,7 @@ const (
 	ChatMessageRoleTool      = "tool"
 )
 
-const chatCompletionsSuffix = ""
+const chatCompletionsSuffix = "/query"
 
 //const chatCompletionsSuffix = "/chat/completions"
 

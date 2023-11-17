@@ -306,7 +306,7 @@ func (c *Client) CreateEmbeddings(
 	conv EmbeddingRequestConverter,
 ) (res EmbeddingResponse, err error) {
 	baseReq := conv.Convert()
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/embeddings", baseReq.Model.String()), withBody(baseReq))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/querys", baseReq.Model.String()), withBody(baseReq))
 	if err != nil {
 		return
 	}

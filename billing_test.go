@@ -56,11 +56,11 @@ func TestBillingUsageSessKey(t *testing.T) {
 			resp.TotalUsage)
 	}
 	for idx, dc := range resp.DailyCosts {
-		if dc.Time.Compare(startDate) < 0 {
+		if dc.Time.Before(startDate) {
 			t.Errorf("expected daily cost%v date(%v) before start date %v", idx,
 				dc.Time, TestStartDate)
 		}
-		if dc.Time.Compare(endDate) > 0 {
+		if dc.Time.After(endDate) {
 			t.Errorf("expected daily cost%v date(%v) after end date %v", idx,
 				dc.Time, TestEndDate)
 		}

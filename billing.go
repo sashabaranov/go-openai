@@ -31,6 +31,10 @@ type BillingUsageResponse struct {
 	httpHeader
 }
 
+// @todo remove this and replace w/ time.DateOnly once github build
+// environment is upgraded to a more recent go toolchain.
+const DateOnly = "2006-01-02"
+
 // currently the OpenAI usage API is not publicly documented and will explictly
 // reject requests using an API key authorization. however, it can be utilized
 // logging into https://platform.openai.com/usage and retrieving your session
@@ -43,8 +47,8 @@ var (
 // GetBillingUsage — API call to Get billing usage details.
 func (c *Client) GetBillingUsage(ctx context.Context, startDate time.Time,
 	endDate time.Time) (response BillingUsageResponse, err error) {
-	startDateArg := fmt.Sprintf("start_date=%v", startDate.Format(time.DateOnly))
-	endDateArg := fmt.Sprintf("end_date=%v", endDate.Format(time.DateOnly))
+	startDateArg := fmt.Sprintf("start_date=%v", startDate.Format(DateOnly))
+	endDateArg := fmt.Sprintf("end_date=%v", endDate.Format(DateOnly))
 	queryParams := fmt.Sprintf("%v&%v", startDateArg, endDateArg)
 	urlSuffix := fmt.Sprintf("%v?%v", billingUsageSuffix, queryParams)
 

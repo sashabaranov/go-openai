@@ -28,9 +28,9 @@ func TestBillingUsageAPIKey(t *testing.T) {
 
 	ctx := context.Background()
 
-	endDate, err := time.Parse(time.DateOnly, TestEndDate)
+	endDate, err := time.Parse(openai.DateOnly, TestEndDate)
 	checks.NoError(t, err)
-	startDate, err := time.Parse(time.DateOnly, TestStartDate)
+	startDate, err := time.Parse(openai.DateOnly, TestStartDate)
 	checks.NoError(t, err)
 
 	_, err = client.GetBillingUsage(ctx, startDate, endDate)
@@ -43,9 +43,9 @@ func TestBillingUsageSessKey(t *testing.T) {
 	server.RegisterHandler("/dashboard/billing/usage", handleBillingEndpoint)
 
 	ctx := context.Background()
-	endDate, err := time.Parse(time.DateOnly, TestEndDate)
+	endDate, err := time.Parse(openai.DateOnly, TestEndDate)
 	checks.NoError(t, err)
-	startDate, err := time.Parse(time.DateOnly, TestStartDate)
+	startDate, err := time.Parse(openai.DateOnly, TestStartDate)
 	checks.NoError(t, err)
 
 	resp, err := client.GetBillingUsage(ctx, startDate, endDate)
@@ -82,7 +82,7 @@ func handleBillingEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	dailyCosts := make([]openai.DailyCostResponse, 0)
 
-	d, _ := time.Parse(time.DateOnly, TestStartDate)
+	d, _ := time.Parse(openai.DateOnly, TestStartDate)
 	d = d.Add(24 * time.Hour)
 	dailyCosts = append(dailyCosts, openai.DailyCostResponse{
 		TimestampRaw: float64(d.Unix()),

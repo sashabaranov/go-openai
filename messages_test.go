@@ -142,6 +142,7 @@ func TestMessages(t *testing.T) {
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(openai.MessagesList{
+					Object: "list",
 					Messages: []openai.Message{{
 						ID:        messageID,
 						Object:    "thread.message",
@@ -159,7 +160,11 @@ func TestMessages(t *testing.T) {
 						AssistantID: &emptyStr,
 						RunID:       &emptyStr,
 						Metadata:    nil,
-					}}})
+					}},
+					FirstID: &messageID,
+					LastID:  &messageID,
+					HasMore: false,
+				})
 				fmt.Fprintln(w, string(resBytes))
 			default:
 				t.Fatalf("unsupported messages http method: %s", r.Method)

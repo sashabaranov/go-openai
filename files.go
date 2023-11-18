@@ -19,8 +19,10 @@ type FileRequest struct {
 type PurposeType string
 
 const (
-	PurposeFineTune   PurposeType = "fine-tune"
-	PurposeAssistants PurposeType = "assistants"
+	PurposeFineTune         PurposeType = "fine-tune"
+	PurposeFineTuneResults  PurposeType = "fine-tune-results"
+	PurposeAssistants       PurposeType = "assistants"
+	PurposeAssistantsOutput PurposeType = "assistants_output"
 )
 
 // FileBytesRequest represents a file upload request.

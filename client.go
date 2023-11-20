@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
+	//"strings"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )

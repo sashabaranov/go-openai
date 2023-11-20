@@ -30,7 +30,8 @@ type ModifyThreadRequest struct {
 type ThreadMessageRole string
 
 const (
-	ThreadMessageRoleUser ThreadMessageRole = "user"
+	ThreadMessageRoleUser      ThreadMessageRole = "user"
+	ThreadMessageRoleAssistant ThreadMessageRole = "assistant"
 )
 
 type ThreadMessage struct {

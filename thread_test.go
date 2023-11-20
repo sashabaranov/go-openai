@@ -76,6 +76,10 @@ func TestThread(t *testing.T) {
 				Role:    openai.ThreadMessageRoleUser,
 				Content: "Hello, World!",
 			},
+			{
+				Role:    openai.ThreadMessageRoleAssistant,
+				Content: "Hey there.",
+			},
 		},
 	})
 	checks.NoError(t, err, "CreateThread error")

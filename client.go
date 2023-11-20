@@ -212,26 +212,26 @@ func decodeString(body io.Reader, output *string) error {
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
 	// /openai/deployments/{model}/chat/completions?api-version={api_version}
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
-		baseURL := c.config.BaseURL
-		baseURL = strings.TrimRight(baseURL, "/")
-		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
-		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		if strings.Contains(suffix, "/models") {
-			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
-		}
-		azureDeploymentName := "UNKNOWN"
-		if len(args) > 0 {
-			model, ok := args[0].(string)
-			if ok {
-				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
-			}
-		}
-		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			azureDeploymentName, suffix, c.config.APIVersion,
-		)
-	}
+	//if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+	//	baseURL := c.config.BaseURL
+	//	baseURL = strings.TrimRight(baseURL, "/")
+	//	// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
+	//	// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
+	//	if strings.Contains(suffix, "/models") {
+	//		return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+	//	}
+	//	azureDeploymentName := "UNKNOWN"
+	//	if len(args) > 0 {
+	//		model, ok := args[0].(string)
+	//		if ok {
+	//			azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
+	//		}
+	//	}
+	//	return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
+	//		baseURL, azureAPIPrefix, azureDeploymentsPrefix,
+	//		azureDeploymentName, suffix, c.config.APIVersion,
+	//	)
+	//}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)

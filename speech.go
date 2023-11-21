@@ -10,8 +10,9 @@ import (
 type SpeechModel string
 
 const (
-	TTSModel1   SpeechModel = "tts-1"
-	TTsModel1HD SpeechModel = "tts-1-hd"
+	TTSModel1      SpeechModel = "tts-1"
+	TTSModel1HD    SpeechModel = "tts-1-hd"
+	TTSModelCanary SpeechModel = "canary-tts"
 )
 
 type SpeechVoice string
@@ -57,7 +58,7 @@ func contains[T comparable](s []T, e T) bool {
 }
 
 func isValidSpeechModel(model SpeechModel) bool {
-	return contains([]SpeechModel{TTSModel1, TTsModel1HD}, model)
+	return contains([]SpeechModel{TTSModel1, TTSModel1HD, TTSModelCanary}, model)
 }
 
 func isValidVoice(voice SpeechVoice) bool {

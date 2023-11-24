@@ -3,6 +3,7 @@ package openai_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -294,6 +295,108 @@ func TestAzureChatCompletions(t *testing.T) {
 		},
 	})
 	checks.NoError(t, err, "CreateAzureChatCompletion error")
+}
+
+func TestMultipartChatCompletions(t *testing.T) {
+	client, server, teardown := setupAzureTestServer()
+	defer teardown()
+	server.RegisterHandler("/openai/deployments/*", handleChatCompletionEndpoint)
+
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role: openai.ChatMessageRoleUser,
+				MultiContent: []openai.ChatMessagePart{
+					{
+						Type: openai.ChatMessagePartTypeText,
+						Text: "Hello!",
+					},
+					{
+						Type: openai.ChatMessagePartTypeImageURL,
+						ImageURL: &openai.ChatMessageImageURL{
+							URL:    "URL",
+							Detail: openai.ImageURLDetailLow,
+						},
+					},
+				},
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateAzureChatCompletion error")
+}
+
+func TestMultipartChatMessageSerialization(t *testing.T) {
+	jsonText := `[{"role":"system","content":"system-message"},` +
+		`{"role":"user","content":[{"type":"text","text":"nice-text"},` +
+		`{"type":"image_url","image_url":{"url":"URL","detail":"high"}}]}]`
+
+	var msgs []openai.ChatCompletionMessage
+	err := json.Unmarshal([]byte(jsonText), &msgs)
+	if err != nil {
+		t.Fatalf("Expected no error: %s", err)
+	}
+	if len(msgs) != 2 {
+		t.Errorf("unexpected number of messages")
+	}
+	if msgs[0].Role != "system" || msgs[0].Content != "system-message" || msgs[0].MultiContent != nil {
+		t.Errorf("invalid user message: %v", msgs[0])
+	}
+	if msgs[1].Role != "user" || msgs[1].Content != "" || len(msgs[1].MultiContent) != 2 {
+		t.Errorf("invalid user message")
+	}
+	parts := msgs[1].MultiContent
+	if parts[0].Type != "text" || parts[0].Text != "nice-text" {
+		t.Errorf("invalid text part: %v", parts[0])
+	}
+	if parts[1].Type != "image_url" || parts[1].ImageURL.URL != "URL" || parts[1].ImageURL.Detail != "high" {
+		t.Errorf("invalid image_url part")
+	}
+
+	s, err := json.Marshal(msgs)
+	if err != nil {
+		t.Fatalf("Expected no error: %s", err)
+	}
+	res := strings.ReplaceAll(string(s), " ", "")
+	if res != jsonText {
+		t.Fatalf("invalid message: %s", string(s))
+	}
+
+	invalidMsg := []openai.ChatCompletionMessage{
+		{
+			Role:    "user",
+			Content: "some-text",
+			MultiContent: []openai.ChatMessagePart{
+				{
+					Type: "text",
+					Text: "nice-text",
+				},
+			},
+		},
+	}
+	_, err = json.Marshal(invalidMsg)
+	if !errors.Is(err, openai.ErrContentFieldsMisused) {
+		t.Fatalf("Expected error: %s", err)
+	}
+
+	err = json.Unmarshal([]byte(`["not-a-message"]`), &msgs)
+	if err == nil {
+		t.Fatalf("Expected error")
+	}
+
+	emptyMultiContentMsg := openai.ChatCompletionMessage{
+		Role:         "user",
+		MultiContent: []openai.ChatMessagePart{},
+	}
+	s, err = json.Marshal(emptyMultiContentMsg)
+	if err != nil {
+		t.Fatalf("Unexpected error")
+	}
+	res = strings.ReplaceAll(string(s), " ", "")
+	if res != `{"role":"user","content":""}` {
+		t.Fatalf("invalid message: %s", string(s))
+	}
 }
 
 // handleChatCompletionEndpoint Handles the ChatGPT completion endpoint by the test server.

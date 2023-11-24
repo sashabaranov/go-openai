@@ -3,6 +3,7 @@ package openai_test
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -375,8 +376,8 @@ func TestMultipartChatMessageSerialization(t *testing.T) {
 		},
 	}
 	_, err = json.Marshal(invalidMsg)
-	if err == nil {
-		t.Fatalf("Expected error")
+	if !errors.Is(err, openai.ErrContentFieldsMisused) {
+		t.Fatalf("Expected error: %s", err)
 	}
 
 	err = json.Unmarshal([]byte(`["not-a-message"]`), &msgs)

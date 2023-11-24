@@ -21,6 +21,7 @@ const chatCompletionsSuffix = "/chat/completions"
 var (
 	ErrChatCompletionInvalidModel       = errors.New("this model is not supported with this method, please use CreateCompletion client method instead") //nolint:lll
 	ErrChatCompletionStreamNotSupported = errors.New("streaming is not supported with this method, please use CreateChatCompletionStream")              //nolint:lll
+	ErrContentFieldsMisused             = errors.New("can't use both Content and MultiContent properties simultaneously")
 )
 
 type Hate struct {
@@ -100,7 +101,7 @@ type ChatCompletionMessage struct {
 
 func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 	if m.Content != "" && m.MultiContent != nil {
-		return nil, errors.New("can't use both Content and MultiContent files simultaneously")
+		return nil, ErrContentFieldsMisused
 	}
 	if len(m.MultiContent) > 0 {
 		msg := struct {

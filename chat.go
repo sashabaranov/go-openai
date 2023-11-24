@@ -127,19 +127,6 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 }
 
 func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
-	multiMsg := struct {
-		Role         string `json:"role"`
-		Content      string
-		MultiContent []ChatMessagePart `json:"content"`
-		Name         string            `json:"name,omitempty"`
-		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID   string            `json:"tool_call_id,omitempty"`
-	}{}
-	if err := json.Unmarshal(bs, &multiMsg); err == nil {
-		*m = ChatCompletionMessage(multiMsg)
-		return nil
-	}
 	msg := struct {
 		Role         string `json:"role"`
 		Content      string `json:"content"`
@@ -149,10 +136,23 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
 		ToolCallID   string        `json:"tool_call_id,omitempty"`
 	}{}
-	if err := json.Unmarshal(bs, &msg); err != nil {
+	if err := json.Unmarshal(bs, &msg); err == nil {
+		*m = ChatCompletionMessage(msg)
+		return nil
+	}
+	multiMsg := struct {
+		Role         string `json:"role"`
+		Content      string
+		MultiContent []ChatMessagePart `json:"content"`
+		Name         string            `json:"name,omitempty"`
+		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
+		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
+		ToolCallID   string            `json:"tool_call_id,omitempty"`
+	}{}
+	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
 	}
-	*m = ChatCompletionMessage(msg)
+	*m = ChatCompletionMessage(multiMsg)
 	return nil
 }
 

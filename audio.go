@@ -68,9 +68,13 @@ type AudioResponse struct {
 }
 
 type audioTextResponse struct {
-	Text string `json:"text"`
+	Text string
 
 	httpHeader
+}
+
+func (r *audioTextResponse) SetText(text string) {
+	r.Text = text
 }
 
 func (r *audioTextResponse) ToAudioResponse() AudioResponse {

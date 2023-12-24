@@ -252,6 +252,12 @@ type FunctionDefinition struct {
 // Deprecated: use FunctionDefinition instead.
 type FunctionDefine = FunctionDefinition
 
+type TopLogProbs struct {
+	Token   string  `json:"token"`
+	LogProb float64 `json:"logprob"`
+	Bytes   []byte  `json:"bytes,omitempty"`
+}
+
 // LogProb represents the probability information for a token.
 type LogProb struct {
 	Token   string  `json:"token"`
@@ -259,7 +265,7 @@ type LogProb struct {
 	Bytes   []byte  `json:"bytes,omitempty"` // Omitting the field if it is null
 	// TopLogProbs is a list of the most likely tokens and their log probability, at this token position.
 	// In rare cases, there may be fewer than the number of requested top_logprobs returned.
-	TopLogProbs []LogProb `json:"top_logprobs"`
+	TopLogProbs []TopLogProbs `json:"top_logprobs"`
 }
 
 // LogProbs is the top-level structure containing the log probability information.

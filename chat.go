@@ -294,7 +294,7 @@ type ChatCompletionChoice struct {
 	// content_filter: Omitted content due to a flag from our content filters
 	// null: API response still in progress or incomplete
 	FinishReason FinishReason `json:"finish_reason"`
-	LogProbs     LogProbs     `json:"logprobs,omitempty"`
+	LogProbs     *LogProbs    `json:"logprobs,omitempty"`
 }
 
 // ChatCompletionResponse represents a response structure for chat completion API.

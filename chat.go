@@ -257,12 +257,15 @@ type LogProb struct {
 	Token   string  `json:"token"`
 	LogProb float64 `json:"logprob"`
 	Bytes   []byte  `json:"bytes,omitempty"` // Omitting the field if it is null
+	// TopLogProbs is a list of the most likely tokens and their log probability, at this token position.
+	// In rare cases, there may be fewer than the number of requested top_logprobs returned.
+	TopLogProbs []LogProb `json:"top_logprobs"`
 }
 
 // LogProbs is the top-level structure containing the log probability information.
 type LogProbs struct {
-	Content     []LogProb `json:"content"`
-	TopLogProbs []LogProb `json:"top_logprobs"`
+	// Content is a list of message content tokens with log probability information.
+	Content []LogProb `json:"content"`
 }
 
 type FinishReason string

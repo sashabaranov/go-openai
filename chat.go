@@ -200,7 +200,15 @@ type ChatCompletionRequest struct {
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
 	LogitBias map[string]int `json:"logit_bias,omitempty"`
-	User      string         `json:"user,omitempty"`
+	// LogProbs indicates whether to return log probabilities of the output tokens or not.
+	// If true, returns the log probabilities of each output token returned in the content of message.
+	// This option is currently not available on the gpt-4-vision-preview model.
+	LogProbs *bool `json:"logprobs,omitempty"`
+	// TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each
+	// token position, each with an associated log probability.
+	// logprobs must be set to true if this parameter is used.
+	TopLogProbs *int   `json:"top_logprobs,omitempty"`
+	User        string `json:"user,omitempty"`
 	// Deprecated: use Tools instead.
 	Functions []FunctionDefinition `json:"functions,omitempty"`
 	// Deprecated: use ToolChoice instead.
@@ -244,6 +252,19 @@ type FunctionDefinition struct {
 // Deprecated: use FunctionDefinition instead.
 type FunctionDefine = FunctionDefinition
 
+// LogProb represents the probability information for a token.
+type LogProb struct {
+	Token   string  `json:"token"`
+	LogProb float64 `json:"logprob"`
+	Bytes   []byte  `json:"bytes,omitempty"` // Omitting the field if it is null
+}
+
+// LogProbs is the top-level structure containing the log probability information.
+type LogProbs struct {
+	Content     []LogProb `json:"content"`
+	TopLogProbs []LogProb `json:"top_logprobs"`
+}
+
 type FinishReason string
 
 const (
@@ -273,6 +294,7 @@ type ChatCompletionChoice struct {
 	// content_filter: Omitted content due to a flag from our content filters
 	// null: API response still in progress or incomplete
 	FinishReason FinishReason `json:"finish_reason"`
+	LogProbs     LogProbs     `json:"logprobs,omitempty"`
 }
 
 // ChatCompletionResponse represents a response structure for chat completion API.

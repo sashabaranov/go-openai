@@ -203,11 +203,11 @@ type ChatCompletionRequest struct {
 	// LogProbs indicates whether to return log probabilities of the output tokens or not.
 	// If true, returns the log probabilities of each output token returned in the content of message.
 	// This option is currently not available on the gpt-4-vision-preview model.
-	LogProbs *bool `json:"logprobs,omitempty"`
+	LogProbs bool `json:"logprobs,omitempty"`
 	// TopLogProbs is an integer between 0 and 5 specifying the number of most likely tokens to return at each
 	// token position, each with an associated log probability.
 	// logprobs must be set to true if this parameter is used.
-	TopLogProbs *int   `json:"top_logprobs,omitempty"`
+	TopLogProbs int    `json:"top_logprobs,omitempty"`
 	User        string `json:"user,omitempty"`
 	// Deprecated: use Tools instead.
 	Functions []FunctionDefinition `json:"functions,omitempty"`

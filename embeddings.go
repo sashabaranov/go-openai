@@ -15,9 +15,19 @@ var ErrVectorLengthMismatch = errors.New("vector length mismatch")
 // to generate Embedding vectors.
 type EmbeddingModel int
 
+func ConvertStr2EmbeddingModel(modelName string) EmbeddingModel {
+	if val, ok := stringToEnum[modelName]; ok {
+		return val
+	}
+	return Unknown
+}
+
 // String implements the fmt.Stringer interface.
 func (e EmbeddingModel) String() string {
-	return enumToString[e]
+	if val, ok := enumToString[e]; ok {
+		return val
+	}
+	return "Unknown"
 }
 
 // MarshalText implements the encoding.TextMarshaler interface.

@@ -82,6 +82,7 @@ type ImageEditRequest struct {
 	Image          *os.File `json:"image,omitempty"`
 	Mask           *os.File `json:"mask,omitempty"`
 	Prompt         string   `json:"prompt,omitempty"`
+	Model          string   `json:"model,omitempty"`
 	N              int      `json:"n,omitempty"`
 	Size           string   `json:"size,omitempty"`
 	ResponseFormat string   `json:"response_format,omitempty"`
@@ -131,7 +132,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/images/edits"),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/images/edits", request.Model),
 		withBody(body), withContentType(builder.FormDataContentType()))
 	if err != nil {
 		return
@@ -144,6 +145,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 // ImageVariRequest represents the request structure for the image API.
 type ImageVariRequest struct {
 	Image          *os.File `json:"image,omitempty"`
+	Model          string   `json:"model,omitempty"`
 	N              int      `json:"n,omitempty"`
 	Size           string   `json:"size,omitempty"`
 	ResponseFormat string   `json:"response_format,omitempty"`
@@ -181,7 +183,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 		return
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/images/variations"),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/images/variations", request.Model),
 		withBody(body), withContentType(builder.FormDataContentType()))
 	if err != nil {
 		return

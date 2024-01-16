@@ -193,10 +193,14 @@ func decodeResponse(body io.Reader, v any) error {
 		return nil
 	}
 
-	if result, ok := v.(*string); ok {
-		return decodeString(body, result)
+	switch o := v.(type) {
+	case *string:
+		return decodeString(body, o)
+	case *audioTextResponse:
+		return decodeString(body, &o.Text)
+	default:
+		return json.NewDecoder(body).Decode(v)
 	}
-	return json.NewDecoder(body).Decode(v)
 }
 
 func decodeString(body io.Reader, output *string) error {

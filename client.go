@@ -9,7 +9,7 @@ import (
 	"net/http"
 	"strings"
 
-	utils "github.com/sashabaranov/go-openai/internal"
+	utils "github.com/cogidoo2015/go-openai/internal"
 )
 
 // Client is OpenAI GPT-3 API client.
@@ -41,6 +41,12 @@ func (h *httpHeader) GetRateLimitHeaders() RateLimitHeaders {
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)
+	return NewClientWithConfig(config)
+}
+
+// NewClient creates new OpenAI API client.
+func NewClientWithBaseURL(BaseURL, authToken string) *Client {
+	config := DefaultBaseUrlConfig(BaseURL, authToken)
 	return NewClientWithConfig(config)
 }
 

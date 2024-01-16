@@ -24,6 +24,10 @@ type Response interface {
 	SetHeader(http.Header)
 }
 
+type TextResponse interface {
+	SetText(string)
+}
+
 type httpHeader http.Header
 
 func (h *httpHeader) SetHeader(header http.Header) {
@@ -195,6 +199,13 @@ func decodeResponse(body io.Reader, v any) error {
 
 	if result, ok := v.(*string); ok {
 		return decodeString(body, result)
+	} else if result, ok := v.(TextResponse); ok {
+		var text string
+		if err := decodeString(body, &text); err != nil {
+			return err
+		}
+		result.SetText(text)
+		return nil
 	}
 	return json.NewDecoder(body).Decode(v)
 }

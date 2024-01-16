@@ -240,7 +240,7 @@ func main() {
 	}
 
 	runReq := openai.RunRequest{
-		AssistantID: assistantId,
+		AssistantID: "your assistant id",
 	}
 	run, err := client.CreateRun(ctx, thread.ID, runReq)
 	if err != nil {

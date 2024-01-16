@@ -158,6 +158,32 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	checks.HasError(t, err, "CreateEmbeddings error")
 }
 
+func TestAzureEmbeddingEndpoint(t *testing.T) {
+	client, server, teardown := setupAzureTestServer()
+	defer teardown()
+
+	sampleEmbeddings := []openai.Embedding{
+		{Embedding: []float32{1.23, 4.56, 7.89}},
+		{Embedding: []float32{-0.006968617, -0.0052718227, 0.011901081}},
+	}
+
+	server.RegisterHandler(
+		"/openai/deployments/text-embedding-ada-002/embeddings",
+		func(w http.ResponseWriter, r *http.Request) {
+			resBytes, _ := json.Marshal(openai.EmbeddingResponse{Data: sampleEmbeddings})
+			fmt.Fprintln(w, string(resBytes))
+		},
+	)
+	// test create embeddings with strings (simple embedding request)
+	res, err := client.CreateEmbeddings(context.Background(), openai.EmbeddingRequest{
+		Model: openai.AdaEmbeddingV2,
+	})
+	checks.NoError(t, err, "CreateEmbeddings error")
+	if !reflect.DeepEqual(res.Data, sampleEmbeddings) {
+		t.Errorf("Expected %#v embeddings, got %#v", sampleEmbeddings, res.Data)
+	}
+}
+
 func TestEmbeddingResponseBase64_ToEmbeddingResponse(t *testing.T) {
 	type fields struct {
 		Object string

@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
@@ -43,23 +44,29 @@ func TestDecodeResponse(t *testing.T) {
 	testCases := []struct {
 		name     string
 		value    interface{}
+		expected interface{}
 		body     io.Reader
 		hasError bool
 	}{
 		{
-			name:  "nil input",
-			value: nil,
-			body:  bytes.NewReader([]byte("")),
+			name:     "nil input",
+			value:    nil,
+			body:     bytes.NewReader([]byte("")),
+			expected: nil,
 		},
 		{
-			name:  "string input",
-			value: &stringInput,
-			body:  bytes.NewReader([]byte("test")),
+			name:     "string input",
+			value:    &stringInput,
+			body:     bytes.NewReader([]byte("test")),
+			expected: "test",
 		},
 		{
 			name:  "map input",
 			value: &map[string]interface{}{},
 			body:  bytes.NewReader([]byte(`{"test": "test"}`)),
+			expected: map[string]interface{}{
+				"test": "test",
+			},
 		},
 		{
 			name:     "reader return error",
@@ -67,13 +74,37 @@ func TestDecodeResponse(t *testing.T) {
 			body:     &errorReader{err: errors.New("dummy")},
 			hasError: true,
 		},
+		{
+			name:  "audio text input",
+			value: &audioTextResponse{},
+			body:  bytes.NewReader([]byte("test")),
+			expected: audioTextResponse{
+				Text: "test",
+			},
+		},
 	}
 
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := decodeResponse(tc.body, tc.value)
-			if (err != nil) != tc.hasError {
-				t.Errorf("Unexpected error: %v", err)
+			if tc.hasError {
+				if err == nil {
+					t.Error("Unexpected nil error")
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+				if tc.expected != nil {
+					v := reflect.ValueOf(tc.value).Elem().Interface()
+					if !reflect.DeepEqual(v, tc.expected) {
+						t.Errorf("Unexpected value: %v, expected: %v", v, tc.expected)
+					}
+				} else {
+					if tc.value != tc.expected {
+						t.Errorf("Unexpected value: %v, expected: %v", tc.value, tc.expected)
+					}
+				}
 			}
 		})
 	}

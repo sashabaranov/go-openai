@@ -11,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var errTestRequestBuilderFailed = errors.New("test request builder failed")
@@ -84,28 +85,28 @@ func TestDecodeResponse(t *testing.T) {
 		},
 	}
 
+	assertEqual := func(t *testing.T, expected, actual interface{}) {
+		t.Helper()
+		if expected == actual {
+			return
+		}
+		v := reflect.ValueOf(actual).Elem().Interface()
+		if !reflect.DeepEqual(v, expected) {
+			t.Fatalf("Unexpected value: %v, expected: %v", v, expected)
+		}
+	}
+
 	for _, tc := range testCases {
 		t.Run(tc.name, func(t *testing.T) {
 			err := decodeResponse(tc.body, tc.value)
 			if tc.hasError {
-				if err == nil {
-					t.Error("Unexpected nil error")
-				}
-			} else {
-				if err != nil {
-					t.Errorf("Unexpected error: %v", err)
-				}
-				if tc.expected != nil {
-					v := reflect.ValueOf(tc.value).Elem().Interface()
-					if !reflect.DeepEqual(v, tc.expected) {
-						t.Errorf("Unexpected value: %v, expected: %v", v, tc.expected)
-					}
-				} else {
-					if tc.value != tc.expected {
-						t.Errorf("Unexpected value: %v, expected: %v", tc.value, tc.expected)
-					}
-				}
+				checks.HasError(t, err, "Unexpected nil error")
+				return
 			}
+			if err != nil {
+				t.Fatalf("Unexpected error: %v", err)
+			}
+			assertEqual(t, tc.expected, tc.value)
 		})
 	}
 }

@@ -59,8 +59,8 @@ func TestChatRequestOmitEmpty(t *testing.T) {
 	})
 	checks.NoError(t, err)
 
-	// messages is also required so isn't omitted
-	const expected = `{"model":"gpt-4","messages":null}`
+	// messages and stream are also required so isn't omitted
+	const expected = `{"model":"gpt-4","messages":null,"stream":"false"}`
 	if string(data) != expected {
 		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
 	}

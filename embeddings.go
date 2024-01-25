@@ -34,7 +34,9 @@ const (
 	BabbageCodeSearchCode EmbeddingModel = "code-search-babbage-code-001"
 	BabbageCodeSearchText EmbeddingModel = "code-search-babbage-text-001"
 
-	AdaEmbeddingV2 EmbeddingModel = "text-embedding-ada-002"
+	AdaEmbeddingV2  EmbeddingModel = "text-embedding-ada-002"
+	SmallEmbedding3 EmbeddingModel = "text-embedding-3-small"
+	LargeEmbedding3 EmbeddingModel = "text-embedding-3-large"
 )
 
 // Embedding is a special format of data representation that can be easily utilized by machine

@@ -159,7 +159,7 @@ type EmbeddingRequest struct {
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 	// Dimensions The number of dimensions the resulting output embeddings should have.
 	// Only supported in text-embedding-3 and later models.
-	Dimensions *int `json:"dimensions,omitempty"`
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequest) Convert() EmbeddingRequest {
@@ -186,7 +186,7 @@ type EmbeddingRequestStrings struct {
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 	// Dimensions The number of dimensions the resulting output embeddings should have.
 	// Only supported in text-embedding-3 and later models.
-	Dimensions *int `json:"dimensions,omitempty"`
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequestStrings) Convert() EmbeddingRequest {
@@ -218,7 +218,7 @@ type EmbeddingRequestTokens struct {
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 	// Dimensions The number of dimensions the resulting output embeddings should have.
 	// Only supported in text-embedding-3 and later models.
-	Dimensions *int `json:"dimensions,omitempty"`
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {

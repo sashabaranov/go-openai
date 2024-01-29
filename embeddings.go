@@ -157,6 +157,9 @@ type EmbeddingRequest struct {
 	Model          EmbeddingModel          `json:"model"`
 	User           string                  `json:"user"`
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
+	// Dimensions The number of dimensions the resulting output embeddings should have.
+	// Only supported in text-embedding-3 and later models.
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequest) Convert() EmbeddingRequest {
@@ -181,6 +184,9 @@ type EmbeddingRequestStrings struct {
 	// Currently, only "float" and "base64" are supported, however, "base64" is not officially documented.
 	// If not specified OpenAI will use "float".
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
+	// Dimensions The number of dimensions the resulting output embeddings should have.
+	// Only supported in text-embedding-3 and later models.
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequestStrings) Convert() EmbeddingRequest {
@@ -189,6 +195,7 @@ func (r EmbeddingRequestStrings) Convert() EmbeddingRequest {
 		Model:          r.Model,
 		User:           r.User,
 		EncodingFormat: r.EncodingFormat,
+		Dimensions:     r.Dimensions,
 	}
 }
 
@@ -209,6 +216,9 @@ type EmbeddingRequestTokens struct {
 	// Currently, only "float" and "base64" are supported, however, "base64" is not officially documented.
 	// If not specified OpenAI will use "float".
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
+	// Dimensions The number of dimensions the resulting output embeddings should have.
+	// Only supported in text-embedding-3 and later models.
+	Dimensions int `json:"dimensions,omitempty"`
 }
 
 func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
@@ -217,6 +227,7 @@ func (r EmbeddingRequestTokens) Convert() EmbeddingRequest {
 		Model:          r.Model,
 		User:           r.User,
 		EncodingFormat: r.EncodingFormat,
+		Dimensions:     r.Dimensions,
 	}
 }
 

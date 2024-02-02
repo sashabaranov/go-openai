@@ -40,6 +40,7 @@ const (
 	RunStatusFailed         RunStatus = "failed"
 	RunStatusCompleted      RunStatus = "completed"
 	RunStatusExpired        RunStatus = "expired"
+	RunStatusCancelled      RunStatus = "cancelled"
 )
 
 type RunRequiredAction struct {

@@ -26,7 +26,7 @@ type Run struct {
 	Tools          []Tool             `json:"tools"`
 	FileIDS        []string           `json:"file_ids"`
 	Metadata       map[string]any     `json:"metadata"`
-	Usage          *RunUsage          `json:"usage,omitempty"`
+	Usage          *Usage             `json:"usage,omitempty"`
 
 	httpHeader
 }
@@ -69,8 +69,6 @@ const (
 	RunErrorServerError       RunError = "server_error"
 	RunErrorRateLimitExceeded RunError = "rate_limit_exceeded"
 )
-
-type RunUsage Usage
 
 type RunRequest struct {
 	AssistantID  string         `json:"assistant_id"`

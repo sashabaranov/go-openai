@@ -17,7 +17,7 @@ func TestAssistant(t *testing.T) {
 	assistantID := "asst_abc123"
 	assistantName := "Ambrogio"
 	assistantDescription := "Ambrogio is a friendly assistant."
-	assitantInstructions := `You are a personal math tutor. 
+	assistantInstructions := `You are a personal math tutor. 
 When asked a question, write and run Python code to answer the question.`
 	assistantFileID := "file-wB6RM6wHdA49HfS2DJ9fEyrH"
 	limit := 20
@@ -92,7 +92,7 @@ When asked a question, write and run Python code to answer the question.`
 					Name:         &assistantName,
 					Model:        openai.GPT4TurboPreview,
 					Description:  &assistantDescription,
-					Instructions: &assitantInstructions,
+					Instructions: &assistantInstructions,
 				})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodPost:
@@ -152,7 +152,7 @@ When asked a question, write and run Python code to answer the question.`
 							Name:         &assistantName,
 							Model:        openai.GPT4TurboPreview,
 							Description:  &assistantDescription,
-							Instructions: &assitantInstructions,
+							Instructions: &assistantInstructions,
 						},
 					},
 				})
@@ -167,7 +167,7 @@ When asked a question, write and run Python code to answer the question.`
 		Name:         &assistantName,
 		Description:  &assistantDescription,
 		Model:        openai.GPT4TurboPreview,
-		Instructions: &assitantInstructions,
+		Instructions: &assistantInstructions,
 	})
 	checks.NoError(t, err, "CreateAssistant error")
 
@@ -178,7 +178,7 @@ When asked a question, write and run Python code to answer the question.`
 		Name:         &assistantName,
 		Description:  &assistantDescription,
 		Model:        openai.GPT4TurboPreview,
-		Instructions: &assitantInstructions,
+		Instructions: &assistantInstructions,
 	})
 	checks.NoError(t, err, "ModifyAssistant error")
 

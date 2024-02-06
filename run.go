@@ -72,11 +72,12 @@ const (
 )
 
 type RunRequest struct {
-	AssistantID  string         `json:"assistant_id"`
-	Model        *string        `json:"model,omitempty"`
-	Instructions *string        `json:"instructions,omitempty"`
-	Tools        []Tool         `json:"tools,omitempty"`
-	Metadata     map[string]any `json:"metadata,omitempty"`
+	AssistantID            string         `json:"assistant_id"`
+	Model                  string         `json:"model,omitempty"`
+	Instructions           string         `json:"instructions,omitempty"`
+	AdditionalInstructions string         `json:"additional_instructions,omitempty"`
+	Tools                  []Tool         `json:"tools,omitempty"`
+	Metadata               map[string]any `json:"metadata,omitempty"`
 }
 
 type RunModifyRequest struct {

@@ -26,6 +26,7 @@ type Run struct {
 	Tools          []Tool             `json:"tools"`
 	FileIDS        []string           `json:"file_ids"`
 	Metadata       map[string]any     `json:"metadata"`
+	Usage          Usage              `json:"usage,omitempty"`
 
 	httpHeader
 }

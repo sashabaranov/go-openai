@@ -169,7 +169,7 @@ func TestAzureEmbeddingEndpoint(t *testing.T) {
 
 	server.RegisterHandler(
 		"/openai/deployments/text-embedding-ada-002/embeddings",
-		func(w http.ResponseWriter, r *http.Request) {
+		func(w http.ResponseWriter, _ *http.Request) {
 			resBytes, _ := json.Marshal(openai.EmbeddingResponse{Data: sampleEmbeddings})
 			fmt.Fprintln(w, string(resBytes))
 		},

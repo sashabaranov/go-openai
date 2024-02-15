@@ -64,7 +64,7 @@ func handleGetModelEndpoint(w http.ResponseWriter, _ *http.Request) {
 func TestGetModelReturnTimeoutError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/models/text-davinci-003", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/models/text-davinci-003", func(http.ResponseWriter, *http.Request) {
 		time.Sleep(10 * time.Nanosecond)
 	})
 	ctx := context.Background()

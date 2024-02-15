@@ -60,7 +60,7 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	_, err := client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 
-	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {
+	mockBuilder.mockCreateFormFile = func(name string, _ *os.File) error {
 		if name == "mask" {
 			return mockFailedErr
 		}
@@ -69,12 +69,12 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	_, err = client.CreateEditImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
 
-	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
 		return nil
 	}
 
 	var failForField string
-	mockBuilder.mockWriteField = func(fieldname, value string) error {
+	mockBuilder.mockWriteField = func(fieldname, _ string) error {
 		if fieldname == failForField {
 			return mockFailedErr
 		}
@@ -125,12 +125,12 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	_, err := client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
 
-	mockBuilder.mockCreateFormFile = func(name string, file *os.File) error {
+	mockBuilder.mockCreateFormFile = func(string, *os.File) error {
 		return nil
 	}
 
 	var failForField string
-	mockBuilder.mockWriteField = func(fieldname, value string) error {
+	mockBuilder.mockWriteField = func(fieldname, _ string) error {
 		if fieldname == failForField {
 			return mockFailedErr
 		}

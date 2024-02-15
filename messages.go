@@ -18,7 +18,7 @@ type Message struct {
 	ThreadID    string           `json:"thread_id"`
 	Role        string           `json:"role"`
 	Content     []MessageContent `json:"content"`
-	FileIds     []string         `json:"file_ids"`
+	FileIds     []string         `json:"file_ids"` //nolint:revive //backwards-compatibility
 	AssistantID *string          `json:"assistant_id,omitempty"`
 	RunID       *string          `json:"run_id,omitempty"`
 	Metadata    map[string]any   `json:"metadata"`
@@ -54,7 +54,7 @@ type ImageFile struct {
 type MessageRequest struct {
 	Role     string         `json:"role"`
 	Content  string         `json:"content"`
-	FileIds  []string       `json:"file_ids,omitempty"`
+	FileIds  []string       `json:"file_ids,omitempty"` //nolint:revive // backwards-compatibility
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
 

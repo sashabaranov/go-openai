@@ -34,7 +34,7 @@ func TestCompletionsStreamWrongModel(t *testing.T) {
 func TestCreateCompletionStream(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -106,7 +106,7 @@ func TestCreateCompletionStream(t *testing.T) {
 func TestCreateCompletionStreamError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -151,7 +151,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(429)
 
@@ -182,7 +182,7 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -228,7 +228,7 @@ func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -263,7 +263,7 @@ func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
 func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
 		// Send test responses
@@ -305,7 +305,7 @@ func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/completions", func(http.ResponseWriter, *http.Request) {
 		time.Sleep(10 * time.Nanosecond)
 	})
 	ctx := context.Background()

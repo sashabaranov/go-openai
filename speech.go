@@ -76,7 +76,7 @@ func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) 
 	}
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/audio/speech", string(request.Model)),
 		withBody(request),
-		withContentType("application/json; charset=utf-8"),
+		withContentType("application/json"),
 	)
 	if err != nil {
 		return

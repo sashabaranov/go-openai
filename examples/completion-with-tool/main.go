@@ -35,7 +35,7 @@ func main() {
 	}
 	t := openai.Tool{
 		Type:     openai.ToolTypeFunction,
-		Function: f,
+		Function: &f,
 	}
 
 	// simulate user asking a question that requires the function

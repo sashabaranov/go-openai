@@ -225,8 +225,8 @@ const (
 )
 
 type Tool struct {
-	Type     ToolType           `json:"type"`
-	Function FunctionDefinition `json:"function,omitempty"`
+	Type     ToolType            `json:"type"`
+	Function *FunctionDefinition `json:"function,omitempty"`
 }
 
 type ToolChoice struct {

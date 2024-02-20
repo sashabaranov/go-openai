@@ -391,5 +391,4 @@ When asked a question, write and run Python code to answer the question.`
 
 	err = client.DeleteAssistantFile(ctx, assistantID, assistantFileID)
 	checks.NoError(t, err, "DeleteAssistantFile error")
-
 }

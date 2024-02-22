@@ -46,7 +46,7 @@ type AssistantRequest struct {
 	Name         *string         `json:"name,omitempty"`
 	Description  *string         `json:"description,omitempty"`
 	Instructions *string         `json:"instructions,omitempty"`
-	Tools        []AssistantTool `json:"tools,omitempty"`
+	Tools        []AssistantTool `json:"tools"`
 	FileIDs      []string        `json:"file_ids,omitempty"`
 	Metadata     map[string]any  `json:"metadata,omitempty"`
 }

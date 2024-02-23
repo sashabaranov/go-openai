@@ -20,20 +20,6 @@ const (
 	ModerationText001 = "text-moderation-001"
 )
 
-const (
-	ModerationCategoryHate                  = "hate"
-	ModerationCategoryHateThreatening       = "hate/threatening"
-	ModerationCategoryHarassment            = "harassment"
-	ModerationCategoryHarassmentThreatening = "harassment/threatening"
-	ModerationCategorySelfHarm              = "self-harm"
-	ModerationCategorySelfHarmIntent        = "self-harm/intent"
-	ModerationCategorySelfHarmInstructions  = "self-harm/instructions"
-	ModerationCategorySexual                = "sexual"
-	ModerationCategorySexualMinors          = "sexual/minors"
-	ModerationCategoryViolence              = "violence"
-	ModerationCategoryViolenceGraphic       = "violence/graphic"
-)
-
 var (
 	ErrModerationInvalidModel = errors.New("this model is not supported with moderation, please use text-moderation-stable or text-moderation-latest instead") //nolint:lll
 )
@@ -72,7 +58,19 @@ type ResultCategories struct {
 }
 
 // ResultCategoryScores represents CategoryScores of Result.
-type ResultCategoryScores map[string]float32
+type ResultCategoryScores struct {
+	Hate                  bool `json:"hate"`
+	HateThreatening       bool `json:"hate/threatening"`
+	Harassment            bool `json:"harassment"`
+	HarassmentThreatening bool `json:"harassment/threatening"`
+	SelfHarm              bool `json:"self-harm"`
+	SelfHarmIntent        bool `json:"self-harm/intent"`
+	SelfHarmInstructions  bool `json:"self-harm/instructions"`
+	Sexual                bool `json:"sexual"`
+	SexualMinors          bool `json:"sexual/minors"`
+	Violence              bool `json:"violence"`
+	ViolenceGraphic       bool `json:"violence/graphic"`
+}
 
 // ModerationResponse represents a response structure for moderation API.
 type ModerationResponse struct {

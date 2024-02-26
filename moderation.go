@@ -44,24 +44,32 @@ type Result struct {
 
 // ResultCategories represents Categories of Result.
 type ResultCategories struct {
-	Hate            bool `json:"hate"`
-	HateThreatening bool `json:"hate/threatening"`
-	SelfHarm        bool `json:"self-harm"`
-	Sexual          bool `json:"sexual"`
-	SexualMinors    bool `json:"sexual/minors"`
-	Violence        bool `json:"violence"`
-	ViolenceGraphic bool `json:"violence/graphic"`
+	Hate                  bool `json:"hate"`
+	HateThreatening       bool `json:"hate/threatening"`
+	Harassment            bool `json:"harassment"`
+	HarassmentThreatening bool `json:"harassment/threatening"`
+	SelfHarm              bool `json:"self-harm"`
+	SelfHarmIntent        bool `json:"self-harm/intent"`
+	SelfHarmInstructions  bool `json:"self-harm/instructions"`
+	Sexual                bool `json:"sexual"`
+	SexualMinors          bool `json:"sexual/minors"`
+	Violence              bool `json:"violence"`
+	ViolenceGraphic       bool `json:"violence/graphic"`
 }
 
 // ResultCategoryScores represents CategoryScores of Result.
 type ResultCategoryScores struct {
-	Hate            float32 `json:"hate"`
-	HateThreatening float32 `json:"hate/threatening"`
-	SelfHarm        float32 `json:"self-harm"`
-	Sexual          float32 `json:"sexual"`
-	SexualMinors    float32 `json:"sexual/minors"`
-	Violence        float32 `json:"violence"`
-	ViolenceGraphic float32 `json:"violence/graphic"`
+	Hate                  bool `json:"hate"`
+	HateThreatening       bool `json:"hate/threatening"`
+	Harassment            bool `json:"harassment"`
+	HarassmentThreatening bool `json:"harassment/threatening"`
+	SelfHarm              bool `json:"self-harm"`
+	SelfHarmIntent        bool `json:"self-harm/intent"`
+	SelfHarmInstructions  bool `json:"self-harm/instructions"`
+	Sexual                bool `json:"sexual"`
+	SexualMinors          bool `json:"sexual/minors"`
+	Violence              bool `json:"violence"`
+	ViolenceGraphic       bool `json:"violence/graphic"`
 }
 
 // ModerationResponse represents a response structure for moderation API.

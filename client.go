@@ -221,7 +221,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		baseURL = strings.TrimRight(baseURL, "/")
 		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		if strings.Contains(suffix, "/models") || strings.Contains(suffix, "/assistants") {
+		if containsSubstr([]string{"/models", "/assistants", "/threads", "/files"}, suffix) {
 			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
 		}
 		azureDeploymentName := "UNKNOWN"
@@ -257,4 +257,13 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 
 	errRes.Error.HTTPStatusCode = resp.StatusCode
 	return errRes.Error
+}
+
+func containsSubstr(s []string, e string) bool {
+	for _, v := range s {
+		if strings.Contains(e, v) {
+			return true
+		}
+	}
+	return false
 }

@@ -82,47 +82,47 @@ func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 	switch {
 	case strings.Contains(moderationReq.Input, "hate"):
 		resCat = openai.ResultCategories{Hate: true}
-		resCatScore = openai.ResultCategoryScores{Hate: true}
+		resCatScore = openai.ResultCategoryScores{Hate: 1}
 
 	case strings.Contains(moderationReq.Input, "hate more"):
 		resCat = openai.ResultCategories{HateThreatening: true}
-		resCatScore = openai.ResultCategoryScores{HateThreatening: true}
+		resCatScore = openai.ResultCategoryScores{HateThreatening: 1}
 
 	case strings.Contains(moderationReq.Input, "harass"):
 		resCat = openai.ResultCategories{Harassment: true}
-		resCatScore = openai.ResultCategoryScores{Harassment: true}
+		resCatScore = openai.ResultCategoryScores{Harassment: 1}
 
 	case strings.Contains(moderationReq.Input, "harass hard"):
 		resCat = openai.ResultCategories{Harassment: true}
-		resCatScore = openai.ResultCategoryScores{HarassmentThreatening: true}
+		resCatScore = openai.ResultCategoryScores{HarassmentThreatening: 1}
 
 	case strings.Contains(moderationReq.Input, "suicide"):
 		resCat = openai.ResultCategories{SelfHarm: true}
-		resCatScore = openai.ResultCategoryScores{SelfHarm: true}
+		resCatScore = openai.ResultCategoryScores{SelfHarm: 1}
 
 	case strings.Contains(moderationReq.Input, "wanna suicide"):
 		resCat = openai.ResultCategories{SelfHarmIntent: true}
-		resCatScore = openai.ResultCategoryScores{SelfHarm: true}
+		resCatScore = openai.ResultCategoryScores{SelfHarm: 1}
 
 	case strings.Contains(moderationReq.Input, "drink bleach"):
 		resCat = openai.ResultCategories{SelfHarmInstructions: true}
-		resCatScore = openai.ResultCategoryScores{SelfHarmInstructions: true}
+		resCatScore = openai.ResultCategoryScores{SelfHarmInstructions: 1}
 
 	case strings.Contains(moderationReq.Input, "porn"):
 		resCat = openai.ResultCategories{Sexual: true}
-		resCatScore = openai.ResultCategoryScores{Sexual: true}
+		resCatScore = openai.ResultCategoryScores{Sexual: 1}
 
 	case strings.Contains(moderationReq.Input, "child porn"):
 		resCat = openai.ResultCategories{SexualMinors: true}
-		resCatScore = openai.ResultCategoryScores{SexualMinors: true}
+		resCatScore = openai.ResultCategoryScores{SexualMinors: 1}
 
 	case strings.Contains(moderationReq.Input, "kill"):
 		resCat = openai.ResultCategories{Violence: true}
-		resCatScore = openai.ResultCategoryScores{Violence: true}
+		resCatScore = openai.ResultCategoryScores{Violence: 1}
 
 	case strings.Contains(moderationReq.Input, "corpse"):
 		resCat = openai.ResultCategories{ViolenceGraphic: true}
-		resCatScore = openai.ResultCategoryScores{ViolenceGraphic: true}
+		resCatScore = openai.ResultCategoryScores{ViolenceGraphic: 1}
 	}
 
 	result := openai.Result{Categories: resCat, CategoryScores: resCatScore, Flagged: true}

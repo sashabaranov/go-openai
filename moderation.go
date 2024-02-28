@@ -59,17 +59,17 @@ type ResultCategories struct {
 
 // ResultCategoryScores represents CategoryScores of Result.
 type ResultCategoryScores struct {
-	Hate                  bool `json:"hate"`
-	HateThreatening       bool `json:"hate/threatening"`
-	Harassment            bool `json:"harassment"`
-	HarassmentThreatening bool `json:"harassment/threatening"`
-	SelfHarm              bool `json:"self-harm"`
-	SelfHarmIntent        bool `json:"self-harm/intent"`
-	SelfHarmInstructions  bool `json:"self-harm/instructions"`
-	Sexual                bool `json:"sexual"`
-	SexualMinors          bool `json:"sexual/minors"`
-	Violence              bool `json:"violence"`
-	ViolenceGraphic       bool `json:"violence/graphic"`
+	Hate                  float32 `json:"hate"`
+	HateThreatening       float32 `json:"hate/threatening"`
+	Harassment            float32 `json:"harassment"`
+	HarassmentThreatening float32 `json:"harassment/threatening"`
+	SelfHarm              float32 `json:"self-harm"`
+	SelfHarmIntent        float32 `json:"self-harm/intent"`
+	SelfHarmInstructions  float32 `json:"self-harm/instructions"`
+	Sexual                float32 `json:"sexual"`
+	SexualMinors          float32 `json:"sexual/minors"`
+	Violence              float32 `json:"violence"`
+	ViolenceGraphic       float32 `json:"violence/graphic"`
 }
 
 // ModerationResponse represents a response structure for moderation API.

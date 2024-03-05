@@ -24,10 +24,10 @@ func main() {
 	resp, err := client.CreateTranscription(
 		context.Background(),
 		openai.AudioRequest{
-			Model:                   openai.Whisper1,
-			FilePath:                os.Args[1],
-			Format:                  openai.AudioResponseFormatVerboseJSON,
-			Timestamp_Granularities: openai.TimestampGranularitiesWord, // Timestamp granularities are only supported with response_format=verbose_json
+			Model:                  openai.Whisper1,
+			FilePath:               os.Args[1],
+			Format:                 openai.AudioResponseFormatVerboseJSON,
+			TimestampGranularities: openai.TimestampGranularitiesWord, // Timestamp granularities are only supported with response_format=verbose_json
 		},
 	)
 	if err != nil {

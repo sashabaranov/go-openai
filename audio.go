@@ -47,11 +47,12 @@ type AudioRequest struct {
 	// Reader is an optional io.Reader when you do not want to use an existing file.
 	Reader io.Reader
 
-	Prompt                  string // For translation, it should be in English
-	Temperature             float32
-	Language                string // For translation, just do not use it. It seems "en" works, not confirmed...
-	Format                  AudioResponseFormat
-	Timestamp_Granularities TimestampGranularitiesLevel // response_format must be set verbose_json to use timestamp granularities
+	Prompt      string // For translation, it should be in English
+	Temperature float32
+	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
+	Format      AudioResponseFormat
+	// response_format must be set verbose_json to use timestamp granularities
+	TimestampGranularities TimestampGranularitiesLevel
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -179,8 +180,8 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 	}
 
 	// Create a form field for the timestamp_granularities[] (if provided)
-	if request.Timestamp_Granularities != "" {
-		err = b.WriteField("timestamp_granularities[]", string(request.Timestamp_Granularities))
+	if request.TimestampGranularities != "" {
+		err = b.WriteField("timestamp_granularities[]", string(request.TimestampGranularities))
 		if err != nil {
 			return fmt.Errorf("writing timestamp_granularities: %w", err)
 		}

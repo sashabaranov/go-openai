@@ -12,8 +12,10 @@ import (
 )
 
 // Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
+type AudioModel string
+
 const (
-	Whisper1 = "whisper-1"
+	Whisper1 AudioModel = "whisper-1"
 )
 
 // Response formats; Whisper uses AudioResponseFormatJSON by default.
@@ -27,10 +29,17 @@ const (
 	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
 )
 
+type TimestampGranularitiesLevel string
+
+const (
+	TimestampGranularitiesWord    TimestampGranularitiesLevel = "word"
+	TimestampGranularitiesSegment TimestampGranularitiesLevel = "segment"
+)
+
 // AudioRequest represents a request structure for audio API.
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
-	Model string
+	Model AudioModel
 
 	// FilePath is either an existing file in your filesystem or a filename representing the contents of Reader.
 	FilePath string
@@ -38,10 +47,11 @@ type AudioRequest struct {
 	// Reader is an optional io.Reader when you do not want to use an existing file.
 	Reader io.Reader
 
-	Prompt      string // For translation, it should be in English
-	Temperature float32
-	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
-	Format      AudioResponseFormat
+	Prompt                  string // For translation, it should be in English
+	Temperature             float32
+	Language                string // For translation, just do not use it. It seems "en" works, not confirmed...
+	Format                  AudioResponseFormat
+	Timestamp_Granularities TimestampGranularitiesLevel // response_format must be set verbose_json to use timestamp granularities
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -62,6 +72,11 @@ type AudioResponse struct {
 		NoSpeechProb     float64 `json:"no_speech_prob"`
 		Transient        bool    `json:"transient"`
 	} `json:"segments"`
+	Words []struct {
+		Start float64 `json:"start"`
+		End   float64 `json:"end"`
+		Word  string  `json:"word"`
+	} `json:"words"`
 	Text string `json:"text"`
 
 	httpHeader
@@ -142,7 +157,7 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		return err
 	}
 
-	err = b.WriteField("model", request.Model)
+	err = b.WriteField("model", string(request.Model))
 	if err != nil {
 		return fmt.Errorf("writing model name: %w", err)
 	}
@@ -160,6 +175,14 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		err = b.WriteField("response_format", string(request.Format))
 		if err != nil {
 			return fmt.Errorf("writing format: %w", err)
+		}
+	}
+
+	// Create a form field for the timestamp_granularities[] (if provided)
+	if request.Timestamp_Granularities != "" {
+		err = b.WriteField("timestamp_granularities[]", string(request.Timestamp_Granularities))
+		if err != nil {
+			return fmt.Errorf("writing timestamp_granularities: %w", err)
 		}
 	}
 

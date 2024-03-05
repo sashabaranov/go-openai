@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
@@ -23,13 +24,23 @@ func main() {
 	resp, err := client.CreateTranscription(
 		context.Background(),
 		openai.AudioRequest{
-			Model:    openai.Whisper1,
-			FilePath: os.Args[1],
+			Model:                   openai.Whisper1,
+			FilePath:                os.Args[1],
+			Format:                  openai.AudioResponseFormatVerboseJSON,
+			Timestamp_Granularities: openai.TimestampGranularitiesWord, // Timestamp granularities are only supported with response_format=verbose_json
 		},
 	)
 	if err != nil {
 		fmt.Printf("Transcription error: %v\n", err)
 		return
 	}
+
+	jsonOutput, err := json.Marshal(&resp.Words)
+	if err != nil {
+		fmt.Printf("Unmarshal JSON error: %v\n", err)
+		return
+	}
+
+	fmt.Println(string(jsonOutput))
 	fmt.Println(resp.Text)
 }

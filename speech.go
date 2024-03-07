@@ -33,6 +33,8 @@ const (
 	SpeechResponseFormatOpus SpeechResponseFormat = "opus"
 	SpeechResponseFormatAac  SpeechResponseFormat = "aac"
 	SpeechResponseFormatFlac SpeechResponseFormat = "flac"
+	SpeechResponseFormatWav  SpeechResponseFormat = "wav"
+	SpeechResponseFormatPcm  SpeechResponseFormat = "pcm"
 )
 
 var (

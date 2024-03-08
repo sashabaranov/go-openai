@@ -27,6 +27,14 @@ const (
 	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
 )
 
+const (
+	// TimestampGranularityWord indicates timestamps at the word level.
+	TimestampGranularitiesWord string = "word"
+
+	// TimestampGranularitySegment indicates timestamps at the segment level.
+	TimestampGranularitiesSegment string = "segment"
+)
+
 // AudioRequest represents a request structure for audio API.
 // ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
@@ -42,6 +50,9 @@ type AudioRequest struct {
 	Temperature float32
 	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
 	Format      AudioResponseFormat
+
+	// response_format must be set verbose_json to use timestamp granularities.
+	TimestampGranularities string // Defaults to segment
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -62,6 +73,11 @@ type AudioResponse struct {
 		NoSpeechProb     float64 `json:"no_speech_prob"`
 		Transient        bool    `json:"transient"`
 	} `json:"segments"`
+	Words []struct {
+		Start float64 `json:"start"`
+		End   float64 `json:"end"`
+		Word  string  `json:"word"`
+	} `json:"words"`
 	Text string `json:"text"`
 
 	httpHeader
@@ -168,6 +184,14 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		err = b.WriteField("temperature", fmt.Sprintf("%.2f", request.Temperature))
 		if err != nil {
 			return fmt.Errorf("writing temperature: %w", err)
+		}
+	}
+
+	// Create a form field for the timestamp_granularities[] (if provided)
+	if request.TimestampGranularities != "" {
+		err = b.WriteField("timestamp_granularities[]", request.TimestampGranularities)
+		if err != nil {
+			return fmt.Errorf("writing timestamp_granularities: %w", err)
 		}
 	}
 

@@ -99,12 +99,13 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 			test.CreateTestFile(t, path)
 
 			req := openai.AudioRequest{
-				FilePath:    path,
-				Model:       "whisper-3",
-				Prompt:      "用简体中文",
-				Temperature: 0.5,
-				Language:    "zh",
-				Format:      openai.AudioResponseFormatSRT,
+				FilePath:               path,
+				Model:                  "whisper-3",
+				Prompt:                 "用简体中文",
+				Temperature:            0.5,
+				Language:               "zh",
+				Format:                 openai.AudioResponseFormatVerboseJSON,
+				TimestampGranularities: openai.TimestampGranularitiesWord,
 			}
 			_, err := tc.createFn(ctx, req)
 			checks.NoError(t, err, "audio API error")

@@ -253,7 +253,6 @@ When asked a question, write and run Python code to answer the question.`
 		if assistant.Tools == nil {
 			t.Errorf("expected a slice got %v", assistant.Tools)
 		}
-
 	})
 }
 

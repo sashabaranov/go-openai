@@ -42,9 +42,10 @@ type AssistantTool struct {
 	Function *FunctionDefinition `json:"function,omitempty"`
 }
 
-// AssistantRequest provides the assistant request paramters. When modifying the tools the API functions as the following:
+// AssistantRequest provides the assistant request parameters.
+// When modifying the tools the API functions as the following:
 // If Tools is undefined, no changes are made to the Assistant's tools.
-// If Tools is an empty slice (initiated with make([]AssistantTool, 0), it will effectively delete all of the Assistant's tools.
+// If Tools is empty slice it will effectively delete all of the Assistant's tools.
 // If Tools is populated, it will replace all of the existing Assistant's tools with the provided tools.
 type AssistantRequest struct {
 	Model        string          `json:"model"`

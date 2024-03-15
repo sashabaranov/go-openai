@@ -96,7 +96,7 @@ When asked a question, write and run Python code to answer the question.`
 				})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodPost:
-				var request openai.AssistantRequest
+				var request openai.Assistant
 				err := json.NewDecoder(r.Body).Decode(&request)
 				checks.NoError(t, err, "Decode error")
 
@@ -163,44 +163,97 @@ When asked a question, write and run Python code to answer the question.`
 
 	ctx := context.Background()
 
-	_, err := client.CreateAssistant(ctx, openai.AssistantRequest{
-		Name:         &assistantName,
-		Description:  &assistantDescription,
-		Model:        openai.GPT4TurboPreview,
-		Instructions: &assistantInstructions,
+	t.Run("create_assistant", func(t *testing.T) {
+		_, err := client.CreateAssistant(ctx, openai.AssistantRequest{
+			Name:         &assistantName,
+			Description:  &assistantDescription,
+			Model:        openai.GPT4TurboPreview,
+			Instructions: &assistantInstructions,
+		})
+		checks.NoError(t, err, "CreateAssistant error")
 	})
-	checks.NoError(t, err, "CreateAssistant error")
 
-	_, err = client.RetrieveAssistant(ctx, assistantID)
-	checks.NoError(t, err, "RetrieveAssistant error")
-
-	_, err = client.ModifyAssistant(ctx, assistantID, openai.AssistantRequest{
-		Name:         &assistantName,
-		Description:  &assistantDescription,
-		Model:        openai.GPT4TurboPreview,
-		Instructions: &assistantInstructions,
+	t.Run("retrieve_assistant", func(t *testing.T) {
+		_, err := client.RetrieveAssistant(ctx, assistantID)
+		checks.NoError(t, err, "RetrieveAssistant error")
 	})
-	checks.NoError(t, err, "ModifyAssistant error")
 
-	_, err = client.DeleteAssistant(ctx, assistantID)
-	checks.NoError(t, err, "DeleteAssistant error")
-
-	_, err = client.ListAssistants(ctx, &limit, &order, &after, &before)
-	checks.NoError(t, err, "ListAssistants error")
-
-	_, err = client.CreateAssistantFile(ctx, assistantID, openai.AssistantFileRequest{
-		FileID: assistantFileID,
+	t.Run("delete_assistant", func(t *testing.T) {
+		_, err := client.DeleteAssistant(ctx, assistantID)
+		checks.NoError(t, err, "DeleteAssistant error")
 	})
-	checks.NoError(t, err, "CreateAssistantFile error")
 
-	_, err = client.ListAssistantFiles(ctx, assistantID, &limit, &order, &after, &before)
-	checks.NoError(t, err, "ListAssistantFiles error")
+	t.Run("list_assistant", func(t *testing.T) {
+		_, err := client.ListAssistants(ctx, &limit, &order, &after, &before)
+		checks.NoError(t, err, "ListAssistants error")
+	})
 
-	_, err = client.RetrieveAssistantFile(ctx, assistantID, assistantFileID)
-	checks.NoError(t, err, "RetrieveAssistantFile error")
+	t.Run("create_assistant_file", func(t *testing.T) {
+		_, err := client.CreateAssistantFile(ctx, assistantID, openai.AssistantFileRequest{
+			FileID: assistantFileID,
+		})
+		checks.NoError(t, err, "CreateAssistantFile error")
+	})
 
-	err = client.DeleteAssistantFile(ctx, assistantID, assistantFileID)
-	checks.NoError(t, err, "DeleteAssistantFile error")
+	t.Run("list_assistant_files", func(t *testing.T) {
+		_, err := client.ListAssistantFiles(ctx, assistantID, &limit, &order, &after, &before)
+		checks.NoError(t, err, "ListAssistantFiles error")
+	})
+
+	t.Run("retrieve_assistant_file", func(t *testing.T) {
+		_, err := client.RetrieveAssistantFile(ctx, assistantID, assistantFileID)
+		checks.NoError(t, err, "RetrieveAssistantFile error")
+	})
+
+	t.Run("delete_assistant_file", func(t *testing.T) {
+		err := client.DeleteAssistantFile(ctx, assistantID, assistantFileID)
+		checks.NoError(t, err, "DeleteAssistantFile error")
+	})
+
+	t.Run("modify_assistant_no_tools", func(t *testing.T) {
+		assistant, err := client.ModifyAssistant(ctx, assistantID, openai.AssistantRequest{
+			Name:         &assistantName,
+			Description:  &assistantDescription,
+			Model:        openai.GPT4TurboPreview,
+			Instructions: &assistantInstructions,
+		})
+		checks.NoError(t, err, "ModifyAssistant error")
+
+		if assistant.Tools != nil {
+			t.Errorf("expected nil got %v", assistant.Tools)
+		}
+	})
+
+	t.Run("modify_assistant_with_tools", func(t *testing.T) {
+		assistant, err := client.ModifyAssistant(ctx, assistantID, openai.AssistantRequest{
+			Name:         &assistantName,
+			Description:  &assistantDescription,
+			Model:        openai.GPT4TurboPreview,
+			Instructions: &assistantInstructions,
+			Tools:        []openai.AssistantTool{{Type: openai.AssistantToolTypeFunction}},
+		})
+		checks.NoError(t, err, "ModifyAssistant error")
+
+		if assistant.Tools == nil || len(assistant.Tools) != 1 {
+			t.Errorf("expected a slice got %v", assistant.Tools)
+		}
+	})
+
+	t.Run("modify_assistant_empty_tools", func(t *testing.T) {
+		assistant, err := client.ModifyAssistant(ctx, assistantID, openai.AssistantRequest{
+			Name:         &assistantName,
+			Description:  &assistantDescription,
+			Model:        openai.GPT4TurboPreview,
+			Instructions: &assistantInstructions,
+			Tools:        make([]openai.AssistantTool, 0),
+		})
+
+		checks.NoError(t, err, "ModifyAssistant error")
+
+		if assistant.Tools == nil {
+			t.Errorf("expected a slice got %v", assistant.Tools)
+		}
+	})
 }
 
 func TestAzureAssistant(t *testing.T) {

@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -21,7 +22,7 @@ type Assistant struct {
 	Description  *string         `json:"description,omitempty"`
 	Model        string          `json:"model"`
 	Instructions *string         `json:"instructions,omitempty"`
-	Tools        []AssistantTool `json:"tools,omitempty"`
+	Tools        []AssistantTool `json:"tools"`
 	FileIDs      []string        `json:"file_ids,omitempty"`
 	Metadata     map[string]any  `json:"metadata,omitempty"`
 
@@ -41,14 +42,39 @@ type AssistantTool struct {
 	Function *FunctionDefinition `json:"function,omitempty"`
 }
 
+// AssistantRequest provides the assistant request parameters.
+// When modifying the tools the API functions as the following:
+// If Tools is undefined, no changes are made to the Assistant's tools.
+// If Tools is empty slice it will effectively delete all of the Assistant's tools.
+// If Tools is populated, it will replace all of the existing Assistant's tools with the provided tools.
 type AssistantRequest struct {
 	Model        string          `json:"model"`
 	Name         *string         `json:"name,omitempty"`
 	Description  *string         `json:"description,omitempty"`
 	Instructions *string         `json:"instructions,omitempty"`
-	Tools        []AssistantTool `json:"tools"`
+	Tools        []AssistantTool `json:"-"`
 	FileIDs      []string        `json:"file_ids,omitempty"`
 	Metadata     map[string]any  `json:"metadata,omitempty"`
+}
+
+// MarshalJSON provides a custom marshaller for the assistant request to handle the API use cases
+// If Tools is nil, the field is omitted from the JSON.
+// If Tools is an empty slice, it's included in the JSON as an empty array ([]).
+// If Tools is populated, it's included in the JSON with the elements.
+func (a AssistantRequest) MarshalJSON() ([]byte, error) {
+	type Alias AssistantRequest
+	assistantAlias := &struct {
+		Tools *[]AssistantTool `json:"tools,omitempty"`
+		*Alias
+	}{
+		Alias: (*Alias)(&a),
+	}
+
+	if a.Tools != nil {
+		assistantAlias.Tools = &a.Tools
+	}
+
+	return json.Marshal(assistantAlias)
 }
 
 // AssistantsList is a list of assistants.

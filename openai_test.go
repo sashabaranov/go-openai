@@ -27,6 +27,17 @@ func setupAzureTestServer() (client *openai.Client, server *test.ServerTest, tea
 	return
 }
 
+func setupGroqTestServer() (client *openai.Client, server *test.ServerTest, teardown func()) {
+	server = test.NewTestServer()
+	ts := server.OpenAITestServer()
+	ts.Start()
+	teardown = ts.Close
+	config := openai.DefaultGroqConfig(test.GetTestToken())
+	config.BaseURL = ts.URL + "/v1"
+	client = openai.NewClientWithConfig(config)
+	return
+}
+
 // numTokens Returns the number of GPT-3 encoded tokens in the given text.
 // This function approximates based on the rule of thumb stated by OpenAI:
 // https://beta.openai.com/tokenizer

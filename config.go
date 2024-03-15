@@ -6,7 +6,9 @@ import (
 )
 
 const (
-	openaiAPIURLv1                 = "https://api.openai.com/v1"
+	openaiAPIURLv1 = "https://api.openai.com/v1"
+	groqAPIURLv1   = "https://api.groq.com/openai/v1"
+
 	defaultEmptyMessagesLimit uint = 300
 
 	azureAPIPrefix         = "openai"
@@ -19,6 +21,7 @@ const (
 	APITypeOpenAI  APIType = "OPEN_AI"
 	APITypeAzure   APIType = "AZURE"
 	APITypeAzureAD APIType = "AZURE_AD"
+	APITypeGroq    APIType = "GROQ"
 )
 
 const AzureAPIKeyHeader = "api-key"
@@ -60,6 +63,20 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 		AzureModelMapperFunc: func(model string) string {
 			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
 		},
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}
+
+// DefaultGroqConfig takes a Groq auth token and returns a ClientConfig that works with Groq's OpenAI Compatibility API.
+func DefaultGroqConfig(authToken string) ClientConfig {
+	return ClientConfig{
+		authToken: authToken,
+		BaseURL:   groqAPIURLv1,
+		APIType:   APITypeGroq,
+		OrgID:     "",
 
 		HTTPClient: &http.Client{},
 

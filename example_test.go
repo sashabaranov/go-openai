@@ -345,3 +345,38 @@ func ExampleAPIError() {
 		}
 	}
 }
+
+// ExampleDefaultGroqConfig demonstrates how to create a new DefaultGroqConfig, create a Groq client,
+// use a hosted Groq model, and create a chat completion.
+func ExampleDefaultGroqConfig() {
+	config := openai.DefaultGroqConfig(os.Getenv("GROQ_API_KEY"))
+	client := openai.NewClientWithConfig(config)
+
+	req := openai.ChatCompletionRequest{
+		Model: openai.Groq.Mixtral8x7b,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleSystem,
+				Content: "you are a helpful chatbot",
+			},
+		},
+	}
+	fmt.Println("Conversation")
+	fmt.Println("---------------------")
+	fmt.Print("> ")
+	s := bufio.NewScanner(os.Stdin)
+	for s.Scan() {
+		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
+			Role:    openai.ChatMessageRoleUser,
+			Content: s.Text(),
+		})
+		resp, err := client.CreateChatCompletion(context.Background(), req)
+		if err != nil {
+			fmt.Printf("ChatCompletion error: %v\n", err)
+			continue
+		}
+		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content)
+		req.Messages = append(req.Messages, resp.Choices[0].Message)
+		fmt.Print("> ")
+	}
+}

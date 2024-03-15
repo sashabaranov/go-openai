@@ -97,6 +97,24 @@ func TestChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
+// TestGroqChatCompletions Tests the completions endpoint of the API using the mocked server.
+func TestGroqChatCompletions(t *testing.T) {
+	client, server, teardown := setupGroqTestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.Groq.Mixtral8x7b,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestChatCompletionsWithHeaders(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()

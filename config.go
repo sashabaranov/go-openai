@@ -11,6 +11,7 @@ const (
 
 	azureAPIPrefix         = "openai"
 	azureDeploymentsPrefix = "deployments"
+	azureDefaultAPIVersion = "2023-05-15"
 )
 
 type APIType string
@@ -50,13 +51,21 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
-func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
-	return ClientConfig{
+type AzureConfigOption func(*ClientConfig)
+
+func WithAzureAPIVersion(apiVersion string) AzureConfigOption {
+	return func(c *ClientConfig) {
+		c.APIVersion = apiVersion
+	}
+}
+
+func DefaultAzureConfig(apiKey, baseURL string, opts ...AzureConfigOption) ClientConfig {
+	c := ClientConfig{
 		authToken:  apiKey,
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAzure,
-		APIVersion: "2023-05-15",
+		APIVersion: azureDefaultAPIVersion,
 		AzureModelMapperFunc: func(model string) string {
 			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
 		},
@@ -65,6 +74,10 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 
 		EmptyMessagesLimit: defaultEmptyMessagesLimit,
 	}
+	for _, opt := range opts {
+		opt(&c)
+	}
+	return c
 }
 
 func (ClientConfig) String() string {

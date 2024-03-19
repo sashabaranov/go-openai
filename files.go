@@ -10,9 +10,10 @@ import (
 )
 
 type FileRequest struct {
-	FileName string `json:"file"`
-	FilePath string `json:"-"`
-	Purpose  string `json:"purpose"`
+	FileName   string    `json:"file"`
+	FilePath   string    `json:"-"`
+	FileReader io.Reader `json:"-"`
+	Purpose    string    `json:"purpose"`
 }
 
 // PurposeType represents the purpose of the file when uploading.
@@ -98,14 +99,21 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	fileData, err := os.Open(request.FilePath)
-	if err != nil {
-		return
-	}
-
-	err = builder.CreateFormFile("file", fileData)
-	if err != nil {
-		return
+	if request.FileReader != nil {
+		err = builder.CreateFormFileReader("file", request.FileReader, request.FileName)
+		if err != nil {
+			return
+		}
+	} else if request.FilePath != "" {
+		var fileData *os.File
+		fileData, err = os.Open(request.FilePath)
+		if err != nil {
+			return
+		}
+		err = builder.CreateFormFile("file", fileData)
+		if err != nil {
+			return
+		}
 	}
 
 	err = builder.Close()

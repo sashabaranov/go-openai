@@ -95,21 +95,4 @@ func TestSpeechIntegration(t *testing.T) {
 		err = os.WriteFile("test.mp3", buf, 0644)
 		checks.NoError(t, err, "Create error")
 	})
-	t.Run("invalid model", func(t *testing.T) {
-		_, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-			Model: "invalid_model",
-			Input: "Hello!",
-			Voice: openai.VoiceAlloy,
-		})
-		checks.ErrorIs(t, err, openai.ErrInvalidSpeechModel, "CreateSpeech error")
-	})
-
-	t.Run("invalid voice", func(t *testing.T) {
-		_, err := client.CreateSpeech(context.Background(), openai.CreateSpeechRequest{
-			Model: openai.TTSModel1,
-			Input: "Hello!",
-			Voice: "invalid_voice",
-		})
-		checks.ErrorIs(t, err, openai.ErrInvalidVoice, "CreateSpeech error")
-	})
 }

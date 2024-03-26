@@ -41,7 +41,7 @@ func TestRequestAuthHeader(t *testing.T) {
 		Name      string
 		APIType   APIType
 		HeaderKey string
-		Token     string
+		Token     AuthBuilder
 		OrgID     string
 		Expect    string
 	}{
@@ -49,7 +49,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			"OpenAIDefault",
 			"",
 			"Authorization",
-			"dummy-token-openai",
+			APIKey("dummy-token-openai"),
 			"",
 			"Bearer dummy-token-openai",
 		},
@@ -57,7 +57,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			"OpenAIOrg",
 			APITypeOpenAI,
 			"Authorization",
-			"dummy-token-openai",
+			APIKey("dummy-token-openai"),
 			"dummy-org-openai",
 			"Bearer dummy-token-openai",
 		},
@@ -65,7 +65,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			"OpenAI",
 			APITypeOpenAI,
 			"Authorization",
-			"dummy-token-openai",
+			APIKey("dummy-token-openai"),
 			"",
 			"Bearer dummy-token-openai",
 		},
@@ -73,7 +73,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			"AzureAD",
 			APITypeAzureAD,
 			"Authorization",
-			"dummy-token-azure",
+			APIKey("dummy-token-azure"),
 			"",
 			"Bearer dummy-token-azure",
 		},
@@ -81,7 +81,7 @@ func TestRequestAuthHeader(t *testing.T) {
 			"Azure",
 			APITypeAzure,
 			AzureAPIKeyHeader,
-			"dummy-api-key-here",
+			AzureAPIKey("dummy-api-key-here"),
 			"",
 			"dummy-api-key-here",
 		},
@@ -89,7 +89,9 @@ func TestRequestAuthHeader(t *testing.T) {
 
 	for _, c := range cases {
 		t.Run(c.Name, func(t *testing.T) {
-			az := DefaultConfig(c.Token)
+			az := ClientConfig{
+				AuthToken: c.Token,
+			}
 			az.APIType = c.APIType
 			az.OrgID = c.OrgID
 

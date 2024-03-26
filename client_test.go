@@ -8,6 +8,7 @@ import (
 	"io"
 	"net/http"
 	"reflect"
+	"strings"
 	"testing"
 
 	"github.com/sashabaranov/go-openai/internal/test"
@@ -22,16 +23,26 @@ func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any, _ htt
 	return nil, errTestRequestBuilderFailed
 }
 
+func getToken(authToken AuthBuilder, transformer func(h http.Header) string) string {
+	req, _ := http.NewRequest("GET", "http://example.com", nil)
+	authToken(req)
+	return transformer(req.Header)
+}
+
+func getBearerToken(h http.Header) string {
+	return strings.ReplaceAll(h.Get("Authorization"), "Bearer ", "")
+}
+
 func TestClient(t *testing.T) {
 	const mockToken = "mock token"
 	client := NewClient(mockToken)
-	if client.config.authToken != mockToken {
+	if getToken(client.config.AuthToken, getBearerToken) != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}
 
 	const mockOrg = "mock org"
 	client = NewOrgClient(mockToken, mockOrg)
-	if client.config.authToken != mockToken {
+	if getToken(client.config.AuthToken, getBearerToken) != mockToken {
 		t.Errorf("Client does not contain proper token")
 	}
 	if client.config.OrgID != mockOrg {

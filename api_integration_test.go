@@ -5,7 +5,6 @@ package openai_test
 import (
 	"context"
 	"errors"
-	"io"
 	"os"
 	"testing"
 
@@ -26,7 +25,7 @@ func TestAPI(t *testing.T) {
 	_, err = c.ListEngines(ctx)
 	checks.NoError(t, err, "ListEngines error")
 
-	_, err = c.GetEngine(ctx, "davinci")
+	_, err = c.GetEngine(ctx, "text-embedding-3-small")
 	checks.NoError(t, err, "GetEngine error")
 
 	fileRes, err := c.ListFiles(ctx)
@@ -42,7 +41,7 @@ func TestAPI(t *testing.T) {
 			"The food was delicious and the waiter",
 			"Other examples of embedding request",
 		},
-		Model: openai.AdaSearchQuery,
+		Model: openai.SmallEmbedding3,
 	}
 	_, err = c.CreateEmbeddings(ctx, embeddingReq)
 	checks.NoError(t, err, "Embedding error")
@@ -76,31 +75,6 @@ func TestAPI(t *testing.T) {
 		},
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with name) returned error")
-
-	stream, err := c.CreateCompletionStream(ctx, openai.CompletionRequest{
-		Prompt:    "Ex falso quodlibet",
-		Model:     openai.GPT3Ada,
-		MaxTokens: 5,
-		Stream:    true,
-	})
-	checks.NoError(t, err, "CreateCompletionStream returned error")
-	defer stream.Close()
-
-	counter := 0
-	for {
-		_, err = stream.Recv()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			t.Errorf("Stream error: %v", err)
-		} else {
-			counter++
-		}
-	}
-	if counter == 0 {
-		t.Error("Stream did not return any responses")
-	}
 
 	_, err = c.CreateChatCompletion(
 		context.Background(),

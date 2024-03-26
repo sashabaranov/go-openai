@@ -14,7 +14,7 @@ import (
 
 // Client is OpenAI GPT-3 API client.
 type Client struct {
-	config ClientConfig
+	config *ClientConfig
 
 	requestBuilder    utils.RequestBuilder
 	createFormBuilder func(io.Writer) utils.FormBuilder
@@ -47,7 +47,7 @@ func NewClient(authToken string) *Client {
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
-		config:         config,
+		config:         &config,
 		requestBuilder: utils.NewRequestBuilder(),
 		createFormBuilder: func(body io.Writer) utils.FormBuilder {
 			return utils.NewFormBuilder(body)
@@ -173,12 +173,8 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
-	if c.config.APIType == APITypeAzure {
-		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
-	} else if c.config.authToken != "" {
-		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
-	}
+	c.config.AuthToken(req)
+
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)
 	}

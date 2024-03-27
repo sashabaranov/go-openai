@@ -3,9 +3,9 @@ package main
 import (
 	"context"
 	"fmt"
-	"io"
-    "os"
 	openai "github.com/sashabaranov/go-openai"
+	"io"
+	"os"
 )
 
 func main() {
@@ -30,33 +30,33 @@ func main() {
 	defer stream.Close()
 
 	fmt.Printf("Stream response: ")
-    /*
-	for {
-		response, err := stream.Recv()
-		if errors.Is(err, io.EOF) {
-			fmt.Println("\nStream finished")
-			return
-		}
+	/*
+		for {
+			response, err := stream.Recv()
+			if errors.Is(err, io.EOF) {
+				fmt.Println("\nStream finished")
+				return
+			}
 
-		if err != nil {
-			fmt.Printf("\nStream error: %v\n", err)
-			return
-		}
+			if err != nil {
+				fmt.Printf("\nStream error: %v\n", err)
+				return
+			}
 
-		fmt.Printf("%s", response.Choices[0].Delta.Content)
+			fmt.Printf("%s", response.Choices[0].Delta.Content)
+		}
+	*/
+	err = stream.On("message", func(resp openai.ChatCompletionStreamResponse, rawData []byte) {
+		fmt.Printf("%s", resp.Choices[0].Delta.Content)
+	})
+	if err != nil {
+		fmt.Printf("Stream error: %v\n", err)
+		return
 	}
-    */
-    err = stream.On("data", func (resp openai.ChatCompletionStreamResponse, rawData []byte) {
-        fmt.Printf("%s", resp.Choices[0].Delta.Content)
-    })
-    if err != nil  {
-        fmt.Printf("Stream error: %v\n", err) 
-        return
-    }
-    err = stream.Wait()
-    if err != io.EOF {
-        fmt.Println("\nStream finished with error", err)
-        return
-    }
-    fmt.Println("\nStream finished")
+	err = stream.Wait()
+	if err != io.EOF {
+		fmt.Println("\nStream finished with error", err)
+		return
+	}
+	fmt.Println("\nStream finished")
 }

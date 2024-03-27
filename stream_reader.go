@@ -3,6 +3,7 @@ package openai
 import (
 	"bufio"
 	"bytes"
+	"context"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,10 +14,11 @@ import (
 var (
 	headerData  = []byte("data: ")
 	errorPrefix = []byte(`data: {"error":`)
+	headerEvent = []byte("event: ")
 )
 
 type streamable interface {
-	ChatCompletionStreamResponse | CompletionResponse
+	ChatCompletionStreamResponse | CompletionResponse | AssistantThreadRunStreamResponse
 }
 
 type streamReader[T streamable] struct {
@@ -28,7 +30,57 @@ type streamReader[T streamable] struct {
 	errAccumulator utils.ErrorAccumulator
 	unmarshaler    utils.Unmarshaler
 
+	event       string
+	handlers    map[string]eventHandler[T]
+	hasHandler  bool
+	handlerCtx  context.Context
+	lastRawLine []byte
+
 	httpHeader
+}
+
+type eventHandler[T streamable] func(T, []byte)
+
+func (stream *streamReader[T]) On(event string, handler eventHandler[T]) (err error) {
+	if len(event) == 0 {
+		return fmt.Errorf("error: %s", "event can not be empty")
+	}
+	if !stream.hasHandler {
+		stream.handlers = make(map[string]eventHandler[T])
+		stream.hasHandler = true
+		ctx, cancel := context.WithCancelCause(context.Background())
+		stream.handlerCtx = ctx
+		go func() {
+			var cause error
+			defer func() {
+				if r := recover(); r != nil {
+					cause = fmt.Errorf("panic from streamReader event handler, %v", r)
+				}
+				cancel(cause)
+			}()
+			for {
+				resp, err := stream.Recv()
+				if err != nil {
+					cause = err
+					return
+				}
+				if callback, ok := stream.handlers[stream.event]; ok {
+					callback(resp, bytes.TrimPrefix(stream.lastRawLine, headerData))
+				}
+			}
+		}()
+	}
+	stream.handlers[event] = handler
+	return
+}
+
+func (stream *streamReader[T]) Wait() (err error) {
+	if !stream.hasHandler {
+		return
+	}
+	stream.event = "message" // default event for chat completion stream
+	<-stream.handlerCtx.Done()
+	return context.Cause(stream.handlerCtx)
 }
 
 func (stream *streamReader[T]) Recv() (response T, err error) {
@@ -58,6 +110,8 @@ func (stream *streamReader[T]) processLines() (T, error) {
 			return *new(T), readErr
 		}
 
+		stream.lastRawLine = rawLine
+
 		noSpaceLine := bytes.TrimSpace(rawLine)
 		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
 			hasErrorPrefix = true
@@ -74,7 +128,10 @@ func (stream *streamReader[T]) processLines() (T, error) {
 			if emptyMessagesCount > stream.emptyMessagesLimit {
 				return *new(T), ErrTooManyEmptyStreamMessages
 			}
-
+			// should optimize the code above for checking empty messages to better support stream events
+			if bytes.HasPrefix(noSpaceLine, headerEvent) {
+				stream.event = string(bytes.TrimPrefix(noSpaceLine, headerEvent))
+			}
 			continue
 		}
 

@@ -34,7 +34,7 @@ type streamReader[T streamable] struct {
 	handlers    map[string]eventHandler[T]
 	hasHandler  bool
 	handlerCtx  context.Context
-    handlerErr  error
+	handlerErr  error
 	lastRawLine []byte
 
 	httpHeader

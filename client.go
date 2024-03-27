@@ -38,6 +38,12 @@ func (h *httpHeader) GetRateLimitHeaders() RateLimitHeaders {
 	return newRateLimitHeaders(h.Header())
 }
 
+type RawResponse struct {
+	io.ReadCloser
+
+	httpHeader
+}
+
 // NewClient creates new OpenAI API client.
 func NewClient(authToken string) *Client {
 	config := DefaultConfig(authToken)
@@ -134,7 +140,7 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 	return decodeResponse(res.Body, v)
 }
 
-func (c *Client) sendRequestRaw(req *http.Request) (body io.ReadCloser, err error) {
+func (c *Client) sendRequestRaw(req *http.Request, v *RawResponse) (err error) {
 	resp, err := c.config.HTTPClient.Do(req)
 	if err != nil {
 		return
@@ -144,7 +150,10 @@ func (c *Client) sendRequestRaw(req *http.Request) (body io.ReadCloser, err erro
 		err = c.handleErrorResp(resp)
 		return
 	}
-	return resp.Body, nil
+
+	v.SetHeader(resp.Header)
+	v.ReadCloser = resp.Body
+	return nil
 }
 
 func sendRequestStream[T streamable](client *Client, req *http.Request) (*streamReader[T], error) {

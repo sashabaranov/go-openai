@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 )
@@ -159,13 +158,13 @@ func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err err
 	return
 }
 
-func (c *Client) GetFileContent(ctx context.Context, fileID string) (content io.ReadCloser, err error) {
+func (c *Client) GetFileContent(ctx context.Context, fileID string) (content RawResponse, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s/content", fileID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
 
-	content, err = c.sendRequestRaw(req)
+	err = c.sendRequestRaw(req, &content)
 	return
 }

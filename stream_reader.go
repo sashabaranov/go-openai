@@ -34,6 +34,7 @@ type streamReader[T streamable] struct {
 	handlers    map[string]eventHandler[T]
 	hasHandler  bool
 	handlerCtx  context.Context
+    handlerErr  error
 	lastRawLine []byte
 
 	httpHeader
@@ -48,20 +49,19 @@ func (stream *streamReader[T]) On(event string, handler eventHandler[T]) (err er
 	if !stream.hasHandler {
 		stream.handlers = make(map[string]eventHandler[T])
 		stream.hasHandler = true
-		ctx, cancel := context.WithCancelCause(context.Background())
+		ctx, cancel := context.WithCancel(context.Background())
 		stream.handlerCtx = ctx
 		go func() {
-			var cause error
 			defer func() {
 				if r := recover(); r != nil {
-					cause = fmt.Errorf("panic from streamReader event handler, %v", r)
+					stream.handlerErr = fmt.Errorf("panic from streamReader event handler, %v", r)
 				}
-				cancel(cause)
+				cancel()
 			}()
 			for {
 				resp, _err := stream.Recv()
 				if _err != nil {
-					cause = _err
+					stream.handlerErr = _err
 					return
 				}
 				if callback, ok := stream.handlers[stream.event]; ok {
@@ -80,7 +80,7 @@ func (stream *streamReader[T]) Wait() (err error) {
 	}
 	stream.event = "message" // default event for chat completion stream
 	<-stream.handlerCtx.Done()
-	return context.Cause(stream.handlerCtx)
+	return stream.handlerErr
 }
 
 func (stream *streamReader[T]) Recv() (response T, err error) {

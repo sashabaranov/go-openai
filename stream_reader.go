@@ -59,9 +59,9 @@ func (stream *streamReader[T]) On(event string, handler eventHandler[T]) (err er
 				cancel(cause)
 			}()
 			for {
-				resp, err := stream.Recv()
-				if err != nil {
-					cause = err
+				resp, _err := stream.Recv()
+				if _err != nil {
+					cause = _err
 					return
 				}
 				if callback, ok := stream.handlers[stream.event]; ok {

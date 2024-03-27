@@ -78,6 +78,7 @@ type RunRequest struct {
 	AdditionalInstructions string         `json:"additional_instructions,omitempty"`
 	Tools                  []Tool         `json:"tools,omitempty"`
 	Metadata               map[string]any `json:"metadata,omitempty"`
+	Stream                 bool           `json:"stream,omitempty"`
 }
 
 type RunModifyRequest struct {
@@ -93,6 +94,7 @@ type RunList struct {
 
 type SubmitToolOutputsRequest struct {
 	ToolOutputs []ToolOutput `json:"tool_outputs"`
+	Stream      bool         `json:"stream"`
 }
 
 type ToolOutput struct {

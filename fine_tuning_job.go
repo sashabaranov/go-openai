@@ -7,6 +7,14 @@ import (
 	"net/url"
 )
 
+// FineTuningJobList is a list of fine-tune jobs.
+type FineTuningJobList struct {
+	FineTuningJobs []FineTuningJob `json:"data"`
+	HasMore        bool            `json:"has_more"`
+
+	httpHeader
+}
+
 type FineTuningJob struct {
 	ID              string          `json:"id"`
 	Object          string          `json:"object"`
@@ -55,13 +63,69 @@ type FineTuningJobEvent struct {
 	Type      string `json:"type"`
 }
 
+const fineTuningJobSuffix = "/fine_tuning/jobs"
+
 // CreateFineTuningJob create a fine tuning job.
 func (c *Client) CreateFineTuningJob(
 	ctx context.Context,
 	request FineTuningJobRequest,
 ) (response FineTuningJob, err error) {
-	urlSuffix := "/fine_tuning/jobs"
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(fineTuningJobSuffix), withBody(request))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+type listFineTuningJobsParameters struct {
+	after *string
+	limit *int
+}
+
+type ListFineTuningJobsParameters func(*listFineTuningJobsParameters)
+
+func ListFineTuningJobsWithAfter(after string) ListFineTuningJobsParameters {
+	return func(args *listFineTuningJobsParameters) {
+		args.after = &after
+	}
+}
+
+func ListFineTuningJobsWithLimit(limit int) ListFineTuningJobsParameters {
+	return func(args *listFineTuningJobsParameters) {
+		args.limit = &limit
+	}
+}
+
+// ListFineTuningJobs Lists the fine-tuning jobs.
+func (c *Client) ListFineTuningJobs(
+	ctx context.Context,
+	setters ...ListFineTuningJobsParameters,
+) (response FineTuningJobList, err error) {
+	parameters := &listFineTuningJobsParameters{
+		after: nil,
+		limit: nil,
+	}
+
+	for _, setter := range setters {
+		setter(parameters)
+	}
+	urlValues := url.Values{}
+	if parameters.limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *parameters.limit))
+	}
+	if parameters.after != nil {
+		urlValues.Add("after", *parameters.after)
+	}
+
+	encodedValues := ""
+	if len(urlValues) > 0 {
+		encodedValues = "?" + urlValues.Encode()
+	}
+
+	urlSuffix := fmt.Sprintf("%s%s", fineTuningJobSuffix, encodedValues)
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}

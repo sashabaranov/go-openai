@@ -165,6 +165,5 @@ func (c *Client) GetFileContent(ctx context.Context, fileID string) (content Raw
 		return
 	}
 
-	err = c.sendRequestRaw(req, &content)
-	return
+	return c.sendRequestRaw(req)
 }

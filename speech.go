@@ -83,6 +83,5 @@ func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) 
 		return
 	}
 
-	err = c.sendRequestRaw(req, &response)
-	return
+	return c.sendRequestRaw(req)
 }

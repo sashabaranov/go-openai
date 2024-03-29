@@ -143,7 +143,7 @@ func (c *Client) ModifyMessage(
 ) (msg Message, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/%s/%s", threadID, messagesSuffix, messageID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
-		withBody(metadata), withBetaAssistantV1())
+		withBody(map[string]any{"metadata": metadata}), withBetaAssistantV1())
 	if err != nil {
 		return
 	}

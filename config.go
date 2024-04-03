@@ -16,9 +16,10 @@ const (
 type APIType string
 
 const (
-	APITypeOpenAI  APIType = "OPEN_AI"
-	APITypeAzure   APIType = "AZURE"
-	APITypeAzureAD APIType = "AZURE_AD"
+	APITypeOpenAI          APIType = "OPEN_AI"
+	APITypeAzure           APIType = "AZURE"
+	APITypeAzureAD         APIType = "AZURE_AD"
+	APITypeCloudflareAzure APIType = "CLOUDFLARE_AZURE"
 )
 
 const AzureAPIKeyHeader = "api-key"

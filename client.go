@@ -182,7 +182,7 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
-	if c.config.APIType == APITypeAzure {
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeCloudflareAzure {
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
 	} else if c.config.authToken != "" {
 		// OpenAI or Azure AD authentication
@@ -244,6 +244,12 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
 			azureDeploymentName, suffix, c.config.APIVersion,
 		)
+	}
+
+	if c.config.APIType == APITypeCloudflareAzure {
+		baseURL := c.config.BaseURL
+		baseURL = strings.TrimRight(baseURL, "/")
+		return fmt.Sprintf("%s%s?api-version=%s", baseURL, suffix, c.config.APIVersion)
 	}
 
 	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""

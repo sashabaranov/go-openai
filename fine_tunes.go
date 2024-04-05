@@ -115,7 +115,6 @@ func (c *Client) CreateFineTune(ctx context.Context, request FineTuneRequest) (r
 // This API will be officially deprecated on January 4th, 2024.
 // OpenAI recommends to migrate to the new fine tuning API implemented in fine_tuning_job.go.
 func (c *Client) CancelFineTune(ctx context.Context, fineTuneID string) (response FineTune, err error) {
-	//nolint:goconst // Decreases readability
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/fine-tunes/"+fineTuneID+"/cancel"))
 	if err != nil {
 		return

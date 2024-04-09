@@ -19,13 +19,19 @@ type ChatCompletionStreamChoice struct {
 	ContentFilterResults ContentFilterResults            `json:"content_filter_results,omitempty"`
 }
 
+type PromptFilterResult struct {
+	Index                int                  `json:"index"`
+	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
+}
+
 type ChatCompletionStreamResponse struct {
-	ID                string                       `json:"id"`
-	Object            string                       `json:"object"`
-	Created           int64                        `json:"created"`
-	Model             string                       `json:"model"`
-	Choices           []ChatCompletionStreamChoice `json:"choices"`
-	PromptAnnotations []PromptAnnotation           `json:"prompt_annotations,omitempty"`
+	ID                  string                       `json:"id"`
+	Object              string                       `json:"object"`
+	Created             int64                        `json:"created"`
+	Model               string                       `json:"model"`
+	Choices             []ChatCompletionStreamChoice `json:"choices"`
+	PromptAnnotations   []PromptAnnotation           `json:"prompt_annotations,omitempty"`
+	PromptFilterResults []PromptFilterResult         `json:"prompt_filter_results,omitempty"`
 }
 
 // ChatCompletionStream

@@ -16,6 +16,7 @@ const (
 )
 
 const chatCompletionsSuffix = "/query"
+const chatCompletionsSuffix16k = "/query16k"
 
 //const chatCompletionsSuffix = "/chat/completions"
 
@@ -207,13 +208,16 @@ type ChatCompletionResponse struct {
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,
+	is16k ...string,
 ) (response ChatCompletionResponse, err error) {
 	if request.Stream {
 		err = ErrChatCompletionStreamNotSupported
 		return
 	}
-
 	urlSuffix := chatCompletionsSuffix
+	if len(is16k) > 0 {
+		urlSuffix = chatCompletionsSuffix16k
+	}
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrChatCompletionInvalidModel
 		return

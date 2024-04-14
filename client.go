@@ -251,21 +251,36 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
-	var errRes ErrorResponse
-	err := json.NewDecoder(resp.Body).Decode(&errRes)
-	if err != nil || errRes.Error == nil {
-		reqErr := &RequestError{
+	var errResp ErrorResponse
+	var compErrResp CompatibleErrorResponse
+
+	bodyBytes, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &RequestError{
 			HTTPStatusCode: resp.StatusCode,
 			Err:            err,
 		}
-		if errRes.Error != nil {
-			reqErr.Err = errRes.Error
-		}
-		return reqErr
 	}
 
-	errRes.Error.HTTPStatusCode = resp.StatusCode
-	return errRes.Error
+	// Decode into ErrorResponse
+	// First attempt to decode into ErrorResponse
+	err = json.Unmarshal(bodyBytes, &errResp)
+	if err == nil && errResp.Error != nil {
+		errResp.Error.HTTPStatusCode = resp.StatusCode
+		return errResp.Error
+	}
+
+	// If the first decode didn't work or resulted in an empty Error, try CompatibleErrorResponse
+	err = json.Unmarshal(bodyBytes, &compErrResp)
+	if err == nil && compErrResp.APIError != nil {
+		compErrResp.HTTPStatusCode = resp.StatusCode
+		return compErrResp.APIError
+	}
+
+	return &RequestError{
+		HTTPStatusCode: resp.StatusCode,
+		Err:            err,
+	}
 }
 
 func containsSubstr(s []string, e string) bool {

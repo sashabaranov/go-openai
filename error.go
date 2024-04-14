@@ -33,6 +33,10 @@ type ErrorResponse struct {
 	Error *APIError `json:"error,omitempty"`
 }
 
+type CompatibleErrorResponse struct {
+	*APIError
+}
+
 func (e *APIError) Error() string {
 	if e.HTTPStatusCode > 0 {
 		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Message)

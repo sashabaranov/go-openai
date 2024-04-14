@@ -74,13 +74,13 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
-		GPT3Dot5Turbo:        true,
-		GPT3Dot5Turbo0301:    true,
-		GPT3Dot5Turbo0613:    true,
-		GPT3Dot5Turbo1106:    true,
-		GPT3Dot5Turbo0125:    true,
-		GPT3Dot5Turbo16K:     true,
-		GPT3Dot5Turbo16K0613: true,
+		GPT3Dot5Turbo:        false,
+		GPT3Dot5Turbo0301:    false,
+		GPT3Dot5Turbo0613:    false,
+		GPT3Dot5Turbo1106:    false,
+		GPT3Dot5Turbo0125:    false,
+		GPT3Dot5Turbo16K:     false,
+		GPT3Dot5Turbo16K0613: false,
 		GPT4:                 true,
 		GPT4TurboPreview:     true,
 		GPT4VisionPreview:    true,

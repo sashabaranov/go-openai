@@ -30,12 +30,12 @@ type Run struct {
 
 	Temperature *int `json:"temperature,omitempty"`
 	// The maximum number of prompt tokens that may be used over the course of the run.
-	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'
+	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'.
 	MaxPromptTokens int `json:"max_prompt_tokens,omitempty"`
 	// The maximum number of completion tokens that may be used over the course of the run.
-	// If the run exceeds the number of completion tokens specified, the run will end with status 'complete'
+	// If the run exceeds the number of completion tokens specified, the run will end with status 'complete'.
 	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
-	// ThreadTruncationStrategy defines the truncation strategy to use for the thread
+	// ThreadTruncationStrategy defines the truncation strategy to use for the thread.
 	TruncationStrategy *ThreadTruncationStrategy `json:"truncation_strategy,omitempty"`
 
 	httpHeader
@@ -93,33 +93,33 @@ type RunRequest struct {
 	Temperature *int `json:"temperature,omitempty"`
 
 	// The maximum number of prompt tokens that may be used over the course of the run.
-	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'
+	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'.
 	MaxPromptTokens int `json:"max_prompt_tokens,omitempty"`
 
 	// The maximum number of completion tokens that may be used over the course of the run.
-	// If the run exceeds the number of completion tokens specified, the run will end with status 'complete'
+	// If the run exceeds the number of completion tokens specified, the run will end with status 'complete'.
 	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
 
-	// ThreadTruncationStrategy defines the truncation strategy to use for the thread
+	// ThreadTruncationStrategy defines the truncation strategy to use for the thread.
 	TruncationStrategy *ThreadTruncationStrategy `json:"truncation_strategy,omitempty"`
 }
 
-// ThreadTruncationStrategy defines the truncation strategy to use for the thread
-// https://platform.openai.com/docs/assistants/how-it-works/truncation-strategy
+// ThreadTruncationStrategy defines the truncation strategy to use for the thread.
+// https://platform.openai.com/docs/assistants/how-it-works/truncation-strategy.
 type ThreadTruncationStrategy struct {
-	// default 'auto'
+	// default 'auto'.
 	Type TruncationStrategy `json:"type,omitempty"`
-	// this field should be set if the truncation strategy is set to LastMessages
+	// this field should be set if the truncation strategy is set to LastMessages.
 	LastMessages *int `json:"last_messages,omitempty"`
 }
 
-// TruncationStrategy defines the existing truncation strategies existing for thread management in an assistant
+// TruncationStrategy defines the existing truncation strategies existing for thread management in an assistant.
 type TruncationStrategy string
 
 const (
-	// TruncationStrategyAuto messages in the middle of the thread will be dropped to fit the context length of the model
+	// TruncationStrategyAuto messages in the middle of the thread will be dropped to fit the context length of the model.
 	TruncationStrategyAuto = TruncationStrategy("auto")
-	// TruncationStrategyLastMessages the thread will be truncated to the n most recent messages in the thread
+	// TruncationStrategyLastMessages the thread will be truncated to the n most recent messages in the thread.
 	TruncationStrategyLastMessages = TruncationStrategy("last_messages")
 )
 

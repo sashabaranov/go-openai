@@ -23,7 +23,7 @@ type InnerError struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_result,omitempty"`
 }
 
-// RequestError provides informations about generic request errors.
+// RequestError provides information about generic request errors.
 type RequestError struct {
 	HTTPStatusCode int
 	Err            error

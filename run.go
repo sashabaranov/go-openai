@@ -89,7 +89,8 @@ type RunRequest struct {
 	Tools                  []Tool         `json:"tools,omitempty"`
 	Metadata               map[string]any `json:"metadata,omitempty"`
 
-	// Sampling temperature between 0 and 2. Higher values like 0.8 are  more random, lower values are more focused and deterministic.
+	// Sampling temperature between 0 and 2. Higher values like 0.8 are  more random.
+	// lower values are more focused and deterministic.
 	Temperature *int `json:"temperature,omitempty"`
 
 	// The maximum number of prompt tokens that may be used over the course of the run.

@@ -3,7 +3,6 @@ package openai
 import (
 	"context"
 	"errors"
-	"io"
 	"net/http"
 )
 
@@ -67,7 +66,7 @@ func isValidVoice(voice SpeechVoice) bool {
 	return contains([]SpeechVoice{VoiceAlloy, VoiceEcho, VoiceFable, VoiceOnyx, VoiceNova, VoiceShimmer}, voice)
 }
 
-func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response io.ReadCloser, err error) {
+func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response RawResponse, err error) {
 	if !isValidSpeechModel(request.Model) {
 		err = ErrInvalidSpeechModel
 		return
@@ -84,7 +83,5 @@ func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) 
 		return
 	}
 
-	response, err = c.sendRequestRaw(req)
-
-	return
+	return c.sendRequestRaw(req)
 }

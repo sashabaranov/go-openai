@@ -181,7 +181,7 @@ func (c *Client) ListAssistants(
 	order *string,
 	after *string,
 	before *string,
-) (reponse AssistantsList, err error) {
+) (response AssistantsList, err error) {
 	urlValues := url.Values{}
 	if limit != nil {
 		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
@@ -208,7 +208,7 @@ func (c *Client) ListAssistants(
 		return
 	}
 
-	err = c.sendRequest(req, &reponse)
+	err = c.sendRequest(req, &response)
 	return
 }
 

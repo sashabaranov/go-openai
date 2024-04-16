@@ -28,7 +28,7 @@ type Run struct {
 	Metadata       map[string]any     `json:"metadata"`
 	Usage          Usage              `json:"usage,omitempty"`
 
-	Temperature *int `json:"temperature,omitempty"`
+	Temperature *float32 `json:"temperature,omitempty"`
 	// The maximum number of prompt tokens that may be used over the course of the run.
 	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'.
 	MaxPromptTokens int `json:"max_prompt_tokens,omitempty"`
@@ -91,7 +91,7 @@ type RunRequest struct {
 
 	// Sampling temperature between 0 and 2. Higher values like 0.8 are  more random.
 	// lower values are more focused and deterministic.
-	Temperature *int `json:"temperature,omitempty"`
+	Temperature *float32 `json:"temperature,omitempty"`
 
 	// The maximum number of prompt tokens that may be used over the course of the run.
 	// If the run exceeds the number of prompt tokens specified, the run will end with status 'complete'.

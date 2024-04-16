@@ -76,7 +76,8 @@ type MessageFilesList struct {
 type MessageDelta struct {
 	Content []MessageDeltaContent `json:"content"`
 	Role    string                `json:"role"`
-	FileIds []string              `json:"file_ids,omitempty"`
+	FileIds []string              `json:"file_ids,omitempty"` //nolint:revive // backwards-compatibility
+
 }
 
 type MessageDeltaContent struct {

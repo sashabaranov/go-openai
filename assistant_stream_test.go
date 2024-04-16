@@ -30,6 +30,7 @@ func TestAssistantStream(t *testing.T) {
 
 	server.RegisterHandler("/v1/threads/"+theadID+"/runs",
 		func(w http.ResponseWriter, _ *http.Request) {
+			//nolint:lll
 			resBytes := []byte(`
 event: thread.run.created
 data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4-turbo","instructions":null,"tools":[],"file_ids":[],"metadata":{},"usage":null}
@@ -133,6 +134,7 @@ func TestAssistantStreamWithTools(t *testing.T) {
 
 	server.RegisterHandler("/v1/threads/"+theadID+"/runs/"+runID+"/submit_tool_outputs",
 		func(w http.ResponseWriter, _ *http.Request) {
+			//nolint:lll
 			resBytes := []byte(`
 event: thread.run.step.completed
 data: {"id":"step_001","object":"thread.run.step","created_at":1710352449,"run_id":"run_123","assistant_id":"asst_123","thread_id":"thread_123","type":"tool_calls","status":"completed","cancelled_at":null,"completed_at":1710352475,"expires_at":1710353047,"failed_at":null,"last_error":null,"step_details":{"type":"tool_calls","tool_calls":[{"id":"call_iWr0kQ2EaYMaxNdl0v3KYkx7","type":"function","function":{"name":"get_current_weather","arguments":"{\"location\":\"San Francisco, CA\",\"unit\":\"fahrenheit\"}","output":"70 degrees and sunny."}}]},"usage":{"prompt_tokens":291,"completion_tokens":24,"total_tokens":315}}
@@ -197,6 +199,7 @@ data: [DONE]
 
 	server.RegisterHandler("/v1/threads/"+theadID+"/runs",
 		func(w http.ResponseWriter, _ *http.Request) {
+			//nolint:lll
 			resBytes := []byte(`
 event: thread.run.created
 data: {"id":"run_123","object":"thread.run","created_at":1710330640,"assistant_id":"asst_123","thread_id":"thread_123","status":"queued","started_at":null,"expires_at":1710331240,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-4-turbo","instructions":null,"tools":[],"file_ids":[],"metadata":{},"usage":null}
@@ -334,6 +337,7 @@ data: [DONE]
 		t.Fatalf("ToolOutputs error, %v", toolOuputs)
 	}
 
+	//nolint:lll
 	stream, err = client.CreateAssistantThreadRunSubmitToolOutputStream(ctx, theadID, runID, openai.SubmitToolOutputsRequest{
 		ToolOutputs: toolOuputs,
 	})

@@ -6,15 +6,10 @@ import (
 	"net/http"
 )
 
-/*
-	type AssistantThreadRunStreamDelta struct {
-		Content      string        `json:"content,omitempty"`
-		Role         string        `json:"role,omitempty"`
-	}
-*/
 type AssistantThreadRunStreamResponse struct {
-	ID     string `json:"id"`
-	Object string `json:"object"`
+	ID     string       `json:"id"`
+	Object string       `json:"object"`
+	Delta  MessageDelta `json:"delta,omitempty"`
 }
 
 type AssistantThreadRunStream struct {

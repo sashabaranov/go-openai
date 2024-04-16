@@ -32,7 +32,6 @@ type streamReader[T streamable] struct {
 
 	event       string
 	handlers    map[string]eventHandler[T]
-	hasHandler  bool
 	handlerCtx  context.Context
 	handlerErr  error
 	lastRawLine []byte
@@ -42,13 +41,20 @@ type streamReader[T streamable] struct {
 
 type eventHandler[T streamable] func(T, []byte)
 
-func (stream *streamReader[T]) On(event string, handler eventHandler[T]) (err error) {
+func (stream *streamReader[T]) On(event string, handler eventHandler[T]) error {
 	if len(event) == 0 {
 		return fmt.Errorf("error: %s", "event can not be empty")
 	}
-	if !stream.hasHandler {
+	if stream.handlers == nil {
 		stream.handlers = make(map[string]eventHandler[T])
-		stream.hasHandler = true
+	}
+	stream.handlers[event] = handler
+	return nil
+}
+
+func (stream *streamReader[T]) Wait() error {
+	if stream.handlerCtx == nil {
+		stream.event = "message" // default event for chat completion stream
 		ctx, cancel := context.WithCancel(context.Background())
 		stream.handlerCtx = ctx
 		go func() {
@@ -59,26 +65,18 @@ func (stream *streamReader[T]) On(event string, handler eventHandler[T]) (err er
 				cancel()
 			}()
 			for {
-				resp, _err := stream.Recv()
-				if _err != nil {
-					stream.handlerErr = _err
+				resp, err := stream.Recv()
+				if err != nil {
+					stream.handlerErr = err
 					return
 				}
 				if callback, ok := stream.handlers[stream.event]; ok {
-					callback(resp, bytes.TrimPrefix(stream.lastRawLine, headerData))
+					start := len(headerData)
+					callback(resp, stream.lastRawLine[start:])
 				}
 			}
 		}()
 	}
-	stream.handlers[event] = handler
-	return
-}
-
-func (stream *streamReader[T]) Wait() (err error) {
-	if !stream.hasHandler {
-		return
-	}
-	stream.event = "message" // default event for chat completion stream
 	<-stream.handlerCtx.Done()
 	return stream.handlerErr
 }
@@ -110,9 +108,9 @@ func (stream *streamReader[T]) processLines() (T, error) {
 			return *new(T), readErr
 		}
 
-		stream.lastRawLine = rawLine
-
 		noSpaceLine := bytes.TrimSpace(rawLine)
+		stream.lastRawLine = noSpaceLine
+
 		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
 			hasErrorPrefix = true
 		}

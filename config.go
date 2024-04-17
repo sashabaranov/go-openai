@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"fmt"
 	"net/http"
 	"regexp"
 )
@@ -23,10 +24,23 @@ const (
 
 const AzureAPIKeyHeader = "api-key"
 
+type AuthBuilder func(req *http.Request)
+
+func APIKey(authToken string) AuthBuilder {
+	return func(req *http.Request) {
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", authToken))
+	}
+}
+
+func AzureAPIKey(apiKey string) AuthBuilder {
+	return func(req *http.Request) {
+		req.Header.Set(AzureAPIKeyHeader, apiKey)
+	}
+}
+
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	authToken string
-
+	AuthToken            AuthBuilder
 	BaseURL              string
 	OrgID                string
 	APIType              APIType
@@ -39,7 +53,7 @@ type ClientConfig struct {
 
 func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
-		authToken: authToken,
+		AuthToken: APIKey(authToken),
 		BaseURL:   openaiAPIURLv1,
 		APIType:   APITypeOpenAI,
 		OrgID:     "",
@@ -52,7 +66,7 @@ func DefaultConfig(authToken string) ClientConfig {
 
 func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
-		authToken:  apiKey,
+		AuthToken:  AzureAPIKey(apiKey),
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAzure,

@@ -246,13 +246,13 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		)
 	}
 
+	// https://developers.cloudflare.com/ai-gateway/providers/azureopenai/
 	if c.config.APIType == APITypeCloudflareAzure {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
 		return fmt.Sprintf("%s%s?api-version=%s", baseURL, suffix, c.config.APIVersion)
 	}
 
-	// c.config.APIType == APITypeOpenAI || c.config.APIType == ""
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }
 

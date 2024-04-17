@@ -113,6 +113,19 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 	},
 }
 
+// Groq contains models that work with Groq's OpenAI Compatibility API.
+//
+// Usage Examples: openai.Groq.Mixtral8x7b, openai.Groq.LLaMA270b, openai.Groq.Gemma7bIT.
+var Groq = struct {
+	Mixtral8x7b string
+	LLaMA270b   string
+	Gemma7bIT   string
+}{
+	Mixtral8x7b: "mixtral-8x7b-32768",
+	LLaMA270b:   "llama2-70b-4096",
+	Gemma7bIT:   "gemma-7b-it",
+}
+
 func checkEndpointSupportsModel(endpoint, model string) bool {
 	return !disabledModelsForEndpoints[endpoint][model]
 }

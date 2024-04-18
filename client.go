@@ -89,9 +89,9 @@ func withContentType(contentType string) requestOption {
 	}
 }
 
-func withBetaAssistantV1() requestOption {
+func withBetaAssistantVersion(version string) requestOption {
 	return func(args *requestOptions) {
-		args.header.Set("OpenAI-Beta", "assistants=v1")
+		args.header.Set("OpenAI-Beta", fmt.Sprintf("assistants=%s", version))
 	}
 }
 

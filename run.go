@@ -226,8 +226,7 @@ func (c *Client) CreateRun(
 		http.MethodPost,
 		c.fullURL(urlSuffix),
 		withBody(request),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -247,8 +246,7 @@ func (c *Client) RetrieveRun(
 		ctx,
 		http.MethodGet,
 		c.fullURL(urlSuffix),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -270,8 +268,7 @@ func (c *Client) ModifyRun(
 		http.MethodPost,
 		c.fullURL(urlSuffix),
 		withBody(request),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -310,8 +307,7 @@ func (c *Client) ListRuns(
 		ctx,
 		http.MethodGet,
 		c.fullURL(urlSuffix),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -332,8 +328,7 @@ func (c *Client) SubmitToolOutputs(
 		http.MethodPost,
 		c.fullURL(urlSuffix),
 		withBody(request),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -352,8 +347,7 @@ func (c *Client) CancelRun(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -372,8 +366,7 @@ func (c *Client) CreateThreadAndRun(
 		http.MethodPost,
 		c.fullURL(urlSuffix),
 		withBody(request),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -394,8 +387,7 @@ func (c *Client) RetrieveRunStep(
 		ctx,
 		http.MethodGet,
 		c.fullURL(urlSuffix),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -435,8 +427,7 @@ func (c *Client) ListRunSteps(
 		ctx,
 		http.MethodGet,
 		c.fullURL(urlSuffix),
-		withBetaAssistantV1(),
-	)
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}

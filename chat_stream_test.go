@@ -77,10 +77,10 @@ func TestCreateChatCompletionStream(t *testing.T) {
 
 	expectedResponses := []openai.ChatCompletionStreamResponse{
 		{
-			ID:      "1",
-			Object:  "completion",
-			Created: 1598069254,
-			Model:   openai.GPT3Dot5Turbo,
+			ID:                "1",
+			Object:            "completion",
+			Created:           1598069254,
+			Model:             openai.GPT3Dot5Turbo,
 			SystemFingerprint: "fp_d9767fc5b9",
 			Choices: []openai.ChatCompletionStreamChoice{
 				{
@@ -92,10 +92,10 @@ func TestCreateChatCompletionStream(t *testing.T) {
 			},
 		},
 		{
-			ID:      "2",
-			Object:  "completion",
-			Created: 1598069255,
-			Model:   openai.GPT3Dot5Turbo,
+			ID:                "2",
+			Object:            "completion",
+			Created:           1598069255,
+			Model:             openai.GPT3Dot5Turbo,
 			SystemFingerprint: "fp_d9767fc5b9",
 			Choices: []openai.ChatCompletionStreamChoice{
 				{

@@ -1,3 +1,38 @@
+# Jarvis DApp
+
+Jarvis is a decentralized application (DApp) built on the Ethereum blockchain, partnered with OpenAI.
+
+## Smart Contracts
+
+- `MyContract.sol`: Main smart contract for the Jarvis DApp.
+
+## Frontend
+
+- `index.html`: HTML file for the frontend.
+- `styles.css`: CSS file for styling the frontend.
+- `script.js`: JavaScript file for frontend logic.
+
+## Testing
+
+- Automated tests for smart contracts and frontend components.
+
+## Deployment
+
+- Deployment scripts and instructions for deploying the Jarvis DApp.
+
+## Usage
+
+- Instructions for using the Jarvis DApp.
+
+## Contributors
+
+- List of contributors to the Jarvis DApp project.
+
+## License
+
+- License information for the Jarvis DApp.
+
+Created with Ethereum. Partnered by [OpenAI](https://platform.openai.io).
 # Go OpenAI
 [![Go Reference](https://pkg.go.dev/badge/github.com/sashabaranov/go-openai.svg)](https://pkg.go.dev/github.com/sashabaranov/go-openai)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sashabaranov/go-openai)](https://goreportcard.com/report/github.com/sashabaranov/go-openai)

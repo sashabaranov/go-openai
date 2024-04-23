@@ -2,7 +2,6 @@ package openai
 
 import (
 	"context"
-	"io"
 	"net/http"
 )
 
@@ -44,7 +43,7 @@ type CreateSpeechRequest struct {
 	Speed          float64              `json:"speed,omitempty"`           // Optional, default to 1.0
 }
 
-func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response io.ReadCloser, err error) {
+func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response RawResponse, err error) {
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/audio/speech", string(request.Model)),
 		withBody(request),
 		withContentType("application/json"),
@@ -53,7 +52,5 @@ func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) 
 		return
 	}
 
-	response, err = c.sendRequestRaw(req)
-
-	return
+	return c.sendRequestRaw(req)
 }

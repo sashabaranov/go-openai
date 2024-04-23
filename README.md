@@ -636,7 +636,7 @@ FunctionDefinition{
       },
       "unit": {
         Type: jsonschema.String,
-        Enum: []string{"celcius", "fahrenheit"},
+        Enum: []string{"celsius", "fahrenheit"},
       },
     },
     Required: []string{"location"},

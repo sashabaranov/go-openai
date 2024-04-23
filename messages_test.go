@@ -68,6 +68,10 @@ func TestMessages(t *testing.T) {
 				metadata := map[string]any{}
 				err := json.NewDecoder(r.Body).Decode(&metadata)
 				checks.NoError(t, err, "unable to decode metadata in modify message call")
+				payload, ok := metadata["metadata"].(map[string]any)
+				if !ok {
+					t.Fatalf("metadata payload improperly wrapped %+v", metadata)
+				}
 
 				resBytes, _ := json.Marshal(
 					openai.Message{
@@ -86,8 +90,9 @@ func TestMessages(t *testing.T) {
 						FileIds:     nil,
 						AssistantID: &emptyStr,
 						RunID:       &emptyStr,
-						Metadata:    metadata,
+						Metadata:    payload,
 					})
+
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodGet:
 				resBytes, _ := json.Marshal(
@@ -212,7 +217,7 @@ func TestMessages(t *testing.T) {
 	}
 
 	msg, err = client.ModifyMessage(ctx, threadID, messageID,
-		map[string]any{
+		map[string]string{
 			"foo": "bar",
 		})
 	checks.NoError(t, err, "ModifyMessage error")

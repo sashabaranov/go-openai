@@ -148,3 +148,39 @@ func TestAzureFullURL(t *testing.T) {
 		})
 	}
 }
+
+func TestCloudflareAzureFullURL(t *testing.T) {
+	cases := []struct {
+		Name    string
+		BaseURL string
+		Expect  string
+	}{
+		{
+			"CloudflareAzureBaseURLWithSlashAutoStrip",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
+				"chat/completions?api-version=2023-05-15",
+		},
+		{
+			"CloudflareAzureBaseURLWithoutSlashOK",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
+				"chat/completions?api-version=2023-05-15",
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.Name, func(t *testing.T) {
+			az := DefaultAzureConfig("dummy", c.BaseURL)
+			az.APIType = APITypeCloudflareAzure
+
+			cli := NewClientWithConfig(az)
+
+			actual := cli.fullURL("/chat/completions")
+			if actual != c.Expect {
+				t.Errorf("Expected %s, got %s", c.Expect, actual)
+			}
+			t.Logf("Full URL: %s", actual)
+		})
+	}
+}

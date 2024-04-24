@@ -215,8 +215,8 @@ func TestHandleErrorResp(t *testing.T) {
 
 func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 	config := DefaultConfig(test.GetTestToken())
+	config.RequestBuilder = &failingRequestBuilder{}
 	client := NewClientWithConfig(config)
-	client.requestBuilder = &failingRequestBuilder{}
 	ctx := context.Background()
 
 	type TestCase struct {
@@ -408,14 +408,25 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 
 func TestClientReturnsRequestBuilderErrorsAddition(t *testing.T) {
 	config := DefaultConfig(test.GetTestToken())
+	config.RequestBuilder = &failingRequestBuilder{}
 	client := NewClientWithConfig(config)
-	client.requestBuilder = &failingRequestBuilder{}
 	ctx := context.Background()
 	_, err := client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
+	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
+		t.Fatalf("Did not return error when request builder failed: %v", err)
+	}
+}
+
+func TestClientDefaultRequestBuilder(t *testing.T) {
+	config := DefaultConfig(test.GetTestToken())
+	client := NewClientWithConfig(config)
+	ctx := context.Background()
+
+	_, err := client.CreateCompletion(ctx, CompletionRequest{Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}

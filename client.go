@@ -16,7 +16,6 @@ import (
 type Client struct {
 	config ClientConfig
 
-	requestBuilder    utils.RequestBuilder
 	createFormBuilder func(io.Writer) utils.FormBuilder
 }
 
@@ -52,9 +51,11 @@ func NewClient(authToken string) *Client {
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
 func NewClientWithConfig(config ClientConfig) *Client {
+	if config.RequestBuilder == nil {
+		config.RequestBuilder = utils.NewRequestBuilder()
+	}
 	return &Client{
-		config:         config,
-		requestBuilder: utils.NewRequestBuilder(),
+		config: config,
 		createFormBuilder: func(body io.Writer) utils.FormBuilder {
 			return utils.NewFormBuilder(body)
 		},
@@ -104,7 +105,7 @@ func (c *Client) newRequest(ctx context.Context, method, url string, setters ...
 	for _, setter := range setters {
 		setter(args)
 	}
-	req, err := c.requestBuilder.Build(ctx, method, url, args.body, args.header)
+	req, err := c.config.RequestBuilder.Build(ctx, method, url, args.body, args.header)
 	if err != nil {
 		return nil, err
 	}

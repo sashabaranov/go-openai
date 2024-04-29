@@ -3,6 +3,10 @@ package openai
 import (
 	"bufio"
 	"bytes"
+<<<<<<< Updated upstream
+=======
+	"context"
+>>>>>>> Stashed changes
 	"fmt"
 	"io"
 	"net/http"
@@ -31,6 +35,50 @@ type streamReader[T streamable] struct {
 	httpHeader
 }
 
+<<<<<<< Updated upstream
+=======
+type eventHandler[T streamable] func(T, []byte)
+
+func (stream *streamReader[T]) On(topic string, handler eventHandler[T]) error {
+	if len(topic) == 0 {
+		return ErrStreamEventEmptyTopic
+	}
+	if stream.handlers == nil {
+		stream.handlers = make(map[string]eventHandler[T])
+	}
+	stream.handlers[topic] = handler
+	return nil
+}
+
+func (stream *streamReader[T]) Run() error {
+	if stream.handlerCtx == nil {
+		stream.event = "message" // default event for chat completion stream
+		ctx, cancel := context.WithCancel(context.Background())
+		stream.handlerCtx = ctx
+		go func() {
+			defer func() {
+				if r := recover(); r != nil {
+					stream.handlerErr = ErrStreamEventCallbackPanic
+				}
+				cancel()
+			}()
+			for {
+				resp, err := stream.Recv()
+				if err != nil {
+					stream.handlerErr = err
+					return
+				}
+				if callback, ok := stream.handlers[stream.event]; ok {
+					callback(resp, stream.lastRawLine[len(headerData):])
+				}
+			}
+		}()
+	}
+	<-stream.handlerCtx.Done()
+	return stream.handlerErr
+}
+
+>>>>>>> Stashed changes
 func (stream *streamReader[T]) Recv() (response T, err error) {
 	if stream.isFinished {
 		err = io.EOF

@@ -420,3 +420,21 @@ func TestClientReturnsRequestBuilderErrorsAddition(t *testing.T) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 }
+
+func TestAssistantStreamRequestBuilderError(t *testing.T) {
+	config := DefaultConfig("whatever")
+	client := NewClientWithConfig(config)
+	config.BaseURL = "http://localhost/v1"
+	client.requestBuilder = &failingRequestBuilder{}
+	ctx := context.Background()
+
+	_, err := client.CreateAssistantThreadRunStream(ctx, "thread_123", RunRequest{
+		AssistantID: "asst_123",
+	})
+
+	checks.HasError(t, err, "CreateAssistantThreadRunStream should return error")
+
+	_, err1 := client.CreateAssistantThreadRunToolStream(ctx, "thread_123", "run_123", SubmitToolOutputsRequest{})
+
+	checks.HasError(t, err1, "CreateAssistantThreadRunToolStream should return error")
+}

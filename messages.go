@@ -73,6 +73,20 @@ type MessageFilesList struct {
 	httpHeader
 }
 
+type MessageDelta struct {
+	Content []MessageDeltaContent `json:"content"`
+	Role    string                `json:"role"`
+	FileIds []string              `json:"file_ids,omitempty"` //nolint:revive // backwards-compatibility
+
+}
+
+type MessageDeltaContent struct {
+	Index     int          `json:"index"`
+	Type      string       `json:"type"`
+	Text      *MessageText `json:"text,omitempty"`
+	ImageFile *ImageFile   `json:"image_file,omitempty"`
+}
+
 // CreateMessage creates a new message.
 func (c *Client) CreateMessage(ctx context.Context, threadID string, request MessageRequest) (msg Message, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/%s", threadID, messagesSuffix)

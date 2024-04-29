@@ -67,6 +67,23 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	}
 }
 
+func OtherConfig(apiKey, baseURL string) ClientConfig {
+	return ClientConfig{
+		authToken: apiKey,
+		BaseURL:   baseURL,
+		OrgID:     "",
+		//APIType:    APITypeAzure,
+		//APIVersion: "2023-05-15",
+		//AzureModelMapperFunc: func(model string) string {
+		//	return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+		//},
+
+		HTTPClient: &http.Client{},
+
+		EmptyMessagesLimit: defaultEmptyMessagesLimit,
+	}
+}
+
 func (ClientConfig) String() string {
 	return "<OpenAI API ClientConfig>"
 }

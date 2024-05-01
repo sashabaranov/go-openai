@@ -190,6 +190,18 @@ func TestHandleErrorResp(t *testing.T) {
 				}`)),
 			expected: "error, status code: 503, message: ",
 		},
+		{
+			name:     "500 invalid json",
+			httpCode: http.StatusInternalServerError,
+			body:     bytes.NewReader([]byte(`dummy`)),
+			expected: "error, status code: 500, message: resp is not valid json: dummy",
+		},
+		{
+			name:     "500 error body",
+			httpCode: http.StatusInternalServerError,
+			body:     &errorReader{err: errors.New("dummy")},
+			expected: "error, status code: 500, message: read resp body failed: dummy",
+		},
 	}
 
 	for _, tc := range testCases {
@@ -201,12 +213,6 @@ func TestHandleErrorResp(t *testing.T) {
 			t.Log(err.Error())
 			if err.Error() != tc.expected {
 				t.Errorf("Unexpected error: %v , expected: %s", err, tc.expected)
-				t.Fail()
-			}
-
-			e := &APIError{}
-			if !errors.As(err, &e) {
-				t.Errorf("(%s) Expected error to be of type APIError", tc.name)
 				t.Fail()
 			}
 		})

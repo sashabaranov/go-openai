@@ -226,7 +226,7 @@ func decodeString(body io.Reader, output *string) error {
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
 	if val := os.Getenv("OPENAI_BASEURL"); val != "" {
-		baseURL = val
+		c.config.baseURL = val
 	}
 	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {

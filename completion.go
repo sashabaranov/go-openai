@@ -61,6 +61,9 @@ const (
 	GPT3Ada002            = "ada-002"
 	GPT3Babbage           = "babbage"
 	GPT3Babbage002        = "babbage-002"
+	MistralSmall          = "mistral-small"
+	MistralMedium         = "mistral-medium"
+	MistralLarge          = "mistral-large"
 )
 
 // Codex Defines the models provided by OpenAI.

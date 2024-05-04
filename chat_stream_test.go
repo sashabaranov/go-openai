@@ -46,12 +46,12 @@ func TestCreateChatCompletionStream(t *testing.T) {
 		dataBytes := []byte{}
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
 		//nolint:lll
-		data := `{"id":"1","object":"completion","created":1598069254,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"content":"response1"},"finish_reason":"max_tokens"}]}`
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[{"index":0,"delta":{"content":"response1"},"finish_reason":"max_tokens"}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
 		//nolint:lll
-		data = `{"id":"2","object":"completion","created":1598069255,"model":"gpt-3.5-turbo","choices":[{"index":0,"delta":{"content":"response2"},"finish_reason":"max_tokens"}]}`
+		data = `{"id":"2","object":"completion","created":1598069255,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[{"index":0,"delta":{"content":"response2"},"finish_reason":"max_tokens"}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 
 		dataBytes = append(dataBytes, []byte("event: done\n")...)
@@ -77,10 +77,11 @@ func TestCreateChatCompletionStream(t *testing.T) {
 
 	expectedResponses := []openai.ChatCompletionStreamResponse{
 		{
-			ID:      "1",
-			Object:  "completion",
-			Created: 1598069254,
-			Model:   openai.GPT3Dot5Turbo,
+			ID:                "1",
+			Object:            "completion",
+			Created:           1598069254,
+			Model:             openai.GPT3Dot5Turbo,
+			SystemFingerprint: "fp_d9767fc5b9",
 			Choices: []openai.ChatCompletionStreamChoice{
 				{
 					Delta: openai.ChatCompletionStreamChoiceDelta{
@@ -91,10 +92,11 @@ func TestCreateChatCompletionStream(t *testing.T) {
 			},
 		},
 		{
-			ID:      "2",
-			Object:  "completion",
-			Created: 1598069255,
-			Model:   openai.GPT3Dot5Turbo,
+			ID:                "2",
+			Object:            "completion",
+			Created:           1598069255,
+			Model:             openai.GPT3Dot5Turbo,
+			SystemFingerprint: "fp_d9767fc5b9",
 			Choices: []openai.ChatCompletionStreamChoice{
 				{
 					Delta: openai.ChatCompletionStreamChoiceDelta{

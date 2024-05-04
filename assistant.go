@@ -11,7 +11,6 @@ import (
 const (
 	assistantsSuffix      = "/assistants"
 	assistantsFilesSuffix = "/files"
-	openaiAssistantsV1    = "assistants=v1"
 )
 
 type Assistant struct {
@@ -116,7 +115,7 @@ type AssistantFilesList struct {
 // CreateAssistant creates a new assistant.
 func (c *Client) CreateAssistant(ctx context.Context, request AssistantRequest) (response Assistant, err error) {
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsSuffix), withBody(request),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -132,7 +131,7 @@ func (c *Client) RetrieveAssistant(
 ) (response Assistant, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -149,7 +148,7 @@ func (c *Client) ModifyAssistant(
 ) (response Assistant, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -165,7 +164,7 @@ func (c *Client) DeleteAssistant(
 ) (response AssistantDeleteResponse, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", assistantsSuffix, assistantID)
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -203,7 +202,7 @@ func (c *Client) ListAssistants(
 
 	urlSuffix := fmt.Sprintf("%s%s", assistantsSuffix, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -221,7 +220,7 @@ func (c *Client) CreateAssistantFile(
 	urlSuffix := fmt.Sprintf("%s/%s%s", assistantsSuffix, assistantID, assistantsFilesSuffix)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBody(request),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -238,7 +237,7 @@ func (c *Client) RetrieveAssistantFile(
 ) (response AssistantFile, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s", assistantsSuffix, assistantID, assistantsFilesSuffix, fileID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -255,7 +254,7 @@ func (c *Client) DeleteAssistantFile(
 ) (err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s", assistantsSuffix, assistantID, assistantsFilesSuffix, fileID)
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}
@@ -294,7 +293,7 @@ func (c *Client) ListAssistantFiles(
 
 	urlSuffix := fmt.Sprintf("%s/%s%s%s", assistantsSuffix, assistantID, assistantsFilesSuffix, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
-		withBetaAssistantV1())
+		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
 	}

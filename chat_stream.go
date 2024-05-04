@@ -30,6 +30,7 @@ type ChatCompletionStreamResponse struct {
 	Created             int64                        `json:"created"`
 	Model               string                       `json:"model"`
 	Choices             []ChatCompletionStreamChoice `json:"choices"`
+	SystemFingerprint   string                       `json:"system_fingerprint"`
 	PromptAnnotations   []PromptAnnotation           `json:"prompt_annotations,omitempty"`
 	PromptFilterResults []PromptFilterResult         `json:"prompt_filter_results,omitempty"`
 }

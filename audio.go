@@ -27,11 +27,11 @@ const (
 	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
 )
 
-type TranscriptionTimestampGranularities string
+type TranscriptionTimestampGranularity string
 
 const (
-	TranscriptionTimestampGranularitiesWord    TranscriptionTimestampGranularities = "word"
-	TranscriptionTimestampGranularitiesSegment TranscriptionTimestampGranularities = "segment"
+	TranscriptionTimestampGranularityWord    TranscriptionTimestampGranularity = "word"
+	TranscriptionTimestampGranularitySegment TranscriptionTimestampGranularity = "segment"
 )
 
 // AudioRequest represents a request structure for audio API.
@@ -48,7 +48,7 @@ type AudioRequest struct {
 	Temperature            float32
 	Language               string // Only for transcription.
 	Format                 AudioResponseFormat
-	TimestampGranularities TranscriptionTimestampGranularities // Only for transcription.
+	TimestampGranularities []TranscriptionTimestampGranularity // Only for transcription.
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -192,9 +192,11 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 	}
 
 	if len(request.TimestampGranularities) > 0 {
-		err = b.WriteField("timestamp_granularities[]", string(request.TimestampGranularities))
-		if err != nil {
-			return fmt.Errorf("writing timestamp_granularities[]: %w", err)
+		for _, tg := range request.TimestampGranularities {
+			err = b.WriteField("timestamp_granularities[]", string(tg))
+			if err != nil {
+				return fmt.Errorf("writing timestamp_granularities[]: %w", err)
+			}
 		}
 	}
 

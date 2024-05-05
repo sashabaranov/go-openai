@@ -47,7 +47,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		return nil
 	}
 
-	failOn := []string{"model", "prompt", "temperature", "language", "response_format"}
+	failOn := []string{"model", "prompt", "temperature", "language", "response_format", "timestamp_granularities[]"}
 	for _, failingField := range failOn {
 		failForField = failingField
 		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)

@@ -57,6 +57,51 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 	}
 }
 
+func TestAudioTimeGranularities(t *testing.T) {
+	dir, cleanup := test.CreateTestDirectory(t)
+	defer cleanup()
+	path := filepath.Join(dir, "fake.mp3")
+	test.CreateTestFile(t, path)
+
+	var (
+		mockFailedErr = fmt.Errorf("mock form builder fail")
+		req           = AudioRequest{
+			FilePath:               path,
+			Prompt:                 "test",
+			Temperature:            0.5,
+			Language:               "en",
+			Format:                 AudioResponseFormatVerboseJSON,
+			TimeStampGranularities: []TimestampGranularity{TimestampGranularityWord},
+		}
+		mockBuilder = &mockFormBuilder{
+			mockCreateFormFile: func(_ string, _ *os.File) error {
+				return nil
+			},
+		}
+	)
+
+	var failForField string
+	mockBuilder.mockWriteField = func(fieldname, _ string) error {
+		if fieldname == failForField {
+			return mockFailedErr
+		}
+		return nil
+	}
+
+	failOn := []string{"model", "prompt", "temperature", "language", "response_format", "timestamp_granularities[]"}
+	for _, failingField := range failOn {
+		failForField = failingField
+		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)
+
+		err := audioMultipartForm(req, mockBuilder)
+		checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
+	}
+
+	req.Format = AudioResponseFormatSRT
+	err := audioMultipartForm(req, mockBuilder)
+	checks.HasError(t, err, "TimeStampGranularities Only supported with response_format verbose_json")
+}
+
 func TestCreateFileField(t *testing.T) {
 	t.Run("createFileField failing file", func(t *testing.T) {
 		dir, cleanup := test.CreateTestDirectory(t)

@@ -224,6 +224,11 @@ func main() {
 
 	req := openai.AudioRequest{
 		Model:    openai.Whisper1,
+		Format:      openai.AudioResponseFormatVerboseJSON,
+		TimeStampGranularities: []openai.TimestampGranularity{ // Only supported with response_format=verbose_json
+			openai.TimestampGranularitySegment,
+			openai.TimestampGranularityWord,
+		},
 		FilePath: "recording.mp3",
 	}
 	resp, err := c.CreateTranscription(ctx, req)

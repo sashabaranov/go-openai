@@ -519,7 +519,8 @@ func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 		if r1.Usage == nil || r2.Usage == nil {
 			return false
 		}
-		if r1.Usage.PromptTokens != r2.Usage.PromptTokens || r1.Usage.CompletionTokens != r2.Usage.CompletionTokens || r1.Usage.TotalTokens != r2.Usage.TotalTokens {
+		if r1.Usage.PromptTokens != r2.Usage.PromptTokens || r1.Usage.CompletionTokens != r2.Usage.CompletionTokens ||
+			r1.Usage.TotalTokens != r2.Usage.TotalTokens {
 			return false
 		}
 	}

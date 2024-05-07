@@ -388,6 +388,120 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 	}
 }
 
+func TestCreateChatCompletionStreamStreamOptions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		// Send test responses
+		var dataBytes []byte
+		//nolint:lll
+		data := `{"id":"1","object":"completion","created":1598069254,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[{"index":0,"delta":{"content":"response1"},"finish_reason":"max_tokens"}],"usage":null}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		//nolint:lll
+		data = `{"id":"2","object":"completion","created":1598069255,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[{"index":0,"delta":{"content":"response2"},"finish_reason":"max_tokens"}],"usage":null}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		//nolint:lll
+		data = `{"id":"3","object":"completion","created":1598069256,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}`
+		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+		StreamOptions: &openai.StreamOptions{
+			IncludeUsage: true,
+		},
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	expectedResponses := []openai.ChatCompletionStreamResponse{
+		{
+			ID:                "1",
+			Object:            "completion",
+			Created:           1598069254,
+			Model:             openai.GPT3Dot5Turbo,
+			SystemFingerprint: "fp_d9767fc5b9",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Content: "response1",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
+		},
+		{
+			ID:                "2",
+			Object:            "completion",
+			Created:           1598069255,
+			Model:             openai.GPT3Dot5Turbo,
+			SystemFingerprint: "fp_d9767fc5b9",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Content: "response2",
+					},
+					FinishReason: "max_tokens",
+				},
+			},
+		},
+		{
+			ID:                "3",
+			Object:            "completion",
+			Created:           1598069256,
+			Model:             openai.GPT3Dot5Turbo,
+			SystemFingerprint: "fp_d9767fc5b9",
+			Choices:           []openai.ChatCompletionStreamChoice{},
+			Usage: &openai.Usage{
+				PromptTokens:     1,
+				CompletionTokens: 1,
+				TotalTokens:      2,
+			},
+		},
+	}
+
+	for ix, expectedResponse := range expectedResponses {
+		b, _ := json.Marshal(expectedResponse)
+		t.Logf("%d: %s", ix, string(b))
+
+		receivedResponse, streamErr := stream.Recv()
+		checks.NoError(t, streamErr, "stream.Recv() failed")
+		if !compareChatResponses(expectedResponse, receivedResponse) {
+			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
+		}
+	}
+
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
+	}
+
+	_, streamErr = stream.Recv()
+
+	checks.ErrorIs(t, streamErr, io.EOF, "stream.Recv() did not return EOF when the stream is finished")
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF when the stream is finished: %v", streamErr)
+	}
+}
+
 // Helper funcs.
 func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 	if r1.ID != r2.ID || r1.Object != r2.Object || r1.Created != r2.Created || r1.Model != r2.Model {
@@ -398,6 +512,15 @@ func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 	}
 	for i := range r1.Choices {
 		if !compareChatStreamResponseChoices(r1.Choices[i], r2.Choices[i]) {
+			return false
+		}
+	}
+	if r1.Usage != nil || r2.Usage != nil {
+		if r1.Usage == nil || r2.Usage == nil {
+			return false
+		}
+		if r1.Usage.PromptTokens != r2.Usage.PromptTokens || r1.Usage.CompletionTokens != r2.Usage.CompletionTokens ||
+			r1.Usage.TotalTokens != r2.Usage.TotalTokens {
 			return false
 		}
 	}

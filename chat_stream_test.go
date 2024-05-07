@@ -405,6 +405,7 @@ func TestCreateChatCompletionStreamStreamOptions(t *testing.T) {
 		data = `{"id":"2","object":"completion","created":1598069255,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[{"index":0,"delta":{"content":"response2"},"finish_reason":"max_tokens"}],"usage":null}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 
+		//nolint:lll
 		data = `{"id":"3","object":"completion","created":1598069256,"model":"gpt-3.5-turbo","system_fingerprint": "fp_d9767fc5b9","choices":[],"usage":{"prompt_tokens":1,"completion_tokens":1,"total_tokens":2}}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 

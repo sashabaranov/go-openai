@@ -33,6 +33,10 @@ type ChatCompletionStreamResponse struct {
 	SystemFingerprint   string                       `json:"system_fingerprint"`
 	PromptAnnotations   []PromptAnnotation           `json:"prompt_annotations,omitempty"`
 	PromptFilterResults []PromptFilterResult         `json:"prompt_filter_results,omitempty"`
+	// An optional field that will only be present when you set stream_options: {"include_usage": true} in your request.
+	// When present, it contains a null value except for the last chunk which contains the token usage statistics
+	// for the entire request.
+	Usage *Usage `json:"usage,omitempty"`
 }
 
 // ChatCompletionStream

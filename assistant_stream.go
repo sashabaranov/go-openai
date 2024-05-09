@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	ErrStreamEventEmptyTopic    = errors.New("stream event gets a empty topic")
+	ErrStreamEventEmptyTopic    = errors.New("stream event gets an empty topic")
 	ErrStreamEventCallbackPanic = errors.New("occurs a runtime panic during the stream event callback")
 )
 

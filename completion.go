@@ -144,6 +144,9 @@ type CompletionRequest struct {
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias
 	LogitBias map[string]int `json:"logit_bias,omitempty"`
 	User      string         `json:"user,omitempty"`
+
+	TopK              int32   `json:"top_k,omitempty"`
+	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

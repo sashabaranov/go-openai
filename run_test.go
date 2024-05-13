@@ -234,6 +234,16 @@ func TestRun(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateThreadAndStream error")
 
+	_, err = client.CreateRunStreaming(ctx, threadID, openai.RunRequest{
+		AssistantID: assistantID,
+	})
+	checks.NoError(t, err, "CreateRunStreaming error")
+
+	_, err = client.SubmitToolOutputsStream(ctx, threadID, runID, openai.SubmitToolOutputsRequest{
+		ToolOutputs: nil,
+	})
+	checks.NoError(t, err, "SubmitToolOutputsStream error")
+
 	_, err = client.RetrieveRunStep(ctx, threadID, runID, stepID)
 	checks.NoError(t, err, "RetrieveRunStep error")
 

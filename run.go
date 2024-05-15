@@ -103,6 +103,9 @@ type RunRequest struct {
 
 	// ThreadTruncationStrategy defines the truncation strategy to use for the thread.
 	TruncationStrategy *ThreadTruncationStrategy `json:"truncation_strategy,omitempty"`
+
+	// Used to force a tool call, only available in v2 API
+	ToolChoice any `json:"tool_choice,omitempty"`
 }
 
 // ThreadTruncationStrategy defines the truncation strategy to use for the thread.

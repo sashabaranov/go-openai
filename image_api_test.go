@@ -36,7 +36,7 @@ func handleImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var err error
 	var resBytes []byte
 
-	// imagess only accepts POST requests
+	// images only accepts POST requests
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -146,7 +146,7 @@ func TestImageEditWithoutMask(t *testing.T) {
 func handleEditImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var resBytes []byte
 
-	// imagess only accepts POST requests
+	// images only accepts POST requests
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}
@@ -202,7 +202,7 @@ func TestImageVariation(t *testing.T) {
 func handleVariateImageEndpoint(w http.ResponseWriter, r *http.Request) {
 	var resBytes []byte
 
-	// imagess only accepts POST requests
+	// images only accepts POST requests
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 	}

@@ -53,18 +53,62 @@ type DeltaImageURL struct {
 	Detail string `json:"detail"`
 }
 
-type StreamScannerV2 struct {
-	scanner *SSEScanner
-	next    any
+// StreamTextReader wraps StreamerV2 to implement io.Reader.
+type StreamTextReader struct {
+	streamer *StreamerV2
+	buffer   []byte
 }
 
-func NewStreamScannerV2(r io.Reader) *StreamScannerV2 {
-	return &StreamScannerV2{
+// NewStreamTextReader initializes and returns a new StreamTextReader.
+func NewStreamTextReader(streamer *StreamerV2) *StreamTextReader {
+	return &StreamTextReader{
+		streamer: streamer,
+	}
+}
+
+// Read implements the io.Reader interface.
+func (r *StreamTextReader) Read(p []byte) (int, error) {
+	// If we have data in the buffer, copy it to p first.
+	if len(r.buffer) > 0 {
+		n := copy(p, r.buffer)
+		r.buffer = r.buffer[n:]
+		return n, nil
+	}
+
+	for r.streamer.Next() {
+		event := r.streamer.Event()
+		switch e := event.(type) {
+		case StreamThreadMessageDelta:
+			// Check if the event contains text content.
+			for _, content := range e.Delta.Content {
+				if content.Text != nil {
+					r.buffer = []byte(content.Text.Value)
+					n := copy(p, r.buffer)
+					r.buffer = r.buffer[n:]
+					return n, nil
+				}
+			}
+		case StreamDone:
+			return 0, io.EOF
+		}
+	}
+
+	// If we reach here, there are no more events.
+	return 0, io.EOF
+}
+
+func NewStreamerV2(r io.Reader) *StreamerV2 {
+	return &StreamerV2{
 		scanner: NewSSEScanner(r, false),
 	}
 }
 
-func (s *StreamScannerV2) Next() bool {
+type StreamerV2 struct {
+	scanner *SSEScanner
+	next    any
+}
+
+func (s *StreamerV2) Next() bool {
 	if s.scanner.Next() {
 		event := s.scanner.Scan()
 		if event != nil {
@@ -86,12 +130,59 @@ func (s *StreamScannerV2) Next() bool {
 	return false
 }
 
-func (s *StreamScannerV2) Event() any {
+func (s *StreamerV2) Event() any {
 	return s.next
 }
 
-func (s *StreamScannerV2) Err() error {
+func (s *StreamerV2) Err() error {
 	return s.scanner.Err()
+}
+
+func TestNewStreamTextReader(t *testing.T) {
+	raw := `
+event: thread.message.delta
+data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"hello"}}]}}
+
+event: thread.message.delta
+data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"world"}}]}}
+
+event: done
+data: [DONE]
+`
+	scanner := NewStreamerV2(strings.NewReader(raw))
+	reader := NewStreamTextReader(scanner)
+
+	expected := "helloworld"
+	buffer := make([]byte, len(expected))
+	n, err := reader.Read(buffer)
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != len("hello") {
+		t.Fatalf("expected to read %d bytes, read %d bytes", len("hello"), n)
+	}
+	if string(buffer[:n]) != "hello" {
+		t.Fatalf("expected %q, got %q", "hello", string(buffer[:n]))
+	}
+
+	n, err = reader.Read(buffer[n:])
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if n != len("world") {
+		t.Fatalf("expected to read %d bytes, read %d bytes", len("world"), n)
+	}
+	if string(buffer[:len(expected)]) != expected {
+		t.Fatalf("expected %q, got %q", expected, string(buffer[:len(expected)]))
+	}
+
+	n, err = reader.Read(buffer)
+	if err != io.EOF {
+		t.Fatalf("expected io.EOF, got %v", err)
+	}
+	if n != 0 {
+		t.Fatalf("expected to read 0 bytes, read %d bytes", n)
+	}
 }
 
 func TestStreamScannerV2(t *testing.T) {
@@ -102,7 +193,7 @@ data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delt
 event: done
 data: [DONE]
 `
-	scanner := NewStreamScannerV2(strings.NewReader(raw))
+	scanner := NewStreamerV2(strings.NewReader(raw))
 	var events []any
 
 	for scanner.Next() {

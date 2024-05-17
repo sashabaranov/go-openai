@@ -53,21 +53,21 @@ type DeltaImageURL struct {
 	Detail string `json:"detail"`
 }
 
-// StreamTextReader wraps StreamerV2 to implement io.Reader.
-type StreamTextReader struct {
+// streamTextReader wraps StreamerV2 to implement io.Reader.
+type streamTextReader struct {
 	streamer *StreamerV2
 	buffer   []byte
 }
 
-// NewStreamTextReader initializes and returns a new StreamTextReader.
-func NewStreamTextReader(streamer *StreamerV2) *StreamTextReader {
-	return &StreamTextReader{
+// newStreamTextReader initializes and returns a new StreamTextReader.
+func newStreamTextReader(streamer *StreamerV2) *streamTextReader {
+	return &streamTextReader{
 		streamer: streamer,
 	}
 }
 
 // Read implements the io.Reader interface.
-func (r *StreamTextReader) Read(p []byte) (int, error) {
+func (r *streamTextReader) Read(p []byte) (int, error) {
 	// If we have data in the buffer, copy it to p first.
 	if len(r.buffer) > 0 {
 		n := copy(p, r.buffer)
@@ -76,24 +76,23 @@ func (r *StreamTextReader) Read(p []byte) (int, error) {
 	}
 
 	for r.streamer.Next() {
-		event := r.streamer.Event()
-		switch e := event.(type) {
-		case StreamThreadMessageDelta:
-			// Check if the event contains text content.
-			for _, content := range e.Delta.Content {
-				if content.Text != nil {
-					r.buffer = []byte(content.Text.Value)
-					n := copy(p, r.buffer)
-					r.buffer = r.buffer[n:]
-					return n, nil
-				}
-			}
-		case StreamDone:
-			return 0, io.EOF
+		// Read only text deltas
+		text, ok := r.streamer.MessageDeltaText()
+		if !ok {
+			continue
 		}
+
+		r.buffer = []byte(text)
+		n := copy(p, r.buffer)
+		r.buffer = r.buffer[n:]
+		return n, nil
 	}
 
-	// If we reach here, there are no more events.
+	// Check for streamer error
+	if err := r.streamer.Err(); err != nil {
+		return 0, err
+	}
+
 	return 0, io.EOF
 }
 
@@ -130,8 +129,31 @@ func (s *StreamerV2) Next() bool {
 	return false
 }
 
+// Reader returns io.Reader that reads only text deltas from the stream
+func (s *StreamerV2) Reader() io.Reader {
+	return newStreamTextReader(s)
+}
+
 func (s *StreamerV2) Event() any {
 	return s.next
+}
+
+func (s *StreamerV2) MessageDeltaText() (string, bool) {
+	event, ok := s.next.(StreamThreadMessageDelta)
+	if !ok {
+		return "", false
+	}
+
+	var text string
+	for _, content := range event.Delta.Content {
+		if content.Text != nil {
+			// Can we return the first text we find? Does OpenAI stream ever
+			// return multiple text contents in a delta?
+			text = text + content.Text.Value
+		}
+	}
+
+	return text, true
 }
 
 func (s *StreamerV2) Err() error {
@@ -149,8 +171,7 @@ data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delt
 event: done
 data: [DONE]
 `
-	scanner := NewStreamerV2(strings.NewReader(raw))
-	reader := NewStreamTextReader(scanner)
+	reader := NewStreamerV2(strings.NewReader(raw)).Reader()
 
 	expected := "helloworld"
 	buffer := make([]byte, len(expected))

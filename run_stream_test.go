@@ -53,20 +53,18 @@ type DeltaImageURL struct {
 	Detail string `json:"detail"`
 }
 
-// streamTextReader wraps StreamerV2 to implement io.Reader.
+// streamTextReader is an io.Reader of the text deltas of thread.message.delta events
 type streamTextReader struct {
 	streamer *StreamerV2
 	buffer   []byte
 }
 
-// newStreamTextReader initializes and returns a new StreamTextReader.
-func newStreamTextReader(streamer *StreamerV2) *streamTextReader {
+func newStreamTextReader(streamer *StreamerV2) io.Reader {
 	return &streamTextReader{
 		streamer: streamer,
 	}
 }
 
-// Read implements the io.Reader interface.
 func (r *streamTextReader) Read(p []byte) (int, error) {
 	// If we have data in the buffer, copy it to p first.
 	if len(r.buffer) > 0 {
@@ -129,7 +127,7 @@ func (s *StreamerV2) Next() bool {
 	return false
 }
 
-// Reader returns io.Reader that reads only text deltas from the stream
+// Reader returns io.Reader of the text deltas of thread.message.delta events
 func (s *StreamerV2) Reader() io.Reader {
 	return newStreamTextReader(s)
 }
@@ -138,6 +136,12 @@ func (s *StreamerV2) Event() any {
 	return s.next
 }
 
+// Text returns text delta if the current event is a "thread.message.delta". Alias of MessageDeltaText.
+func (s *StreamerV2) Text() (string, bool) {
+	return s.MessageDeltaText()
+}
+
+// MessageDeltaText returns text delta if the current event is a "thread.message.delta"
 func (s *StreamerV2) MessageDeltaText() (string, bool) {
 	event, ok := s.next.(StreamThreadMessageDelta)
 	if !ok {

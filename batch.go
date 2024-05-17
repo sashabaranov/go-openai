@@ -39,10 +39,10 @@ func (r BatchRequestFiles) Marshal() ([]byte, error) {
 }
 
 type BatchChatCompletionRequest struct {
-	CustomId string                `json:"custom_id"`
+	CustomID string                `json:"custom_id"`
 	Body     ChatCompletionRequest `json:"body"`
 	Method   string                `json:"method"`
-	Url      BatchEndpoint         `json:"url"`
+	URL      BatchEndpoint         `json:"url"`
 }
 
 func (r BatchChatCompletionRequest) MarshalBatchFile() ([]byte, error) {
@@ -50,10 +50,10 @@ func (r BatchChatCompletionRequest) MarshalBatchFile() ([]byte, error) {
 }
 
 type BatchCompletionRequest struct {
-	CustomId string            `json:"custom_id"`
+	CustomID string            `json:"custom_id"`
 	Body     CompletionRequest `json:"body"`
 	Method   string            `json:"method"`
-	Url      BatchEndpoint     `json:"url"`
+	URL      BatchEndpoint     `json:"url"`
 }
 
 func (r BatchCompletionRequest) MarshalBatchFile() ([]byte, error) {
@@ -61,10 +61,10 @@ func (r BatchCompletionRequest) MarshalBatchFile() ([]byte, error) {
 }
 
 type BatchEmbeddingRequest struct {
-	CustomId string           `json:"custom_id"`
+	CustomID string           `json:"custom_id"`
 	Body     EmbeddingRequest `json:"body"`
 	Method   string           `json:"method"`
-	Url      BatchEndpoint    `json:"url"`
+	URL      BatchEndpoint    `json:"url"`
 }
 
 func (r BatchEmbeddingRequest) MarshalBatchFile() ([]byte, error) {
@@ -79,35 +79,35 @@ type CreateBatchRequest struct {
 	Metadata         map[string]any
 }
 
-func (r *CreateBatchRequest) AddChatCompletion(customerId string, body ChatCompletionRequest) {
+func (r *CreateBatchRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
 	r.Requests = append(r.Requests, BatchChatCompletionRequest{
-		CustomId: customerId,
+		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
-		Url:      BatchEndpointChatCompletions,
+		URL:      BatchEndpointChatCompletions,
 	})
 }
 
-func (r *CreateBatchRequest) AddCompletion(customerId string, body CompletionRequest) {
+func (r *CreateBatchRequest) AddCompletion(customerID string, body CompletionRequest) {
 	r.Requests = append(r.Requests, BatchCompletionRequest{
-		CustomId: customerId,
+		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
-		Url:      BatchEndpointCompletions,
+		URL:      BatchEndpointCompletions,
 	})
 }
 
-func (r *CreateBatchRequest) AddEmbedding(customerId string, body EmbeddingRequest) {
+func (r *CreateBatchRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
 	r.Requests = append(r.Requests, BatchEmbeddingRequest{
-		CustomId: customerId,
+		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
-		Url:      BatchEndpointEmbeddings,
+		URL:      BatchEndpointEmbeddings,
 	})
 }
 
 type Batch struct {
-	Id       string `json:"id"`
+	ID       string `json:"id"`
 	Object   string `json:"object"`
 	Endpoint string `json:"endpoint"`
 	Errors   *struct {
@@ -119,11 +119,11 @@ type Batch struct {
 			Line    *int    `json:"line,omitempty"`
 		} `json:"data"`
 	} `json:"errors"`
-	InputFileId      string             `json:"input_file_id"`
+	InputFileID      string             `json:"input_file_id"`
 	CompletionWindow string             `json:"completion_window"`
 	Status           string             `json:"status"`
-	OutputFileId     *string            `json:"output_file_id"`
-	ErrorFileId      *string            `json:"error_file_id"`
+	OutputFileID     *string            `json:"output_file_id"`
+	ErrorFileID      *string            `json:"error_file_id"`
 	CreatedAt        int                `json:"created_at"`
 	InProgressAt     *int               `json:"in_progress_at"`
 	ExpiresAt        *int               `json:"expires_at"`
@@ -173,13 +173,13 @@ func (c *Client) CreateBatch(
 	}
 
 	type createBatchRequest struct {
-		InputFileId      string
+		InputFileID      string
 		Endpoint         BatchEndpoint
 		CompletionWindow string
 		Metadata         map[string]any
 	}
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix), withBody(createBatchRequest{
-		InputFileId:      file.ID,
+		InputFileID:      file.ID,
 		Endpoint:         request.Endpoint,
 		CompletionWindow: request.CompletionWindow,
 		Metadata:         request.Metadata,
@@ -224,8 +224,8 @@ type ListBatchResponse struct {
 	httpHeader
 	Object  string  `json:"object"`
 	Data    []Batch `json:"data"`
-	FirstId string  `json:"first_id"`
-	LastId  string  `json:"last_id"`
+	FirstID string  `json:"first_id"`
+	LastID  string  `json:"last_id"`
 	HasMore bool    `json:"has_more"`
 }
 

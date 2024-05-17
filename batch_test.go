@@ -10,23 +10,6 @@ import (
 	"testing"
 )
 
-func TestBatchResponse_Requests(t *testing.T) {
-	req := openai.CreateBatchRequest{
-		Endpoint: openai.BatchEndpointChatCompletions,
-	}
-	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
-		MaxTokens: 5,
-		Model:     openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: "Hello!",
-			},
-		},
-	})
-
-}
-
 func TestCreateBatch(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

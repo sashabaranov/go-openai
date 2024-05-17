@@ -22,6 +22,7 @@ const (
 	PurposeFineTuneResults  PurposeType = "fine-tune-results"
 	PurposeAssistants       PurposeType = "assistants"
 	PurposeAssistantsOutput PurposeType = "assistants_output"
+	PurposeBatch            PurposeType = "batch"
 )
 
 // FileBytesRequest represents a file upload request.

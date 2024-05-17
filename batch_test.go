@@ -1,0 +1,367 @@
+package openai_test
+
+import (
+	"context"
+	"fmt"
+	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"net/http"
+	"reflect"
+	"testing"
+)
+
+func TestBatchResponse_Requests(t *testing.T) {
+	req := openai.CreateBatchRequest{
+		Endpoint: openai.BatchEndpointChatCompletions,
+	}
+	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+
+}
+
+func TestCreateBatch(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
+	req := openai.CreateBatchRequest{
+		Endpoint: openai.BatchEndpointChatCompletions,
+	}
+	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	_, err := client.CreateBatch(context.Background(), req)
+	checks.NoError(t, err, "CreateBatch error")
+}
+
+func TestRetrieveBatch(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/batches/file-id-1", handleRetrieveBatchEndpoint)
+	_, err := client.RetrieveBatch(context.Background(), "file-id-1")
+	checks.NoError(t, err, "RetrieveBatch error")
+}
+
+func TestCancelBatch(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/batches/file-id-1/cancel", handleCancelBatchEndpoint)
+	_, err := client.CancelBatch(context.Background(), "file-id-1")
+	checks.NoError(t, err, "RetrieveBatch error")
+}
+
+func TestListBatch(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
+	_, err := client.ListBatch(context.Background(), nil, nil)
+	checks.NoError(t, err, "RetrieveBatch error")
+}
+
+func handleBatchEndpoint(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		_, _ = fmt.Fprintln(w, `{
+			  "id": "batch_abc123",
+			  "object": "batch",
+			  "endpoint": "/v1/completions",
+			  "errors": null,
+			  "input_file_id": "file-abc123",
+			  "completion_window": "24h",
+			  "status": "completed",
+			  "output_file_id": "file-cvaTdG",
+			  "error_file_id": "file-HOWS94",
+			  "created_at": 1711471533,
+			  "in_progress_at": 1711471538,
+			  "expires_at": 1711557933,
+			  "finalizing_at": 1711493133,
+			  "completed_at": 1711493163,
+			  "failed_at": null,
+			  "expired_at": null,
+			  "cancelling_at": null,
+			  "cancelled_at": null,
+			  "request_counts": {
+				"total": 100,
+				"completed": 95,
+				"failed": 5
+			  },
+			  "metadata": {
+				"customer_id": "user_123456789",
+				"batch_description": "Nightly eval job"
+			  }
+			}`)
+	} else if r.Method == http.MethodGet {
+		_, _ = fmt.Fprintln(w, `{
+			  "object": "list",
+			  "data": [
+				{
+				  "id": "batch_abc123",
+				  "object": "batch",
+				  "endpoint": "/v1/chat/completions",
+				  "errors": null,
+				  "input_file_id": "file-abc123",
+				  "completion_window": "24h",
+				  "status": "completed",
+				  "output_file_id": "file-cvaTdG",
+				  "error_file_id": "file-HOWS94",
+				  "created_at": 1711471533,
+				  "in_progress_at": 1711471538,
+				  "expires_at": 1711557933,
+				  "finalizing_at": 1711493133,
+				  "completed_at": 1711493163,
+				  "failed_at": null,
+				  "expired_at": null,
+				  "cancelling_at": null,
+				  "cancelled_at": null,
+				  "request_counts": {
+					"total": 100,
+					"completed": 95,
+					"failed": 5
+				  },
+				  "metadata": {
+					"customer_id": "user_123456789",
+					"batch_description": "Nightly job"
+				  }
+				}
+			  ],
+			  "first_id": "batch_abc123",
+			  "last_id": "batch_abc456",
+			  "has_more": true
+			}`)
+	}
+}
+
+func handleRetrieveBatchEndpoint(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodGet {
+		_, _ = fmt.Fprintln(w, `{
+		  "id": "batch_abc123",
+		  "object": "batch",
+		  "endpoint": "/v1/completions",
+		  "errors": null,
+		  "input_file_id": "file-abc123",
+		  "completion_window": "24h",
+		  "status": "completed",
+		  "output_file_id": "file-cvaTdG",
+		  "error_file_id": "file-HOWS94",
+		  "created_at": 1711471533,
+		  "in_progress_at": 1711471538,
+		  "expires_at": 1711557933,
+		  "finalizing_at": 1711493133,
+		  "completed_at": 1711493163,
+		  "failed_at": null,
+		  "expired_at": null,
+		  "cancelling_at": null,
+		  "cancelled_at": null,
+		  "request_counts": {
+			"total": 100,
+			"completed": 95,
+			"failed": 5
+		  },
+		  "metadata": {
+			"customer_id": "user_123456789",
+			"batch_description": "Nightly eval job"
+		  }
+		}`)
+	}
+}
+
+func handleCancelBatchEndpoint(w http.ResponseWriter, r *http.Request) {
+	if r.Method == http.MethodPost {
+		_, _ = fmt.Fprintln(w, `{
+		  "id": "batch_abc123",
+		  "object": "batch",
+		  "endpoint": "/v1/chat/completions",
+		  "errors": null,
+		  "input_file_id": "file-abc123",
+		  "completion_window": "24h",
+		  "status": "cancelling",
+		  "output_file_id": null,
+		  "error_file_id": null,
+		  "created_at": 1711471533,
+		  "in_progress_at": 1711471538,
+		  "expires_at": 1711557933,
+		  "finalizing_at": null,
+		  "completed_at": null,
+		  "failed_at": null,
+		  "expired_at": null,
+		  "cancelling_at": 1711475133,
+		  "cancelled_at": null,
+		  "request_counts": {
+			"total": 100,
+			"completed": 23,
+			"failed": 1
+		  },
+		  "metadata": {
+			"customer_id": "user_123456789",
+			"batch_description": "Nightly eval job"
+		  }
+		}`)
+	}
+}
+
+func TestCreateBatchRequest_AddChatCompletion(t *testing.T) {
+	type args struct {
+		customerId string
+		body       openai.ChatCompletionRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerId: "req-1",
+				body: openai.ChatCompletionRequest{
+					MaxTokens: 5,
+					Model:     openai.GPT3Dot5Turbo,
+					Messages: []openai.ChatCompletionMessage{
+						{
+							Role:    openai.ChatMessageRoleUser,
+							Content: "Hello!",
+						},
+					},
+				},
+			},
+			{
+				customerId: "req-2",
+				body: openai.ChatCompletionRequest{
+					MaxTokens: 5,
+					Model:     openai.GPT3Dot5Turbo,
+					Messages: []openai.ChatCompletionMessage{
+						{
+							Role:    openai.ChatMessageRoleUser,
+							Content: "Hello!",
+						},
+					},
+				},
+			},
+		}, []byte(`{"custom_id":"req-1","body":{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Hello!"}],"max_tokens":5},"method":"POST","url":"/v1/chat/completions"}
+{"custom_id":"req-2","body":{"model":"gpt-3.5-turbo","messages":[{"role":"user","content":"Hello!"}],"max_tokens":5},"method":"POST","url":"/v1/chat/completions"}`), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddChatCompletion(arg.customerId, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateBatchRequest_AddCompletion(t *testing.T) {
+	type args struct {
+		customerId string
+		body       openai.CompletionRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerId: "req-1",
+				body: openai.CompletionRequest{
+					Model: openai.GPT3Dot5Turbo,
+					User:  "Hello",
+				},
+			},
+			{
+				customerId: "req-2",
+				body: openai.CompletionRequest{
+					Model: openai.GPT3Dot5Turbo,
+					User:  "Hello",
+				},
+			},
+		}, []byte(`{"custom_id":"req-1","body":{"model":"gpt-3.5-turbo","user":"Hello"},"method":"POST","url":"/v1/completions"}
+{"custom_id":"req-2","body":{"model":"gpt-3.5-turbo","user":"Hello"},"method":"POST","url":"/v1/completions"}`), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddCompletion(arg.customerId, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateBatchRequest_AddEmbedding(t *testing.T) {
+	type args struct {
+		customerId string
+		body       openai.EmbeddingRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerId: "req-1",
+				body: openai.EmbeddingRequest{
+					Model: openai.GPT3Dot5Turbo,
+					Input: []string{"Hello", "World"},
+				},
+			},
+			{
+				customerId: "req-2",
+				body: openai.EmbeddingRequest{
+					Model: openai.AdaEmbeddingV2,
+					Input: []string{"Hello", "World"},
+				},
+			},
+		}, []byte(`{"custom_id":"req-1","body":{"input":["Hello","World"],"model":"gpt-3.5-turbo","user":""},"method":"POST","url":"/v1/embeddings"}
+{"custom_id":"req-2","body":{"input":["Hello","World"],"model":"text-embedding-ada-002","user":""},"method":"POST","url":"/v1/embeddings"}`), false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddEmbedding(arg.customerId, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}

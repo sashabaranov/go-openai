@@ -3,82 +3,24 @@ package openai
 import (
 	"bufio"
 	"io"
+	"reflect"
 	"strings"
 	"testing"
 )
 
-// NewEOLSplitterFunc returns a bufio.SplitFunc tied to a new EOLSplitter instance
-func NewEOLSplitterFunc() bufio.SplitFunc {
-	splitter := NewEOLSplitter()
-	return splitter.Split
-}
-
-// EOLSplitter is the custom split function to handle CR LF, CR, and LF as end-of-line.
-type EOLSplitter struct {
-	prevCR bool
-}
-
-// NewEOLSplitter creates a new EOLSplitter instance.
-func NewEOLSplitter() *EOLSplitter {
-	return &EOLSplitter{prevCR: false}
-}
-
-// Split function to handle CR LF, CR, and LF as end-of-line.
-func (s *EOLSplitter) Split(data []byte, atEOF bool) (advance int, token []byte, err error) {
-	// Check if the previous data ended with a CR
-	if s.prevCR {
-		s.prevCR = false
-		if len(data) > 0 && data[0] == '\n' {
-			return 1, nil, nil // Skip the LF following the previous CR
-		}
-	}
-
-	// Search for the first occurrence of CR LF, CR, or LF
-	for i := 0; i < len(data); i++ {
-		if data[i] == '\r' {
-			if i+1 < len(data) && data[i+1] == '\n' {
-				// Found CR LF
-				return i + 2, data[:i], nil
-			}
-			// Found CR
-			if !atEOF && i == len(data)-1 {
-				// If CR is the last byte, and not EOF, then need to check if
-				// the next byte is LF.
-				//
-				// save the state and request more data
-				s.prevCR = true
-				return 0, nil, nil
-			}
-			return i + 1, data[:i], nil
-		}
-		if data[i] == '\n' {
-			// Found LF
-			return i + 1, data[:i], nil
-		}
-	}
-
-	// If at EOF, we have a final, non-terminated line. Return it.
-	if atEOF && len(data) > 0 {
-		return len(data), data, nil
-	}
-
-	// Request more data.
-	return 0, nil, nil
-}
-
-// CustomReader simulates a reader that splits the input across multiple reads.
-type CustomReader struct {
+// ChunksReader simulates a reader that splits the input across multiple reads.
+type ChunksReader struct {
 	chunks []string
 	index  int
 }
 
-func NewChunksReader(chunks []string) *CustomReader {
-	return &CustomReader{
+func NewChunksReader(chunks []string) *ChunksReader {
+	return &ChunksReader{
 		chunks: chunks,
 	}
 }
 
-func (r *CustomReader) Read(p []byte) (n int, err error) {
+func (r *ChunksReader) Read(p []byte) (n int, err error) {
 	if r.index >= len(r.chunks) {
 		return 0, io.EOF
 	}
@@ -176,5 +118,155 @@ func TestEolSplitterBoundaryCondition(t *testing.T) {
 				t.Errorf("Expected line %d to be %q, got %q", i, c.expected[i], lines[i])
 			}
 		}
+	}
+}
+
+func TestSSEScanner(t *testing.T) {
+	tests := []struct {
+		raw  string
+		want []ServerSentEvent
+	}{
+		{
+			raw: `data: hello world`,
+			want: []ServerSentEvent{
+				{
+					Data: "hello world",
+				},
+			},
+		},
+		{
+			raw: `event: hello
+data: hello world`,
+			want: []ServerSentEvent{
+				{
+					Event: "hello",
+					Data:  "hello world",
+				},
+			},
+		},
+		{
+			raw: `event: hello-json
+data: {
+data: "msg": "hello world",
+data: "id": 12345
+data: }`,
+			want: []ServerSentEvent{
+				{
+					Event: "hello-json",
+					Data:  "{\n\"msg\": \"hello world\",\n\"id\": 12345\n}",
+				},
+			},
+		},
+		{
+			raw: `data: hello world
+
+data: hello again`,
+			want: []ServerSentEvent{
+				{
+					Data: "hello world",
+				},
+				{
+					Data: "hello again",
+				},
+			},
+		},
+		{
+			raw: `retry: 10000
+			data: hello world`,
+			want: []ServerSentEvent{
+				{
+					Retry: 10000,
+					Data:  "hello world",
+				},
+			},
+		},
+		{
+			raw: `retry: 10000
+
+retry: 20000`,
+			want: []ServerSentEvent{
+				{
+					Retry: 10000,
+				},
+				{
+					Retry: 20000,
+				},
+			},
+		},
+		{
+			raw: `: comment 1
+: comment 2
+id: message-id
+retry: 20000
+event: hello-event
+data: hello`,
+			want: []ServerSentEvent{
+				{
+					ID:    "message-id",
+					Retry: 20000,
+					Event: "hello-event",
+					Data:  "hello",
+				},
+			},
+		},
+		{
+			raw: `: comment 1
+id: message 1
+data: hello 1
+retry: 10000
+event: hello-event 1
+
+: comment 2
+data: hello 2
+id: message 2
+retry: 20000
+event: hello-event 2
+`,
+			want: []ServerSentEvent{
+				{
+					ID:    "message 1",
+					Retry: 10000,
+					Event: "hello-event 1",
+					Data:  "hello 1",
+				},
+				{
+					ID:    "message 2",
+					Retry: 20000,
+					Event: "hello-event 2",
+					Data:  "hello 2",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.raw, func(t *testing.T) {
+			rawWithCRLF := strings.ReplaceAll(tt.raw, "\n", "\r\n")
+			runSSEScanTest(t, rawWithCRLF, tt.want)
+
+			// Test with "\r" EOL
+			rawWithCR := strings.ReplaceAll(tt.raw, "\n", "\r")
+			runSSEScanTest(t, rawWithCR, tt.want)
+
+			// Test with "\n" EOL (original)
+			runSSEScanTest(t, tt.raw, tt.want)
+		})
+	}
+}
+
+func runSSEScanTest(t *testing.T, raw string, want []ServerSentEvent) {
+	sseScanner := NewSSEScanner(strings.NewReader(raw), false)
+
+	var got []ServerSentEvent
+	for sseScanner.Next() {
+		got = append(got, *sseScanner.Scan())
+	}
+
+	if err := sseScanner.Err(); err != nil {
+		t.Errorf("SSEScanner error: %v", err)
+	}
+
+	if !reflect.DeepEqual(got, want) {
+		t.Errorf("SSEScanner() = %v, want %v", got, want)
 	}
 }

@@ -3,10 +3,8 @@ package openai
 import (
 	"context"
 	"fmt"
-	"io"
 	"net/http"
 	"net/url"
-	"os"
 )
 
 type Run struct {
@@ -473,7 +471,7 @@ type AssistantStream struct {
 
 func (c *Client) CreateThreadAndStream(
 	ctx context.Context,
-	request CreateThreadAndRunRequest) (stream *AssistantStream, err error) {
+	request CreateThreadAndRunRequest) (stream *StreamerV2, err error) {
 	urlSuffix := "/threads/runs"
 	sr := CreateThreadAndStreamRequest{
 		CreateThreadAndRunRequest: request,
@@ -491,34 +489,23 @@ func (c *Client) CreateThreadAndStream(
 		return
 	}
 
+	// TODO: implement requestStreamV2
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "text/event-stream")
 	req.Header.Set("Cache-Control", "no-cache")
 	req.Header.Set("Connection", "keep-alive")
 
 	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
-	// resp, err := sendRequestStream[AssistantStreamEvent](c, req)
 	if err != nil {
 		return
 	}
-	defer resp.Body.Close()
 
-	outf, err := os.Create("thread.run.stream")
-	if err != nil {
-		return nil, err
+	if resp.StatusCode != 200 {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
 	}
-	defer outf.Close()
 
-	r := io.TeeReader(resp.Body, outf)
-
-	_, err = io.Copy(os.Stdout, r)
-
-	// ChatCompletionStreamChoiceDelta
-
-	// stream = &AssistantStream{
-	// 	streamReader: resp,
-	// }
-	return nil, err
+	return NewStreamerV2(resp.Body), nil
 }
 
 func (c *Client) CreateRunStreaming(

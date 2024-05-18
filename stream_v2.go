@@ -11,7 +11,6 @@ type StreamRawEvent struct {
 }
 
 type StreamDone struct {
-	Data string // [DONE]
 }
 
 // Define StreamThreadMessageDelta
@@ -134,7 +133,7 @@ func (s *StreamerV2) Next() bool {
 
 		}
 	case "done":
-		s.next = StreamDone{Data: "DONE"}
+		s.next = StreamDone{}
 	default:
 		s.next = StreamRawEvent{
 			Type: event.Event,

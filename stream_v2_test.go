@@ -93,7 +93,7 @@ data: [DONE]
 				},
 			},
 		},
-		StreamDone{Data: "DONE"},
+		StreamDone{},
 	}
 
 	if len(events) != len(expectedValues) {

@@ -49,47 +49,6 @@ type DeltaImageURL struct {
 	Detail string `json:"detail"`
 }
 
-// streamTextReader is an io.Reader of the text deltas of thread.message.delta events
-type streamTextReader struct {
-	streamer *StreamerV2
-	buffer   []byte
-}
-
-func newStreamTextReader(streamer *StreamerV2) io.Reader {
-	return &streamTextReader{
-		streamer: streamer,
-	}
-}
-
-func (r *streamTextReader) Read(p []byte) (int, error) {
-	// If we have data in the buffer, copy it to p first.
-	if len(r.buffer) > 0 {
-		n := copy(p, r.buffer)
-		r.buffer = r.buffer[n:]
-		return n, nil
-	}
-
-	for r.streamer.Next() {
-		// Read only text deltas
-		text, ok := r.streamer.MessageDeltaText()
-		if !ok {
-			continue
-		}
-
-		r.buffer = []byte(text)
-		n := copy(p, r.buffer)
-		r.buffer = r.buffer[n:]
-		return n, nil
-	}
-
-	// Check for streamer error
-	if err := r.streamer.Err(); err != nil {
-		return 0, err
-	}
-
-	return 0, io.EOF
-}
-
 func NewStreamerV2(r io.Reader) *StreamerV2 {
 	var rc io.ReadCloser
 
@@ -111,6 +70,9 @@ type StreamerV2 struct {
 
 	scanner *SSEScanner
 	next    any
+
+	// buffer for implementing io.Reader
+	buffer []byte
 }
 
 // Close closes the underlying io.ReadCloser
@@ -144,9 +106,34 @@ func (s *StreamerV2) Next() bool {
 	return true
 }
 
-// Reader returns io.Reader of the text deltas of thread.message.delta events
-func (s *StreamerV2) Reader() io.Reader {
-	return newStreamTextReader(s)
+// Read implements io.Reader of the text deltas of thread.message.delta events
+func (r *StreamerV2) Read(p []byte) (int, error) {
+	// If we have data in the buffer, copy it to p first.
+	if len(r.buffer) > 0 {
+		n := copy(p, r.buffer)
+		r.buffer = r.buffer[n:]
+		return n, nil
+	}
+
+	for r.Next() {
+		// Read only text deltas
+		text, ok := r.MessageDeltaText()
+		if !ok {
+			continue
+		}
+
+		r.buffer = []byte(text)
+		n := copy(p, r.buffer)
+		r.buffer = r.buffer[n:]
+		return n, nil
+	}
+
+	// Check for streamer error
+	if err := r.Err(); err != nil {
+		return 0, err
+	}
+
+	return 0, io.EOF
 }
 
 func (s *StreamerV2) Event() any {

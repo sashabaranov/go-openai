@@ -19,7 +19,7 @@ data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delt
 event: done
 data: [DONE]
 `
-	reader := NewStreamerV2(strings.NewReader(raw)).Reader()
+	reader := NewStreamerV2(strings.NewReader(raw))
 
 	expected := "helloworld"
 	buffer := make([]byte, len(expected))

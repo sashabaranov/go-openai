@@ -126,10 +126,6 @@ func (s *StreamerV2) Next() bool {
 
 	event := s.scanner.Scan()
 
-	if event == nil {
-		return false
-	}
-
 	switch event.Event {
 	case "thread.message.delta":
 		var delta StreamThreadMessageDelta

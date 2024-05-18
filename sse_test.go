@@ -259,7 +259,7 @@ func runSSEScanTest(t *testing.T, raw string, want []ServerSentEvent) {
 
 	var got []ServerSentEvent
 	for sseScanner.Next() {
-		got = append(got, *sseScanner.Scan())
+		got = append(got, sseScanner.Scan())
 	}
 
 	if err := sseScanner.Err(); err != nil {

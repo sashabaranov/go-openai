@@ -76,7 +76,7 @@ type ServerSentEvent struct {
 
 type SSEScanner struct {
 	scanner     *bufio.Scanner
-	event       *ServerSentEvent
+	next        ServerSentEvent
 	err         error
 	readComment bool
 }
@@ -99,9 +99,10 @@ func NewSSEScanner(r io.Reader, readComment bool) *SSEScanner {
 }
 
 func (s *SSEScanner) Next() bool {
-	s.event = nil
-
+	// Zero the next event before scanning a new one
 	var event ServerSentEvent
+	s.next = event
+
 	var dataLines []string
 
 	var seenNonEmptyLine bool
@@ -150,13 +151,13 @@ func (s *SSEScanner) Next() bool {
 	}
 
 	event.Data = strings.Join(dataLines, "\n")
-	s.event = &event
+	s.next = event
 
 	return true
 }
 
-func (s *SSEScanner) Scan() *ServerSentEvent {
-	return s.event
+func (s *SSEScanner) Scan() ServerSentEvent {
+	return s.next
 }
 
 func (s *SSEScanner) Err() error {

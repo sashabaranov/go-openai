@@ -92,19 +92,37 @@ func (r *streamTextReader) Read(p []byte) (int, error) {
 }
 
 func NewStreamerV2(r io.Reader) *StreamerV2 {
+	var rc io.ReadCloser
+
+	if closer, ok := r.(io.ReadCloser); ok {
+		rc = closer
+	} else {
+		rc = io.NopCloser(r)
+	}
+
 	return &StreamerV2{
+		r:       rc,
 		scanner: NewSSEScanner(r, false),
 	}
 }
 
 type StreamerV2 struct {
+	// r is only used for closing the stream
+	r io.ReadCloser
+
 	scanner *SSEScanner
 	next    any
+}
+
+// Close closes the underlying io.ReadCloser
+func (s *StreamerV2) Close() error {
+	return s.r.Close()
 }
 
 func (s *StreamerV2) Next() bool {
 	if s.scanner.Next() {
 		event := s.scanner.Scan()
+
 		if event != nil {
 			switch event.Event {
 			case "thread.message.delta":
@@ -117,7 +135,11 @@ func (s *StreamerV2) Next() bool {
 				s.next = StreamDone{Data: "DONE"}
 				return true
 			default:
-				s.next = StreamRawEvent{Data: json.RawMessage(event.Data)}
+				s.next = StreamRawEvent{
+					Type: event.Event,
+					Data: json.RawMessage(event.Data),
+				}
+				return true
 			}
 		}
 	}

@@ -55,13 +55,16 @@ data: [DONE]
 }
 
 func TestStreamScannerV2(t *testing.T) {
-	raw := `
+	raw := `event: thread.created
+data: {"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}
+
 event: thread.message.delta
 data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"hello"}}]}}
 
 event: done
 data: [DONE]
 `
+
 	scanner := NewStreamerV2(strings.NewReader(raw))
 	var events []any
 
@@ -71,6 +74,10 @@ data: [DONE]
 	}
 
 	expectedValues := []any{
+		StreamRawEvent{
+			Type: "thread.created",
+			Data: json.RawMessage(`{"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}`),
+		},
 		StreamThreadMessageDelta{
 			ID:     "msg_KFiZxHhXYQo6cGFnGjRDHSee",
 			Object: "thread.message.delta",

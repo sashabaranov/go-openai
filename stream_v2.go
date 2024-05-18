@@ -120,30 +120,33 @@ func (s *StreamerV2) Close() error {
 }
 
 func (s *StreamerV2) Next() bool {
-	if s.scanner.Next() {
-		event := s.scanner.Scan()
+	if !s.scanner.Next() {
+		return false
+	}
 
-		if event != nil {
-			switch event.Event {
-			case "thread.message.delta":
-				var delta StreamThreadMessageDelta
-				if err := json.Unmarshal([]byte(event.Data), &delta); err == nil {
-					s.next = delta
-					return true
-				}
-			case "done":
-				s.next = StreamDone{Data: "DONE"}
-				return true
-			default:
-				s.next = StreamRawEvent{
-					Type: event.Event,
-					Data: json.RawMessage(event.Data),
-				}
-				return true
-			}
+	event := s.scanner.Scan()
+
+	if event == nil {
+		return false
+	}
+
+	switch event.Event {
+	case "thread.message.delta":
+		var delta StreamThreadMessageDelta
+		if err := json.Unmarshal([]byte(event.Data), &delta); err == nil {
+			s.next = delta
+
+		}
+	case "done":
+		s.next = StreamDone{Data: "DONE"}
+	default:
+		s.next = StreamRawEvent{
+			Type: event.Event,
+			Data: json.RawMessage(event.Data),
 		}
 	}
-	return false
+
+	return true
 }
 
 // Reader returns io.Reader of the text deltas of thread.message.delta events

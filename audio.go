@@ -27,8 +27,14 @@ const (
 	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
 )
 
+type TranscriptionTimestampGranularity string
+
+const (
+	TranscriptionTimestampGranularityWord    TranscriptionTimestampGranularity = "word"
+	TranscriptionTimestampGranularitySegment TranscriptionTimestampGranularity = "segment"
+)
+
 // AudioRequest represents a request structure for audio API.
-// ResponseFormat is not supported for now. We only return JSON text, which may be sufficient.
 type AudioRequest struct {
 	Model string
 
@@ -38,10 +44,11 @@ type AudioRequest struct {
 	// Reader is an optional io.Reader when you do not want to use an existing file.
 	Reader io.Reader
 
-	Prompt      string // For translation, it should be in English
-	Temperature float32
-	Language    string // For translation, just do not use it. It seems "en" works, not confirmed...
-	Format      AudioResponseFormat
+	Prompt                 string
+	Temperature            float32
+	Language               string // Only for transcription.
+	Format                 AudioResponseFormat
+	TimestampGranularities []TranscriptionTimestampGranularity // Only for transcription.
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -62,6 +69,11 @@ type AudioResponse struct {
 		NoSpeechProb     float64 `json:"no_speech_prob"`
 		Transient        bool    `json:"transient"`
 	} `json:"segments"`
+	Words []struct {
+		Word  string  `json:"word"`
+		Start float64 `json:"start"`
+		End   float64 `json:"end"`
+	} `json:"words"`
 	Text string `json:"text"`
 
 	httpHeader
@@ -176,6 +188,15 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		err = b.WriteField("language", request.Language)
 		if err != nil {
 			return fmt.Errorf("writing language: %w", err)
+		}
+	}
+
+	if len(request.TimestampGranularities) > 0 {
+		for _, tg := range request.TimestampGranularities {
+			err = b.WriteField("timestamp_granularities[]", string(tg))
+			if err != nil {
+				return fmt.Errorf("writing timestamp_granularities[]: %w", err)
+			}
 		}
 	}
 

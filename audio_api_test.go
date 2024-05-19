@@ -105,6 +105,10 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 				Temperature: 0.5,
 				Language:    "zh",
 				Format:      openai.AudioResponseFormatSRT,
+				TimestampGranularities: []openai.TranscriptionTimestampGranularity{
+					openai.TranscriptionTimestampGranularitySegment,
+					openai.TranscriptionTimestampGranularityWord,
+				},
 			}
 			_, err := tc.createFn(ctx, req)
 			checks.NoError(t, err, "audio API error")

@@ -1,4 +1,4 @@
-package openai
+package openai_test
 
 import (
 	"bufio"
@@ -6,6 +6,8 @@ import (
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 // ChunksReader simulates a reader that splits the input across multiple reads.
@@ -55,7 +57,7 @@ func TestEolSplitter(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			reader := strings.NewReader(test.input)
 			scanner := bufio.NewScanner(reader)
-			scanner.Split(NewEOLSplitterFunc())
+			scanner.Split(openai.NewEOLSplitterFunc())
 
 			var lines []string
 			for scanner.Scan() {
@@ -97,7 +99,7 @@ func TestEolSplitterBoundaryCondition(t *testing.T) {
 		// Custom reader to simulate the boundary condition
 		reader := NewChunksReader(c.input)
 		scanner := bufio.NewScanner(reader)
-		scanner.Split(NewEOLSplitterFunc())
+		scanner.Split(openai.NewEOLSplitterFunc())
 
 		var lines []string
 		for scanner.Scan() {
@@ -124,11 +126,11 @@ func TestEolSplitterBoundaryCondition(t *testing.T) {
 func TestSSEScanner(t *testing.T) {
 	tests := []struct {
 		raw  string
-		want []ServerSentEvent
+		want []openai.ServerSentEvent
 	}{
 		{
 			raw: `data: hello world`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Data: "hello world",
 				},
@@ -137,7 +139,7 @@ func TestSSEScanner(t *testing.T) {
 		{
 			raw: `event: hello
 data: hello world`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Event: "hello",
 					Data:  "hello world",
@@ -150,7 +152,7 @@ data: {
 data: "msg": "hello world",
 data: "id": 12345
 data: }`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Event: "hello-json",
 					Data:  "{\n\"msg\": \"hello world\",\n\"id\": 12345\n}",
@@ -161,7 +163,7 @@ data: }`,
 			raw: `data: hello world
 
 data: hello again`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Data: "hello world",
 				},
@@ -173,7 +175,7 @@ data: hello again`,
 		{
 			raw: `retry: 10000
 			data: hello world`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Retry: 10000,
 					Data:  "hello world",
@@ -184,7 +186,7 @@ data: hello again`,
 			raw: `retry: 10000
 
 retry: 20000`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					Retry: 10000,
 				},
@@ -200,7 +202,7 @@ id: message-id
 retry: 20000
 event: hello-event
 data: hello`,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					ID:    "message-id",
 					Retry: 20000,
@@ -222,7 +224,7 @@ id: message 2
 retry: 20000
 event: hello-event 2
 `,
-			want: []ServerSentEvent{
+			want: []openai.ServerSentEvent{
 				{
 					ID:    "message 1",
 					Retry: 10000,
@@ -254,10 +256,10 @@ event: hello-event 2
 	}
 }
 
-func runSSEScanTest(t *testing.T, raw string, want []ServerSentEvent) {
-	sseScanner := NewSSEScanner(strings.NewReader(raw), false)
+func runSSEScanTest(t *testing.T, raw string, want []openai.ServerSentEvent) {
+	sseScanner := openai.NewSSEScanner(strings.NewReader(raw), false)
 
-	var got []ServerSentEvent
+	var got []openai.ServerSentEvent
 	for sseScanner.Next() {
 		got = append(got, sseScanner.Scan())
 	}

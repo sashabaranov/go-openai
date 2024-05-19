@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// NewEOLSplitterFunc returns a bufio.SplitFunc tied to a new EOLSplitter instance
+// NewEOLSplitterFunc returns a bufio.SplitFunc tied to a new EOLSplitter instance.
 func NewEOLSplitterFunc() bufio.SplitFunc {
 	splitter := NewEOLSplitter()
 	return splitter.Split
@@ -22,6 +22,8 @@ type EOLSplitter struct {
 func NewEOLSplitter() *EOLSplitter {
 	return &EOLSplitter{prevCR: false}
 }
+
+const crlfLen = 2
 
 // Split function to handle CR LF, CR, and LF as end-of-line.
 func (s *EOLSplitter) Split(data []byte, atEOF bool) (advance int, token []byte, err error) {
@@ -38,7 +40,7 @@ func (s *EOLSplitter) Split(data []byte, atEOF bool) (advance int, token []byte,
 		if data[i] == '\r' {
 			if i+1 < len(data) && data[i+1] == '\n' {
 				// Found CR LF
-				return i + 2, data[:i], nil
+				return i + crlfLen, data[:i], nil
 			}
 			// Found CR
 			if !atEOF && i == len(data)-1 {
@@ -119,29 +121,27 @@ func (s *SSEScanner) Next() bool {
 		}
 
 		seenNonEmptyLine = true
-
-		if strings.HasPrefix(line, "id: ") {
+		switch {
+		case strings.HasPrefix(line, "id: "):
 			event.ID = strings.TrimPrefix(line, "id: ")
-		} else if strings.HasPrefix(line, "data: ") {
+		case strings.HasPrefix(line, "data: "):
 			dataLines = append(dataLines, strings.TrimPrefix(line, "data: "))
-		} else if strings.HasPrefix(line, "event: ") {
+		case strings.HasPrefix(line, "event: "):
 			event.Event = strings.TrimPrefix(line, "event: ")
-		} else if strings.HasPrefix(line, "retry: ") {
+		case strings.HasPrefix(line, "retry: "):
 			retry, err := strconv.Atoi(strings.TrimPrefix(line, "retry: "))
 			if err == nil {
 				event.Retry = retry
 			}
-
 			// ignore invalid retry values
-		} else if strings.HasPrefix(line, ":") {
+		case strings.HasPrefix(line, ":"):
 			if s.readComment {
 				event.Comment = strings.TrimPrefix(line, ":")
 			}
-
 			// ignore comment line
+		default:
+			// ignore unknown lines
 		}
-
-		// ignore unknown lines
 	}
 
 	s.err = s.scanner.Err()

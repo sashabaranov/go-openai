@@ -13,7 +13,6 @@ type StreamRawEvent struct {
 type StreamDone struct {
 }
 
-// Define StreamThreadMessageDelta
 type StreamThreadMessageDelta struct {
 	ID     string `json:"id"`
 	Object string `json:"object"`
@@ -75,7 +74,7 @@ type StreamerV2 struct {
 	buffer []byte
 }
 
-// Close closes the underlying io.ReadCloser
+// Close closes the underlying io.ReadCloser.
 func (s *StreamerV2) Close() error {
 	return s.r.Close()
 }
@@ -92,7 +91,6 @@ func (s *StreamerV2) Next() bool {
 		var delta StreamThreadMessageDelta
 		if err := json.Unmarshal([]byte(event.Data), &delta); err == nil {
 			s.next = delta
-
 		}
 	case "done":
 		s.next = StreamDone{}
@@ -106,30 +104,30 @@ func (s *StreamerV2) Next() bool {
 	return true
 }
 
-// Read implements io.Reader of the text deltas of thread.message.delta events
-func (r *StreamerV2) Read(p []byte) (int, error) {
+// Read implements io.Reader of the text deltas of thread.message.delta events.
+func (s *StreamerV2) Read(p []byte) (int, error) {
 	// If we have data in the buffer, copy it to p first.
-	if len(r.buffer) > 0 {
-		n := copy(p, r.buffer)
-		r.buffer = r.buffer[n:]
+	if len(s.buffer) > 0 {
+		n := copy(p, s.buffer)
+		s.buffer = s.buffer[n:]
 		return n, nil
 	}
 
-	for r.Next() {
+	for s.Next() {
 		// Read only text deltas
-		text, ok := r.MessageDeltaText()
+		text, ok := s.MessageDeltaText()
 		if !ok {
 			continue
 		}
 
-		r.buffer = []byte(text)
-		n := copy(p, r.buffer)
-		r.buffer = r.buffer[n:]
+		s.buffer = []byte(text)
+		n := copy(p, s.buffer)
+		s.buffer = s.buffer[n:]
 		return n, nil
 	}
 
 	// Check for streamer error
-	if err := r.Err(); err != nil {
+	if err := s.Err(); err != nil {
 		return 0, err
 	}
 
@@ -145,7 +143,7 @@ func (s *StreamerV2) Text() (string, bool) {
 	return s.MessageDeltaText()
 }
 
-// MessageDeltaText returns text delta if the current event is a "thread.message.delta"
+// MessageDeltaText returns text delta if the current event is a "thread.message.delta".
 func (s *StreamerV2) MessageDeltaText() (string, bool) {
 	event, ok := s.next.(StreamThreadMessageDelta)
 	if !ok {
@@ -157,7 +155,7 @@ func (s *StreamerV2) MessageDeltaText() (string, bool) {
 		if content.Text != nil {
 			// Can we return the first text we find? Does OpenAI stream ever
 			// return multiple text contents in a delta?
-			text = text + content.Text.Value
+			text += content.Text.Value
 		}
 	}
 

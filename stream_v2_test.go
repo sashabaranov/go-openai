@@ -1,11 +1,15 @@
-package openai
+//nolint:lll
+package openai_test
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"reflect"
 	"strings"
 	"testing"
+
+	"github.com/sashabaranov/go-openai"
 )
 
 func TestNewStreamTextReader(t *testing.T) {
@@ -19,7 +23,7 @@ data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delt
 event: done
 data: [DONE]
 `
-	reader := NewStreamerV2(strings.NewReader(raw))
+	reader := openai.NewStreamerV2(strings.NewReader(raw))
 
 	expected := "helloworld"
 	buffer := make([]byte, len(expected))
@@ -46,7 +50,7 @@ data: [DONE]
 	}
 
 	n, err = reader.Read(buffer)
-	if err != io.EOF {
+	if !errors.Is(err, io.EOF) {
 		t.Fatalf("expected io.EOF, got %v", err)
 	}
 	if n != 0 {
@@ -65,7 +69,7 @@ event: done
 data: [DONE]
 `
 
-	scanner := NewStreamerV2(strings.NewReader(raw))
+	scanner := openai.NewStreamerV2(strings.NewReader(raw))
 	var events []any
 
 	for scanner.Next() {
@@ -74,26 +78,26 @@ data: [DONE]
 	}
 
 	expectedValues := []any{
-		StreamRawEvent{
+		openai.StreamRawEvent{
 			Type: "thread.created",
 			Data: json.RawMessage(`{"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}`),
 		},
-		StreamThreadMessageDelta{
+		openai.StreamThreadMessageDelta{
 			ID:     "msg_KFiZxHhXYQo6cGFnGjRDHSee",
 			Object: "thread.message.delta",
-			Delta: Delta{
-				Content: []DeltaContent{
+			Delta: openai.Delta{
+				Content: []openai.DeltaContent{
 					{
 						Index: 0,
 						Type:  "text",
-						Text: &DeltaText{
+						Text: &openai.DeltaText{
 							Value: "hello",
 						},
 					},
 				},
 			},
 		},
-		StreamDone{},
+		openai.StreamDone{},
 	}
 
 	if len(events) != len(expectedValues) {
@@ -119,25 +123,25 @@ func TestStreamThreadMessageDeltaJSON(t *testing.T) {
 			name:        "DeltaContent with Text",
 			jsonData:    `{"index":0,"type":"text","text":{"value":"hello"}}`,
 			expectType:  "text",
-			expectValue: &DeltaText{Value: "hello"},
+			expectValue: &openai.DeltaText{Value: "hello"},
 		},
 		{
 			name:        "DeltaContent with ImageFile",
 			jsonData:    `{"index":1,"type":"image_file","image_file":{"file_id":"file123","detail":"An image"}}`,
 			expectType:  "image_file",
-			expectValue: &DeltaImageFile{FileID: "file123", Detail: "An image"},
+			expectValue: &openai.DeltaImageFile{FileID: "file123", Detail: "An image"},
 		},
 		{
 			name:        "DeltaContent with ImageURL",
 			jsonData:    `{"index":2,"type":"image_url","image_url":{"url":"https://example.com/image.jpg","detail":"low"}}`,
 			expectType:  "image_url",
-			expectValue: &DeltaImageURL{URL: "https://example.com/image.jpg", Detail: "low"},
+			expectValue: &openai.DeltaImageURL{URL: "https://example.com/image.jpg", Detail: "low"},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			var content DeltaContent
+			var content openai.DeltaContent
 			err := json.Unmarshal([]byte(tt.jsonData), &content)
 			if err != nil {
 				t.Fatalf("Error unmarshalling JSON: %v", err)

@@ -66,6 +66,7 @@ const (
 	MistralTiny           = "mistral-tiny"
 	MistralSmall          = "mistral-small"
 	MistralMedium         = "mistral-medium"
+	MistralLarge          = "mistral-large"
 )
 
 // Codex Defines the models provided by OpenAI.

@@ -6,17 +6,20 @@ import (
 )
 
 type StreamRawEvent struct {
-	Type string
+	streamEvent
 	Data json.RawMessage
 }
 
 type StreamDone struct {
+	streamEvent
 }
 
 type StreamThreadMessageDelta struct {
 	ID     string `json:"id"`
 	Object string `json:"object"`
 	Delta  Delta  `json:"delta"`
+
+	streamEvent
 }
 
 type Delta struct {
@@ -68,7 +71,7 @@ type StreamerV2 struct {
 	r io.ReadCloser
 
 	scanner *SSEScanner
-	next    any
+	next    StreamEvent
 
 	// buffer for implementing io.Reader
 	buffer []byte
@@ -79,6 +82,36 @@ func (s *StreamerV2) Close() error {
 	return s.r.Close()
 }
 
+type StreamThreadCreated struct {
+	Thread
+	streamEvent
+}
+
+type StreamThreadRunCreated struct {
+	Run
+	streamEvent
+}
+
+type StreamEvent interface {
+	Event() string
+	JSON() json.RawMessage
+}
+
+type streamEvent struct {
+	event string
+	data  json.RawMessage
+}
+
+// Event returns the event name
+func (s *streamEvent) Event() string {
+	return s.event
+}
+
+// JSON returns the raw JSON data
+func (s *streamEvent) JSON() json.RawMessage {
+	return s.data
+}
+
 func (s *StreamerV2) Next() bool {
 	if !s.scanner.Next() {
 		return false
@@ -86,18 +119,42 @@ func (s *StreamerV2) Next() bool {
 
 	event := s.scanner.Scan()
 
+	streamEvent := streamEvent{
+		event: event.Event,
+		data:  json.RawMessage(event.Data),
+	}
+
 	switch event.Event {
+	case "thread.created":
+		var thread Thread
+		if err := json.Unmarshal([]byte(event.Data), &thread); err == nil {
+			s.next = &StreamThreadCreated{
+				Thread:      thread,
+				streamEvent: streamEvent,
+			}
+		}
+	case "thread.run.created":
+		var run Run
+		if err := json.Unmarshal([]byte(event.Data), &run); err == nil {
+			s.next = &StreamThreadRunCreated{
+				Run:         run,
+				streamEvent: streamEvent,
+			}
+		}
 	case "thread.message.delta":
 		var delta StreamThreadMessageDelta
 		if err := json.Unmarshal([]byte(event.Data), &delta); err == nil {
-			s.next = delta
+			delta.streamEvent = streamEvent
+			s.next = &delta
 		}
 	case "done":
-		s.next = StreamDone{}
+		streamEvent.data = nil
+		s.next = &StreamDone{
+			streamEvent: streamEvent,
+		}
 	default:
-		s.next = StreamRawEvent{
-			Type: event.Event,
-			Data: json.RawMessage(event.Data),
+		s.next = &StreamRawEvent{
+			streamEvent: streamEvent,
 		}
 	}
 
@@ -134,7 +191,7 @@ func (s *StreamerV2) Read(p []byte) (int, error) {
 	return 0, io.EOF
 }
 
-func (s *StreamerV2) Event() any {
+func (s *StreamerV2) Event() StreamEvent {
 	return s.next
 }
 
@@ -145,7 +202,7 @@ func (s *StreamerV2) Text() (string, bool) {
 
 // MessageDeltaText returns text delta if the current event is a "thread.message.delta".
 func (s *StreamerV2) MessageDeltaText() (string, bool) {
-	event, ok := s.next.(StreamThreadMessageDelta)
+	event, ok := s.next.(*StreamThreadMessageDelta)
 	if !ok {
 		return "", false
 	}

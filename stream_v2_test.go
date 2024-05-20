@@ -2,8 +2,10 @@
 package openai_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"reflect"
 	"strings"
@@ -58,56 +60,98 @@ data: [DONE]
 	}
 }
 
-func TestStreamScannerV2(t *testing.T) {
-	raw := `event: thread.created
-data: {"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}
+type TestCase struct {
+	Event string
+	Data  string
+}
 
-event: thread.message.delta
-data: {"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"hello"}}]}}
+func constructStreamInput(testCases []TestCase) io.Reader {
+	var sb bytes.Buffer
+	for _, tc := range testCases {
+		sb.WriteString("event: ")
+		sb.WriteString(tc.Event)
+		sb.WriteString("\n")
+		sb.WriteString("data: ")
+		sb.WriteString(tc.Data)
+		sb.WriteString("\n\n")
+	}
+	return &sb
+}
 
-event: done
-data: [DONE]
-`
-
-	scanner := openai.NewStreamerV2(strings.NewReader(raw))
-	var events []any
-
-	for scanner.Next() {
-		event := scanner.Event()
-		events = append(events, event)
+func jsonEqual[T any](t *testing.T, data []byte, expected T) error {
+	var obj T
+	if err := json.Unmarshal(data, &obj); err != nil {
+		t.Fatalf("Error unmarshalling JSON: %v", err)
 	}
 
-	expectedValues := []any{
-		openai.StreamRawEvent{
-			Type: "thread.created",
-			Data: json.RawMessage(`{"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}`),
+	if !reflect.DeepEqual(obj, expected) {
+		t.Fatalf("Expected %v, but got %v", expected, obj)
+	}
+
+	return nil
+}
+
+func TestStreamerV2(t *testing.T) {
+	testCases := []TestCase{
+		{
+			Event: "thread.created",
+			Data:  `{"id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","object":"thread","created_at":1715864046,"metadata":{},"tool_resources":{"code_interpreter":{"file_ids":[]}}}`,
 		},
-		openai.StreamThreadMessageDelta{
-			ID:     "msg_KFiZxHhXYQo6cGFnGjRDHSee",
-			Object: "thread.message.delta",
-			Delta: openai.Delta{
-				Content: []openai.DeltaContent{
-					{
-						Index: 0,
-						Type:  "text",
-						Text: &openai.DeltaText{
-							Value: "hello",
-						},
-					},
-				},
-			},
+		{
+			Event: "thread.run.created",
+			Data:  `{"id":"run_ojU7pVxtTIaa4l1GgRmHVSbK","object":"thread.run","created_at":1715864046,"assistant_id":"asst_7xUrZ16RBU2BpaUOzLnc9HsD","thread_id":"thread_vMWb8sJ14upXpPO2VbRpGTYD","status":"queued","started_at":null,"expires_at":1715864646,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":null,"last_error":null,"model":"gpt-3.5-turbo","instructions":null,"tools":[],"tool_resources":{"code_interpreter":{"file_ids":[]}},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto"}`,
 		},
-		openai.StreamDone{},
+		{
+			Event: "thread.message.delta",
+			Data:  `{"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"hello"}}]}}`,
+		},
+		{
+			Event: "done",
+			Data:  "[DONE]",
+		},
 	}
 
-	if len(events) != len(expectedValues) {
-		t.Fatalf("Expected %d events but got %d", len(expectedValues), len(events))
-	}
+	streamer := openai.NewStreamerV2(constructStreamInput(testCases))
 
-	for i, event := range events {
-		expectedValue := expectedValues[i]
-		if !reflect.DeepEqual(event, expectedValue) {
-			t.Errorf("Expected %v but got %v", expectedValue, event)
+	for _, tc := range testCases {
+		if !streamer.Next() {
+			t.Fatal("Expected Next() to return true, but got false")
+		}
+
+		event := streamer.Event()
+
+		if event.Event() != tc.Event {
+			t.Fatalf("Expected event type to be %s, but got %s", tc.Event, event.Event())
+		}
+
+		if tc.Event != "done" {
+			// compare the json data
+			jsondata := event.JSON()
+			if string(jsondata) != tc.Data {
+				t.Fatalf("Expected JSON data to be %s, but got %s", tc.Data, string(jsondata))
+			}
+		}
+
+		switch event := event.(type) {
+		case *openai.StreamThreadCreated:
+			jsonEqual(t, []byte(tc.Data), event.Thread)
+		case *openai.StreamThreadRunCreated:
+			jsonEqual(t, []byte(tc.Data), event.Run)
+		case *openai.StreamThreadMessageDelta:
+			fmt.Println(event)
+
+			// reinitialize the delta object to avoid comparing the hidden streamEvent fields
+			delta := openai.StreamThreadMessageDelta{
+				ID:     event.ID,
+				Object: event.Object,
+				Delta:  event.Delta,
+			}
+
+			jsonEqual(t, []byte(tc.Data), delta)
+		case *openai.StreamDone:
+			if event.JSON() != nil {
+				t.Fatalf("Expected JSON data to be nil, but got %s", string(event.JSON()))
+			}
 		}
 	}
 }

@@ -72,41 +72,6 @@ func (r BatchEmbeddingRequest) MarshalBatchFile() []byte {
 	return marshal
 }
 
-type CreateBatchRequest struct {
-	FileName         string
-	Requests         BatchRequestFiles
-	Endpoint         BatchEndpoint
-	CompletionWindow string
-	Metadata         map[string]any
-}
-
-func (r *CreateBatchRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
-	r.Requests = append(r.Requests, BatchChatCompletionRequest{
-		CustomID: customerID,
-		Body:     body,
-		Method:   "POST",
-		URL:      BatchEndpointChatCompletions,
-	})
-}
-
-func (r *CreateBatchRequest) AddCompletion(customerID string, body CompletionRequest) {
-	r.Requests = append(r.Requests, BatchCompletionRequest{
-		CustomID: customerID,
-		Body:     body,
-		Method:   "POST",
-		URL:      BatchEndpointCompletions,
-	})
-}
-
-func (r *CreateBatchRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
-	r.Requests = append(r.Requests, BatchEmbeddingRequest{
-		CustomID: customerID,
-		Body:     body,
-		Method:   "POST",
-		URL:      BatchEndpointEmbeddings,
-	})
-}
-
 type Batch struct {
 	ID       string `json:"id"`
 	Object   string `json:"object"`
@@ -144,6 +109,13 @@ type BatchRequestCounts struct {
 	Failed    int `json:"failed"`
 }
 
+type CreateBatchRequest struct {
+	InputFileID      string         `json:"input_file_id"`
+	Endpoint         BatchEndpoint  `json:"endpoint"`
+	CompletionWindow string         `json:"completion_window"`
+	Metadata         map[string]any `json:"metadata"`
+}
+
 type BatchResponse struct {
 	httpHeader
 	Batch
@@ -156,11 +128,61 @@ func (c *Client) CreateBatch(
 	ctx context.Context,
 	request CreateBatchRequest,
 ) (response BatchResponse, err error) {
-	if request.FileName == "" {
-		request.FileName = "@batchinput.jsonl"
-	}
 	if request.CompletionWindow == "" {
 		request.CompletionWindow = "24h"
+	}
+
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix), withBody(request))
+	if err != nil {
+		return
+	}
+
+	err = c.sendRequest(req, &response)
+	return
+}
+
+type CreateBatchWithUploadFileRequest struct {
+	FileName         string            `json:"file_name"`
+	Endpoint         BatchEndpoint     `json:"endpoint"`
+	CompletionWindow string            `json:"completion_window"`
+	Metadata         map[string]any    `json:"metadata"`
+	Requests         BatchRequestFiles `json:"requests"`
+}
+
+func (r *CreateBatchWithUploadFileRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
+	r.Requests = append(r.Requests, BatchChatCompletionRequest{
+		CustomID: customerID,
+		Body:     body,
+		Method:   "POST",
+		URL:      BatchEndpointChatCompletions,
+	})
+}
+
+func (r *CreateBatchWithUploadFileRequest) AddCompletion(customerID string, body CompletionRequest) {
+	r.Requests = append(r.Requests, BatchCompletionRequest{
+		CustomID: customerID,
+		Body:     body,
+		Method:   "POST",
+		URL:      BatchEndpointCompletions,
+	})
+}
+
+func (r *CreateBatchWithUploadFileRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
+	r.Requests = append(r.Requests, BatchEmbeddingRequest{
+		CustomID: customerID,
+		Body:     body,
+		Method:   "POST",
+		URL:      BatchEndpointEmbeddings,
+	})
+}
+
+// CreateBatchWithUploadFile — API call to Create batch with upload file.
+func (c *Client) CreateBatchWithUploadFile(
+	ctx context.Context,
+	request CreateBatchWithUploadFileRequest,
+) (response BatchResponse, err error) {
+	if request.FileName == "" {
+		request.FileName = "@batchinput.jsonl"
 	}
 	var file File
 	file, err = c.CreateFileBytes(ctx, FileBytesRequest{
@@ -172,24 +194,12 @@ func (c *Client) CreateBatch(
 		err = errors.Join(ErrUploadBatchFileFailed, err)
 		return
 	}
-
-	type createBatchRequest struct {
-		InputFileID      string         `json:"input_file_id"`
-		Endpoint         BatchEndpoint  `json:"endpoint"`
-		CompletionWindow string         `json:"completion_window"`
-		Metadata         map[string]any `json:"metadata"`
-	}
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix), withBody(createBatchRequest{
+	response, err = c.CreateBatch(ctx, CreateBatchRequest{
 		InputFileID:      file.ID,
 		Endpoint:         request.Endpoint,
 		CompletionWindow: request.CompletionWindow,
 		Metadata:         request.Metadata,
-	}))
-	if err != nil {
-		return
-	}
-
-	err = c.sendRequest(req, &response)
+	})
 	return
 }
 

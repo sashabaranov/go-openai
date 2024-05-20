@@ -399,6 +399,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"CreateBatch", func() (any, error) {
 			return client.CreateBatch(ctx, CreateBatchRequest{})
 		}},
+		{"CreateBatchWithUploadFile", func() (any, error) {
+			return client.CreateBatchWithUploadFile(ctx, CreateBatchWithUploadFileRequest{})
+		}},
 		{"RetrieveBatch", func() (any, error) {
 			return client.RetrieveBatch(ctx, "")
 		}},

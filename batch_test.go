@@ -14,32 +14,22 @@ import (
 func TestCreateBatch(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/files", handleCreateFile)
+
 	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
-	req := openai.CreateBatchRequest{
-		Endpoint: openai.BatchEndpointChatCompletions,
-	}
-	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
-		MaxTokens: 5,
-		Model:     openai.GPT3Dot5Turbo,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: "Hello!",
-			},
-		},
+	_, err := client.CreateBatch(context.Background(), openai.CreateBatchRequest{
+		InputFileID:      "file-abc",
+		Endpoint:         openai.BatchEndpointChatCompletions,
+		CompletionWindow: "24h",
 	})
-	_, err := client.CreateBatch(context.Background(), req)
 	checks.NoError(t, err, "CreateBatch error")
 }
 
-func TestCreateBatchUploadBatchFileFailed(t *testing.T) {
+func TestCreateBatchWithUploadFile(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusGatewayTimeout)
-	})
-	req := openai.CreateBatchRequest{
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
+	req := openai.CreateBatchWithUploadFileRequest{
 		Endpoint: openai.BatchEndpointChatCompletions,
 	}
 	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
@@ -52,9 +42,8 @@ func TestCreateBatchUploadBatchFileFailed(t *testing.T) {
 			},
 		},
 	})
-	_, err := client.CreateBatch(context.Background(), req)
-	msg := fmt.Sprintf("CreateBatch should return ErrUploadBatchFileFailed, returned: %s", err)
-	checks.ErrorIs(t, err, openai.ErrUploadBatchFileFailed, msg)
+	_, err := client.CreateBatchWithUploadFile(context.Background(), req)
+	checks.NoError(t, err, "CreateBatchWithUploadFile error")
 }
 
 func TestRetrieveBatch(t *testing.T) {
@@ -264,7 +253,7 @@ func TestCreateBatchRequest_AddChatCompletion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &openai.CreateBatchRequest{}
+			r := &openai.CreateBatchWithUploadFileRequest{}
 			for _, arg := range tt.args {
 				r.AddChatCompletion(arg.customerID, arg.body)
 			}
@@ -305,7 +294,7 @@ func TestCreateBatchRequest_AddCompletion(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &openai.CreateBatchRequest{}
+			r := &openai.CreateBatchWithUploadFileRequest{}
 			for _, arg := range tt.args {
 				r.AddCompletion(arg.customerID, arg.body)
 			}
@@ -346,7 +335,7 @@ func TestCreateBatchRequest_AddEmbedding(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			r := &openai.CreateBatchRequest{}
+			r := &openai.CreateBatchWithUploadFileRequest{}
 			for _, arg := range tt.args {
 				r.AddEmbedding(arg.customerID, arg.body)
 			}

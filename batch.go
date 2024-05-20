@@ -23,7 +23,7 @@ type BatchRequestFile interface {
 
 type BatchRequestFiles []BatchRequestFile
 
-func (r BatchRequestFiles) Marshal() ([]byte, error) {
+func (r BatchRequestFiles) Marshal() []byte {
 	buff := bytes.Buffer{}
 	for i, request := range r {
 		marshal := request.MarshalBatchFile()
@@ -32,7 +32,7 @@ func (r BatchRequestFiles) Marshal() ([]byte, error) {
 		}
 		buff.Write(marshal)
 	}
-	return buff.Bytes(), nil
+	return buff.Bytes()
 }
 
 type BatchChatCompletionRequest struct {
@@ -159,13 +159,10 @@ func (c *Client) CreateBatch(
 	if request.CompletionWindow == "" {
 		request.CompletionWindow = "24h"
 	}
-	content, err := request.Requests.Marshal()
-	if err != nil {
-		return
-	}
-	file, err := c.CreateFileBytes(ctx, FileBytesRequest{
+	var file File
+	file, err = c.CreateFileBytes(ctx, FileBytesRequest{
 		Name:    request.FileName,
-		Bytes:   content,
+		Bytes:   request.Requests.Marshal(),
 		Purpose: PurposeBatch,
 	})
 	if err != nil {

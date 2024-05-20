@@ -174,10 +174,10 @@ func (c *Client) CreateBatch(
 	}
 
 	type createBatchRequest struct {
-		InputFileID      string
-		Endpoint         BatchEndpoint
-		CompletionWindow string
-		Metadata         map[string]any
+		InputFileID      string         `json:"input_file_id"`
+		Endpoint         BatchEndpoint  `json:"endpoint"`
+		CompletionWindow string         `json:"completion_window"`
+		Metadata         map[string]any `json:"metadata"`
 	}
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix), withBody(createBatchRequest{
 		InputFileID:      file.ID,

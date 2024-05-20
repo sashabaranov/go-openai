@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"net/http"
+	"reflect"
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
@@ -193,5 +194,155 @@ func handleCancelBatchEndpoint(w http.ResponseWriter, r *http.Request) {
 			"batch_description": "Nightly eval job"
 		  }
 		}`)
+	}
+}
+
+func TestCreateBatchRequest_AddChatCompletion(t *testing.T) {
+	type args struct {
+		customerID string
+		body       openai.ChatCompletionRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerID: "req-1",
+				body: openai.ChatCompletionRequest{
+					MaxTokens: 5,
+					Model:     openai.GPT3Dot5Turbo,
+					Messages: []openai.ChatCompletionMessage{
+						{
+							Role:    openai.ChatMessageRoleUser,
+							Content: "Hello!",
+						},
+					},
+				},
+			},
+			{
+				customerID: "req-2",
+				body: openai.ChatCompletionRequest{
+					MaxTokens: 5,
+					Model:     openai.GPT3Dot5Turbo,
+					Messages: []openai.ChatCompletionMessage{
+						{
+							Role:    openai.ChatMessageRoleUser,
+							Content: "Hello!",
+						},
+					},
+				},
+			},
+		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}"), false}, //nolint
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddChatCompletion(arg.customerID, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateBatchRequest_AddCompletion(t *testing.T) {
+	type args struct {
+		customerID string
+		body       openai.CompletionRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerID: "req-1",
+				body: openai.CompletionRequest{
+					Model: openai.GPT3Dot5Turbo,
+					User:  "Hello",
+				},
+			},
+			{
+				customerID: "req-2",
+				body: openai.CompletionRequest{
+					Model: openai.GPT3Dot5Turbo,
+					User:  "Hello",
+				},
+			},
+		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}"), false}, //nolint
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddCompletion(arg.customerID, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestCreateBatchRequest_AddEmbedding(t *testing.T) {
+	type args struct {
+		customerID string
+		body       openai.EmbeddingRequest
+	}
+	tests := []struct {
+		name    string
+		args    []args
+		want    []byte
+		wantErr bool
+	}{
+		{"", []args{
+			{
+				customerID: "req-1",
+				body: openai.EmbeddingRequest{
+					Model: openai.GPT3Dot5Turbo,
+					Input: []string{"Hello", "World"},
+				},
+			},
+			{
+				customerID: "req-2",
+				body: openai.EmbeddingRequest{
+					Model: openai.AdaEmbeddingV2,
+					Input: []string{"Hello", "World"},
+				},
+			},
+		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"input\":[\"Hello\",\"World\"],\"model\":\"gpt-3.5-turbo\",\"user\":\"\"},\"method\":\"POST\",\"url\":\"/v1/embeddings\"}\n{\"custom_id\":\"req-2\",\"body\":{\"input\":[\"Hello\",\"World\"],\"model\":\"text-embedding-ada-002\",\"user\":\"\"},\"method\":\"POST\",\"url\":\"/v1/embeddings\"}"), false}, //nolint
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			r := &openai.CreateBatchRequest{}
+			for _, arg := range tt.args {
+				r.AddEmbedding(arg.customerID, arg.body)
+			}
+			got, err := r.Requests.Marshal()
+			if (err != nil) != tt.wantErr {
+				t.Errorf("Marshal() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("Marshal() got = %v, want %v", got, tt.want)
+			}
+		})
 	}
 }

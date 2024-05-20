@@ -18,7 +18,7 @@ const BatchEndpointCompletions BatchEndpoint = "/v1/completions"
 const BatchEndpointEmbeddings BatchEndpoint = "/v1/embeddings"
 
 type BatchRequestFile interface {
-	MarshalBatchFile() ([]byte, error)
+	MarshalBatchFile() []byte
 }
 
 type BatchRequestFiles []BatchRequestFile
@@ -26,10 +26,7 @@ type BatchRequestFiles []BatchRequestFile
 func (r BatchRequestFiles) Marshal() ([]byte, error) {
 	buff := bytes.Buffer{}
 	for i, request := range r {
-		marshal, err := request.MarshalBatchFile()
-		if err != nil {
-			return nil, err
-		}
+		marshal := request.MarshalBatchFile()
 		if i != 0 {
 			buff.Write([]byte("\n"))
 		}
@@ -45,8 +42,9 @@ type BatchChatCompletionRequest struct {
 	URL      BatchEndpoint         `json:"url"`
 }
 
-func (r BatchChatCompletionRequest) MarshalBatchFile() ([]byte, error) {
-	return json.Marshal(r)
+func (r BatchChatCompletionRequest) MarshalBatchFile() []byte {
+	marshal, _ := json.Marshal(r)
+	return marshal
 }
 
 type BatchCompletionRequest struct {
@@ -56,8 +54,9 @@ type BatchCompletionRequest struct {
 	URL      BatchEndpoint     `json:"url"`
 }
 
-func (r BatchCompletionRequest) MarshalBatchFile() ([]byte, error) {
-	return json.Marshal(r)
+func (r BatchCompletionRequest) MarshalBatchFile() []byte {
+	marshal, _ := json.Marshal(r)
+	return marshal
 }
 
 type BatchEmbeddingRequest struct {
@@ -67,8 +66,9 @@ type BatchEmbeddingRequest struct {
 	URL      BatchEndpoint    `json:"url"`
 }
 
-func (r BatchEmbeddingRequest) MarshalBatchFile() ([]byte, error) {
-	return json.Marshal(r)
+func (r BatchEmbeddingRequest) MarshalBatchFile() []byte {
+	marshal, _ := json.Marshal(r)
+	return marshal
 }
 
 type CreateBatchRequest struct {

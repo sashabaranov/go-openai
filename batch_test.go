@@ -38,7 +38,6 @@ func TestCreateBatch(t *testing.T) {
 	})
 	_, err = client.CreateBatch(ctx, req)
 	msg := fmt.Sprintf("CreateBatch should return ErrUploadBatchFile, returned: %s", err)
-	fmt.Println(msg)
 	checks.ErrorIs(t, err, openai.ErrUploadBatchFile, msg)
 }
 

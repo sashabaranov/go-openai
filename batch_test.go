@@ -33,7 +33,7 @@ func TestCreateBatch(t *testing.T) {
 	_, err := client.CreateBatch(context.Background(), req)
 	checks.NoError(t, err, "CreateBatch error")
 
-	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusGatewayTimeout)
 	})
 	_, err = client.CreateBatch(ctx, req)

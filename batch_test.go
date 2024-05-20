@@ -29,16 +29,32 @@ func TestCreateBatch(t *testing.T) {
 			},
 		},
 	})
-	ctx := context.Background()
 	_, err := client.CreateBatch(context.Background(), req)
 	checks.NoError(t, err, "CreateBatch error")
+}
 
+func TestCreateBatchUploadBatchFileFailed(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
 	server.RegisterHandler("/v1/files", func(w http.ResponseWriter, _ *http.Request) {
 		w.WriteHeader(http.StatusGatewayTimeout)
 	})
-	_, err = client.CreateBatch(ctx, req)
-	msg := fmt.Sprintf("CreateBatch should return ErrUploadBatchFile, returned: %s", err)
-	checks.ErrorIs(t, err, openai.ErrUploadBatchFile, msg)
+	req := openai.CreateBatchRequest{
+		Endpoint: openai.BatchEndpointChatCompletions,
+	}
+	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	_, err := client.CreateBatch(context.Background(), req)
+	msg := fmt.Sprintf("CreateBatch should return ErrUploadBatchFileFailed, returned: %s", err)
+	checks.ErrorIs(t, err, openai.ErrUploadBatchFileFailed, msg)
 }
 
 func TestRetrieveBatch(t *testing.T) {

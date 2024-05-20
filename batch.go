@@ -149,7 +149,7 @@ type BatchResponse struct {
 	Batch
 }
 
-var ErrUploadBatchFile = errors.New("upload batch file")
+var ErrUploadBatchFileFailed = errors.New("upload batch file failed")
 
 // CreateBatch — API call to Create batch.
 func (c *Client) CreateBatch(
@@ -169,7 +169,7 @@ func (c *Client) CreateBatch(
 		Purpose: PurposeBatch,
 	})
 	if err != nil {
-		err = errors.Join(ErrUploadBatchFile, err)
+		err = errors.Join(ErrUploadBatchFileFailed, err)
 		return
 	}
 

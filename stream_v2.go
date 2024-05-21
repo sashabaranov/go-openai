@@ -14,6 +14,11 @@ type StreamDone struct {
 	streamEvent
 }
 
+type StreamThreadMessageCompleted struct {
+	Message
+	streamEvent
+}
+
 type StreamThreadMessageDelta struct {
 	ID     string `json:"id"`
 	Object string `json:"object"`
@@ -108,6 +113,21 @@ type StreamThreadRunCreated struct {
 	streamEvent
 }
 
+type StreamThreadRunRequiresAction struct {
+	Run
+	streamEvent
+}
+
+type StreamThreadRunCompleted struct {
+	Run
+	streamEvent
+}
+
+type StreamRunStepCompleted struct {
+	RunStep
+	streamEvent
+}
+
 type StreamEvent interface {
 	Event() string
 	JSON() json.RawMessage
@@ -157,11 +177,44 @@ func (s *StreamerV2) Next() bool {
 				streamEvent: streamEvent,
 			}
 		}
+
+	case "thread.run.requires_action":
+		var run Run
+		if err := json.Unmarshal([]byte(event.Data), &run); err == nil {
+			s.next = &StreamThreadRunRequiresAction{
+				Run:         run,
+				streamEvent: streamEvent,
+			}
+		}
+	case "thread.run.completed":
+		var run Run
+		if err := json.Unmarshal([]byte(event.Data), &run); err == nil {
+			s.next = &StreamThreadRunCompleted{
+				Run:         run,
+				streamEvent: streamEvent,
+			}
+		}
 	case "thread.message.delta":
 		var delta StreamThreadMessageDelta
 		if err := json.Unmarshal([]byte(event.Data), &delta); err == nil {
 			delta.streamEvent = streamEvent
 			s.next = &delta
+		}
+	case "thread.run.step.completed":
+		var runStep RunStep
+		if err := json.Unmarshal([]byte(event.Data), &runStep); err == nil {
+			s.next = &StreamRunStepCompleted{
+				RunStep:     runStep,
+				streamEvent: streamEvent,
+			}
+		}
+	case "thread.message.completed":
+		var msg Message
+		if err := json.Unmarshal([]byte(event.Data), &msg); err == nil {
+			s.next = &StreamThreadMessageCompleted{
+				Message:     msg,
+				streamEvent: streamEvent,
+			}
 		}
 	case "done":
 		streamEvent.data = nil

@@ -106,6 +106,22 @@ func TestStreamerV2(t *testing.T) {
 			Data:  `{"id":"msg_KFiZxHhXYQo6cGFnGjRDHSee","object":"thread.message.delta","delta":{"content":[{"index":0,"type":"text","text":{"value":"hello"}}]}}`,
 		},
 		{
+			Event: "thread.run.requires_action",
+			Data:  `{"id":"run_oNjmoH9jHSQBSPkuVqfHSaLs","object":"thread.run","created_at":1716281751,"assistant_id":"asst_FDlm0qwiBOu65jhL95yNuRv3","thread_id":"thread_4yCKEOWSRQRofNuzl7Ny3uNs","status":"requires_action","started_at":1716281751,"expires_at":1716282351,"cancelled_at":null,"failed_at":null,"completed_at":null,"required_action":{"type":"submit_tool_outputs","submit_tool_outputs":{"tool_calls":[{"id":"call_q7J5q7taE0K0x83HRuJxJJjR","type":"function","function":{"name":"lookupDefinition","arguments":"{\"entry\":\"square root of pi\",\"language\":\"en\"}"}}]}},"last_error":null,"model":"gpt-3.5-turbo","instructions":null,"tools":[{"type":"function","function":{"name":"lookupDefinition","description":"Lookup the definition of an entry. e.g. word, short phrase, person, place, or term","parameters":{"properties":{"entry":{"description":"The entry to lookup","type":"string"},"language":{"description":"ISO 639-1 language code, e.g., 'en' for English, 'zh' for Chinese","type":"string"}},"type":"object"}}}],"tool_resources":{"code_interpreter":{"file_ids":[]}},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":null,"response_format":"auto","tool_choice":"auto"}`,
+		},
+		{
+			Event: "thread.run.completed",
+			Data:  `{"id":"run_o14scUSKGFFRrwhsfGkh2pMJ","object":"thread.run","created_at":1716281844,"assistant_id":"asst_FDlm0qwiBOu65jhL95yNuRv3","thread_id":"thread_732uu0FpoLAGrOlxAz8syqD0","status":"completed","started_at":1716281844,"expires_at":null,"cancelled_at":null,"failed_at":null,"completed_at":1716281845,"required_action":null,"last_error":null,"model":"gpt-3.5-turbo","instructions":null,"tools":[{"type":"function","function":{"name":"lookupDefinition","description":"Lookup the definition of an entry. e.g. word, short phrase, person, place, or term","parameters":{"properties":{"entry":{"description":"The entry to lookup","type":"string"},"language":{"description":"ISO 639-1 language code, e.g., 'en' for English, 'zh' for Chinese","type":"string"}},"type":"object"}}}],"tool_resources":{"code_interpreter":{"file_ids":[]}},"metadata":{},"temperature":1.0,"top_p":1.0,"max_completion_tokens":null,"max_prompt_tokens":null,"truncation_strategy":{"type":"auto","last_messages":null},"incomplete_details":null,"usage":{"prompt_tokens":300,"completion_tokens":24,"total_tokens":324},"response_format":"auto","tool_choice":"auto"}`,
+		},
+		{
+			Event: "thread.run.step.completed",
+			Data:  `{"id":"step_9UKPyHGdL6VczTfigS5bdGQb","object":"thread.run.step","created_at":1716281845,"run_id":"run_o14scUSKGFFRrwhsfGkh2pMJ","assistant_id":"asst_FDlm0qwiBOu65jhL95yNuRv3","thread_id":"thread_732uu0FpoLAGrOlxAz8syqD0","type":"message_creation","status":"completed","cancelled_at":null,"completed_at":1716281845,"expires_at":1716282444,"failed_at":null,"last_error":null,"step_details":{"type":"message_creation","message_creation":{"message_id":"msg_Hb14QXWwPWEiMJ12L8Spa3T9"}},"usage":{"prompt_tokens":300,"completion_tokens":24,"total_tokens":324}}`,
+		},
+		{
+			Event: "thread.message.completed",
+			Data:  `{"id":"msg_Hb14QXWwPWEiMJ12L8Spa3T9","object":"thread.message","created_at":1716281845,"assistant_id":"asst_FDlm0qwiBOu65jhL95yNuRv3","thread_id":"thread_732uu0FpoLAGrOlxAz8syqD0","run_id":"run_o14scUSKGFFRrwhsfGkh2pMJ","status":"completed","incomplete_details":null,"incomplete_at":null,"completed_at":1716281845,"role":"assistant","content":[{"type":"text","text":{"value":"Sure! Here you go:\n\nWhy couldn't the leopard play hide and seek?\n\nBecause he was always spotted!","annotations":[]}}],"attachments":[],"metadata":{}}`,
+		},
+		{
 			Event: "done",
 			Data:  "[DONE]",
 		},
@@ -148,6 +164,12 @@ func TestStreamerV2(t *testing.T) {
 			}
 
 			jsonEqual(t, []byte(tc.Data), delta)
+		case *openai.StreamThreadRunRequiresAction:
+			jsonEqual(t, []byte(tc.Data), event.Run)
+		case *openai.StreamThreadRunCompleted:
+			jsonEqual(t, []byte(tc.Data), event.Run)
+		case *openai.StreamRunStepCompleted:
+			jsonEqual(t, []byte(tc.Data), event.RunStep)
 		case *openai.StreamDone:
 			if event.JSON() != nil {
 				t.Fatalf("Expected JSON data to be nil, but got %s", string(event.JSON()))

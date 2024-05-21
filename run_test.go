@@ -219,7 +219,7 @@ func TestRun(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateThreadAndRun error")
 
-	_, err = client.CreateThreadAndStream(ctx, openai.CreateThreadAndRunRequest{
+	_, err = client.CreateThreadAndRunStream(ctx, openai.CreateThreadAndRunRequest{
 		RunRequest: openai.RunRequest{
 			AssistantID: assistantID,
 		},
@@ -234,7 +234,7 @@ func TestRun(t *testing.T) {
 	})
 	checks.NoError(t, err, "CreateThreadAndStream error")
 
-	_, err = client.CreateRunStreaming(ctx, threadID, openai.RunRequest{
+	_, err = client.CreateRunStream(ctx, threadID, openai.RunRequest{
 		AssistantID: assistantID,
 	})
 	checks.NoError(t, err, "CreateRunStreaming error")

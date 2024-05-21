@@ -61,14 +61,14 @@ func NewStreamerV2(r io.Reader) *StreamerV2 {
 	}
 
 	return &StreamerV2{
-		r:       rc,
-		scanner: NewSSEScanner(r, false),
+		readCloser: rc,
+		scanner:    NewSSEScanner(r, false),
 	}
 }
 
 type StreamerV2 struct {
-	// r is only used for closing the stream
-	r io.ReadCloser
+	// readCloser is only used for closing the stream
+	readCloser io.ReadCloser
 
 	scanner *SSEScanner
 	next    StreamEvent
@@ -77,9 +77,25 @@ type StreamerV2 struct {
 	buffer []byte
 }
 
+// TeeSSE tees the stream data with a io.TeeReader
+func (s *StreamerV2) TeeSSE(w io.Writer) {
+	// readCloser is a helper struct that implements io.ReadCloser by combining an io.Reader and an io.Closer
+	type readCloser struct {
+		io.Reader
+		io.Closer
+	}
+
+	s.readCloser = &readCloser{
+		Reader: io.TeeReader(s.readCloser, w),
+		Closer: s.readCloser,
+	}
+
+	s.scanner = NewSSEScanner(s.readCloser, false)
+}
+
 // Close closes the underlying io.ReadCloser.
 func (s *StreamerV2) Close() error {
-	return s.r.Close()
+	return s.readCloser.Close()
 }
 
 type StreamThreadCreated struct {

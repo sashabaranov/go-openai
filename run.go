@@ -82,12 +82,13 @@ const (
 )
 
 type RunRequest struct {
-	AssistantID            string         `json:"assistant_id"`
-	Model                  string         `json:"model,omitempty"`
-	Instructions           string         `json:"instructions,omitempty"`
-	AdditionalInstructions string         `json:"additional_instructions,omitempty"`
-	Tools                  []Tool         `json:"tools,omitempty"`
-	Metadata               map[string]any `json:"metadata,omitempty"`
+	AssistantID            string          `json:"assistant_id"`
+	Model                  string          `json:"model,omitempty"`
+	Instructions           string          `json:"instructions,omitempty"`
+	AdditionalInstructions string          `json:"additional_instructions,omitempty"`
+	AdditionalMessages     []ThreadMessage `json:"additional_messages,omitempty"`
+	Tools                  []Tool          `json:"tools,omitempty"`
+	Metadata               map[string]any  `json:"metadata,omitempty"`
 
 	// Sampling temperature between 0 and 2. Higher values like 0.8 are  more random.
 	// lower values are more focused and deterministic.
@@ -469,7 +470,7 @@ type AssistantStream struct {
 	*streamReader[AssistantStreamEvent]
 }
 
-func (c *Client) CreateThreadAndStream(
+func (c *Client) CreateThreadAndRunStream(
 	ctx context.Context,
 	request CreateThreadAndRunRequest) (stream *StreamerV2, err error) {
 	urlSuffix := "/threads/runs"
@@ -489,29 +490,13 @@ func (c *Client) CreateThreadAndStream(
 		return
 	}
 
-	// TODO: implement requestStreamV2
-	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("Accept", "text/event-stream")
-	req.Header.Set("Cache-Control", "no-cache")
-	req.Header.Set("Connection", "keep-alive")
-
-	resp, err := c.config.HTTPClient.Do(req)
-	if err != nil {
-		return
-	}
-
-	if resp.StatusCode != http.StatusOK {
-		resp.Body.Close()
-		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
-	}
-
-	return NewStreamerV2(resp.Body), nil
+	return sendRequestStreamV2(c, req)
 }
 
-func (c *Client) CreateRunStreaming(
+func (c *Client) CreateRunStream(
 	ctx context.Context,
 	threadID string,
-	request RunRequest) (stream *AssistantStream, err error) {
+	request RunRequest) (stream *StreamerV2, err error) {
 	urlSuffix := fmt.Sprintf("/threads/%s/runs", threadID)
 
 	r := RunRequestStreaming{
@@ -530,14 +515,7 @@ func (c *Client) CreateRunStreaming(
 		return
 	}
 
-	resp, err := sendRequestStream[AssistantStreamEvent](c, req)
-	if err != nil {
-		return
-	}
-	stream = &AssistantStream{
-		streamReader: resp,
-	}
-	return
+	return sendRequestStreamV2(c, req)
 }
 
 // RetrieveRunStep retrieves a run step.

@@ -156,6 +156,26 @@ func (c *Client) sendRequestRaw(req *http.Request) (response RawResponse, err er
 	return
 }
 
+func sendRequestStreamV2(client *Client, req *http.Request) (stream *StreamerV2, err error) {
+	req.Header.Set("Content-Type", "application/json")
+	req.Header.Set("Accept", "text/event-stream")
+	req.Header.Set("Cache-Control", "no-cache")
+	req.Header.Set("Connection", "keep-alive")
+
+	resp, err := client.config.HTTPClient.Do(req)
+	if err != nil {
+		return
+	}
+
+	// TODO: how to handle error?
+	if resp.StatusCode != http.StatusOK {
+		resp.Body.Close()
+		return nil, fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+	}
+
+	return NewStreamerV2(resp.Body), nil
+}
+
 func sendRequestStream[T streamable](client *Client, req *http.Request) (*streamReader[T], error) {
 	req.Header.Set("Content-Type", "application/json")
 	req.Header.Set("Accept", "text/event-stream")

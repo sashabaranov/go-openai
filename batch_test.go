@@ -11,6 +11,26 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
+func TestUploadBatchFile(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	req := openai.UploadBatchFileRequest{}
+	req.AddChatCompletion("req-1", openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	_, err := client.UploadBatchFile(context.Background(), req)
+	checks.NoError(t, err, "UploadBatchFile error")
+}
+
 func TestCreateBatch(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

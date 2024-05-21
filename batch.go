@@ -142,14 +142,13 @@ func (c *Client) CreateBatch(
 }
 
 type CreateBatchWithUploadFileRequest struct {
-	FileName         string            `json:"file_name"`
-	Endpoint         BatchEndpoint     `json:"endpoint"`
-	CompletionWindow string            `json:"completion_window"`
-	Metadata         map[string]any    `json:"metadata"`
-	Requests         BatchRequestFiles `json:"requests"`
+	Endpoint         BatchEndpoint  `json:"endpoint"`
+	CompletionWindow string         `json:"completion_window"`
+	Metadata         map[string]any `json:"metadata"`
+	UploadBatchFileRequest
 }
 
-func (r *CreateBatchWithUploadFileRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
+func (r *UploadBatchFileRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
 	r.Requests = append(r.Requests, BatchChatCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
@@ -158,7 +157,7 @@ func (r *CreateBatchWithUploadFileRequest) AddChatCompletion(customerID string, 
 	})
 }
 
-func (r *CreateBatchWithUploadFileRequest) AddCompletion(customerID string, body CompletionRequest) {
+func (r *UploadBatchFileRequest) AddCompletion(customerID string, body CompletionRequest) {
 	r.Requests = append(r.Requests, BatchCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
@@ -167,7 +166,7 @@ func (r *CreateBatchWithUploadFileRequest) AddCompletion(customerID string, body
 	})
 }
 
-func (r *CreateBatchWithUploadFileRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
+func (r *UploadBatchFileRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
 	r.Requests = append(r.Requests, BatchEmbeddingRequest{
 		CustomID: customerID,
 		Body:     body,
@@ -176,31 +175,42 @@ func (r *CreateBatchWithUploadFileRequest) AddEmbedding(customerID string, body 
 	})
 }
 
+type UploadBatchFileRequest struct {
+	FileName string
+	Requests BatchRequestFiles
+}
+
+func (c *Client) UploadBatchFile(ctx context.Context, request UploadBatchFileRequest) (File, error) {
+	if request.FileName == "" {
+		request.FileName = "@batchinput.jsonl"
+	}
+	return c.CreateFileBytes(ctx, FileBytesRequest{
+		Name:    request.FileName,
+		Bytes:   request.Requests.Marshal(),
+		Purpose: PurposeBatch,
+	})
+}
+
 // CreateBatchWithUploadFile — API call to Create batch with upload file.
 func (c *Client) CreateBatchWithUploadFile(
 	ctx context.Context,
 	request CreateBatchWithUploadFileRequest,
 ) (response BatchResponse, err error) {
-	if request.FileName == "" {
-		request.FileName = "@batchinput.jsonl"
-	}
 	var file File
-	file, err = c.CreateFileBytes(ctx, FileBytesRequest{
-		Name:    request.FileName,
-		Bytes:   request.Requests.Marshal(),
-		Purpose: PurposeBatch,
+	file, err = c.UploadBatchFile(ctx, UploadBatchFileRequest{
+		FileName: request.FileName,
+		Requests: request.Requests,
 	})
 	if err != nil {
 		err = errors.Join(ErrUploadBatchFileFailed, err)
 		return
 	}
-	response, err = c.CreateBatch(ctx, CreateBatchRequest{
+	return c.CreateBatch(ctx, CreateBatchRequest{
 		InputFileID:      file.ID,
 		Endpoint:         request.Endpoint,
 		CompletionWindow: request.CompletionWindow,
 		Metadata:         request.Metadata,
 	})
-	return
 }
 
 // RetrieveBatch — API call to Retrieve batch.

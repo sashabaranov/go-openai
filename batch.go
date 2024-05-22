@@ -18,22 +18,8 @@ const BatchEndpointChatCompletions BatchEndpoint = "/v1/chat/completions"
 const BatchEndpointCompletions BatchEndpoint = "/v1/completions"
 const BatchEndpointEmbeddings BatchEndpoint = "/v1/embeddings"
 
-type BatchRequestFile interface {
-	MarshalBatchFile() []byte
-}
-
-type BatchRequestFiles []BatchRequestFile
-
-func (r BatchRequestFiles) Marshal() []byte {
-	buff := bytes.Buffer{}
-	for i, request := range r {
-		marshal := request.MarshalBatchFile()
-		if i != 0 {
-			buff.Write([]byte("\n"))
-		}
-		buff.Write(marshal)
-	}
-	return buff.Bytes()
+type batchLineItem interface {
+	marshalBatchLineItem() []byte
 }
 
 type BatchChatCompletionRequest struct {
@@ -43,7 +29,7 @@ type BatchChatCompletionRequest struct {
 	URL      BatchEndpoint         `json:"url"`
 }
 
-func (r BatchChatCompletionRequest) MarshalBatchFile() []byte {
+func (r BatchChatCompletionRequest) marshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
@@ -55,7 +41,7 @@ type BatchCompletionRequest struct {
 	URL      BatchEndpoint     `json:"url"`
 }
 
-func (r BatchCompletionRequest) MarshalBatchFile() []byte {
+func (r BatchCompletionRequest) marshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
@@ -67,15 +53,15 @@ type BatchEmbeddingRequest struct {
 	URL      BatchEndpoint    `json:"url"`
 }
 
-func (r BatchEmbeddingRequest) MarshalBatchFile() []byte {
+func (r BatchEmbeddingRequest) marshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
 
 type Batch struct {
-	ID       string `json:"id"`
-	Object   string `json:"object"`
-	Endpoint string `json:"endpoint"`
+	ID       string        `json:"id"`
+	Object   string        `json:"object"`
+	Endpoint BatchEndpoint `json:"endpoint"`
 	Errors   *struct {
 		Object string `json:"object,omitempty"`
 		Data   struct {
@@ -141,15 +127,24 @@ func (c *Client) CreateBatch(
 	return
 }
 
-type CreateBatchWithUploadFileRequest struct {
-	Endpoint         BatchEndpoint  `json:"endpoint"`
-	CompletionWindow string         `json:"completion_window"`
-	Metadata         map[string]any `json:"metadata"`
-	UploadBatchFileRequest
+type UploadBatchFileRequest struct {
+	FileName string
+	Lines    []batchLineItem
+}
+
+func (r *UploadBatchFileRequest) MarshalJSONL() []byte {
+	buff := bytes.Buffer{}
+	for i, line := range r.Lines {
+		if i != 0 {
+			buff.Write([]byte("\n"))
+		}
+		buff.Write(line.marshalBatchLineItem())
+	}
+	return buff.Bytes()
 }
 
 func (r *UploadBatchFileRequest) AddChatCompletion(customerID string, body ChatCompletionRequest) {
-	r.Requests = append(r.Requests, BatchChatCompletionRequest{
+	r.Lines = append(r.Lines, BatchChatCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
@@ -158,7 +153,7 @@ func (r *UploadBatchFileRequest) AddChatCompletion(customerID string, body ChatC
 }
 
 func (r *UploadBatchFileRequest) AddCompletion(customerID string, body CompletionRequest) {
-	r.Requests = append(r.Requests, BatchCompletionRequest{
+	r.Lines = append(r.Lines, BatchCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
@@ -167,7 +162,7 @@ func (r *UploadBatchFileRequest) AddCompletion(customerID string, body Completio
 }
 
 func (r *UploadBatchFileRequest) AddEmbedding(customerID string, body EmbeddingRequest) {
-	r.Requests = append(r.Requests, BatchEmbeddingRequest{
+	r.Lines = append(r.Lines, BatchEmbeddingRequest{
 		CustomID: customerID,
 		Body:     body,
 		Method:   "POST",
@@ -175,20 +170,23 @@ func (r *UploadBatchFileRequest) AddEmbedding(customerID string, body EmbeddingR
 	})
 }
 
-type UploadBatchFileRequest struct {
-	FileName string
-	Requests BatchRequestFiles
-}
-
+// UploadBatchFile — upload batch file.
 func (c *Client) UploadBatchFile(ctx context.Context, request UploadBatchFileRequest) (File, error) {
 	if request.FileName == "" {
 		request.FileName = "@batchinput.jsonl"
 	}
 	return c.CreateFileBytes(ctx, FileBytesRequest{
 		Name:    request.FileName,
-		Bytes:   request.Requests.Marshal(),
+		Bytes:   request.MarshalJSONL(),
 		Purpose: PurposeBatch,
 	})
+}
+
+type CreateBatchWithUploadFileRequest struct {
+	Endpoint         BatchEndpoint  `json:"endpoint"`
+	CompletionWindow string         `json:"completion_window"`
+	Metadata         map[string]any `json:"metadata"`
+	UploadBatchFileRequest
 }
 
 // CreateBatchWithUploadFile — API call to Create batch with upload file.
@@ -199,7 +197,7 @@ func (c *Client) CreateBatchWithUploadFile(
 	var file File
 	file, err = c.UploadBatchFile(ctx, UploadBatchFileRequest{
 		FileName: request.FileName,
-		Requests: request.Requests,
+		Lines:    request.Lines,
 	})
 	if err != nil {
 		err = errors.Join(ErrUploadBatchFileFailed, err)

@@ -130,6 +130,10 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 	defer res.Body.Close()
 
 	if isFailureStatusCode(res) {
+		retryAfter := res.Header.Get("Retry-After")
+		if v != nil && retryAfter != "" {
+			v.Header.Set("Retry-After", retryAfter)
+		}
 		return c.handleErrorResp(res)
 	}
 

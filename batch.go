@@ -18,8 +18,8 @@ const BatchEndpointChatCompletions BatchEndpoint = "/v1/chat/completions"
 const BatchEndpointCompletions BatchEndpoint = "/v1/completions"
 const BatchEndpointEmbeddings BatchEndpoint = "/v1/embeddings"
 
-type batchLineItem interface {
-	marshalBatchLineItem() []byte
+type BatchLineItem interface {
+	MarshalBatchLineItem() []byte
 }
 
 type BatchChatCompletionRequest struct {
@@ -29,7 +29,7 @@ type BatchChatCompletionRequest struct {
 	URL      BatchEndpoint         `json:"url"`
 }
 
-func (r BatchChatCompletionRequest) marshalBatchLineItem() []byte {
+func (r BatchChatCompletionRequest) MarshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
@@ -41,7 +41,7 @@ type BatchCompletionRequest struct {
 	URL      BatchEndpoint     `json:"url"`
 }
 
-func (r BatchCompletionRequest) marshalBatchLineItem() []byte {
+func (r BatchCompletionRequest) MarshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
@@ -53,7 +53,7 @@ type BatchEmbeddingRequest struct {
 	URL      BatchEndpoint    `json:"url"`
 }
 
-func (r BatchEmbeddingRequest) marshalBatchLineItem() []byte {
+func (r BatchEmbeddingRequest) MarshalBatchLineItem() []byte {
 	marshal, _ := json.Marshal(r)
 	return marshal
 }
@@ -129,7 +129,7 @@ func (c *Client) CreateBatch(
 
 type UploadBatchFileRequest struct {
 	FileName string
-	Lines    []batchLineItem
+	Lines    []BatchLineItem
 }
 
 func (r *UploadBatchFileRequest) MarshalJSONL() []byte {
@@ -138,7 +138,7 @@ func (r *UploadBatchFileRequest) MarshalJSONL() []byte {
 		if i != 0 {
 			buff.Write([]byte("\n"))
 		}
-		buff.Write(line.marshalBatchLineItem())
+		buff.Write(line.MarshalBatchLineItem())
 	}
 	return buff.Bytes()
 }

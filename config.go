@@ -24,7 +24,7 @@ const (
 
 const AzureAPIKeyHeader = "api-key"
 
-const defaultAssistantVersion = "v1" // This will be deprecated by the end of 2024.
+const defaultAssistantVersion = "v2" // upgrade to v2 to support vector store
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {

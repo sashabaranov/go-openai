@@ -196,7 +196,7 @@ func TestVectorStore(t *testing.T) {
 					ID:        vectorStoreID,
 					Object:    "vector_store",
 					CreatedAt: 1234567890,
-					Name:      &vectorStoreName,
+					Name:      vectorStoreName,
 				})
 				fmt.Fprintln(w, string(resBytes))
 			case http.MethodPost:
@@ -252,7 +252,7 @@ func TestVectorStore(t *testing.T) {
 							ID:        vectorStoreID,
 							Object:    "vector_store",
 							CreatedAt: 1234567890,
-							Name:      &vectorStoreName,
+							Name:      vectorStoreName,
 						},
 					},
 				})
@@ -265,7 +265,7 @@ func TestVectorStore(t *testing.T) {
 
 	t.Run("create_vector_store", func(t *testing.T) {
 		_, err := client.CreateVectorStore(ctx, openai.VectorStoreRequest{
-			Name: &vectorStoreName,
+			Name: vectorStoreName,
 		})
 		checks.NoError(t, err, "CreateVectorStore error")
 	})
@@ -309,7 +309,7 @@ func TestVectorStore(t *testing.T) {
 
 	t.Run("modify_vector_store", func(t *testing.T) {
 		_, err := client.ModifyVectorStore(ctx, vectorStoreID, openai.VectorStoreRequest{
-			Name: &vectorStoreName,
+			Name: vectorStoreName,
 		})
 		checks.NoError(t, err, "ModifyVectorStore error")
 	})

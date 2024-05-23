@@ -42,19 +42,33 @@ type AssistantTool struct {
 	Function *FunctionDefinition `json:"function,omitempty"`
 }
 
+type AssistantToolFileSearch struct {
+	VectorStoreIDs []string `json:"vector_store_ids"`
+}
+
+type AssistantToolCodeInterpreter struct {
+	FileIDs []string `json:"file_ids"`
+}
+
+type AssistantToolResource struct {
+	FileSearch      *AssistantToolFileSearch      `json:"file_search,omitempty"`
+	CodeInterpreter *AssistantToolCodeInterpreter `json:"code_interpreter,omitempty"`
+}
+
 // AssistantRequest provides the assistant request parameters.
 // When modifying the tools the API functions as the following:
 // If Tools is undefined, no changes are made to the Assistant's tools.
 // If Tools is empty slice it will effectively delete all of the Assistant's tools.
 // If Tools is populated, it will replace all of the existing Assistant's tools with the provided tools.
 type AssistantRequest struct {
-	Model        string          `json:"model"`
-	Name         *string         `json:"name,omitempty"`
-	Description  *string         `json:"description,omitempty"`
-	Instructions *string         `json:"instructions,omitempty"`
-	Tools        []AssistantTool `json:"-"`
-	FileIDs      []string        `json:"file_ids,omitempty"`
-	Metadata     map[string]any  `json:"metadata,omitempty"`
+	Model         string                 `json:"model"`
+	Name          *string                `json:"name,omitempty"`
+	Description   *string                `json:"description,omitempty"`
+	Instructions  *string                `json:"instructions,omitempty"`
+	Tools         []AssistantTool        `json:"-"`
+	FileIDs       []string               `json:"file_ids,omitempty"`
+	Metadata      map[string]any         `json:"metadata,omitempty"`
+	ToolResources *AssistantToolResource `json:"tool_resources,omitempty"`
 }
 
 // MarshalJSON provides a custom marshaller for the assistant request to handle the API use cases

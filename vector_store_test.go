@@ -327,7 +327,8 @@ func TestVectorStore(t *testing.T) {
 	})
 
 	t.Run("list_vector_store_files_in_batch", func(t *testing.T) {
-		_, err := client.ListVectorStoreFilesInBatch(ctx, vectorStoreID, vectorStoreFileBatchID, &limit, &order, &after, &before)
+		_, err := client.ListVectorStoreFilesInBatch(ctx, vectorStoreID, vectorStoreFileBatchID,
+			&limit, &order, &after, &before)
 		checks.NoError(t, err, "ListVectorStoreFilesInBatch error")
 	})
 

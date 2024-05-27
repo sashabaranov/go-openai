@@ -129,12 +129,12 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 
 	defer res.Body.Close()
 
-	if isFailureStatusCode(res) {
-		return c.handleErrorResp(res)
-	}
-
 	if v != nil {
 		v.SetHeader(res.Header)
+	}
+
+	if isFailureStatusCode(res) {
+		return c.handleErrorResp(res)
 	}
 
 	return decodeResponse(res.Body, v)

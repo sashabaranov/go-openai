@@ -270,9 +270,21 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "CreateVectorStore error")
 	})
 
+	t.Run("create_vector_store_neg", func(t *testing.T) {
+		_, err := client.CreateVectorStore(nil, openai.VectorStoreRequest{
+			Name: vectorStoreName,
+		})
+		checks.HasError(t, err, "CreateVectorStore error")
+	})
+
 	t.Run("retrieve_vector_store", func(t *testing.T) {
 		_, err := client.RetrieveVectorStore(ctx, vectorStoreID)
 		checks.NoError(t, err, "RetrieveVectorStore error")
+	})
+
+	t.Run("retrieve_vector_store_neg", func(t *testing.T) {
+		_, err := client.RetrieveVectorStore(nil, vectorStoreID)
+		checks.HasError(t, err, "RetrieveVectorStore error")
 	})
 
 	t.Run("delete_vector_store", func(t *testing.T) {
@@ -280,9 +292,19 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "DeleteVectorStore error")
 	})
 
+	t.Run("delete_vector_store_neg", func(t *testing.T) {
+		_, err := client.DeleteVectorStore(nil, vectorStoreID)
+		checks.HasError(t, err, "DeleteVectorStore error")
+	})
+
 	t.Run("list_vector_store", func(t *testing.T) {
 		_, err := client.ListVectorStores(ctx, &limit, &order, &after, &before)
 		checks.NoError(t, err, "ListVectorStores error")
+	})
+
+	t.Run("list_vector_store_neg", func(t *testing.T) {
+		_, err := client.ListVectorStores(nil, &limit, &order, &after, &before)
+		checks.HasError(t, err, "ListVectorStores error")
 	})
 
 	t.Run("create_vector_store_file", func(t *testing.T) {
@@ -292,9 +314,21 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "CreateVectorStoreFile error")
 	})
 
+	t.Run("create_vector_store_file_neg", func(t *testing.T) {
+		_, err := client.CreateVectorStoreFile(nil, vectorStoreID, openai.VectorStoreFileRequest{
+			FileID: vectorStoreFileID,
+		})
+		checks.HasError(t, err, "CreateVectorStoreFile error")
+	})
+
 	t.Run("list_vector_store_files", func(t *testing.T) {
 		_, err := client.ListVectorStoreFiles(ctx, vectorStoreID, &limit, &order, &after, &before)
 		checks.NoError(t, err, "ListVectorStoreFiles error")
+	})
+
+	t.Run("list_vector_store_files_neg", func(t *testing.T) {
+		_, err := client.ListVectorStoreFiles(nil, vectorStoreID, &limit, &order, &after, &before)
+		checks.HasError(t, err, "ListVectorStoreFiles error")
 	})
 
 	t.Run("retrieve_vector_store_file", func(t *testing.T) {
@@ -302,9 +336,19 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "RetrieveVectorStoreFile error")
 	})
 
+	t.Run("retrieve_vector_store_file_neg", func(t *testing.T) {
+		_, err := client.RetrieveVectorStoreFile(nil, vectorStoreID, vectorStoreFileID)
+		checks.HasError(t, err, "RetrieveVectorStoreFile error")
+	})
+
 	t.Run("delete_vector_store_file", func(t *testing.T) {
 		err := client.DeleteVectorStoreFile(ctx, vectorStoreID, vectorStoreFileID)
 		checks.NoError(t, err, "DeleteVectorStoreFile error")
+	})
+
+	t.Run("delete_vector_store_file_neg", func(t *testing.T) {
+		err := client.DeleteVectorStoreFile(nil, vectorStoreID, vectorStoreFileID)
+		checks.HasError(t, err, "DeleteVectorStoreFile error")
 	})
 
 	t.Run("modify_vector_store", func(t *testing.T) {
@@ -314,6 +358,13 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "ModifyVectorStore error")
 	})
 
+	t.Run("modify_vector_store_neg", func(t *testing.T) {
+		_, err := client.ModifyVectorStore(nil, vectorStoreID, openai.VectorStoreRequest{
+			Name: vectorStoreName,
+		})
+		checks.HasError(t, err, "ModifyVectorStore error")
+	})
+
 	t.Run("create_vector_store_file_batch", func(t *testing.T) {
 		_, err := client.CreateVectorStoreFileBatch(ctx, vectorStoreID, openai.VectorStoreFileBatchRequest{
 			FileIDs: []string{vectorStoreFileID},
@@ -321,9 +372,21 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "CreateVectorStoreFileBatch error")
 	})
 
+	t.Run("create_vector_store_file_batch_neg", func(t *testing.T) {
+		_, err := client.CreateVectorStoreFileBatch(nil, vectorStoreID, openai.VectorStoreFileBatchRequest{
+			FileIDs: []string{vectorStoreFileID},
+		})
+		checks.HasError(t, err, "CreateVectorStoreFileBatch error")
+	})
+
 	t.Run("retrieve_vector_store_file_batch", func(t *testing.T) {
 		_, err := client.RetrieveVectorStoreFileBatch(ctx, vectorStoreID, vectorStoreFileBatchID)
 		checks.NoError(t, err, "RetrieveVectorStoreFileBatch error")
+	})
+
+	t.Run("retrieve_vector_store_file_batch_neg", func(t *testing.T) {
+		_, err := client.RetrieveVectorStoreFileBatch(nil, vectorStoreID, vectorStoreFileBatchID)
+		checks.HasError(t, err, "RetrieveVectorStoreFileBatch error")
 	})
 
 	t.Run("list_vector_store_files_in_batch", func(t *testing.T) {
@@ -332,8 +395,19 @@ func TestVectorStore(t *testing.T) {
 		checks.NoError(t, err, "ListVectorStoreFilesInBatch error")
 	})
 
+	t.Run("list_vector_store_files_in_batch_neg", func(t *testing.T) {
+		_, err := client.ListVectorStoreFilesInBatch(nil, vectorStoreID, vectorStoreFileBatchID,
+			&limit, &order, &after, &before)
+		checks.HasError(t, err, "ListVectorStoreFilesInBatch error")
+	})
+
 	t.Run("cancel_vector_store_file_batch", func(t *testing.T) {
 		_, err := client.CancelVectorStoreFileBatch(ctx, vectorStoreID, vectorStoreFileBatchID)
 		checks.NoError(t, err, "CancelVectorStoreFileBatch error")
+	})
+
+	t.Run("cancel_vector_store_file_batch_neg", func(t *testing.T) {
+		_, err := client.CancelVectorStoreFileBatch(nil, vectorStoreID, vectorStoreFileBatchID)
+		checks.HasError(t, err, "CancelVectorStoreFileBatch error")
 	})
 }

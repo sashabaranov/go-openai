@@ -26,7 +26,7 @@ func TestAPI(t *testing.T) {
 	_, err = c.ListEngines(ctx)
 	checks.NoError(t, err, "ListEngines error")
 
-	_, err = c.GetEngine(ctx, "davinci-002")
+	_, err = c.GetEngine(ctx, openai.GPT3Davinci002)
 	checks.NoError(t, err, "GetEngine error")
 
 	fileRes, err := c.ListFiles(ctx)
@@ -42,7 +42,7 @@ func TestAPI(t *testing.T) {
 			"The food was delicious and the waiter",
 			"Other examples of embedding request",
 		},
-		Model: openai.AdaSearchQuery,
+		Model: openai.AdaEmbeddingV2,
 	}
 	_, err = c.CreateEmbeddings(ctx, embeddingReq)
 	checks.NoError(t, err, "Embedding error")
@@ -120,11 +120,11 @@ func TestCompletionStream(t *testing.T) {
 
 	stream, err := c.CreateCompletionStream(ctx, openai.CompletionRequest{
 		Prompt:    "Ex falso quodlibet",
-		Model:     openai.GPT3Ada,
+		Model:     openai.GPT3Babbage002,
 		MaxTokens: 5,
 		Stream:    true,
 	})
-	checks.NoErrorF(t, err, "CreateCompletionStream returned error")
+	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
 	counter := 0

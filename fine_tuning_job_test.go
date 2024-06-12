@@ -13,31 +13,48 @@ import (
 
 const testFineTuninigJobID = "fine-tuning-job-id"
 
-// TestFineTuningJob Tests the fine tuning job endpoint of the API using the mocked server.
+// TestFineTuningJob Tests the fine-tuning job endpoint of the API using the mocked server.
 func TestFineTuningJob(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler(
 		"/v1/fine_tuning/jobs",
-		func(w http.ResponseWriter, _ *http.Request) {
-			resBytes, _ := json.Marshal(openai.FineTuningJob{
-				Object:         "fine_tuning.job",
-				ID:             testFineTuninigJobID,
-				Model:          "davinci-002",
-				CreatedAt:      1692661014,
-				FinishedAt:     1692661190,
-				FineTunedModel: "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
-				OrganizationID: "org-123",
-				ResultFiles:    []string{"file-abc123"},
-				Status:         "succeeded",
-				ValidationFile: "",
-				TrainingFile:   "file-abc123",
-				Hyperparameters: openai.Hyperparameters{
-					Epochs: "auto",
-				},
-				TrainedTokens: 5768,
-			})
-			fmt.Fprintln(w, string(resBytes))
+		func(w http.ResponseWriter, r *http.Request) {
+			if r.Method == http.MethodPost {
+				resBytes, _ := json.Marshal(openai.FineTuningJob{
+					Object:         "fine_tuning.job",
+					ID:             testFineTuninigJobID,
+					Model:          "davinci-002",
+					CreatedAt:      1692661014,
+					FinishedAt:     1692661190,
+					FineTunedModel: "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
+					OrganizationID: "org-123",
+					ResultFiles:    []string{"file-abc123"},
+					Status:         "succeeded",
+					ValidationFile: "",
+					TrainingFile:   "file-abc123",
+					Hyperparameters: openai.Hyperparameters{
+						Epochs: "auto",
+					},
+					TrainedTokens: 5768,
+				})
+				fmt.Fprintln(w, string(resBytes))
+			} else if r.Method == http.MethodGet {
+				resBytes, _ := json.Marshal(openai.FineTuningJobList{
+					FineTuningJobs: []openai.FineTuningJob{
+						{
+							Object:         "fine_tuning.job",
+							ID:             testFineTuninigJobID,
+							Model:          "davinci-002",
+							CreatedAt:      1692661014,
+							FinishedAt:     1692661190,
+							FineTunedModel: "ft:davinci-002:my-org:custom_suffix:7q8mpxmy",
+							OrganizationID: "org-123",
+						},
+					},
+				})
+				fmt.Fprintln(w, string(resBytes))
+			}
 		},
 	)
 
@@ -93,6 +110,15 @@ func TestFineTuningJob(t *testing.T) {
 		openai.ListFineTuningJobEventsWithLimit(10),
 	)
 	checks.NoError(t, err, "ListFineTuningJobEvents error")
+
+	jobs, err := client.ListFineTuningJobs(
+		ctx,
+		openai.ListFineTuningJobsWithLimit(10),
+		openai.ListFineTuningJobsWithAfter(testFineTuninigJobID))
+	checks.NoError(t, err, "ListFineTuningJobs error")
+	if len(jobs.FineTuningJobs) != 1 {
+		t.Errorf("no fine tuning jobs found")
+	}
 
 	_, err = client.ListFineTuningJobEvents(
 		ctx,

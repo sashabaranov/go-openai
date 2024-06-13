@@ -1,7 +1,9 @@
 name: Integration tests
 
 on:
-  - push
+  push:
+    branches:
+      - master
 
 jobs:
   integration_tests:

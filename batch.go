@@ -14,9 +14,11 @@ const batchesSuffix = "/batches"
 
 type BatchEndpoint string
 
-const BatchEndpointChatCompletions BatchEndpoint = "/v1/chat/completions"
-const BatchEndpointCompletions BatchEndpoint = "/v1/completions"
-const BatchEndpointEmbeddings BatchEndpoint = "/v1/embeddings"
+const (
+	BatchEndpointChatCompletions BatchEndpoint = "/v1/chat/completions"
+	BatchEndpointCompletions     BatchEndpoint = "/v1/completions"
+	BatchEndpointEmbeddings      BatchEndpoint = "/v1/embeddings"
+)
 
 type BatchLineItem interface {
 	MarshalBatchLineItem() []byte

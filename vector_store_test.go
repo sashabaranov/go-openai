@@ -281,7 +281,12 @@ func TestVectorStore(t *testing.T) {
 	})
 
 	t.Run("list_vector_store", func(t *testing.T) {
-		_, err := client.ListVectorStores(context.TODO(), &limit, &order, &after, &before)
+		_, err := client.ListVectorStores(context.TODO(), openai.Pagination{
+			Limit:  &limit,
+			Order:  &order,
+			After:  &after,
+			Before: &before,
+		})
 		checks.NoError(t, err, "ListVectorStores error")
 	})
 

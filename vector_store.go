@@ -159,24 +159,21 @@ func (c *Client) DeleteVectorStore(
 // ListVectorStores Lists the currently available vector store.
 func (c *Client) ListVectorStores(
 	ctx context.Context,
-	limit *int,
-	order *string,
-	after *string,
-	before *string,
+	pagination Pagination,
 ) (response VectorStoresList, err error) {
 	urlValues := url.Values{}
 
-	if after != nil {
-		urlValues.Add("after", *after)
+	if pagination.After != nil {
+		urlValues.Add("after", *pagination.After)
 	}
-	if order != nil {
-		urlValues.Add("order", *order)
+	if pagination.Order != nil {
+		urlValues.Add("order", *pagination.Order)
 	}
-	if limit != nil {
-		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	if pagination.Limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *pagination.Limit))
 	}
-	if before != nil {
-		urlValues.Add("before", *before)
+	if pagination.Before != nil {
+		urlValues.Add("before", *pagination.Before)
 	}
 
 	encodedValues := ""

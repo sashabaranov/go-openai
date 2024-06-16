@@ -236,23 +236,20 @@ func (c *Client) DeleteVectorStoreFile(
 func (c *Client) ListVectorStoreFiles(
 	ctx context.Context,
 	vectorStoreID string,
-	limit *int,
-	order *string,
-	after *string,
-	before *string,
+	pagination Pagination,
 ) (response VectorStoreFilesList, err error) {
 	urlValues := url.Values{}
-	if after != nil {
-		urlValues.Add("after", *after)
+	if pagination.After != nil {
+		urlValues.Add("after", *pagination.After)
 	}
-	if limit != nil {
-		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	if pagination.Limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *pagination.Limit))
 	}
-	if before != nil {
-		urlValues.Add("before", *before)
+	if pagination.Before != nil {
+		urlValues.Add("before", *pagination.Before)
 	}
-	if order != nil {
-		urlValues.Add("order", *order)
+	if pagination.Order != nil {
+		urlValues.Add("order", *pagination.Order)
 	}
 
 	encodedValues := ""
@@ -317,23 +314,20 @@ func (c *Client) ListVectorStoreFilesInBatch(
 	ctx context.Context,
 	vectorStoreID string,
 	batchID string,
-	limit *int,
-	order *string,
-	after *string,
-	before *string,
+	pagination Pagination,
 ) (response VectorStoreFilesList, err error) {
 	urlValues := url.Values{}
-	if after != nil {
-		urlValues.Add("after", *after)
+	if pagination.After != nil {
+		urlValues.Add("after", *pagination.After)
 	}
-	if limit != nil {
-		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
+	if pagination.Limit != nil {
+		urlValues.Add("limit", fmt.Sprintf("%d", *pagination.Limit))
 	}
-	if before != nil {
-		urlValues.Add("before", *before)
+	if pagination.Before != nil {
+		urlValues.Add("before", *pagination.Before)
 	}
-	if order != nil {
-		urlValues.Add("order", *order)
+	if pagination.Order != nil {
+		urlValues.Add("order", *pagination.Order)
 	}
 
 	encodedValues := ""

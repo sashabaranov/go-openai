@@ -132,11 +132,7 @@ func TestVectorStore(t *testing.T) {
 					VectorStoreID: vectorStoreID,
 					Status:        "completed",
 					FileCounts: openai.VectorStoreFileCount{
-						InProgress: 0,
-						Completed:  1,
-						Failed:     0,
-						Cancelled:  0,
-						Total:      0,
+						Completed: 1,
 					},
 				})
 				fmt.Fprintln(w, string(resBytes))
@@ -148,11 +144,7 @@ func TestVectorStore(t *testing.T) {
 					VectorStoreID: vectorStoreID,
 					Status:        "cancelling",
 					FileCounts: openai.VectorStoreFileCount{
-						InProgress: 0,
-						Completed:  1,
-						Failed:     0,
-						Cancelled:  0,
-						Total:      0,
+						Completed: 1,
 					},
 				})
 				fmt.Fprintln(w, string(resBytes))

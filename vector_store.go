@@ -104,8 +104,13 @@ type VectorStoreFileBatchRequest struct {
 
 // CreateVectorStore creates a new vector store.
 func (c *Client) CreateVectorStore(ctx context.Context, request VectorStoreRequest) (response VectorStore, err error) {
-	req, _ := c.newRequest(ctx, http.MethodPost, c.fullURL(vectorStoresSuffix), withBody(request),
-		withBetaAssistantVersion(c.config.AssistantVersion))
+	req, _ := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(vectorStoresSuffix),
+		withBody(request),
+		withBetaAssistantVersion(c.config.AssistantVersion),
+	)
 
 	err = c.sendRequest(req, &response)
 	return

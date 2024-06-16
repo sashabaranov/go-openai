@@ -298,7 +298,12 @@ func TestVectorStore(t *testing.T) {
 	})
 
 	t.Run("list_vector_store_files", func(t *testing.T) {
-		_, err := client.ListVectorStoreFiles(ctx, vectorStoreID, &limit, &order, &after, &before)
+		_, err := client.ListVectorStoreFiles(ctx, vectorStoreID, openai.Pagination{
+			Limit:  &limit,
+			Order:  &order,
+			After:  &after,
+			Before: &before,
+		})
 		checks.NoError(t, err, "ListVectorStoreFiles error")
 	})
 
@@ -332,8 +337,16 @@ func TestVectorStore(t *testing.T) {
 	})
 
 	t.Run("list_vector_store_files_in_batch", func(t *testing.T) {
-		_, err := client.ListVectorStoreFilesInBatch(ctx, vectorStoreID, vectorStoreFileBatchID,
-			&limit, &order, &after, &before)
+		_, err := client.ListVectorStoreFilesInBatch(
+			ctx,
+			vectorStoreID,
+			vectorStoreFileBatchID,
+			openai.Pagination{
+				Limit:  &limit,
+				Order:  &order,
+				After:  &after,
+				Before: &before,
+			})
 		checks.NoError(t, err, "ListVectorStoreFilesInBatch error")
 	})
 

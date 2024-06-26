@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -109,8 +108,6 @@ type BatchResponse struct {
 	Batch
 }
 
-var ErrUploadBatchFileFailed = errors.New("upload batch file failed")
-
 // CreateBatch — API call to Create batch.
 func (c *Client) CreateBatch(
 	ctx context.Context,
@@ -202,7 +199,6 @@ func (c *Client) CreateBatchWithUploadFile(
 		Lines:    request.Lines,
 	})
 	if err != nil {
-		err = errors.Join(ErrUploadBatchFileFailed, err)
 		return
 	}
 	return c.CreateBatch(ctx, CreateBatchRequest{

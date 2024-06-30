@@ -3,6 +3,8 @@ package openai
 import (
 	"net/http"
 	"regexp"
+
+	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 const (
@@ -37,6 +39,7 @@ type ClientConfig struct {
 	AssistantVersion     string
 	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
 	HTTPClient           *http.Client
+	RequestBuilder       utils.RequestBuilder
 
 	EmptyMessagesLimit uint
 }

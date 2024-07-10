@@ -527,3 +527,21 @@ func TestFinishReason(t *testing.T) {
 		}
 	}
 }
+
+func TestParallelOption(t *testing.T) {
+	ccr := openai.ChatCompletionRequest{}
+
+	if ccr.ParallelToolCalls != nil {
+		t.Error("ParallelToolCalls should be default")
+	}
+	ccr.ParallelToolCalls = openai.ParallelOptionFalse()
+
+	if *ccr.ParallelToolCalls != false {
+		t.Error("ParallelToolCalls should be false")
+	}
+
+	ccr.ParallelToolCalls = openai.ParallelOptionTrue()
+	if *ccr.ParallelToolCalls != true {
+		t.Error("ParallelToolCalls should be true")
+	}
+}

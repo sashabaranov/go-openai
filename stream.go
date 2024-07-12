@@ -20,6 +20,7 @@ type CompletionStream struct {
 func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,
+	baseURL string,
 ) (stream *CompletionStream, err error) {
 	urlSuffix := "/completions"
 	//if !checkEndpointSupportsModel(urlSuffix, request.Model) {
@@ -33,7 +34,7 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	request.Stream = true
-	req, err := c.newRequest(ctx, "POST", c.fullURL(urlSuffix, request.Model), withBody(request))
+	req, err := c.newRequest(ctx, "POST", c.fullURL(baseURL, urlSuffix, request.Model), withBody(request))
 	if err != nil {
 		return nil, err
 	}

@@ -229,7 +229,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 			return client.CreateCompletion(ctx, CompletionRequest{Prompt: "testing"})
 		}},
 		{"CreateCompletionStream", func() (any, error) {
-			return client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""})
+			return client.CreateCompletionStream(ctx, CompletionRequest{Prompt: ""}, config.BaseURL)
 		}},
 		{"CreateChatCompletion", func() (any, error) {
 			return client.CreateChatCompletion(ctx, ChatCompletionRequest{Model: GPT3Dot5Turbo})
@@ -415,7 +415,7 @@ func TestClientReturnsRequestBuilderErrorsAddition(t *testing.T) {
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
-	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1})
+	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Prompt: 1}, config.BaseURL)
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}

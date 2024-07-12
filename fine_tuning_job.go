@@ -61,7 +61,7 @@ func (c *Client) CreateFineTuningJob(
 	request FineTuningJobRequest,
 ) (response FineTuningJob, err error) {
 	urlSuffix := "/fine_tuning/jobs"
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, urlSuffix), withBody(request))
 	if err != nil {
 		return
 	}
@@ -72,7 +72,7 @@ func (c *Client) CreateFineTuningJob(
 
 // CancelFineTuningJob cancel a fine tuning job.
 func (c *Client) CancelFineTuningJob(ctx context.Context, fineTuningJobID string) (response FineTuningJob, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/cancel"))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, "/fine_tuning/jobs/" + fineTuningJobID + "/cancel"))
 	if err != nil {
 		return
 	}
@@ -87,7 +87,7 @@ func (c *Client) RetrieveFineTuningJob(
 	fineTuningJobID string,
 ) (response FineTuningJob, err error) {
 	urlSuffix := fmt.Sprintf("/fine_tuning/jobs/%s", fineTuningJobID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, urlSuffix))
 	if err != nil {
 		return
 	}
@@ -146,7 +146,7 @@ func (c *Client) ListFineTuningJobEvents(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL("/fine_tuning/jobs/"+fineTuningJobID+"/events"+encodedValues),
+		c.fullURL(c.config.BaseURL, "/fine_tuning/jobs/"+fineTuningJobID+"/events"+encodedValues),
 	)
 	if err != nil {
 		return

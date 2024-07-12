@@ -218,6 +218,8 @@ type ChatCompletionRequest struct {
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
+	// Disable the default behavior of parallel tool calls by setting it: false.
+	ParallelToolCalls any `json:"parallel_tool_calls,omitempty"`
 }
 
 type StreamOptions struct {

@@ -54,7 +54,7 @@ type ModelsList struct {
 // ListModels Lists the currently available models,
 // and provides basic information about each model such as the model id and parent.
 func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) {
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, "/models"))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/models"))
 	if err != nil {
 		return
 	}
@@ -67,7 +67,7 @@ func (c *Client) ListModels(ctx context.Context) (models ModelsList, err error) 
 // the model such as the owner and permissioning.
 func (c *Client) GetModel(ctx context.Context, modelID string) (model Model, err error) {
 	urlSuffix := fmt.Sprintf("/models/%s", modelID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
 	}
@@ -80,7 +80,7 @@ func (c *Client) GetModel(ctx context.Context, modelID string) (model Model, err
 // role in your organization to delete a model.
 func (c *Client) DeleteFineTuneModel(ctx context.Context, modelID string) (
 	response FineTuneModelDeleteResponse, err error) {
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(c.config.BaseURL, "/models/"+modelID))
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL("/models/"+modelID))
 	if err != nil {
 		return
 	}

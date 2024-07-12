@@ -224,7 +224,7 @@ func (c *Client) CreateRun(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
@@ -245,7 +245,7 @@ func (c *Client) RetrieveRun(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -266,7 +266,7 @@ func (c *Client) ModifyRun(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
@@ -306,7 +306,7 @@ func (c *Client) ListRuns(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -326,7 +326,7 @@ func (c *Client) SubmitToolOutputs(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
@@ -346,7 +346,7 @@ func (c *Client) CancelRun(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -364,7 +364,7 @@ func (c *Client) CreateThreadAndRun(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
@@ -386,7 +386,7 @@ func (c *Client) RetrieveRunStep(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -426,7 +426,7 @@ func (c *Client) ListRunSteps(
 	req, err := c.newRequest(
 		ctx,
 		http.MethodGet,
-		c.fullURL(c.config.BaseURL, urlSuffix),
+		c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return

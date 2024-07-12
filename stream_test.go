@@ -25,6 +25,7 @@ func TestCompletionsStreamWrongModel(t *testing.T) {
 			MaxTokens: 5,
 			Model:     openai.GPT3Dot5Turbo,
 		},
+		config.BaseURL,
 	)
 	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
 		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel, but returned: %v", err)
@@ -61,7 +62,7 @@ func TestCreateCompletionStream(t *testing.T) {
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	})
+	}, "http://localhost")
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -134,7 +135,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 		Model:     openai.GPT3TextDavinci003,
 		Prompt:    "Hello!",
 		Stream:    true,
-	})
+	}, "http://localhost")
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -172,7 +173,7 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 		Model:     openai.GPT3Ada,
 		Prompt:    "Hello!",
 		Stream:    true,
-	})
+	}, "http://localhost")
 	if !errors.As(err, &apiErr) {
 		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
 	}
@@ -214,7 +215,7 @@ func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	})
+	}, "http://localhost")
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -249,7 +250,7 @@ func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	})
+	}, "http://localhost")
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -290,7 +291,7 @@ func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	})
+	}, "http://localhost")
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
 
@@ -317,7 +318,7 @@ func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
 		Stream:    true,
-	})
+	}, "http://localhost")
 	if err == nil {
 		t.Fatal("Did not return error")
 	}

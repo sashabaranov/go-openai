@@ -76,7 +76,7 @@ func (c *Client) CreateFileBytes(ctx context.Context, request FileBytesRequest) 
 		return
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/files"),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, "/files"),
 		withBody(&b), withContentType(builder.FormDataContentType()))
 	if err != nil {
 		return
@@ -112,7 +112,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 		return
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/files"),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, "/files"),
 		withBody(&b), withContentType(builder.FormDataContentType()))
 	if err != nil {
 		return
@@ -124,7 +124,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 
 // DeleteFile deletes an existing file.
 func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL("/files/"+fileID))
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(c.config.BaseURL, "/files/"+fileID))
 	if err != nil {
 		return
 	}
@@ -136,7 +136,7 @@ func (c *Client) DeleteFile(ctx context.Context, fileID string) (err error) {
 // ListFiles Lists the currently available files,
 // and provides basic information about each file such as the file name and purpose.
 func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL("/files"))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, "/files"))
 	if err != nil {
 		return
 	}
@@ -149,7 +149,7 @@ func (c *Client) ListFiles(ctx context.Context) (files FilesList, err error) {
 // such as the file name and purpose.
 func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s", fileID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, urlSuffix))
 	if err != nil {
 		return
 	}
@@ -160,7 +160,7 @@ func (c *Client) GetFile(ctx context.Context, fileID string) (file File, err err
 
 func (c *Client) GetFileContent(ctx context.Context, fileID string) (content RawResponse, err error) {
 	urlSuffix := fmt.Sprintf("/files/%s/content", fileID)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, urlSuffix))
 	if err != nil {
 		return
 	}

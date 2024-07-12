@@ -50,7 +50,7 @@ type ThreadDeleteResponse struct {
 
 // CreateThread creates a new thread.
 func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (response Thread, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, threadsSuffix), withBody(request),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(threadsSuffix), withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -63,7 +63,7 @@ func (c *Client) CreateThread(ctx context.Context, request ThreadRequest) (respo
 // RetrieveThread retrieves a thread.
 func (c *Client) RetrieveThread(ctx context.Context, threadID string) (response Thread, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(c.config.BaseURL, urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -80,7 +80,7 @@ func (c *Client) ModifyThread(
 	request ModifyThreadRequest,
 ) (response Thread, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(c.config.BaseURL, urlSuffix), withBody(request),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return
@@ -96,7 +96,7 @@ func (c *Client) DeleteThread(
 	threadID string,
 ) (response ThreadDeleteResponse, err error) {
 	urlSuffix := threadsSuffix + "/" + threadID
-	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(c.config.BaseURL, urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
 	if err != nil {
 		return

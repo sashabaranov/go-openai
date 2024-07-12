@@ -104,7 +104,6 @@ func ExampleClient_CreateCompletionStream() {
 			Prompt:    "Lorem ipsum",
 			Stream:    true,
 		},
-		"https://api.openai.com",
 	)
 	if err != nil {
 		fmt.Printf("CompletionStream error: %v\n", err)

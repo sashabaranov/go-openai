@@ -90,6 +90,7 @@ const (
 type ThreadMessage struct {
 	Role        ThreadMessageRole  `json:"role"`
 	Content     string             `json:"content"`
+	FileIDs     []string           `json:"file_ids,omitempty"`
 	Attachments []ThreadAttachment `json:"attachments,omitempty"`
 	Metadata    map[string]any     `json:"metadata,omitempty"`
 }

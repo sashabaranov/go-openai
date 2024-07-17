@@ -22,6 +22,8 @@ const (
 	GPT432K               = "gpt-4-32k"
 	GPT40613              = "gpt-4-0613"
 	GPT40314              = "gpt-4-0314"
+	GPT4o                 = "gpt-4o"
+	GPT4o20240513         = "gpt-4o-2024-05-13"
 	GPT4Turbo             = "gpt-4-turbo"
 	GPT4Turbo20240409     = "gpt-4-turbo-2024-04-09"
 	GPT4Turbo0125         = "gpt-4-0125-preview"
@@ -37,30 +39,33 @@ const (
 	GPT3Dot5Turbo16K0613  = "gpt-3.5-turbo-16k-0613"
 	GPT3Dot5Turbo         = "gpt-3.5-turbo"
 	GPT3Dot5TurboInstruct = "gpt-3.5-turbo-instruct"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci003 = "text-davinci-003"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci002 = "text-davinci-002"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextCurie001 = "text-curie-001"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextBabbage001 = "text-babbage-001"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextAda001 = "text-ada-001"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci001 = "text-davinci-001"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3DavinciInstructBeta = "davinci-instruct-beta"
-	GPT3Davinci             = "davinci"
-	GPT3Davinci002          = "davinci-002"
-	// Deprecated: Will be shut down on January 04, 2024. Use gpt-3.5-turbo-instruct instead.
+	// Deprecated: Model is shutdown. Use davinci-002 instead.
+	GPT3Davinci    = "davinci"
+	GPT3Davinci002 = "davinci-002"
+	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3CurieInstructBeta = "curie-instruct-beta"
 	GPT3Curie             = "curie"
 	GPT3Curie002          = "curie-002"
-	GPT3Ada               = "ada"
-	GPT3Ada002            = "ada-002"
-	GPT3Babbage           = "babbage"
-	GPT3Babbage002        = "babbage-002"
+	// Deprecated: Model is shutdown. Use babbage-002 instead.
+	GPT3Ada    = "ada"
+	GPT3Ada002 = "ada-002"
+	// Deprecated: Model is shutdown. Use babbage-002 instead.
+	GPT3Babbage    = "babbage"
+	GPT3Babbage002 = "babbage-002"
 )
 
 // Codex Defines the models provided by OpenAI.
@@ -82,6 +87,8 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT3Dot5Turbo16K:     true,
 		GPT3Dot5Turbo16K0613: true,
 		GPT4:                 true,
+		GPT4o:                true,
+		GPT4o20240513:        true,
 		GPT4TurboPreview:     true,
 		GPT4VisionPreview:    true,
 		GPT4Turbo1106:        true,

@@ -10,21 +10,74 @@ const (
 )
 
 type Thread struct {
-	ID        string         `json:"id"`
-	Object    string         `json:"object"`
-	CreatedAt int64          `json:"created_at"`
-	Metadata  map[string]any `json:"metadata"`
+	ID            string         `json:"id"`
+	Object        string         `json:"object"`
+	CreatedAt     int64          `json:"created_at"`
+	Metadata      map[string]any `json:"metadata"`
+	ToolResources ToolResources  `json:"tool_resources,omitempty"`
 
 	httpHeader
 }
 
 type ThreadRequest struct {
-	Messages []ThreadMessage `json:"messages,omitempty"`
-	Metadata map[string]any  `json:"metadata,omitempty"`
+	Messages      []ThreadMessage       `json:"messages,omitempty"`
+	Metadata      map[string]any        `json:"metadata,omitempty"`
+	ToolResources *ToolResourcesRequest `json:"tool_resources,omitempty"`
 }
 
+type ToolResources struct {
+	CodeInterpreter *CodeInterpreterToolResources `json:"code_interpreter,omitempty"`
+	FileSearch      *FileSearchToolResources      `json:"file_search,omitempty"`
+}
+
+type CodeInterpreterToolResources struct {
+	FileIDs []string `json:"file_ids,omitempty"`
+}
+
+type FileSearchToolResources struct {
+	VectorStoreIDs []string `json:"vector_store_ids,omitempty"`
+}
+
+type ToolResourcesRequest struct {
+	CodeInterpreter *CodeInterpreterToolResourcesRequest `json:"code_interpreter,omitempty"`
+	FileSearch      *FileSearchToolResourcesRequest      `json:"file_search,omitempty"`
+}
+
+type CodeInterpreterToolResourcesRequest struct {
+	FileIDs []string `json:"file_ids,omitempty"`
+}
+
+type FileSearchToolResourcesRequest struct {
+	VectorStoreIDs []string                   `json:"vector_store_ids,omitempty"`
+	VectorStores   []VectorStoreToolResources `json:"vector_stores,omitempty"`
+}
+
+type VectorStoreToolResources struct {
+	FileIDs          []string          `json:"file_ids,omitempty"`
+	ChunkingStrategy *ChunkingStrategy `json:"chunking_strategy,omitempty"`
+	Metadata         map[string]any    `json:"metadata,omitempty"`
+}
+
+type ChunkingStrategy struct {
+	Type   ChunkingStrategyType    `json:"type"`
+	Static *StaticChunkingStrategy `json:"static,omitempty"`
+}
+
+type StaticChunkingStrategy struct {
+	MaxChunkSizeTokens int `json:"max_chunk_size_tokens"`
+	ChunkOverlapTokens int `json:"chunk_overlap_tokens"`
+}
+
+type ChunkingStrategyType string
+
+const (
+	ChunkingStrategyTypeAuto   ChunkingStrategyType = "auto"
+	ChunkingStrategyTypeStatic ChunkingStrategyType = "static"
+)
+
 type ModifyThreadRequest struct {
-	Metadata map[string]any `json:"metadata"`
+	Metadata      map[string]any `json:"metadata"`
+	ToolResources *ToolResources `json:"tool_resources,omitempty"`
 }
 
 type ThreadMessageRole string

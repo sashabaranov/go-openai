@@ -1,0 +1,21 @@
+name: Integration tests
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  integration_tests:
+    name: Run integration tests
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.21'
+    - name: Run integration tests
+      env:
+        OPENAI_TOKEN: ${{ secrets.OPENAI_TOKEN }}
+      run: go test -v -tags=integration ./api_integration_test.go

@@ -12,6 +12,13 @@ func NoError(t *testing.T, err error, message ...string) {
 	}
 }
 
+func NoErrorF(t *testing.T, err error, message ...string) {
+	t.Helper()
+	if err != nil {
+		t.Fatal(err, message)
+	}
+}
+
 func HasError(t *testing.T, err error, message ...string) {
 	t.Helper()
 	if err == nil {

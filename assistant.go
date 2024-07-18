@@ -70,6 +70,9 @@ type AssistantRequest struct {
 	FileIDs       []string               `json:"file_ids,omitempty"`
 	Metadata      map[string]any         `json:"metadata,omitempty"`
 	ToolResources *AssistantToolResource `json:"tool_resources,omitempty"`
+	ResponseFormat any 					 `json:"response_format,omitempty"`
+	Temperature *float32 				 `json:"temperature,omitempty"`
+	TopP        *float32 				 `json:"top_p,omitempty"`
 }
 
 // MarshalJSON provides a custom marshaller for the assistant request to handle the API use cases

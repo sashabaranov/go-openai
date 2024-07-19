@@ -102,6 +102,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	if err != nil {
 		return
 	}
+	defer fileData.Close()
 
 	err = builder.CreateFormFile("file", fileData)
 	if err != nil {

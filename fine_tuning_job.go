@@ -26,7 +26,9 @@ type FineTuningJob struct {
 }
 
 type Hyperparameters struct {
-	Epochs any `json:"n_epochs,omitempty"`
+	Epochs                 any `json:"n_epochs,omitempty"`
+	LearningRateMultiplier any `json:"learning_rate_multiplier,omitempty"`
+	BatchSize              any `json:"batch_size,omitempty"`
 }
 
 type FineTuningJobRequest struct {

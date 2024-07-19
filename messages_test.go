@@ -115,6 +115,13 @@ func TestMessages(t *testing.T) {
 						Metadata:    nil,
 					})
 				fmt.Fprintln(w, string(resBytes))
+			case http.MethodDelete:
+				resBytes, _ := json.Marshal(openai.MessageDeletionStatus{
+					ID:      messageID,
+					Object:  "thread.message.deleted",
+					Deleted: true,
+				})
+				fmt.Fprintln(w, string(resBytes))
 			default:
 				t.Fatalf("unsupported messages http method: %s", r.Method)
 			}
@@ -224,6 +231,17 @@ func TestMessages(t *testing.T) {
 	if msg.Metadata["foo"] != "bar" {
 		t.Fatalf("expected message metadata to get modified")
 	}
+
+	msgDel, err := client.DeleteMessage(ctx, threadID, messageID)
+	checks.NoError(t, err, "DeleteMessage error")
+	if msgDel.ID != messageID {
+		t.Fatalf("unexpected message id: '%s'", msg.ID)
+	}
+	if !msgDel.Deleted {
+		t.Fatalf("expected deleted is true")
+	}
+	_, err = client.DeleteMessage(ctx, threadID, "not_exist_id")
+	checks.HasError(t, err, "DeleteMessage error")
 
 	// message files
 	var msgFile openai.MessageFile

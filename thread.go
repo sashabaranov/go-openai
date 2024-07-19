@@ -83,14 +83,25 @@ type ModifyThreadRequest struct {
 type ThreadMessageRole string
 
 const (
-	ThreadMessageRoleUser ThreadMessageRole = "user"
+	ThreadMessageRoleAssistant ThreadMessageRole = "assistant"
+	ThreadMessageRoleUser      ThreadMessageRole = "user"
 )
 
 type ThreadMessage struct {
-	Role     ThreadMessageRole `json:"role"`
-	Content  string            `json:"content"`
-	FileIDs  []string          `json:"file_ids,omitempty"`
-	Metadata map[string]any    `json:"metadata,omitempty"`
+	Role        ThreadMessageRole  `json:"role"`
+	Content     string             `json:"content"`
+	FileIDs     []string           `json:"file_ids,omitempty"`
+	Attachments []ThreadAttachment `json:"attachments,omitempty"`
+	Metadata    map[string]any     `json:"metadata,omitempty"`
+}
+
+type ThreadAttachment struct {
+	FileID string                 `json:"file_id"`
+	Tools  []ThreadAttachmentTool `json:"tools"`
+}
+
+type ThreadAttachmentTool struct {
+	Type string `json:"type"`
 }
 
 type ThreadDeleteResponse struct {

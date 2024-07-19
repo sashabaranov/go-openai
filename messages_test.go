@@ -8,19 +8,16 @@ import (
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var emptyStr = ""
 
-// TestMessages Tests the messages endpoint of the API using the mocked server.
-func TestMessages(t *testing.T) {
+func registerServer(t *testing.T, server *test.ServerTest) {
 	threadID := "thread_abc123"
 	messageID := "msg_abc123"
 	fileID := "file_abc123"
-
-	client, server, teardown := setupOpenAITestServer()
-	defer teardown()
 
 	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/messages/"+messageID+"/files/"+fileID,
@@ -183,7 +180,18 @@ func TestMessages(t *testing.T) {
 			}
 		},
 	)
+}
 
+// TestMessages Tests the messages endpoint of the API using the mocked server.
+func TestMessages(t *testing.T) {
+	threadID := "thread_abc123"
+	messageID := "msg_abc123"
+	fileID := "file_abc123"
+
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	registerServer(t, server)
 	ctx := context.Background()
 
 	// static assertion of return type

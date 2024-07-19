@@ -140,7 +140,7 @@ func TestAzureFullURL(t *testing.T) {
 			az := DefaultAzureConfig("dummy", c.BaseURL)
 			cli := NewClientWithConfig(az)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
-			actual := cli.fullURL("/chat/completions", c.Model)
+			actual := cli.fullURL("/chat/completions", withModel(c.Model))
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

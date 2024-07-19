@@ -55,6 +55,8 @@ func DefaultConfig(authToken string) ClientConfig {
 	}
 }
 
+var azureModelReplaceReg = regexp.MustCompile(`[.:]`)
+
 func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 	return ClientConfig{
 		authToken:  apiKey,
@@ -63,7 +65,7 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 		APIType:    APITypeAzure,
 		APIVersion: "2023-05-15",
 		AzureModelMapperFunc: func(model string) string {
-			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+			return azureModelReplaceReg.ReplaceAllString(model, "")
 		},
 
 		HTTPClient: &http.Client{},

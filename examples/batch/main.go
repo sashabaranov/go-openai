@@ -18,7 +18,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	fmt.Printf("batchID: %+v\n", response.ID)
+	fmt.Printf("batchID: %s\n", response.ID)
 
 	// retrieve Batch
 	//batchID := "batch_XXXXXXXXXXXXX"

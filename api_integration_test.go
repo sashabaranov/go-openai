@@ -5,6 +5,7 @@ package openai_test
 import (
 	"context"
 	"errors"
+	"fmt"
 	"io"
 	"os"
 	"testing"
@@ -142,6 +143,73 @@ func TestCompletionStream(t *testing.T) {
 	if counter == 0 {
 		t.Error("Stream did not return any responses")
 	}
+}
+
+func TestBatchAPI(t *testing.T) {
+	ctx := context.Background()
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+	var err error
+	c := openai.NewClient(apiToken)
+
+	req := openai.CreateBatchWithUploadFileRequest{
+		Endpoint:         openai.BatchEndpointChatCompletions,
+		CompletionWindow: "24h",
+	}
+	for i := 0; i < 5; i++ {
+		req.AddChatCompletion(fmt.Sprintf("req-%d", i), openai.ChatCompletionRequest{
+			Model: openai.GPT4oMini,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: fmt.Sprintf("What is the square of %d?", i+1),
+				},
+			},
+		})
+	}
+	_, err = c.CreateBatchWithUploadFile(ctx, req)
+	checks.NoError(t, err, "CreateBatchWithUploadFile error")
+
+	var chatCompletions = make([]openai.BatchChatCompletion, 5)
+	for i := 0; i < 5; i++ {
+		chatCompletions[i] = openai.BatchChatCompletion{
+			CustomID: fmt.Sprintf("req-%d", i),
+			ChatCompletion: openai.ChatCompletionRequest{
+				Model: openai.GPT4oMini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: fmt.Sprintf("What is the square of %d?", i+1),
+					},
+				},
+			},
+		}
+	}
+	_, err = c.CreateBatchWithChatCompletions(ctx, openai.CreateBatchWithChatCompletionsRequest{
+		ChatCompletions: chatCompletions,
+	})
+	checks.NoError(t, err, "CreateBatchWithChatCompletions error")
+
+	var embeddings = make([]openai.BatchEmbedding, 3)
+	for i := 0; i < 3; i++ {
+		embeddings[i] = openai.BatchEmbedding{
+			CustomID: fmt.Sprintf("req-%d", i),
+			Embedding: openai.EmbeddingRequest{
+				Input:          "The food was delicious and the waiter...",
+				Model:          openai.AdaEmbeddingV2,
+				EncodingFormat: openai.EmbeddingEncodingFormatFloat,
+			},
+		}
+	}
+	_, err = c.CreateBatchWithEmbeddings(ctx, openai.CreateBatchWithEmbeddingsRequest{
+		Embeddings: embeddings,
+	})
+	checks.NoError(t, err, "CreateBatchWithEmbeddings error")
+
+	_, err = c.ListBatch(ctx, nil, nil)
+	checks.NoError(t, err, "ListBatch error")
 }
 
 func TestAPIError(t *testing.T) {

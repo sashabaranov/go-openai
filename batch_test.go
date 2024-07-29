@@ -66,6 +66,62 @@ func TestCreateBatchWithUploadFile(t *testing.T) {
 	checks.NoError(t, err, "CreateBatchWithUploadFile error")
 }
 
+func TestCreateBatchWithChatCompletions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
+
+	var chatCompletions = make([]openai.BatchChatCompletion, 5)
+	for i := 0; i < 5; i++ {
+		chatCompletions[i] = openai.BatchChatCompletion{
+			CustomID: fmt.Sprintf("req-%d", i),
+			ChatCompletion: openai.ChatCompletionRequest{
+				Model: openai.GPT4oMini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: fmt.Sprintf("What is the square of %d?", i+1),
+					},
+				},
+			},
+		}
+	}
+	_, err := client.CreateBatchWithChatCompletions(
+		context.Background(),
+		openai.CreateBatchWithChatCompletionsRequest{
+			ChatCompletions: chatCompletions,
+		},
+	)
+	checks.NoError(t, err, "CreateBatchWithChatCompletions error")
+}
+
+func TestCreateBatchWithEmbeddings(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/files", handleCreateFile)
+	server.RegisterHandler("/v1/batches", handleBatchEndpoint)
+
+	var embeddings = make([]openai.BatchEmbedding, 3)
+	for i := 0; i < 3; i++ {
+		embeddings[i] = openai.BatchEmbedding{
+			CustomID: fmt.Sprintf("req-%d", i),
+			Embedding: openai.EmbeddingRequest{
+				Input:          "The food was delicious and the waiter...",
+				Model:          openai.AdaEmbeddingV2,
+				EncodingFormat: openai.EmbeddingEncodingFormatFloat,
+			},
+		}
+	}
+	_, err := client.CreateBatchWithEmbeddings(
+		context.Background(),
+		openai.CreateBatchWithEmbeddingsRequest{
+			Embeddings: embeddings,
+		},
+	)
+	checks.NoError(t, err, "CreateBatchWithEmbeddings error")
+}
+
 func TestRetrieveBatch(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

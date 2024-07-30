@@ -73,6 +73,13 @@ type ChatCompletionMessage struct {
 	ToolCallID string `json:"tool_call_id,omitempty"`
 }
 
+type Meta struct {
+	UserInfo string `json:"user_info"`
+	BotInfo  string `json:"bot_info"`
+	BotName  string `json:"bot_name"`
+	UserName string `json:"user_name"`
+}
+
 type ToolCall struct {
 	// Index is not nil only in chat completion chunk object
 	Index    *int         `json:"index,omitempty"`
@@ -101,6 +108,7 @@ type ChatCompletionResponseFormat struct {
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
 	Model            string                        `json:"model"`
+	Meta             Meta                          `json:"meta"`
 	Messages         []ChatCompletionMessage       `json:"messages"`
 	MaxTokens        int                           `json:"max_tokens,omitempty"`
 	Temperature      float32                       `json:"temperature,omitempty"`

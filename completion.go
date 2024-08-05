@@ -148,6 +148,7 @@ type CompletionRequest struct {
 
 	TopK              int32   `json:"top_k,omitempty"`
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
+	OverrideModelName string  `json:"override_model_name,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

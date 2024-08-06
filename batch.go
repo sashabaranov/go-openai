@@ -65,7 +65,7 @@ type Batch struct {
 	Endpoint BatchEndpoint `json:"endpoint"`
 	Errors   *struct {
 		Object string `json:"object,omitempty"`
-		Data   struct {
+		Data   []struct {
 			Code    string  `json:"code,omitempty"`
 			Message string  `json:"message,omitempty"`
 			Param   *string `json:"param,omitempty"`

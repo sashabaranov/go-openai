@@ -11,7 +11,7 @@ import (
 )
 
 var (
-	headerData  = []byte("data: ")
+	headerData  = []byte("data:")
 	errorPrefix = []byte(`data: {"error":`)
 )
 

@@ -38,7 +38,7 @@ type Definition struct {
 	// that are not explicitly defined in the properties section of the schema. example:
 	// additionalProperties: true
 	// additionalProperties: false
-	// additionalProperties: { "type": "number" }
+	// additionalProperties: jsonschema.Definition{Type: jsonschema.String}
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 }
 

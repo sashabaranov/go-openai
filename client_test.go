@@ -402,6 +402,12 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"CreateBatchWithUploadFile", func() (any, error) {
 			return client.CreateBatchWithUploadFile(ctx, CreateBatchWithUploadFileRequest{})
 		}},
+		{"CreateBatchWithChatCompletions", func() (any, error) {
+			return client.CreateBatchWithChatCompletions(ctx, CreateBatchWithChatCompletionsRequest{})
+		}},
+		{"CreateBatchWithEmbeddings", func() (any, error) {
+			return client.CreateBatchWithEmbeddings(ctx, CreateBatchWithEmbeddingsRequest{})
+		}},
 		{"RetrieveBatch", func() (any, error) {
 			return client.RetrieveBatch(ctx, "")
 		}},

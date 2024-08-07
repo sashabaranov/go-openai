@@ -743,6 +743,49 @@ func main() {
 }
 ```
 </details>
+
+<details>
+<summary>BatchAPI</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+)
+
+func main() {
+	client := openai.NewClient("your token")
+	ctx := context.Background()
+	var chatCompletions = make([]openai.BatchChatCompletion, 5)
+	for i := 0; i < 5; i++ {
+		chatCompletions[i] = openai.BatchChatCompletion{
+			CustomID: fmt.Sprintf("req-%d", i),
+			ChatCompletion: openai.ChatCompletionRequest{
+				Model: openai.GPT4oMini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: fmt.Sprintf("What is the square of %d?", i+1),
+					},
+				},
+			},
+		}
+	}
+
+	resp, err := client.CreateBatchWithChatCompletions(ctx, openai.CreateBatchWithChatCompletionsRequest{
+		ChatCompletions: chatCompletions,
+	})
+	if err != nil {
+		fmt.Printf("CreateBatchWithChatCompletions error: %v\n", err)
+		return
+	}
+	fmt.Println("batchID:", resp.ID)
+}
+
+```
+</details>
 See the `examples/` folder for more.
 
 ## Frequently Asked Questions

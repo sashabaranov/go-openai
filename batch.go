@@ -209,6 +209,90 @@ func (c *Client) CreateBatchWithUploadFile(
 	})
 }
 
+type CreateBatchWithChatCompletionsRequest struct {
+	CompletionWindow string
+	Metadata         map[string]any
+	FileName         string
+	ChatCompletions  []BatchChatCompletion
+}
+
+type BatchChatCompletion struct {
+	CustomID       string
+	ChatCompletion ChatCompletionRequest
+}
+
+// CreateBatchWithChatCompletions — API call to Create batch with chat completions.
+func (c *Client) CreateBatchWithChatCompletions(
+	ctx context.Context,
+	request CreateBatchWithChatCompletionsRequest,
+) (response BatchResponse, err error) {
+	var file File
+	var lines = make([]BatchLineItem, len(request.ChatCompletions))
+	for i, completion := range request.ChatCompletions {
+		lines[i] = BatchChatCompletionRequest{
+			CustomID: completion.CustomID,
+			Body:     completion.ChatCompletion,
+			Method:   "POST",
+			URL:      BatchEndpointChatCompletions,
+		}
+	}
+	file, err = c.UploadBatchFile(ctx, UploadBatchFileRequest{
+		FileName: request.FileName,
+		Lines:    lines,
+	})
+	if err != nil {
+		return
+	}
+	return c.CreateBatch(ctx, CreateBatchRequest{
+		InputFileID:      file.ID,
+		Endpoint:         BatchEndpointChatCompletions,
+		CompletionWindow: request.CompletionWindow,
+		Metadata:         request.Metadata,
+	})
+}
+
+type CreateBatchWithEmbeddingsRequest struct {
+	CompletionWindow string
+	Metadata         map[string]any
+	FileName         string
+	Embeddings       []BatchEmbedding
+}
+
+type BatchEmbedding struct {
+	CustomID  string           `json:"custom_id"`
+	Embedding EmbeddingRequest `json:"body"`
+}
+
+// CreateBatchWithEmbeddings — API call to Create batch with embeddings.
+func (c *Client) CreateBatchWithEmbeddings(
+	ctx context.Context,
+	request CreateBatchWithEmbeddingsRequest,
+) (response BatchResponse, err error) {
+	var file File
+	var lines = make([]BatchLineItem, len(request.Embeddings))
+	for i, embedding := range request.Embeddings {
+		lines[i] = BatchEmbeddingRequest{
+			CustomID: embedding.CustomID,
+			Body:     embedding.Embedding,
+			Method:   "POST",
+			URL:      BatchEndpointEmbeddings,
+		}
+	}
+	file, err = c.UploadBatchFile(ctx, UploadBatchFileRequest{
+		FileName: request.FileName,
+		Lines:    lines,
+	})
+	if err != nil {
+		return
+	}
+	return c.CreateBatch(ctx, CreateBatchRequest{
+		InputFileID:      file.ID,
+		Endpoint:         BatchEndpointEmbeddings,
+		CompletionWindow: request.CompletionWindow,
+		Metadata:         request.Metadata,
+	})
+}
+
 // RetrieveBatch — API call to Retrieve batch.
 func (c *Client) RetrieveBatch(
 	ctx context.Context,

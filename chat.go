@@ -176,6 +176,7 @@ type ChatCompletionResponseFormatType string
 
 const (
 	ChatCompletionResponseFormatTypeJSONObject ChatCompletionResponseFormatType = "json_object"
+	ChatCompletionResponseFormatTypeJSONSchema ChatCompletionResponseFormatType = "json_schema"
 	ChatCompletionResponseFormatTypeText       ChatCompletionResponseFormatType = "text"
 )
 

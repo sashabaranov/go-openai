@@ -28,7 +28,7 @@ const defaultAssistantVersion = "v2" // upgrade to v2 to support vector store
 
 // ClientConfig is a configuration of a client.
 type ClientConfig struct {
-	authToken string
+	AuthToken string
 
 	BaseURL              string
 	OrgID                string

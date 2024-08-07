@@ -1,13 +1,14 @@
-package jsonschema
+package jsonschema_test
 
 import (
+	"github.com/sashabaranov/go-openai/jsonschema"
 	"testing"
 )
 
 func Test_Validate(t *testing.T) {
 	type args struct {
 		data   interface{}
-		schema Definition
+		schema jsonschema.Definition
 	}
 	tests := []struct {
 		name string
@@ -15,21 +16,29 @@ func Test_Validate(t *testing.T) {
 		want bool
 	}{
 		// string integer number boolean
-		{"", args{data: "ABC", schema: Definition{Type: String}}, true},
-		{"", args{data: 123, schema: Definition{Type: String}}, false},
-		{"", args{data: 123, schema: Definition{Type: Integer}}, true},
-		{"", args{data: 123.4, schema: Definition{Type: Integer}}, false},
-		{"", args{data: "ABC", schema: Definition{Type: Number}}, false},
-		{"", args{data: 123, schema: Definition{Type: Number}}, true},
-		{"", args{data: false, schema: Definition{Type: Boolean}}, true},
-		{"", args{data: 123, schema: Definition{Type: Boolean}}, false},
-		{"", args{data: nil, schema: Definition{Type: Null}}, true},
-		{"", args{data: 0, schema: Definition{Type: Null}}, false},
+		{"", args{data: "ABC", schema: jsonschema.Definition{Type: jsonschema.String}}, true},
+		{"", args{data: 123, schema: jsonschema.Definition{Type: jsonschema.String}}, false},
+		{"", args{data: 123, schema: jsonschema.Definition{Type: jsonschema.Integer}}, true},
+		{"", args{data: 123.4, schema: jsonschema.Definition{Type: jsonschema.Integer}}, false},
+		{"", args{data: "ABC", schema: jsonschema.Definition{Type: jsonschema.Number}}, false},
+		{"", args{data: 123, schema: jsonschema.Definition{Type: jsonschema.Number}}, true},
+		{"", args{data: false, schema: jsonschema.Definition{Type: jsonschema.Boolean}}, true},
+		{"", args{data: 123, schema: jsonschema.Definition{Type: jsonschema.Boolean}}, false},
+		{"", args{data: nil, schema: jsonschema.Definition{Type: jsonschema.Null}}, true},
+		{"", args{data: 0, schema: jsonschema.Definition{Type: jsonschema.Null}}, false},
 		// array
-		{"", args{data: []any{"a", "b", "c"}, schema: Definition{Type: Array, Items: &Definition{Type: String}}}, true},
-		{"", args{data: []any{1, 2, 3}, schema: Definition{Type: Array, Items: &Definition{Type: String}}}, false},
-		{"", args{data: []any{1, 2, 3}, schema: Definition{Type: Array, Items: &Definition{Type: Integer}}}, true},
-		{"", args{data: []any{1, 2, 3.4}, schema: Definition{Type: Array, Items: &Definition{Type: Integer}}}, false},
+		{"", args{data: []any{"a", "b", "c"}, schema: jsonschema.Definition{
+			Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.String}},
+		}, true},
+		{"", args{data: []any{1, 2, 3}, schema: jsonschema.Definition{
+			Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.String}},
+		}, false},
+		{"", args{data: []any{1, 2, 3}, schema: jsonschema.Definition{
+			Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Integer}},
+		}, true},
+		{"", args{data: []any{1, 2, 3.4}, schema: jsonschema.Definition{
+			Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Integer}},
+		}, false},
 		// object
 		{"", args{data: map[string]any{
 			"string":  "abc",
@@ -37,12 +46,12 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: Definition{Type: Object, Properties: map[string]Definition{
-			"string":  {Type: String},
-			"integer": {Type: Integer},
-			"number":  {Type: Number},
-			"boolean": {Type: Boolean},
-			"array":   {Type: Array, Items: &Definition{Type: Number}},
+		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: map[string]jsonschema.Definition{
+			"string":  {Type: jsonschema.String},
+			"integer": {Type: jsonschema.Integer},
+			"number":  {Type: jsonschema.Number},
+			"boolean": {Type: jsonschema.Boolean},
+			"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
 		},
 			Required: []string{"string"},
 		}}, true},
@@ -51,19 +60,19 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: Definition{Type: Object, Properties: map[string]Definition{
-			"string":  {Type: String},
-			"integer": {Type: Integer},
-			"number":  {Type: Number},
-			"boolean": {Type: Boolean},
-			"array":   {Type: Array, Items: &Definition{Type: Number}},
+		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: map[string]jsonschema.Definition{
+			"string":  {Type: jsonschema.String},
+			"integer": {Type: jsonschema.Integer},
+			"number":  {Type: jsonschema.Number},
+			"boolean": {Type: jsonschema.Boolean},
+			"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
 		},
 			Required: []string{"string"},
 		}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := Validate(tt.args.schema, tt.args.data); got != tt.want {
+			if got := jsonschema.Validate(tt.args.schema, tt.args.data); got != tt.want {
 				t.Errorf("Validate() = %v, want %v", got, tt.want)
 			}
 		})
@@ -72,7 +81,7 @@ func Test_Validate(t *testing.T) {
 
 func TestUnmarshal(t *testing.T) {
 	type args struct {
-		schema  Definition
+		schema  jsonschema.Definition
 		content []byte
 		v       any
 	}
@@ -90,22 +99,22 @@ func TestUnmarshal(t *testing.T) {
 		wantErr bool
 	}{
 		{"", args{
-			schema: Definition{
-				Type: Object,
-				Properties: map[string]Definition{
-					"string": {Type: String},
-					"number": {Type: Number},
+			schema: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"string": {Type: jsonschema.String},
+					"number": {Type: jsonschema.Number},
 				},
 			},
 			content: []byte(`{"string":"abc","number":123.4}`),
 			v:       &result1,
 		}, false},
 		{"", args{
-			schema: Definition{
-				Type: Object,
-				Properties: map[string]Definition{
-					"string": {Type: String},
-					"number": {Type: Number},
+			schema: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"string": {Type: jsonschema.String},
+					"number": {Type: jsonschema.Number},
 				},
 				Required: []string{"string", "number"},
 			},
@@ -115,7 +124,7 @@ func TestUnmarshal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := Unmarshal(tt.args.schema, tt.args.content, tt.args.v); (err != nil) != tt.wantErr {
+			if err := jsonschema.Unmarshal(tt.args.schema, tt.args.content, tt.args.v); (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				t.Logf("Unmarshal() v = %+v\n", tt.args.v)

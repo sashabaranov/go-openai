@@ -21,35 +21,9 @@ func Unmarshal(schema Definition, content []byte, v any) error {
 func Validate(schema Definition, data interface{}) bool {
 	switch schema.Type {
 	case Object:
-		dataMap, ok := data.(map[string]interface{})
-		if !ok {
-			return false
-		}
-		for _, field := range schema.Required {
-			if _, exists := dataMap[field]; !exists {
-				return false
-			}
-		}
-		for key, valueSchema := range schema.Properties {
-			value, exists := dataMap[key]
-			if exists && !Validate(valueSchema, value) {
-				return false
-			} else if !exists && slices.Contains(schema.Required, key) {
-				return false
-			}
-		}
-		return true
+		return validateObject(schema, data)
 	case Array:
-		dataArray, ok := data.([]interface{})
-		if !ok {
-			return false
-		}
-		for _, item := range dataArray {
-			if !Validate(*schema.Items, item) {
-				return false
-			}
-		}
-		return true
+		return validateArray(schema, data)
 	case String:
 		_, ok := data.(string)
 		return ok
@@ -70,4 +44,38 @@ func Validate(schema Definition, data interface{}) bool {
 	default:
 		return false
 	}
+}
+
+func validateObject(schema Definition, data any) bool {
+	dataMap, ok := data.(map[string]any)
+	if !ok {
+		return false
+	}
+	for _, field := range schema.Required {
+		if _, exists := dataMap[field]; !exists {
+			return false
+		}
+	}
+	for key, valueSchema := range schema.Properties {
+		value, exists := dataMap[key]
+		if exists && !Validate(valueSchema, value) {
+			return false
+		} else if !exists && slices.Contains(schema.Required, key) {
+			return false
+		}
+	}
+	return true
+}
+
+func validateArray(schema Definition, data any) bool {
+	dataArray, ok := data.([]interface{})
+	if !ok {
+		return false
+	}
+	for _, item := range dataArray {
+		if !Validate(*schema.Items, item) {
+			return false
+		}
+	}
+	return true
 }

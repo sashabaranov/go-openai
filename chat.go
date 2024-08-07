@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"github.com/sashabaranov/go-openai/jsonschema"
 	"net/http"
 )
 
@@ -179,7 +180,15 @@ const (
 )
 
 type ChatCompletionResponseFormat struct {
-	Type ChatCompletionResponseFormatType `json:"type,omitempty"`
+	Type       ChatCompletionResponseFormatType       `json:"type,omitempty"`
+	JSONSchema ChatCompletionResponseFormatJSONSchema `json:"json_schema,omitempty"`
+}
+
+type ChatCompletionResponseFormatJSONSchema struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description,omitempty"`
+	Schema      jsonschema.Definition `json:"schema"`
+	Strict      bool                  `json:"strict"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

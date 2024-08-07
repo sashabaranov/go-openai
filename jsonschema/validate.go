@@ -1,0 +1,73 @@
+package jsonschema
+
+import (
+	"encoding/json"
+	"errors"
+	"slices"
+)
+
+func Unmarshal(schema Definition, content []byte, v any) error {
+	var data any
+	err := json.Unmarshal(content, &data)
+	if err != nil {
+		return err
+	}
+	if !Validate(schema, data) {
+		return errors.New("validate failed")
+	}
+	return json.Unmarshal(content, &v)
+}
+
+func Validate(schema Definition, data interface{}) bool {
+	switch schema.Type {
+	case Object:
+		dataMap, ok := data.(map[string]interface{})
+		if !ok {
+			return false
+		}
+		for _, field := range schema.Required {
+			if _, exists := dataMap[field]; !exists {
+				return false
+			}
+		}
+		for key, valueSchema := range schema.Properties {
+			value, exists := dataMap[key]
+			if exists && !Validate(valueSchema, value) {
+				return false
+			} else if !exists && slices.Contains(schema.Required, key) {
+				return false
+			}
+		}
+		return true
+	case Array:
+		dataArray, ok := data.([]interface{})
+		if !ok {
+			return false
+		}
+		for _, item := range dataArray {
+			if !Validate(*schema.Items, item) {
+				return false
+			}
+		}
+		return true
+	case String:
+		_, ok := data.(string)
+		return ok
+	case Number: // float64 and int
+		_, ok := data.(float64)
+		if !ok {
+			_, ok = data.(int)
+		}
+		return ok
+	case Boolean:
+		_, ok := data.(bool)
+		return ok
+	case Integer:
+		_, ok := data.(int)
+		return ok
+	case Null:
+		return data == nil
+	default:
+		return false
+	}
+}

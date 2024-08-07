@@ -254,7 +254,10 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 	if c.config.APIType == APITypeCloudflareAzure {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
-		return fmt.Sprintf("%s%s?api-version=%s", baseURL, suffix, c.config.APIVersion)
+		parseURL, _ := url.Parse(baseURL)
+		query := parseURL.Query()
+		query.Add("api-version", c.config.APIVersion)
+		return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
 	}
 
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)

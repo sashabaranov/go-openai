@@ -182,8 +182,8 @@ const (
 )
 
 type ChatCompletionResponseFormat struct {
-	Type       ChatCompletionResponseFormatType       `json:"type,omitempty"`
-	JSONSchema ChatCompletionResponseFormatJSONSchema `json:"json_schema,omitempty"`
+	Type       ChatCompletionResponseFormatType        `json:"type,omitempty"`
+	JSONSchema *ChatCompletionResponseFormatJSONSchema `json:"json_schema,omitempty"`
 }
 
 type ChatCompletionResponseFormatJSONSchema struct {

@@ -183,7 +183,7 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
 	// Azure API Key authentication
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeCloudflareAzure {
+	if c.config.APIType.IsAzure() {
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
 	} else if c.config.authToken != "" {
 		// OpenAI or Azure AD authentication
@@ -226,7 +226,7 @@ func decodeString(body io.Reader, output *string) error {
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, args ...any) string {
 	// /openai/deployments/{model}/chat/completions?api-version={api_version}
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+	if c.config.APIType.IsAzure() {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
 		parseSuffix, _ := url.Parse(suffix)
@@ -241,6 +241,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			"/chat/completions",
 			"/audio/transcriptions",
 			"/audio/translations",
+			"/audio/speech",
 			"/images/generations",
 		}, parseSuffix.Path) {
 			return fmt.Sprintf("%s/%s%s?%s", baseURL, azureAPIPrefix, parseSuffix.Path, query.Encode())
@@ -256,16 +257,6 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
 			azureDeploymentName, suffix, query.Encode(),
 		)
-	}
-
-	// https://developers.cloudflare.com/ai-gateway/providers/azureopenai/
-	if c.config.APIType == APITypeCloudflareAzure {
-		baseURL := c.config.BaseURL
-		baseURL = strings.TrimRight(baseURL, "/")
-		parseSuffix, _ := url.Parse(suffix)
-		query := parseSuffix.Query()
-		query.Add("api-version", c.config.APIVersion)
-		return fmt.Sprintf("%s%s?%s", baseURL, parseSuffix.Path, query.Encode())
 	}
 
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)

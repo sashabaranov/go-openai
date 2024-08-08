@@ -15,6 +15,14 @@ const (
 
 type APIType string
 
+func (r APIType) IsAzure() bool {
+	switch r {
+	case APITypeAzure, APITypeAzureAD, APITypeCloudflareAzure:
+		return true
+	}
+	return false
+}
+
 const (
 	APITypeOpenAI          APIType = "OPEN_AI"
 	APITypeAzure           APIType = "AZURE"

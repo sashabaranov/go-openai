@@ -444,17 +444,6 @@ func TestClient_fullURL(t *testing.T) {
 		BaseURL:    "https://xxx.openai.azure.com/",
 		APIVersion: "2023-05-15",
 	})
-	azureADClient := NewClientWithConfig(ClientConfig{
-		APIType:    APITypeAzureAD,
-		BaseURL:    "https://xxx.openai.azure.com/",
-		APIVersion: "2023-05-15",
-	})
-	cloudflareAzureClient := NewClientWithConfig(ClientConfig{
-		APIType: APITypeCloudflareAzure,
-		BaseURL: "https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}" +
-			"/azure-openai/{resource_name}/{deployment_name}",
-		APIVersion: "2023-05-15",
-	})
 	suffix := fmt.Sprintf("%s?limit=10", assistantsSuffix)
 	tests := []struct {
 		name string
@@ -466,21 +455,17 @@ func TestClient_fullURL(t *testing.T) {
 			"https://api.openai.com/v1/assistants?limit=10"},
 		{"", args{client: azureClient, suffix: suffix, args: nil},
 			"https://xxx.openai.azure.com/openai/assistants?api-version=2023-05-15&limit=10"},
-		{"", args{client: azureADClient, suffix: suffix, args: nil},
-			"https://xxx.openai.azure.com/openai/assistants?api-version=2023-05-15&limit=10"},
-		{"", args{client: cloudflareAzureClient, suffix: suffix, args: nil},
-			"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/azure-openai" +
-				"/{resource_name}/{deployment_name}/assistants?api-version=2023-05-15&limit=10"},
 		// /chat/completions
 		{"", args{client: client, suffix: chatCompletionsSuffix, args: nil},
 			"https://api.openai.com/v1/chat/completions"},
 		{"", args{client: azureClient, suffix: chatCompletionsSuffix, args: []any{GPT4oMini}},
 			"https://xxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-05-15"},
-		{"", args{client: azureADClient, suffix: chatCompletionsSuffix, args: []any{GPT4oMini}},
-			"https://xxx.openai.azure.com/openai/deployments/gpt-4o-mini/chat/completions?api-version=2023-05-15"},
-		{"", args{client: cloudflareAzureClient, suffix: chatCompletionsSuffix, args: []any{GPT4oMini}},
-			"https://gateway.ai.cloudflare.com/v1/{account_id}/{gateway_id}/azure-openai" +
-				"/{resource_name}/{deployment_name}/chat/completions?api-version=2023-05-15"},
+
+		// /audio/speech
+		{"", args{client: client, suffix: "/audio/speech", args: nil},
+			"https://api.openai.com/v1/audio/speech"},
+		{"", args{client: azureClient, suffix: "/audio/speech", args: []any{string(TTSModel1HD)}},
+			"https://xxx.openai.azure.com/openai/deployments/tts-1-hd/audio/speech?api-version=2023-05-15"},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

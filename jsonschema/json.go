@@ -4,7 +4,11 @@
 // and/or pass in the schema in []byte format.
 package jsonschema
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"reflect"
+	"strconv"
+)
 
 type DataType string
 
@@ -52,4 +56,85 @@ func (d Definition) MarshalJSON() ([]byte, error) {
 	}{
 		Alias: (Alias)(d),
 	})
+}
+
+type SchemaWrapper[T any] struct {
+	data   T
+	schema Definition
+}
+
+func (r SchemaWrapper[T]) Schema() Definition {
+	return r.schema
+}
+
+func (r SchemaWrapper[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.schema)
+}
+
+func (r SchemaWrapper[T]) Unmarshal(content string) (*T, error) {
+	var v T
+	err := Unmarshal(r.schema, []byte(content), &v)
+	if err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func (r SchemaWrapper[T]) String() string {
+	bytes, _ := json.MarshalIndent(r.schema, "", "  ")
+	return string(bytes)
+}
+
+func Warp[T any](v T) SchemaWrapper[T] {
+	return SchemaWrapper[T]{
+		data:   v,
+		schema: reflectSchema(reflect.TypeOf(v)),
+	}
+}
+
+func reflectSchema(t reflect.Type) Definition {
+	var d Definition
+	switch t.Kind() {
+	case reflect.String:
+		d.Type = String
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		d.Type = Integer
+	case reflect.Float32, reflect.Float64:
+		d.Type = Number
+	case reflect.Bool:
+		d.Type = Boolean
+	case reflect.Slice, reflect.Array:
+		d.Type = Array
+		items := reflectSchema(t.Elem())
+		d.Items = &items
+	case reflect.Struct:
+		d.Type = Object
+		d.AdditionalProperties = false
+		properties := make(map[string]Definition)
+		var requiredFields []string
+		for i := 0; i < t.NumField(); i++ {
+			field := t.Field(i)
+			jsonTag := field.Tag.Get("json")
+			if jsonTag == "" {
+				jsonTag = field.Name
+			}
+
+			item := reflectSchema(field.Type)
+			description := field.Tag.Get("description")
+			if description != "" {
+				item.Description = description
+			}
+			properties[jsonTag] = item
+
+			required, _ := strconv.ParseBool(field.Tag.Get("required"))
+			if required {
+				requiredFields = append(requiredFields, jsonTag)
+			}
+		}
+		d.Required = requiredFields
+		d.Properties = properties
+	default:
+	}
+	return d
 }

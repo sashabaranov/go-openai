@@ -209,3 +209,70 @@ func structToMap(t *testing.T, v any) map[string]any {
 	}
 	return got
 }
+
+type MyStructuredResponse struct {
+	PascalCase string   `json:"pascal_case" required:"true" description:"PascalCase"`
+	CamelCase  string   `json:"camel_case" required:"true" description:"CamelCase"`
+	KebabCase  string   `json:"kebab_case" required:"false" description:"KebabCase"`
+	SnakeCase  string   `json:"snake_case" required:"true" description:"SnakeCase"`
+	Keywords   []string `json:"keywords" description:"Keywords" required:"true"`
+}
+
+func TestWarp(t *testing.T) {
+	schemaStr := `{
+  "type": "object",
+  "properties": {
+    "camel_case": {
+      "type": "string",
+      "description": "CamelCase"
+    },
+    "kebab_case": {
+      "type": "string",
+      "description": "KebabCase"
+    },
+    "keywords": {
+      "type": "array",
+      "description": "Keywords",
+      "items": {
+        "type": "string"
+      }
+    },
+    "pascal_case": {
+      "type": "string",
+      "description": "PascalCase"
+    },
+    "snake_case": {
+      "type": "string",
+      "description": "SnakeCase"
+    }
+  },
+  "required": [
+    "pascal_case",
+    "camel_case",
+    "snake_case",
+    "keywords"
+  ]
+}`
+	schema := jsonschema.Warp(MyStructuredResponse{})
+	if schema.String() == schemaStr {
+		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
+	}
+}
+
+func TestSchemaWrapper_Unmarshal(t *testing.T) {
+	schema := jsonschema.Warp(MyStructuredResponse{})
+	result, err := schema.Unmarshal(`{"pascal_case":"a","camel_case":"b","snake_case":"c","keywords":[]}`)
+	if err != nil {
+		t.Errorf("Failed to SchemaWrapper Unmarshal: error =  %v", err)
+	} else {
+		var v = MyStructuredResponse{
+			PascalCase: "a",
+			CamelCase:  "b",
+			SnakeCase:  "c",
+			Keywords:   []string{},
+		}
+		if !reflect.DeepEqual(*result, v) {
+			t.Errorf("Failed to SchemaWrapper Unmarshal: result =  %v", *result)
+		}
+	}
+}

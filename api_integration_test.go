@@ -4,7 +4,6 @@ package openai_test
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -190,6 +189,14 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 	c := openai.NewClient(apiToken)
 	ctx := context.Background()
 
+	type MyStructuredResponse struct {
+		PascalCase string   `json:"pascal_case" required:"true" description:"PascalCase"`
+		CamelCase  string   `json:"camel_case" required:"true" description:"CamelCase"`
+		KebabCase  string   `json:"kebab_case" required:"true" description:"KebabCase"`
+		SnakeCase  string   `json:"snake_case" required:"true" description:"SnakeCase"`
+		Keywords   []string `json:"keywords" description:"Keywords" required:"true"`
+	}
+	schema := jsonschema.Warp(MyStructuredResponse{})
 	resp, err := c.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -211,31 +218,17 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 			},
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
 				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
-				JSONSchema: openai.ChatCompletionResponseFormatJSONSchema{
-					Name: "cases",
-					Schema: jsonschema.Definition{
-						Type: jsonschema.Object,
-						Properties: map[string]jsonschema.Definition{
-							"PascalCase": jsonschema.Definition{Type: jsonschema.String},
-							"CamelCase":  jsonschema.Definition{Type: jsonschema.String},
-							"KebabCase":  jsonschema.Definition{Type: jsonschema.String},
-							"SnakeCase":  jsonschema.Definition{Type: jsonschema.String},
-						},
-						Required:             []string{"PascalCase", "CamelCase", "KebabCase", "SnakeCase"},
-						AdditionalProperties: false,
-					},
+				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+					Name:   "cases",
+					Schema: schema,
 					Strict: true,
 				},
 			},
 		},
 	)
 	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) returned error")
-	var result = make(map[string]string)
-	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &result)
-	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) unmarshal error")
-	for _, key := range []string{"PascalCase", "CamelCase", "KebabCase", "SnakeCase"} {
-		if _, ok := result[key]; !ok {
-			t.Errorf("key:%s does not exist.", key)
-		}
+	if err == nil {
+		_, err = schema.Unmarshal(resp.Choices[0].Message.Content)
+		checks.NoError(t, err, "CreateChatCompletion (use json_schema response) unmarshal error")
 	}
 }

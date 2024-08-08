@@ -348,6 +348,9 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 		{"ModifyMessage", func() (any, error) {
 			return client.ModifyMessage(ctx, "", "", nil)
 		}},
+		{"DeleteMessage", func() (any, error) {
+			return client.DeleteMessage(ctx, "", "")
+		}},
 		{"RetrieveMessageFile", func() (any, error) {
 			return client.RetrieveMessageFile(ctx, "", "", "")
 		}},

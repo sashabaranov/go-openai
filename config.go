@@ -15,17 +15,6 @@ const (
 
 type APIType string
 
-var azureTypes = []APIType{APITypeAzure, APITypeAzureAD, APITypeCloudflareAzure}
-
-func (r APIType) IsAzure() bool {
-	for i := range azureTypes {
-		if r == azureTypes[i] {
-			return true
-		}
-	}
-	return false
-}
-
 const (
 	APITypeOpenAI          APIType = "OPEN_AI"
 	APITypeAzure           APIType = "AZURE"

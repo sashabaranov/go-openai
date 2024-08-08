@@ -235,6 +235,9 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 		// the interface is not supported by AzureOpenAI, and there is currently no better handling solution.
+		if c.config.APIType != APITypeCloudflareAzure {
+			baseURL = fmt.Sprintf("%s/%s/%s", baseURL, azureAPIPrefix, azureDeploymentsPrefix)
+		}
 		if !containsSubstr([]string{
 			"/completions",
 			"/embeddings",
@@ -244,7 +247,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			"/audio/speech",
 			"/images/generations",
 		}, parseSuffix.Path) {
-			return fmt.Sprintf("%s/%s%s?%s", baseURL, azureAPIPrefix, parseSuffix.Path, query.Encode())
+			return fmt.Sprintf("%s/%s?%s", baseURL, parseSuffix.Path, query.Encode())
 		}
 		azureDeploymentName := "UNKNOWN"
 		if len(args) > 0 {
@@ -253,13 +256,7 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
 			}
 		}
-		if c.config.APIType == APITypeCloudflareAzure {
-			return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, parseSuffix.Path, query.Encode())
-		}
-		return fmt.Sprintf("%s/%s/%s/%s%s?%s",
-			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			azureDeploymentName, suffix, query.Encode(),
-		)
+		return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, suffix, query.Encode())
 	}
 
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)

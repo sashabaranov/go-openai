@@ -19,8 +19,9 @@ func (r APIType) IsAzure() bool {
 	switch r {
 	case APITypeAzure, APITypeAzureAD, APITypeCloudflareAzure:
 		return true
+	default:
+		return false
 	}
-	return false
 }
 
 const (

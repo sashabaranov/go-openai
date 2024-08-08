@@ -153,17 +153,20 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 	cases := []struct {
 		Name    string
 		BaseURL string
+		Model   string
 		Expect  string
 	}{
 		{
 			"CloudflareAzureBaseURLWithSlashAutoStrip",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/",
+			"chatgpt-demo",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
 				"chat/completions?api-version=2023-05-15",
 		},
 		{
 			"CloudflareAzureBaseURLWithoutSlashOK",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/",
+			"chatgpt-demo",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
 				"chat/completions?api-version=2023-05-15",
 		},
@@ -176,7 +179,7 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 
 			cli := NewClientWithConfig(az)
 
-			actual := cli.fullURL("/chat/completions")
+			actual := cli.fullURL("/chat/completions", c.Model)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

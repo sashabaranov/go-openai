@@ -253,6 +253,9 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
 			}
 		}
+		if c.config.APIType == APITypeCloudflareAzure {
+			return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, parseSuffix.Path, query.Encode())
+		}
 		return fmt.Sprintf("%s/%s/%s/%s%s?%s",
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
 			azureDeploymentName, suffix, query.Encode(),

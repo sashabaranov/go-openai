@@ -211,11 +211,12 @@ func structToMap(t *testing.T, v any) map[string]any {
 }
 
 type MyStructuredResponse struct {
-	PascalCase string   `json:"pascal_case" required:"true" description:"PascalCase"`
+	PascalCase string   `json:"pascal_case,omitempty" required:"true" description:"PascalCase"`
 	CamelCase  string   `json:"camel_case" required:"true" description:"CamelCase"`
-	KebabCase  string   `json:"kebab_case" required:"false" description:"KebabCase"`
+	KebabCase  string   `json:"kebab_case,omitempty" required:"false" description:"KebabCase"`
 	SnakeCase  string   `json:"snake_case" required:"true" description:"SnakeCase"`
-	Keywords   []string `json:"keywords" description:"Keywords" required:"true"`
+	Keywords   []string `json:"keywords,omitempty" description:"Keywords"`
+	Optional   bool     `json:"optional,omitempty"`
 }
 
 func TestWarp(t *testing.T) {
@@ -237,6 +238,9 @@ func TestWarp(t *testing.T) {
         "type": "string"
       }
     },
+    "optional": {
+      "type": "boolean"
+    },
     "pascal_case": {
       "type": "string",
       "description": "PascalCase"
@@ -249,12 +253,12 @@ func TestWarp(t *testing.T) {
   "required": [
     "pascal_case",
     "camel_case",
-    "snake_case",
-    "keywords"
-  ]
+    "snake_case"
+  ],
+  "additionalProperties": false
 }`
 	schema := jsonschema.Warp(MyStructuredResponse{})
-	if schema.String() == schemaStr {
+	if schema.String() != schemaStr {
 		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
 	}
 }

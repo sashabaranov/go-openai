@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"reflect"
 	"strconv"
+	"strings"
 )
 
 type DataType string
@@ -116,8 +117,12 @@ func reflectSchema(t reflect.Type) Definition {
 		for i := 0; i < t.NumField(); i++ {
 			field := t.Field(i)
 			jsonTag := field.Tag.Get("json")
+			var required = true
 			if jsonTag == "" {
 				jsonTag = field.Name
+			} else if strings.HasSuffix(jsonTag, ",omitempty") {
+				jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+				required = false
 			}
 
 			item := reflectSchema(field.Type)
@@ -127,7 +132,9 @@ func reflectSchema(t reflect.Type) Definition {
 			}
 			properties[jsonTag] = item
 
-			required, _ := strconv.ParseBool(field.Tag.Get("required"))
+			if s := field.Tag.Get("required"); s != "" {
+				required, _ = strconv.ParseBool(s)
+			}
 			if required {
 				requiredFields = append(requiredFields, jsonTag)
 			}

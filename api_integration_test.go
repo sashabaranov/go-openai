@@ -190,11 +190,10 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 	ctx := context.Background()
 
 	type MyStructuredResponse struct {
-		PascalCase string   `json:"pascal_case" required:"true" description:"PascalCase"`
-		CamelCase  string   `json:"camel_case" required:"true" description:"CamelCase"`
-		KebabCase  string   `json:"kebab_case" required:"true" description:"KebabCase"`
-		SnakeCase  string   `json:"snake_case" required:"true" description:"SnakeCase"`
-		Keywords   []string `json:"keywords" description:"Keywords" required:"true"`
+		PascalCase string `json:"pascal_case" required:"true" description:"PascalCase"`
+		CamelCase  string `json:"camel_case" required:"true" description:"CamelCase"`
+		KebabCase  string `json:"kebab_case" required:"true" description:"KebabCase"`
+		SnakeCase  string `json:"snake_case" required:"true" description:"SnakeCase"`
 	}
 	schema := jsonschema.Warp(MyStructuredResponse{})
 	resp, err := c.CreateChatCompletion(

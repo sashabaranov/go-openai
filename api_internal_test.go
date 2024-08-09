@@ -165,31 +165,20 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 		Name    string
 		BaseURL string
 		Suffix  string
-		Model   string
 		Expect  string
 	}{
 		{
 			"CloudflareAzureBaseURLWithSlashAutoStrip",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/",
 			"/chat/completions",
-			"chatgpt-demo",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
-				"chat/completions?api-version=2023-05-15",
-		},
-		{
-			"CloudflareAzureBaseURLWithoutSlashOK",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/",
-			"/chat/completions",
-			"chatgpt-demo",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
 				"chat/completions?api-version=2023-05-15",
 		},
 		{
 			"",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo",
 			"/assistants?limit=10",
-			"chatgpt-demo",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource" +
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo" +
 				"/assistants?api-version=2023-05-15&limit=10",
 		},
 	}
@@ -201,7 +190,7 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 
 			cli := NewClientWithConfig(az)
 
-			actual := cli.fullURL(c.Suffix, withModel(c.Model))
+			actual := cli.fullURL(c.Suffix)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

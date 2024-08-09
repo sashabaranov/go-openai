@@ -257,14 +257,20 @@ func TestWarp(t *testing.T) {
   ],
   "additionalProperties": false
 }`
-	schema := jsonschema.Warp(MyStructuredResponse{})
+	schema, err := jsonschema.Warp(MyStructuredResponse{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if schema.String() != schemaStr {
 		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
 	}
 }
 
 func TestSchemaWrapper_Unmarshal(t *testing.T) {
-	schema := jsonschema.Warp(MyStructuredResponse{})
+	schema, err := jsonschema.Warp(MyStructuredResponse{})
+	if err != nil {
+		t.Fatal(err)
+	}
 	result, err := schema.Unmarshal(`{"pascal_case":"a","camel_case":"b","snake_case":"c","keywords":[]}`)
 	if err != nil {
 		t.Errorf("Failed to SchemaWrapper Unmarshal: error =  %v", err)

@@ -122,40 +122,65 @@ func reflectSchema(t reflect.Type) (*Definition, error) {
 	case reflect.Struct:
 		d.Type = Object
 		d.AdditionalProperties = false
-		properties := make(map[string]Definition)
-		var requiredFields []string
-		for i := 0; i < t.NumField(); i++ {
-			field := t.Field(i)
-			jsonTag := field.Tag.Get("json")
-			var required = true
-			if jsonTag == "" {
-				jsonTag = field.Name
-			} else if strings.HasSuffix(jsonTag, ",omitempty") {
-				jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
-				required = false
-			}
-
-			item, err := reflectSchema(field.Type)
-			if err != nil {
-				return nil, err
-			}
-			description := field.Tag.Get("description")
-			if description != "" {
-				item.Description = description
-			}
-			properties[jsonTag] = *item
-
-			if s := field.Tag.Get("required"); s != "" {
-				required, _ = strconv.ParseBool(s)
-			}
-			if required {
-				requiredFields = append(requiredFields, jsonTag)
-			}
+		object, err := reflectSchemaObject(t)
+		if err != nil {
+			return nil, err
 		}
-		d.Required = requiredFields
-		d.Properties = properties
-	default:
+		d = *object
+	case reflect.Ptr:
+		definition, err := reflectSchema(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+		d = *definition
+	case reflect.Invalid, reflect.Uintptr, reflect.Complex64, reflect.Complex128,
+		reflect.Chan, reflect.Func, reflect.Interface, reflect.Map,
+		reflect.UnsafePointer:
 		return nil, fmt.Errorf("unsupported type: %s", t.Kind().String())
+	default:
 	}
+	return &d, nil
+}
+
+func reflectSchemaObject(t reflect.Type) (*Definition, error) {
+	var d = Definition{
+		Type:                 Object,
+		AdditionalProperties: false,
+	}
+	properties := make(map[string]Definition)
+	var requiredFields []string
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+		jsonTag := field.Tag.Get("json")
+		var required = true
+		if jsonTag == "" {
+			jsonTag = field.Name
+		} else if strings.HasSuffix(jsonTag, ",omitempty") {
+			jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+			required = false
+		}
+
+		item, err := reflectSchema(field.Type)
+		if err != nil {
+			return nil, err
+		}
+		description := field.Tag.Get("description")
+		if description != "" {
+			item.Description = description
+		}
+		properties[jsonTag] = *item
+
+		if s := field.Tag.Get("required"); s != "" {
+			required, _ = strconv.ParseBool(s)
+		}
+		if required {
+			requiredFields = append(requiredFields, jsonTag)
+		}
+	}
+	d.Required = requiredFields
+	d.Properties = properties
 	return &d, nil
 }

@@ -219,7 +219,7 @@ type MyStructuredResponse struct {
 	Optional   bool     `json:"optional,omitempty"`
 }
 
-func TestWarp(t *testing.T) {
+func TestWrap(t *testing.T) {
 	schemaStr := `{
   "type": "object",
   "properties": {
@@ -262,6 +262,67 @@ func TestWarp(t *testing.T) {
 		t.Fatal(err)
 	}
 	if schema.String() != schemaStr {
+		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
+	}
+	type CustomStruct struct {
+		Title   string                `json:"title"`
+		Data    *MyStructuredResponse `json:"data,omitempty"`
+		private string
+	}
+	schema2Str := `{
+  "type": "object",
+  "properties": {
+    "data": {
+      "type": "object",
+      "properties": {
+        "camel_case": {
+          "type": "string",
+          "description": "CamelCase"
+        },
+        "kebab_case": {
+          "type": "string",
+          "description": "KebabCase"
+        },
+        "keywords": {
+          "type": "array",
+          "description": "Keywords",
+          "items": {
+            "type": "string"
+          }
+        },
+        "optional": {
+          "type": "boolean"
+        },
+        "pascal_case": {
+          "type": "string",
+          "description": "PascalCase"
+        },
+        "snake_case": {
+          "type": "string",
+          "description": "SnakeCase"
+        }
+      },
+      "required": [
+        "pascal_case",
+        "camel_case",
+        "snake_case"
+      ],
+      "additionalProperties": false
+    },
+    "title": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "title"
+  ],
+  "additionalProperties": false
+}`
+	schema2, err := jsonschema.Wrap(CustomStruct{})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if schema2.String() != schema2Str {
 		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
 	}
 }

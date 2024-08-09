@@ -195,7 +195,12 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 		KebabCase  string `json:"kebab_case" required:"true" description:"KebabCase"`
 		SnakeCase  string `json:"snake_case" required:"true" description:"SnakeCase"`
 	}
-	schema := jsonschema.Warp(MyStructuredResponse{})
+	var result MyStructuredResponse
+	//schema := jsonschema.Warp(result)
+	schema, err := jsonschema.GenerateSchemaForType(result)
+	if err != nil {
+		t.Fatal("CreateChatCompletion (use json_schema response) GenerateSchemaForType error")
+	}
 	resp, err := c.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
@@ -227,7 +232,8 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 	)
 	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) returned error")
 	if err == nil {
-		_, err = schema.Unmarshal(resp.Choices[0].Message.Content)
+		//_, err = schema.Unmarshal(resp.Choices[0].Message.Content)
+		err = schema.Unmarshal(resp.Choices[0].Message.Content, &result)
 		checks.NoError(t, err, "CreateChatCompletion (use json_schema response) unmarshal error")
 	}
 }

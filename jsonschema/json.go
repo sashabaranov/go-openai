@@ -6,6 +6,7 @@ package jsonschema
 
 import (
 	"encoding/json"
+	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -59,13 +60,12 @@ func (d Definition) MarshalJSON() ([]byte, error) {
 	})
 }
 
-type SchemaWrapper[T any] struct {
-	data   T
-	schema Definition
+func (d Definition) Unmarshal(content string, v any) error {
+	return Unmarshal(d, []byte(content), v)
 }
 
-func (r SchemaWrapper[T]) Schema() Definition {
-	return r.schema
+type SchemaWrapper[T any] struct {
+	schema *Definition
 }
 
 func (r SchemaWrapper[T]) MarshalJSON() ([]byte, error) {
@@ -74,7 +74,7 @@ func (r SchemaWrapper[T]) MarshalJSON() ([]byte, error) {
 
 func (r SchemaWrapper[T]) Unmarshal(content string) (*T, error) {
 	var v T
-	err := Unmarshal(r.schema, []byte(content), &v)
+	err := Unmarshal(*r.schema, []byte(content), &v)
 	if err != nil {
 		return nil, err
 	}
@@ -86,14 +86,21 @@ func (r SchemaWrapper[T]) String() string {
 	return string(bytes)
 }
 
-func Warp[T any](v T) SchemaWrapper[T] {
-	return SchemaWrapper[T]{
-		data:   v,
-		schema: reflectSchema(reflect.TypeOf(v)),
+func Warp[T any](v T) (*SchemaWrapper[T], error) {
+	schema, err := reflectSchema(reflect.TypeOf(v))
+	if err != nil {
+		return nil, err
 	}
+	return &SchemaWrapper[T]{
+		schema: schema,
+	}, nil
 }
 
-func reflectSchema(t reflect.Type) Definition {
+func GenerateSchemaForType(v any) (*Definition, error) {
+	return reflectSchema(reflect.TypeOf(v))
+}
+
+func reflectSchema(t reflect.Type) (*Definition, error) {
 	var d Definition
 	switch t.Kind() {
 	case reflect.String:
@@ -107,8 +114,11 @@ func reflectSchema(t reflect.Type) Definition {
 		d.Type = Boolean
 	case reflect.Slice, reflect.Array:
 		d.Type = Array
-		items := reflectSchema(t.Elem())
-		d.Items = &items
+		items, err := reflectSchema(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+		d.Items = items
 	case reflect.Struct:
 		d.Type = Object
 		d.AdditionalProperties = false
@@ -125,12 +135,15 @@ func reflectSchema(t reflect.Type) Definition {
 				required = false
 			}
 
-			item := reflectSchema(field.Type)
+			item, err := reflectSchema(field.Type)
+			if err != nil {
+				return nil, err
+			}
 			description := field.Tag.Get("description")
 			if description != "" {
 				item.Description = description
 			}
-			properties[jsonTag] = item
+			properties[jsonTag] = *item
 
 			if s := field.Tag.Get("required"); s != "" {
 				required, _ = strconv.ParseBool(s)
@@ -142,6 +155,7 @@ func reflectSchema(t reflect.Type) Definition {
 		d.Required = requiredFields
 		d.Properties = properties
 	default:
+		return nil, fmt.Errorf("unsupported type: %s", t.Kind().String())
 	}
-	return d
+	return &d, nil
 }

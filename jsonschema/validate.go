@@ -12,7 +12,7 @@ func Unmarshal(schema Definition, content []byte, v any) error {
 		return err
 	}
 	if !Validate(schema, data) {
-		return errors.New("validate failed")
+		return errors.New("data validation failed against the provided schema")
 	}
 	return json.Unmarshal(content, &v)
 }

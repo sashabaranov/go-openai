@@ -112,6 +112,7 @@ func TestAzureFullURL(t *testing.T) {
 		Name             string
 		BaseURL          string
 		AzureModelMapper map[string]string
+		Suffix           string
 		Model            string
 		Expect           string
 	}{
@@ -119,6 +120,7 @@ func TestAzureFullURL(t *testing.T) {
 			"AzureBaseURLWithSlashAutoStrip",
 			"https://httpbin.org/",
 			nil,
+			"/chat/completions",
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
@@ -128,10 +130,19 @@ func TestAzureFullURL(t *testing.T) {
 			"AzureBaseURLWithoutSlashOK",
 			"https://httpbin.org",
 			nil,
+			"/chat/completions",
 			"chatgpt-demo",
 			"https://httpbin.org/" +
 				"openai/deployments/chatgpt-demo" +
 				"/chat/completions?api-version=2023-05-15",
+		},
+		{
+			"",
+			"https://httpbin.org",
+			nil,
+			"/assistants?limit=10",
+			"chatgpt-demo",
+			"https://httpbin.org/openai/assistants?api-version=2023-05-15&limit=10",
 		},
 	}
 
@@ -140,7 +151,7 @@ func TestAzureFullURL(t *testing.T) {
 			az := DefaultAzureConfig("dummy", c.BaseURL)
 			cli := NewClientWithConfig(az)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
-			actual := cli.fullURL("/chat/completions", c.Model)
+			actual := cli.fullURL(c.Suffix, withModel(c.Model))
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}
@@ -153,19 +164,22 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 	cases := []struct {
 		Name    string
 		BaseURL string
+		Suffix  string
 		Expect  string
 	}{
 		{
 			"CloudflareAzureBaseURLWithSlashAutoStrip",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/",
+			"/chat/completions",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
 				"chat/completions?api-version=2023-05-15",
 		},
 		{
-			"CloudflareAzureBaseURLWithoutSlashOK",
+			"",
 			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo",
-			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo/" +
-				"chat/completions?api-version=2023-05-15",
+			"/assistants?limit=10",
+			"https://gateway.ai.cloudflare.com/v1/dnekeim2i39dmm4mldemakiem3i4mkw3/demo/azure-openai/resource/chatgpt-demo" +
+				"/assistants?api-version=2023-05-15&limit=10",
 		},
 	}
 
@@ -176,7 +190,7 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 
 			cli := NewClientWithConfig(az)
 
-			actual := cli.fullURL("/chat/completions")
+			actual := cli.fullURL(c.Suffix)
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

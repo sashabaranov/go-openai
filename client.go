@@ -237,22 +237,15 @@ func withModel(model string) fullURLOption {
 // fullURL returns full URL for request.
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
-	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure ||
 		c.config.APIType == APITypeAzureAD ||
 		c.config.APIType == APITypeCloudflareAzure {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
 		parseSuffix, _ := url.Parse(suffix)
+		suffix = parseSuffix.Path
 		query := parseSuffix.Query()
 		query.Add("api-version", c.config.APIVersion)
-		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
-		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
-		// the interface is not supported by AzureOpenAI, and there is currently no better handling solution.
-		if c.config.APIType != APITypeCloudflareAzure {
-			baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
-		}
-
 		args := fullURLOptions{}
 		for _, setter := range setters {
 			setter(&args)
@@ -261,8 +254,7 @@ func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 		if azureDeploymentName == "" {
 			azureDeploymentName = "UNKNOWN"
 		}
-
-		if !containsSubstr([]string{
+		inEndpoints := containsSubstr([]string{
 			"/completions",
 			"/embeddings",
 			"/chat/completions",
@@ -270,15 +262,27 @@ func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 			"/audio/translations",
 			"/audio/speech",
 			"/images/generations",
-		}, parseSuffix.Path) {
-			return fmt.Sprintf("%s%s?%s", baseURL, parseSuffix.Path, query.Encode())
-		} else if c.config.APIType != APITypeCloudflareAzure {
-			baseURL = fmt.Sprintf("%s/%s", baseURL, azureDeploymentsPrefix)
+		}, suffix)
+		if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+			baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
+			if inEndpoints {
+				return fmt.Sprintf("%s/%s/%s%s?%s",
+					baseURL,
+					azureDeploymentsPrefix,
+					azureDeploymentName,
+					suffix,
+					query.Encode(),
+				)
+			}
+			return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
 		}
-
-		return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, suffix, query.Encode())
+		if c.config.APIType == APITypeCloudflareAzure {
+			if inEndpoints {
+				return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, suffix, query.Encode())
+			}
+			return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
+		}
 	}
-
 	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
 }
 

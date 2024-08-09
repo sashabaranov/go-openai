@@ -142,7 +142,7 @@ func TestAzureFullURL(t *testing.T) {
 			nil,
 			"/assistants?limit=10",
 			"chatgpt-demo",
-			"https://httpbin.org/openai/deployments/assistants?api-version=2023-05-15&limit=10",
+			"https://httpbin.org/openai/assistants?api-version=2023-05-15&limit=10",
 		},
 	}
 

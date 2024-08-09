@@ -4,7 +4,13 @@
 // and/or pass in the schema in []byte format.
 package jsonschema
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"fmt"
+	"reflect"
+	"strconv"
+	"strings"
+)
 
 type DataType string
 
@@ -52,4 +58,129 @@ func (d Definition) MarshalJSON() ([]byte, error) {
 	}{
 		Alias: (Alias)(d),
 	})
+}
+
+func (d Definition) Unmarshal(content string, v any) error {
+	return Unmarshal(d, []byte(content), v)
+}
+
+type SchemaWrapper[T any] struct {
+	schema *Definition
+}
+
+func (r SchemaWrapper[T]) MarshalJSON() ([]byte, error) {
+	return json.Marshal(r.schema)
+}
+
+func (r SchemaWrapper[T]) Unmarshal(content string) (*T, error) {
+	var v T
+	err := Unmarshal(*r.schema, []byte(content), &v)
+	if err != nil {
+		return nil, err
+	}
+	return &v, nil
+}
+
+func (r SchemaWrapper[T]) String() string {
+	bytes, _ := json.MarshalIndent(r.schema, "", "  ")
+	return string(bytes)
+}
+
+func Wrap[T any](v T) (*SchemaWrapper[T], error) {
+	schema, err := reflectSchema(reflect.TypeOf(v))
+	if err != nil {
+		return nil, err
+	}
+	return &SchemaWrapper[T]{
+		schema: schema,
+	}, nil
+}
+
+func GenerateSchemaForType(v any) (*Definition, error) {
+	return reflectSchema(reflect.TypeOf(v))
+}
+
+func reflectSchema(t reflect.Type) (*Definition, error) {
+	var d Definition
+	switch t.Kind() {
+	case reflect.String:
+		d.Type = String
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64,
+		reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64:
+		d.Type = Integer
+	case reflect.Float32, reflect.Float64:
+		d.Type = Number
+	case reflect.Bool:
+		d.Type = Boolean
+	case reflect.Slice, reflect.Array:
+		d.Type = Array
+		items, err := reflectSchema(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+		d.Items = items
+	case reflect.Struct:
+		d.Type = Object
+		d.AdditionalProperties = false
+		object, err := reflectSchemaObject(t)
+		if err != nil {
+			return nil, err
+		}
+		d = *object
+	case reflect.Ptr:
+		definition, err := reflectSchema(t.Elem())
+		if err != nil {
+			return nil, err
+		}
+		d = *definition
+	case reflect.Invalid, reflect.Uintptr, reflect.Complex64, reflect.Complex128,
+		reflect.Chan, reflect.Func, reflect.Interface, reflect.Map,
+		reflect.UnsafePointer:
+		return nil, fmt.Errorf("unsupported type: %s", t.Kind().String())
+	default:
+	}
+	return &d, nil
+}
+
+func reflectSchemaObject(t reflect.Type) (*Definition, error) {
+	var d = Definition{
+		Type:                 Object,
+		AdditionalProperties: false,
+	}
+	properties := make(map[string]Definition)
+	var requiredFields []string
+	for i := 0; i < t.NumField(); i++ {
+		field := t.Field(i)
+		if !field.IsExported() {
+			continue
+		}
+		jsonTag := field.Tag.Get("json")
+		var required = true
+		if jsonTag == "" {
+			jsonTag = field.Name
+		} else if strings.HasSuffix(jsonTag, ",omitempty") {
+			jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+			required = false
+		}
+
+		item, err := reflectSchema(field.Type)
+		if err != nil {
+			return nil, err
+		}
+		description := field.Tag.Get("description")
+		if description != "" {
+			item.Description = description
+		}
+		properties[jsonTag] = *item
+
+		if s := field.Tag.Get("required"); s != "" {
+			required, _ = strconv.ParseBool(s)
+		}
+		if required {
+			requiredFields = append(requiredFields, jsonTag)
+		}
+	}
+	d.Required = requiredFields
+	d.Properties = properties
+	return &d, nil
 }

@@ -211,7 +211,7 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 			},
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
 				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
-				JSONSchema: openai.ChatCompletionResponseFormatJSONSchema{
+				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
 					Name: "cases",
 					Schema: jsonschema.Definition{
 						Type: jsonschema.Object,

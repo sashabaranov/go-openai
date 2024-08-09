@@ -235,55 +235,50 @@ func withModel(model string) fullURLOption {
 }
 
 // fullURL returns full URL for request.
-// args[0] is model name, if API type is Azure, model name is required to get deployment name.
 func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
-	if c.config.APIType == APITypeAzure ||
-		c.config.APIType == APITypeAzureAD ||
-		c.config.APIType == APITypeCloudflareAzure {
-		baseURL := c.config.BaseURL
-		baseURL = strings.TrimRight(baseURL, "/")
-		parseSuffix, _ := url.Parse(suffix)
-		suffix = parseSuffix.Path
-		query := parseSuffix.Query()
-		query.Add("api-version", c.config.APIVersion)
-		args := fullURLOptions{}
-		for _, setter := range setters {
-			setter(&args)
-		}
+	args := fullURLOptions{}
+	for _, setter := range setters {
+		setter(&args)
+	}
+	if contains([]APIType{APITypeAzure, APITypeAzureAD, APITypeCloudflareAzure}, c.config.APIType) {
 		azureDeploymentName := c.config.GetAzureDeploymentByModel(args.model)
 		if azureDeploymentName == "" {
 			azureDeploymentName = "UNKNOWN"
 		}
-		inEndpoints := containsSubstr([]string{
-			"/completions",
-			"/embeddings",
-			"/chat/completions",
-			"/audio/transcriptions",
-			"/audio/translations",
-			"/audio/speech",
-			"/images/generations",
-		}, suffix)
-		if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
-			baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
-			if inEndpoints {
-				return fmt.Sprintf("%s/%s/%s%s?%s",
-					baseURL,
-					azureDeploymentsPrefix,
-					azureDeploymentName,
-					suffix,
-					query.Encode(),
-				)
-			}
-			return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
-		}
-		if c.config.APIType == APITypeCloudflareAzure {
-			if inEndpoints {
-				return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, suffix, query.Encode())
-			}
-			return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
-		}
+		return c.azureFullURL(suffix, azureDeploymentName)
 	}
-	return fmt.Sprintf("%s%s", c.config.BaseURL, suffix)
+	baseURL := strings.TrimRight(c.config.BaseURL, "/")
+	return fmt.Sprintf("%s%s", baseURL, suffix)
+}
+
+func (c *Client) azureFullURL(suffix string, deployment string) string {
+	baseURL := strings.TrimRight(c.config.BaseURL, "/")
+	parseSuffix, _ := url.Parse(suffix)
+	suffix = parseSuffix.Path
+	query := parseSuffix.Query()
+	query.Add("api-version", c.config.APIVersion)
+	inEndpoints := containsSubstr([]string{
+		"/completions",
+		"/embeddings",
+		"/chat/completions",
+		"/audio/transcriptions",
+		"/audio/translations",
+		"/audio/speech",
+		"/images/generations",
+	}, suffix)
+
+	if c.config.APIType == APITypeCloudflareAzure {
+		if inEndpoints {
+			return fmt.Sprintf("%s/%s%s?%s", baseURL, deployment, suffix, query.Encode())
+		}
+		return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
+	}
+
+	baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
+	if inEndpoints {
+		return fmt.Sprintf("%s/%s/%s%s?%s", baseURL, azureDeploymentsPrefix, deployment, suffix, query.Encode())
+	}
+	return fmt.Sprintf("%s%s?%s", baseURL, suffix, query.Encode())
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
@@ -307,6 +302,15 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 func containsSubstr(s []string, e string) bool {
 	for _, v := range s {
 		if strings.Contains(e, v) {
+			return true
+		}
+	}
+	return false
+}
+
+func contains[S ~[]E, E comparable](s S, v E) bool {
+	for i := range s {
+		if v == s[i] {
 			return true
 		}
 	}

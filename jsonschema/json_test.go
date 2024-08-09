@@ -257,7 +257,7 @@ func TestWarp(t *testing.T) {
   ],
   "additionalProperties": false
 }`
-	schema, err := jsonschema.Warp(MyStructuredResponse{})
+	schema, err := jsonschema.Wrap(MyStructuredResponse{})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -267,7 +267,7 @@ func TestWarp(t *testing.T) {
 }
 
 func TestSchemaWrapper_Unmarshal(t *testing.T) {
-	schema, err := jsonschema.Warp(MyStructuredResponse{})
+	schema, err := jsonschema.Wrap(MyStructuredResponse{})
 	if err != nil {
 		t.Fatal(err)
 	}

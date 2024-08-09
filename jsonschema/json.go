@@ -86,7 +86,7 @@ func (r SchemaWrapper[T]) String() string {
 	return string(bytes)
 }
 
-func Warp[T any](v T) (*SchemaWrapper[T], error) {
+func Wrap[T any](v T) (*SchemaWrapper[T], error) {
 	schema, err := reflectSchema(reflect.TypeOf(v))
 	if err != nil {
 		return nil, err

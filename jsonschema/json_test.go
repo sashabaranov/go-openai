@@ -265,9 +265,8 @@ func TestWrap(t *testing.T) {
 		t.Errorf("Failed to Generate JSONSchema: schema =  %s", schema)
 	}
 	type CustomStruct struct {
-		Title   string                `json:"title"`
-		Data    *MyStructuredResponse `json:"data,omitempty"`
-		private string
+		Title string                `json:"title"`
+		Data  *MyStructuredResponse `json:"data,omitempty"`
 	}
 	schema2Str := `{
   "type": "object",

@@ -222,9 +222,21 @@ func decodeString(body io.Reader, output *string) error {
 	return nil
 }
 
+type fullURLOptions struct {
+	model string
+}
+
+type fullURLOption func(*fullURLOptions)
+
+func withModel(model string) fullURLOption {
+	return func(args *fullURLOptions) {
+		args.model = model
+	}
+}
+
 // fullURL returns full URL for request.
 // args[0] is model name, if API type is Azure, model name is required to get deployment name.
-func (c *Client) fullURL(suffix string, args ...any) string {
+func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 	// /openai/deployments/{model}/chat/completions?api-version={api_version}
 	if c.config.APIType == APITypeAzure ||
 		c.config.APIType == APITypeAzureAD ||
@@ -238,8 +250,18 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 		// the interface is not supported by AzureOpenAI, and there is currently no better handling solution.
 		if c.config.APIType != APITypeCloudflareAzure {
-			baseURL = fmt.Sprintf("%s/%s/%s", baseURL, azureAPIPrefix, azureDeploymentsPrefix)
+			baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
 		}
+
+		args := fullURLOptions{}
+		for _, setter := range setters {
+			setter(&args)
+		}
+		azureDeploymentName := c.config.GetAzureDeploymentByModel(args.model)
+		if azureDeploymentName == "" {
+			azureDeploymentName = "UNKNOWN"
+		}
+
 		if !containsSubstr([]string{
 			"/completions",
 			"/embeddings",
@@ -250,14 +272,10 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 			"/images/generations",
 		}, parseSuffix.Path) {
 			return fmt.Sprintf("%s%s?%s", baseURL, parseSuffix.Path, query.Encode())
+		} else if c.config.APIType != APITypeCloudflareAzure {
+			baseURL = fmt.Sprintf("%s/%s", baseURL, azureDeploymentsPrefix)
 		}
-		azureDeploymentName := "UNKNOWN"
-		if len(args) > 0 {
-			model, ok := args[0].(string)
-			if ok {
-				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
-			}
-		}
+
 		return fmt.Sprintf("%s/%s%s?%s", baseURL, azureDeploymentName, suffix, query.Encode())
 	}
 

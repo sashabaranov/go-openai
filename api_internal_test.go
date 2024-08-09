@@ -151,7 +151,7 @@ func TestAzureFullURL(t *testing.T) {
 			az := DefaultAzureConfig("dummy", c.BaseURL)
 			cli := NewClientWithConfig(az)
 			// /openai/deployments/{engine}/chat/completions?api-version={api_version}
-			actual := cli.fullURL(c.Suffix, c.Model)
+			actual := cli.fullURL(c.Suffix, withModel(c.Model))
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}
@@ -201,7 +201,7 @@ func TestCloudflareAzureFullURL(t *testing.T) {
 
 			cli := NewClientWithConfig(az)
 
-			actual := cli.fullURL(c.Suffix, c.Model)
+			actual := cli.fullURL(c.Suffix, withModel(c.Model))
 			if actual != c.Expect {
 				t.Errorf("Expected %s, got %s", c.Expect, actual)
 			}

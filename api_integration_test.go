@@ -239,3 +239,65 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 		}
 	}
 }
+
+func TestChatCompletionResponseFormat_JSONSchemaRaw(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	var err error
+	c := openai.NewClient(apiToken)
+	ctx := context.Background()
+
+	schema := []byte(`{
+		"type": "object",
+		"properties": {
+			"CamelCase": {"type": "string"},
+			"KebabCase": {"type": "string"},
+			"PascalCase": {"type": "string"},
+			"SnakeCase": {"type": "string"}
+		},
+		"required": ["PascalCase", "CamelCase", "KebabCase", "SnakeCase"],
+		"additionalProperties": false
+	}`)
+
+	resp, err := c.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4oMini,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role: openai.ChatMessageRoleSystem,
+					Content: "Please enter a string, and we will convert it into the following naming conventions:" +
+						"1. PascalCase: Each word starts with an uppercase letter, with no spaces or separators." +
+						"2. CamelCase: The first word starts with a lowercase letter, " +
+						"and subsequent words start with an uppercase letter, with no spaces or separators." +
+						"3. KebabCase: All letters are lowercase, with words separated by hyphens `-`." +
+						"4. SnakeCase: All letters are lowercase, with words separated by underscores `_`.",
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Hello World",
+				},
+			},
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+					Name:      "cases",
+					SchemaRaw: &schema,
+					Strict:    true,
+				},
+			},
+		},
+	)
+	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) returned error")
+	var result = make(map[string]string)
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &result)
+	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) unmarshal error")
+	for _, key := range []string{"PascalCase", "CamelCase", "KebabCase", "SnakeCase"} {
+		if _, ok := result[key]; !ok {
+			t.Errorf("key:%s does not exist.", key)
+		}
+	}
+}

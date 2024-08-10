@@ -189,8 +189,31 @@ type ChatCompletionResponseFormat struct {
 type ChatCompletionResponseFormatJSONSchema struct {
 	Name        string                `json:"name"`
 	Description string                `json:"description,omitempty"`
-	Schema      jsonschema.Definition `json:"schema"`
+	Schema      jsonschema.Definition `json:"-"`
+	SchemaRaw   *[]byte               `json:"-"`
 	Strict      bool                  `json:"strict"`
+}
+
+func (c *ChatCompletionResponseFormatJSONSchema) MarshalJSON() ([]byte, error) {
+	type Alias ChatCompletionResponseFormatJSONSchema // prevent recursive marshalling
+	var data struct {
+		*Alias
+		Schema interface{} `json:"schema,omitempty"`
+	}
+
+	data.Alias = (*Alias)(c)
+
+	if c.SchemaRaw != nil {
+		var rawSchema interface{}
+		if err := json.Unmarshal(*c.SchemaRaw, &rawSchema); err != nil {
+			return nil, err
+		}
+		data.Schema = rawSchema
+	} else {
+		data.Schema = c.Schema
+	}
+
+	return json.Marshal(data)
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

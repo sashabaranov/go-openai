@@ -527,3 +527,65 @@ func TestFinishReason(t *testing.T) {
 		}
 	}
 }
+
+func TestChatCompletionResponseFormatJSONSchemaMarshalJSON(t *testing.T) {
+	tests := []struct {
+		name     string
+		input    openai.ChatCompletionResponseFormatJSONSchema
+		expected string
+		wantErr  bool
+	}{
+		{
+			name: "Empty Schema and SchemaRaw",
+			input: openai.ChatCompletionResponseFormatJSONSchema{
+				Name:      "TestName",
+				SchemaRaw: nil,
+				Strict:    false,
+			},
+			expected: `{"name":"TestName","strict":false,"schema":{}}`,
+			wantErr:  false,
+		},
+		{
+			name: "Non-empty SchemaRaw",
+			input: openai.ChatCompletionResponseFormatJSONSchema{
+				Name:      "TestName",
+				SchemaRaw: func() *[]byte { b := []byte(`{"key":"value"}`); return &b }(),
+				Strict:    true,
+			},
+			expected: `{"name":"TestName","strict":true,"schema":{"key":"value"}}`,
+			wantErr:  false,
+		},
+		{
+			name: "Invalid SchemaRaw JSON",
+			input: openai.ChatCompletionResponseFormatJSONSchema{
+				Name:      "TestName",
+				SchemaRaw: func() *[]byte { b := []byte(`{key:value}`); return &b }(),
+				Strict:    true,
+			},
+			expected: "",
+			wantErr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, err := tt.input.MarshalJSON()
+
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			if tt.wantErr {
+				if len(got) != 0 {
+					t.Errorf("Expected empty output on error, got: %s", string(got))
+				}
+				return
+			}
+
+			if string(got) != tt.expected {
+				t.Errorf("MarshalJSON() got = %s, expected %s", string(got), tt.expected)
+			}
+		})
+	}
+}

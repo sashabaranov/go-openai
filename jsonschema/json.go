@@ -29,11 +29,17 @@ type Definition struct {
 	// one element, where each element is unique. You will probably only use this with strings.
 	Enum []string `json:"enum,omitempty"`
 	// Properties describes the properties of an object, if the schema type is Object.
-	Properties map[string]Definition `json:"properties"`
+	Properties map[string]Definition `json:"properties,omitempty"`
 	// Required specifies which properties are required, if the schema type is Object.
 	Required []string `json:"required,omitempty"`
 	// Items specifies which data type an array contains, if the schema type is Array.
 	Items *Definition `json:"items,omitempty"`
+	// AdditionalProperties is used to control the handling of properties in an object
+	// that are not explicitly defined in the properties section of the schema. example:
+	// additionalProperties: true
+	// additionalProperties: false
+	// additionalProperties: jsonschema.Definition{Type: jsonschema.String}
+	AdditionalProperties any `json:"additionalProperties,omitempty"`
 }
 
 func (d Definition) MarshalJSON() ([]byte, error) {

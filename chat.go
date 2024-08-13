@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -175,11 +177,20 @@ type ChatCompletionResponseFormatType string
 
 const (
 	ChatCompletionResponseFormatTypeJSONObject ChatCompletionResponseFormatType = "json_object"
+	ChatCompletionResponseFormatTypeJSONSchema ChatCompletionResponseFormatType = "json_schema"
 	ChatCompletionResponseFormatTypeText       ChatCompletionResponseFormatType = "text"
 )
 
 type ChatCompletionResponseFormat struct {
-	Type ChatCompletionResponseFormatType `json:"type,omitempty"`
+	Type       ChatCompletionResponseFormatType        `json:"type,omitempty"`
+	JSONSchema *ChatCompletionResponseFormatJSONSchema `json:"json_schema,omitempty"`
+}
+
+type ChatCompletionResponseFormatJSONSchema struct {
+	Name        string                `json:"name"`
+	Description string                `json:"description,omitempty"`
+	Schema      jsonschema.Definition `json:"schema"`
+	Strict      bool                  `json:"strict"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

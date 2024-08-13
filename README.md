@@ -767,7 +767,7 @@ func main() {
 		Steps []struct {
 			Explanation string `json:"explanation"`
 			Output      string `json:"output"`
-		}
+		} `json:"steps"`
 		FinalAnswer string `json:"final_answer"`
 	}
 	var result Result

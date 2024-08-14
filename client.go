@@ -252,24 +252,36 @@ func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 		setter(&args)
 	}
 
-	if c.config.APIVersion != "" {
-		parseSuffix, _ := url.Parse(suffix)
-		query := parseSuffix.Query()
-		query.Add("api-version", c.config.APIVersion)
-		suffix = fmt.Sprintf("%s?%s", parseSuffix.Path, query.Encode())
+	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
+		baseURL = c.baseURLWithAzureDeployment(baseURL, suffix, args.model)
 	}
 
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
-		azureDeploymentName := c.config.GetAzureDeploymentByModel(args.model)
+	if c.config.APIVersion != "" {
+		suffix = c.suffixWithAPIVersion(suffix)
+	}
+	return fmt.Sprintf("%s%s", baseURL, suffix)
+}
+
+func (c *Client) suffixWithAPIVersion(suffix string) string {
+	parsedSuffix, err := url.Parse(suffix)
+	if err != nil {
+		panic("failed to parse url suffix")
+	}
+	query := parsedSuffix.Query()
+	query.Add("api-version", c.config.APIVersion)
+	return fmt.Sprintf("%s?%s", parsedSuffix.Path, query.Encode())
+}
+
+func (c *Client) baseURLWithAzureDeployment(baseURL, suffix, model string) (newBaseURL string) {
+	baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
+	if containsSubstr(azureDeploymentsEndpoints, suffix) {
+		azureDeploymentName := c.config.GetAzureDeploymentByModel(model)
 		if azureDeploymentName == "" {
 			azureDeploymentName = "UNKNOWN"
 		}
-		baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
-		if containsSubstr(azureDeploymentsEndpoints, suffix) {
-			baseURL = fmt.Sprintf("%s/%s/%s", baseURL, azureDeploymentsPrefix, azureDeploymentName)
-		}
+		baseURL = fmt.Sprintf("%s/%s/%s", baseURL, azureDeploymentsPrefix, azureDeploymentName)
 	}
-	return fmt.Sprintf("%s%s", baseURL, suffix)
+	return baseURL
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {

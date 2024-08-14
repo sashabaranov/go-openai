@@ -471,7 +471,6 @@ func TestClient_suffixWithAPIVersion(t *testing.T) {
 }
 
 func TestClient_baseURLWithAzureDeployment(t *testing.T) {
-
 	type args struct {
 		baseURL string
 		suffix  string

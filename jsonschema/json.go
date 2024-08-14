@@ -64,38 +64,6 @@ func (d Definition) Unmarshal(content string, v any) error {
 	return Unmarshal(d, []byte(content), v)
 }
 
-type SchemaWrapper[T any] struct {
-	schema *Definition
-}
-
-func (r SchemaWrapper[T]) MarshalJSON() ([]byte, error) {
-	return json.Marshal(r.schema)
-}
-
-func (r SchemaWrapper[T]) Unmarshal(content string) (*T, error) {
-	var v T
-	err := Unmarshal(*r.schema, []byte(content), &v)
-	if err != nil {
-		return nil, err
-	}
-	return &v, nil
-}
-
-func (r SchemaWrapper[T]) String() string {
-	bytes, _ := json.MarshalIndent(r.schema, "", "  ")
-	return string(bytes)
-}
-
-func Wrap[T any](v T) (*SchemaWrapper[T], error) {
-	schema, err := reflectSchema(reflect.TypeOf(v))
-	if err != nil {
-		return nil, err
-	}
-	return &SchemaWrapper[T]{
-		schema: schema,
-	}, nil
-}
-
 func GenerateSchemaForType(v any) (*Definition, error) {
 	return reflectSchema(reflect.TypeOf(v))
 }

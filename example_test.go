@@ -73,7 +73,7 @@ func ExampleClient_CreateChatCompletionStream() {
 			return
 		}
 
-		fmt.Printf(response.Choices[0].Delta.Content)
+		fmt.Println(response.Choices[0].Delta.Content)
 	}
 }
 

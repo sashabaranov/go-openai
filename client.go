@@ -273,7 +273,7 @@ func (c *Client) suffixWithAPIVersion(suffix string) string {
 }
 
 func (c *Client) baseURLWithAzureDeployment(baseURL, suffix, model string) (newBaseURL string) {
-	baseURL = fmt.Sprintf("%s/%s", baseURL, azureAPIPrefix)
+	baseURL = fmt.Sprintf("%s/%s", strings.TrimRight(baseURL, "/"), azureAPIPrefix)
 	if containsSubstr(azureDeploymentsEndpoints, suffix) {
 		azureDeploymentName := c.config.GetAzureDeploymentByModel(model)
 		if azureDeploymentName == "" {

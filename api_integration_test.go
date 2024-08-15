@@ -78,6 +78,20 @@ func TestAPI(t *testing.T) {
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with name) returned error")
 
+	functionParams := jsonschema.Definition{
+		Type: jsonschema.Object,
+		Properties: map[string]jsonschema.Definition{
+			"location": {
+				Type:        jsonschema.String,
+				Description: "The city and state, e.g. San Francisco, CA",
+			},
+			"unit": {
+				Type: jsonschema.String,
+				Enum: []string{"celsius", "fahrenheit"},
+			},
+		},
+		Required: []string{"location"},
+	}
 	_, err = c.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
@@ -89,25 +103,31 @@ func TestAPI(t *testing.T) {
 				},
 			},
 			Functions: []openai.FunctionDefinition{{
-				Name: "get_current_weather",
-				Parameters: jsonschema.Definition{
-					Type: jsonschema.Object,
-					Properties: map[string]jsonschema.Definition{
-						"location": {
-							Type:        jsonschema.String,
-							Description: "The city and state, e.g. San Francisco, CA",
-						},
-						"unit": {
-							Type: jsonschema.String,
-							Enum: []string{"celsius", "fahrenheit"},
-						},
-					},
-					Required: []string{"location"},
-				},
+				Name:       "get_current_weather",
+				Parameters: functionParams,
 			}},
 		},
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with functions) returned error")
+
+	_, err = c.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "What is the weather like in Boston?",
+				},
+			},
+			Functions: []openai.FunctionDefinition{{
+				Name:       "get_current_weather",
+				Parameters: functionParams,
+				Strict:     true,
+			}},
+		},
+	)
+	checks.NoError(t, err, "CreateChatCompletion (with functions, strict output) returned error")
 }
 
 func TestCompletionStream(t *testing.T) {

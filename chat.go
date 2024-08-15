@@ -269,7 +269,8 @@ type FunctionDefinition struct {
 	// or you can pass in a struct which serializes to the proper JSON schema.
 	// The jsonschema package is provided for convenience, but you should
 	// consider another specialized library if you require more complex schemas.
-	Parameters any `json:"parameters"`
+	Parameters any  `json:"parameters"`
+	Strict     bool `json:"strict"`
 }
 
 // Deprecated: use FunctionDefinition instead.

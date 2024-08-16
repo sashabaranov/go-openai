@@ -4,6 +4,7 @@ package openai_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"
@@ -26,7 +27,7 @@ func TestAPI(t *testing.T) {
 	_, err = c.ListEngines(ctx)
 	checks.NoError(t, err, "ListEngines error")
 
-	_, err = c.GetEngine(ctx, "davinci")
+	_, err = c.GetEngine(ctx, openai.GPT3Davinci002)
 	checks.NoError(t, err, "GetEngine error")
 
 	fileRes, err := c.ListFiles(ctx)
@@ -42,7 +43,7 @@ func TestAPI(t *testing.T) {
 			"The food was delicious and the waiter",
 			"Other examples of embedding request",
 		},
-		Model: openai.AdaSearchQuery,
+		Model: openai.AdaEmbeddingV2,
 	}
 	_, err = c.CreateEmbeddings(ctx, embeddingReq)
 	checks.NoError(t, err, "Embedding error")
@@ -77,31 +78,6 @@ func TestAPI(t *testing.T) {
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with name) returned error")
 
-	stream, err := c.CreateCompletionStream(ctx, openai.CompletionRequest{
-		Prompt:    "Ex falso quodlibet",
-		Model:     openai.GPT3Ada,
-		MaxTokens: 5,
-		Stream:    true,
-	})
-	checks.NoError(t, err, "CreateCompletionStream returned error")
-	defer stream.Close()
-
-	counter := 0
-	for {
-		_, err = stream.Recv()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			t.Errorf("Stream error: %v", err)
-		} else {
-			counter++
-		}
-	}
-	if counter == 0 {
-		t.Error("Stream did not return any responses")
-	}
-
 	_, err = c.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
@@ -132,6 +108,41 @@ func TestAPI(t *testing.T) {
 		},
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with functions) returned error")
+}
+
+func TestCompletionStream(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	c := openai.NewClient(apiToken)
+	ctx := context.Background()
+
+	stream, err := c.CreateCompletionStream(ctx, openai.CompletionRequest{
+		Prompt:    "Ex falso quodlibet",
+		Model:     openai.GPT3Babbage002,
+		MaxTokens: 5,
+		Stream:    true,
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	counter := 0
+	for {
+		_, err = stream.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			t.Errorf("Stream error: %v", err)
+		} else {
+			counter++
+		}
+	}
+	if counter == 0 {
+		t.Error("Stream did not return any responses")
+	}
 }
 
 func TestAPIError(t *testing.T) {
@@ -166,5 +177,65 @@ func TestAPIError(t *testing.T) {
 
 	if apiErr.Error() == "" {
 		t.Fatal("Empty error message occurred")
+	}
+}
+
+func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	var err error
+	c := openai.NewClient(apiToken)
+	ctx := context.Background()
+
+	resp, err := c.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4oMini,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role: openai.ChatMessageRoleSystem,
+					Content: "Please enter a string, and we will convert it into the following naming conventions:" +
+						"1. PascalCase: Each word starts with an uppercase letter, with no spaces or separators." +
+						"2. CamelCase: The first word starts with a lowercase letter, " +
+						"and subsequent words start with an uppercase letter, with no spaces or separators." +
+						"3. KebabCase: All letters are lowercase, with words separated by hyphens `-`." +
+						"4. SnakeCase: All letters are lowercase, with words separated by underscores `_`.",
+				},
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Hello World",
+				},
+			},
+			ResponseFormat: &openai.ChatCompletionResponseFormat{
+				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
+				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
+					Name: "cases",
+					Schema: jsonschema.Definition{
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"PascalCase": jsonschema.Definition{Type: jsonschema.String},
+							"CamelCase":  jsonschema.Definition{Type: jsonschema.String},
+							"KebabCase":  jsonschema.Definition{Type: jsonschema.String},
+							"SnakeCase":  jsonschema.Definition{Type: jsonschema.String},
+						},
+						Required:             []string{"PascalCase", "CamelCase", "KebabCase", "SnakeCase"},
+						AdditionalProperties: false,
+					},
+					Strict: true,
+				},
+			},
+		},
+	)
+	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) returned error")
+	var result = make(map[string]string)
+	err = json.Unmarshal([]byte(resp.Choices[0].Message.Content), &result)
+	checks.NoError(t, err, "CreateChatCompletion (use json_schema response) unmarshal error")
+	for _, key := range []string{"PascalCase", "CamelCase", "KebabCase", "SnakeCase"} {
+		if _, ok := result[key]; !ok {
+			t.Errorf("key:%s does not exist.", key)
+		}
 	}
 }

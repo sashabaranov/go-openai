@@ -33,7 +33,9 @@ func TestFineTuningJob(t *testing.T) {
 				ValidationFile: "",
 				TrainingFile:   "file-abc123",
 				Hyperparameters: openai.Hyperparameters{
-					Epochs: "auto",
+					Epochs:                 "auto",
+					LearningRateMultiplier: "auto",
+					BatchSize:              "auto",
 				},
 				TrainedTokens: 5768,
 			})

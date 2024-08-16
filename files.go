@@ -22,6 +22,7 @@ const (
 	PurposeFineTuneResults  PurposeType = "fine-tune-results"
 	PurposeAssistants       PurposeType = "assistants"
 	PurposeAssistantsOutput PurposeType = "assistants_output"
+	PurposeBatch            PurposeType = "batch"
 )
 
 // FileBytesRequest represents a file upload request.
@@ -101,6 +102,7 @@ func (c *Client) CreateFile(ctx context.Context, request FileRequest) (file File
 	if err != nil {
 		return
 	}
+	defer fileData.Close()
 
 	err = builder.CreateFormFile("file", fileData)
 	if err != nil {

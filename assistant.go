@@ -62,14 +62,17 @@ type AssistantToolResource struct {
 // If Tools is empty slice it will effectively delete all of the Assistant's tools.
 // If Tools is populated, it will replace all of the existing Assistant's tools with the provided tools.
 type AssistantRequest struct {
-	Model         string                 `json:"model"`
-	Name          *string                `json:"name,omitempty"`
-	Description   *string                `json:"description,omitempty"`
-	Instructions  *string                `json:"instructions,omitempty"`
-	Tools         []AssistantTool        `json:"-"`
-	FileIDs       []string               `json:"file_ids,omitempty"`
-	Metadata      map[string]any         `json:"metadata,omitempty"`
-	ToolResources *AssistantToolResource `json:"tool_resources,omitempty"`
+	Model          string                 `json:"model"`
+	Name           *string                `json:"name,omitempty"`
+	Description    *string                `json:"description,omitempty"`
+	Instructions   *string                `json:"instructions,omitempty"`
+	Tools          []AssistantTool        `json:"-"`
+	FileIDs        []string               `json:"file_ids,omitempty"`
+	Metadata       map[string]any         `json:"metadata,omitempty"`
+	ToolResources  *AssistantToolResource `json:"tool_resources,omitempty"`
+	ResponseFormat any                    `json:"response_format,omitempty"`
+	Temperature    *float32               `json:"temperature,omitempty"`
+	TopP           *float32               `json:"top_p,omitempty"`
 }
 
 // MarshalJSON provides a custom marshaller for the assistant request to handle the API use cases

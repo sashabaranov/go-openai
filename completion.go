@@ -24,6 +24,9 @@ const (
 	GPT40314              = "gpt-4-0314"
 	GPT4o                 = "gpt-4o"
 	GPT4o20240513         = "gpt-4o-2024-05-13"
+	GPT4o20240806         = "gpt-4o-2024-08-06"
+	GPT4oMini             = "gpt-4o-mini"
+	GPT4oMini20240718     = "gpt-4o-mini-2024-07-18"
 	GPT4Turbo             = "gpt-4-turbo"
 	GPT4Turbo20240409     = "gpt-4-turbo-2024-04-09"
 	GPT4Turbo0125         = "gpt-4-0125-preview"
@@ -89,6 +92,9 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT4:                 true,
 		GPT4o:                true,
 		GPT4o20240513:        true,
+		GPT4o20240806:        true,
+		GPT4oMini:            true,
+		GPT4oMini20240718:    true,
 		GPT4TurboPreview:     true,
 		GPT4VisionPreview:    true,
 		GPT4Turbo1106:        true,
@@ -132,25 +138,26 @@ func checkPromptType(prompt any) bool {
 
 // CompletionRequest represents a request structure for completion API.
 type CompletionRequest struct {
-	Model            string   `json:"model"`
-	Prompt           any      `json:"prompt,omitempty"`
-	Suffix           string   `json:"suffix,omitempty"`
-	MaxTokens        int      `json:"max_tokens,omitempty"`
-	Temperature      float32  `json:"temperature,omitempty"`
-	TopP             float32  `json:"top_p,omitempty"`
-	N                int      `json:"n,omitempty"`
-	Stream           bool     `json:"stream,omitempty"`
-	LogProbs         int      `json:"logprobs,omitempty"`
-	Echo             bool     `json:"echo,omitempty"`
-	Stop             []string `json:"stop,omitempty"`
-	PresencePenalty  float32  `json:"presence_penalty,omitempty"`
-	FrequencyPenalty float32  `json:"frequency_penalty,omitempty"`
-	BestOf           int      `json:"best_of,omitempty"`
+	Model            string  `json:"model"`
+	Prompt           any     `json:"prompt,omitempty"`
+	BestOf           int     `json:"best_of,omitempty"`
+	Echo             bool    `json:"echo,omitempty"`
+	FrequencyPenalty float32 `json:"frequency_penalty,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias
-	LogitBias map[string]int `json:"logit_bias,omitempty"`
-	User      string         `json:"user,omitempty"`
+	LogitBias       map[string]int `json:"logit_bias,omitempty"`
+	LogProbs        int            `json:"logprobs,omitempty"`
+	MaxTokens       int            `json:"max_tokens,omitempty"`
+	N               int            `json:"n,omitempty"`
+	PresencePenalty float32        `json:"presence_penalty,omitempty"`
+	Seed            *int           `json:"seed,omitempty"`
+	Stop            []string       `json:"stop,omitempty"`
+	Stream          bool           `json:"stream,omitempty"`
+	Suffix          string         `json:"suffix,omitempty"`
+	Temperature     float32        `json:"temperature,omitempty"`
+	TopP            float32        `json:"top_p,omitempty"`
+	User            string         `json:"user,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

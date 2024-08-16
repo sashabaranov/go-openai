@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 
 	utils "github.com/sashabaranov/go-openai/internal"
@@ -228,10 +229,13 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL := c.config.BaseURL
 		baseURL = strings.TrimRight(baseURL, "/")
+		parseURL, _ := url.Parse(baseURL)
+		query := parseURL.Query()
+		query.Add("api-version", c.config.APIVersion)
 		// if suffix is /models change to {endpoint}/openai/models?api-version=2022-12-01
 		// https://learn.microsoft.com/en-us/rest/api/cognitiveservices/azureopenaistable/models/list?tabs=HTTP
 		if containsSubstr([]string{"/models", "/assistants", "/threads", "/files"}, suffix) {
-			return fmt.Sprintf("%s/%s%s?api-version=%s", baseURL, azureAPIPrefix, suffix, c.config.APIVersion)
+			return fmt.Sprintf("%s/%s%s?%s", baseURL, azureAPIPrefix, suffix, query.Encode())
 		}
 		azureDeploymentName := "UNKNOWN"
 		if len(args) > 0 {
@@ -240,9 +244,9 @@ func (c *Client) fullURL(suffix string, args ...any) string {
 				azureDeploymentName = c.config.GetAzureDeploymentByModel(model)
 			}
 		}
-		return fmt.Sprintf("%s/%s/%s/%s%s?api-version=%s",
+		return fmt.Sprintf("%s/%s/%s/%s%s?%s",
 			baseURL, azureAPIPrefix, azureDeploymentsPrefix,
-			azureDeploymentName, suffix, c.config.APIVersion,
+			azureDeploymentName, suffix, query.Encode(),
 		)
 	}
 

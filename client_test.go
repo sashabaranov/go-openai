@@ -431,3 +431,99 @@ func TestClientReturnsRequestBuilderErrorsAddition(t *testing.T) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
 }
+
+func TestClient_suffixWithAPIVersion(t *testing.T) {
+	type fields struct {
+		apiVersion string
+	}
+	type args struct {
+		suffix string
+	}
+	tests := []struct {
+		name      string
+		fields    fields
+		args      args
+		want      string
+		wantPanic string
+	}{
+		{
+			"",
+			fields{apiVersion: "2023-05"},
+			args{suffix: "/assistants"},
+			"/assistants?api-version=2023-05",
+			"",
+		},
+		{
+			"",
+			fields{apiVersion: "2023-05"},
+			args{suffix: "/assistants?limit=5"},
+			"/assistants?api-version=2023-05&limit=5",
+			"",
+		},
+		{
+			"",
+			fields{apiVersion: "2023-05"},
+			args{suffix: "123:assistants?limit=5"},
+			"/assistants?api-version=2023-05&limit=5",
+			"failed to parse url suffix",
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			c := &Client{
+				config: ClientConfig{APIVersion: tt.fields.apiVersion},
+			}
+			defer func() {
+				if r := recover(); r != nil {
+					if r.(string) != tt.wantPanic {
+						t.Errorf("suffixWithAPIVersion() = %v, want %v", r, tt.wantPanic)
+					}
+				}
+			}()
+			if got := c.suffixWithAPIVersion(tt.args.suffix); got != tt.want {
+				t.Errorf("suffixWithAPIVersion() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestClient_baseURLWithAzureDeployment(t *testing.T) {
+	type args struct {
+		baseURL string
+		suffix  string
+		model   string
+	}
+	tests := []struct {
+		name           string
+		args           args
+		wantNewBaseURL string
+	}{
+		{
+			"",
+			args{baseURL: "https://test.openai.azure.com/", suffix: assistantsSuffix, model: GPT4oMini},
+			"https://test.openai.azure.com/openai",
+		},
+		{
+			"",
+			args{baseURL: "https://test.openai.azure.com/", suffix: chatCompletionsSuffix, model: GPT4oMini},
+			"https://test.openai.azure.com/openai/deployments/gpt-4o-mini",
+		},
+		{
+			"",
+			args{baseURL: "https://test.openai.azure.com/", suffix: chatCompletionsSuffix, model: ""},
+			"https://test.openai.azure.com/openai/deployments/UNKNOWN",
+		},
+	}
+	client := NewClient("")
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if gotNewBaseURL := client.baseURLWithAzureDeployment(
+				tt.args.baseURL,
+				tt.args.suffix,
+				tt.args.model,
+			); gotNewBaseURL != tt.wantNewBaseURL {
+				t.Errorf("baseURLWithAzureDeployment() = %v, want %v", gotNewBaseURL, tt.wantNewBaseURL)
+			}
+		})
+	}
+}

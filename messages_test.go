@@ -8,19 +8,16 @@ import (
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 var emptyStr = ""
 
-// TestMessages Tests the messages endpoint of the API using the mocked server.
-func TestMessages(t *testing.T) {
+func setupServerForTestMessage(t *testing.T, server *test.ServerTest) {
 	threadID := "thread_abc123"
 	messageID := "msg_abc123"
 	fileID := "file_abc123"
-
-	client, server, teardown := setupOpenAITestServer()
-	defer teardown()
 
 	server.RegisterHandler(
 		"/v1/threads/"+threadID+"/messages/"+messageID+"/files/"+fileID,
@@ -115,6 +112,13 @@ func TestMessages(t *testing.T) {
 						Metadata:    nil,
 					})
 				fmt.Fprintln(w, string(resBytes))
+			case http.MethodDelete:
+				resBytes, _ := json.Marshal(openai.MessageDeletionStatus{
+					ID:      messageID,
+					Object:  "thread.message.deleted",
+					Deleted: true,
+				})
+				fmt.Fprintln(w, string(resBytes))
 			default:
 				t.Fatalf("unsupported messages http method: %s", r.Method)
 			}
@@ -176,7 +180,18 @@ func TestMessages(t *testing.T) {
 			}
 		},
 	)
+}
 
+// TestMessages Tests the messages endpoint of the API using the mocked server.
+func TestMessages(t *testing.T) {
+	threadID := "thread_abc123"
+	messageID := "msg_abc123"
+	fileID := "file_abc123"
+
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	setupServerForTestMessage(t, server)
 	ctx := context.Background()
 
 	// static assertion of return type
@@ -224,6 +239,17 @@ func TestMessages(t *testing.T) {
 	if msg.Metadata["foo"] != "bar" {
 		t.Fatalf("expected message metadata to get modified")
 	}
+
+	msgDel, err := client.DeleteMessage(ctx, threadID, messageID)
+	checks.NoError(t, err, "DeleteMessage error")
+	if msgDel.ID != messageID {
+		t.Fatalf("unexpected message id: '%s'", msg.ID)
+	}
+	if !msgDel.Deleted {
+		t.Fatalf("expected deleted is true")
+	}
+	_, err = client.DeleteMessage(ctx, threadID, "not_exist_id")
+	checks.HasError(t, err, "DeleteMessage error")
 
 	// message files
 	var msgFile openai.MessageFile

@@ -14,7 +14,7 @@ import (
 
 var emptyStr = ""
 
-func registerServer(t *testing.T, server *test.ServerTest) {
+func setupServerForTestMessage(t *testing.T, server *test.ServerTest) {
 	threadID := "thread_abc123"
 	messageID := "msg_abc123"
 	fileID := "file_abc123"
@@ -191,7 +191,7 @@ func TestMessages(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 
-	registerServer(t, server)
+	setupServerForTestMessage(t, server)
 	ctx := context.Background()
 
 	// static assertion of return type

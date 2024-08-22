@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-
-	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -187,10 +185,14 @@ type ChatCompletionResponseFormat struct {
 }
 
 type ChatCompletionResponseFormatJSONSchema struct {
-	Name        string                `json:"name"`
-	Description string                `json:"description,omitempty"`
-	Schema      jsonschema.Definition `json:"schema"`
-	Strict      bool                  `json:"strict"`
+	Name        string `json:"name"`
+	Description string `json:"description,omitempty"`
+	Strict      bool   `json:"strict"`
+	// You can pass json.RawMessage to describe the schema,
+	// or you can pass in a struct which serializes to the proper JSON schema.
+	// The jsonschema package is provided for convenience, but you should
+	// consider another specialized library if you require more complex schemas.
+	Schema any `json:"schema"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

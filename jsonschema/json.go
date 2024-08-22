@@ -22,7 +22,7 @@ const (
 // It is fairly limited, and you may have better luck using a third-party library.
 type Definition struct {
 	// Type specifies the data type of the schema.
-	Type DataType `json:"type,omitempty"`
+	Type any `json:"type,omitempty"`
 	// Description is the description of the schema.
 	Description string `json:"description,omitempty"`
 	// Enum is used to restrict a value to a fixed set of values. It must be an array with at least

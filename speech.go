@@ -44,7 +44,10 @@ type CreateSpeechRequest struct {
 }
 
 func (c *Client) CreateSpeech(ctx context.Context, request CreateSpeechRequest) (response RawResponse, err error) {
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/audio/speech", string(request.Model)),
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL("/audio/speech", withModel(string(request.Model))),
 		withBody(request),
 		withContentType("application/json"),
 	)

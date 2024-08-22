@@ -122,8 +122,13 @@ func (c *Client) callAudioAPI(
 	}
 
 	urlSuffix := fmt.Sprintf("/audio/%s", endpointSuffix)
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix, request.Model),
-		withBody(&formBody), withContentType(builder.FormDataContentType()))
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix, withModel(request.Model)),
+		withBody(&formBody),
+		withContentType(builder.FormDataContentType()),
+	)
 	if err != nil {
 		return AudioResponse{}, err
 	}

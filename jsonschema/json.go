@@ -48,7 +48,7 @@ type Definition struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 }
 
-func (d Definition) MarshalJSON() ([]byte, error) {
+func (d *Definition) MarshalJSON() ([]byte, error) {
 	if d.Properties == nil {
 		d.Properties = make(map[string]Definition)
 	}
@@ -56,12 +56,12 @@ func (d Definition) MarshalJSON() ([]byte, error) {
 	return json.Marshal(struct {
 		Alias
 	}{
-		Alias: (Alias)(d),
+		Alias: (Alias)(*d),
 	})
 }
 
-func (d Definition) Unmarshal(content string, v any) error {
-	return Unmarshal(d, []byte(content), v)
+func (d *Definition) Unmarshal(content string, v any) error {
+	return VerifySchemaAndUnmarshal(*d, []byte(content), v)
 }
 
 func GenerateSchemaForType(v any) (*Definition, error) {

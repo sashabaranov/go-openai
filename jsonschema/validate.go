@@ -5,7 +5,7 @@ import (
 	"errors"
 )
 
-func Unmarshal(schema Definition, content []byte, v any) error {
+func VerifySchemaAndUnmarshal(schema Definition, content []byte, v any) error {
 	var data any
 	err := json.Unmarshal(content, &data)
 	if err != nil {
@@ -17,7 +17,7 @@ func Unmarshal(schema Definition, content []byte, v any) error {
 	return json.Unmarshal(content, &v)
 }
 
-func Validate(schema Definition, data interface{}) bool {
+func Validate(schema Definition, data any) bool {
 	switch schema.Type {
 	case Object:
 		return validateObject(schema, data)
@@ -67,7 +67,7 @@ func validateObject(schema Definition, data any) bool {
 }
 
 func validateArray(schema Definition, data any) bool {
-	dataArray, ok := data.([]interface{})
+	dataArray, ok := data.([]any)
 	if !ok {
 		return false
 	}

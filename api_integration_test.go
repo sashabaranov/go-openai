@@ -222,8 +222,7 @@ func TestChatCompletionResponseFormat_JSONSchema(t *testing.T) {
 			ResponseFormat: &openai.ChatCompletionResponseFormat{
 				Type: openai.ChatCompletionResponseFormatTypeJSONSchema,
 				JSONSchema: &openai.ChatCompletionResponseFormatJSONSchema{
-					Name: "cases",
-					//Schema: sw,
+					Name:   "cases",
 					Schema: schema,
 					Strict: true,
 				},

@@ -8,7 +8,7 @@ import (
 
 func Test_Validate(t *testing.T) {
 	type args struct {
-		data   interface{}
+		data   any
 		schema jsonschema.Definition
 	}
 	tests := []struct {
@@ -125,7 +125,8 @@ func TestUnmarshal(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if err := jsonschema.Unmarshal(tt.args.schema, tt.args.content, tt.args.v); (err != nil) != tt.wantErr {
+			err := jsonschema.VerifySchemaAndUnmarshal(tt.args.schema, tt.args.content, tt.args.v)
+			if (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
 			} else if err == nil {
 				t.Logf("Unmarshal() v = %+v\n", tt.args.v)

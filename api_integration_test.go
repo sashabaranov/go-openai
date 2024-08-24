@@ -4,6 +4,7 @@ package openai_test
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"io"
 	"os"

@@ -59,7 +59,7 @@ func ExampleClient_CreateChatCompletionStream() {
 	}
 	defer stream.Close()
 
-	fmt.Printf("Stream response: ")
+	fmt.Print("Stream response: ")
 	for {
 		var response openai.ChatCompletionStreamResponse
 		response, err = stream.Recv()

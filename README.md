@@ -141,7 +141,7 @@ func main() {
 	ctx := context.Background()
 
 	req := openai.CompletionRequest{
-		Model:     openai.GPT3Ada,
+		Model:     openai.GPT3Babbage002,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 	}
@@ -174,7 +174,7 @@ func main() {
 	ctx := context.Background()
 
 	req := openai.CompletionRequest{
-		Model:     openai.GPT3Ada,
+		Model:     openai.GPT3Babbage002,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
 		Stream:    true,

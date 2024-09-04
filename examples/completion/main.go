@@ -16,9 +16,11 @@ func main() {
 	resp, err := client.CreateCompletion(
 		context.Background(),
 		openai.CompletionRequest{
-			Model:     openai.GPT3Ada,	// Specifies the model to use (GPT-3 Ada in this case)
+
+			Model:     openai.GPT3Babbage002,	// Specifies the model to use (GPT-3 Ada in this case)
 			MaxTokens: 5,	// Limits the number of tokens (words/characters) in the response
 			Prompt:    "Lorem ipsum",	// The prompt or input text to generate a completion for
+
 		},
 	)
 	// Handle any errors that occur during the API request

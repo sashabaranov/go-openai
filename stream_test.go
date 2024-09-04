@@ -169,7 +169,7 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 	var apiErr *openai.APIError
 	_, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
 		MaxTokens: 5,
-		Model:     openai.GPT3Ada,
+		Model:     openai.GPT3Babbage002,
 		Prompt:    "Hello!",
 		Stream:    true,
 	})

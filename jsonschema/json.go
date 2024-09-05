@@ -24,6 +24,12 @@ const (
 	Boolean DataType = "boolean"
 )
 
+// OrderedProperties represents an ordered map of property names to their definitions
+type OrderedProperties struct {
+	Keys   []string
+	Values map[string]Definition
+}
+
 // Definition is a struct for describing a JSON Schema.
 // It is fairly limited, and you may have better luck using a third-party library.
 type Definition struct {
@@ -35,7 +41,7 @@ type Definition struct {
 	// one element, where each element is unique. You will probably only use this with strings.
 	Enum []string `json:"enum,omitempty"`
 	// Properties describes the properties of an object, if the schema type is Object.
-	Properties map[string]Definition `json:"properties,omitempty"`
+	Properties OrderedProperties `json:"-"`
 	// Required specifies which properties are required, if the schema type is Object.
 	Required []string `json:"required,omitempty"`
 	// Items specifies which data type an array contains, if the schema type is Array.
@@ -49,15 +55,31 @@ type Definition struct {
 }
 
 func (d *Definition) MarshalJSON() ([]byte, error) {
-	if d.Properties == nil {
-		d.Properties = make(map[string]Definition)
-	}
 	type Alias Definition
-	return json.Marshal(struct {
-		Alias
+	aux := struct {
+		*Alias
+		Properties json.RawMessage `json:"properties,omitempty"`
 	}{
-		Alias: (Alias)(*d),
-	})
+		Alias: (*Alias)(d),
+	}
+
+	if len(d.Properties.Keys) > 0 {
+		orderedProps := make(map[string]json.RawMessage)
+		for _, key := range d.Properties.Keys {
+			value, err := json.Marshal(d.Properties.Values[key])
+			if err != nil {
+				return nil, err
+			}
+			orderedProps[key] = value
+		}
+		var err error
+		aux.Properties, err = json.Marshal(orderedProps)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return json.Marshal(aux)
 }
 
 func (d *Definition) Unmarshal(content string, v any) error {
@@ -114,8 +136,8 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 	var d = Definition{
 		Type:                 Object,
 		AdditionalProperties: false,
+		Properties:           OrderedProperties{Keys: make([]string, 0), Values: make(map[string]Definition)},
 	}
-	properties := make(map[string]Definition)
 	var requiredFields []string
 	for i := 0; i < t.NumField(); i++ {
 		field := t.Field(i)
@@ -139,7 +161,8 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 		if description != "" {
 			item.Description = description
 		}
-		properties[jsonTag] = *item
+		d.Properties.Keys = append(d.Properties.Keys, jsonTag)
+		d.Properties.Values[jsonTag] = *item
 
 		if s := field.Tag.Get("required"); s != "" {
 			required, _ = strconv.ParseBool(s)
@@ -149,6 +172,5 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 		}
 	}
 	d.Required = requiredFields
-	d.Properties = properties
 	return &d, nil
 }

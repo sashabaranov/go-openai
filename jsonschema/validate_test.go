@@ -47,12 +47,15 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: map[string]jsonschema.Definition{
-			"string":  {Type: jsonschema.String},
-			"integer": {Type: jsonschema.Integer},
-			"number":  {Type: jsonschema.Number},
-			"boolean": {Type: jsonschema.Boolean},
-			"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
+		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: jsonschema.OrderedProperties{
+			Keys: []string{"string", "integer", "number", "boolean", "array"},
+			Values: map[string]jsonschema.Definition{
+				"string":  {Type: jsonschema.String},
+				"integer": {Type: jsonschema.Integer},
+				"number":  {Type: jsonschema.Number},
+				"boolean": {Type: jsonschema.Boolean},
+				"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
+			},
 		},
 			Required: []string{"string"},
 		}}, true},
@@ -61,12 +64,15 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: map[string]jsonschema.Definition{
-			"string":  {Type: jsonschema.String},
-			"integer": {Type: jsonschema.Integer},
-			"number":  {Type: jsonschema.Number},
-			"boolean": {Type: jsonschema.Boolean},
-			"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
+		}, schema: jsonschema.Definition{Type: jsonschema.Object, Properties: jsonschema.OrderedProperties{
+			Keys: []string{"string", "integer", "number", "boolean", "array"},
+			Values: map[string]jsonschema.Definition{
+				"string":  {Type: jsonschema.String},
+				"integer": {Type: jsonschema.Integer},
+				"number":  {Type: jsonschema.Number},
+				"boolean": {Type: jsonschema.Boolean},
+				"array":   {Type: jsonschema.Array, Items: &jsonschema.Definition{Type: jsonschema.Number}},
+			},
 		},
 			Required: []string{"string"},
 		}}, false},
@@ -102,9 +108,12 @@ func TestUnmarshal(t *testing.T) {
 		{"", args{
 			schema: jsonschema.Definition{
 				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
-					"string": {Type: jsonschema.String},
-					"number": {Type: jsonschema.Number},
+				Properties: jsonschema.OrderedProperties{
+					Keys: []string{"string", "number"},
+					Values: map[string]jsonschema.Definition{
+						"string": {Type: jsonschema.String},
+						"number": {Type: jsonschema.Number},
+					},
 				},
 			},
 			content: []byte(`{"string":"abc","number":123.4}`),
@@ -113,9 +122,12 @@ func TestUnmarshal(t *testing.T) {
 		{"", args{
 			schema: jsonschema.Definition{
 				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
-					"string": {Type: jsonschema.String},
-					"number": {Type: jsonschema.Number},
+				Properties: jsonschema.OrderedProperties{
+					Keys: []string{"string", "number"},
+					Values: map[string]jsonschema.Definition{
+						"string": {Type: jsonschema.String},
+						"number": {Type: jsonschema.Number},
+					},
 				},
 				Required: []string{"string", "number"},
 			},

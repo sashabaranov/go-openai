@@ -55,7 +55,7 @@ func validateObject(schema Definition, data any) bool {
 			return false
 		}
 	}
-	for key, valueSchema := range schema.Properties {
+	for key, valueSchema := range schema.Properties.Values {
 		value, exists := dataMap[key]
 		if exists && !Validate(valueSchema, value) {
 			return false

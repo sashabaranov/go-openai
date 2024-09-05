@@ -11,53 +11,25 @@ import (
 func TestDefinition_MarshalJSON(t *testing.T) {
 	tests := []struct {
 		name string
-		def  jsonschema.Definition
+		def  any
 		want string
 	}{
 		{
 			name: "Test with empty Definition",
-			def:  jsonschema.Definition{},
-			want: `{}`,
-		},
-		{
-			name: "Test with Definition properties set",
-			def: jsonschema.Definition{
-				Type:        jsonschema.String,
-				Description: "A string type",
-				Properties: map[string]jsonschema.Definition{
-					"name": {
-						Type: jsonschema.String,
-					},
-				},
-			},
+			def:  struct{}{},
 			want: `{
-   "type":"string",
-   "description":"A string type",
-   "properties":{
-      "name":{
-         "type":"string"
-      }
-   }
+	"type":"object",
+	"additionalProperties":false
 }`,
 		},
 		{
 			name: "Test with nested Definition properties",
-			def: jsonschema.Definition{
-				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
-					"user": {
-						Type: jsonschema.Object,
-						Properties: map[string]jsonschema.Definition{
-							"name": {
-								Type: jsonschema.String,
-							},
-							"age": {
-								Type: jsonschema.Integer,
-							},
-						},
-					},
-				},
-			},
+			def: struct {
+				User struct {
+					Name string `json:"name"`
+					Age  int    `json:"age"`
+				} `json:"user"`
+			}{},
 			want: `{
    "type":"object",
    "properties":{
@@ -72,38 +44,23 @@ func TestDefinition_MarshalJSON(t *testing.T) {
             }
          }
       }
-   }
+   },
+   "additionalProperties":false,
+   "required":["user"]
 }`,
 		},
 		{
 			name: "Test with complex nested Definition",
-			def: jsonschema.Definition{
-				Type: jsonschema.Object,
-				Properties: map[string]jsonschema.Definition{
-					"user": {
-						Type: jsonschema.Object,
-						Properties: map[string]jsonschema.Definition{
-							"name": {
-								Type: jsonschema.String,
-							},
-							"age": {
-								Type: jsonschema.Integer,
-							},
-							"address": {
-								Type: jsonschema.Object,
-								Properties: map[string]jsonschema.Definition{
-									"city": {
-										Type: jsonschema.String,
-									},
-									"country": {
-										Type: jsonschema.String,
-									},
-								},
-							},
-						},
-					},
-				},
-			},
+			def: struct {
+				User struct {
+					Name    string `json:"name"`
+					Age     int    `json:"age"`
+					Address struct {
+						City    string `json:"city"`
+						Country string `json:"country"`
+					} `json:"address"`
+				} `json:"user"`
+			}{},
 			want: `{
    "type":"object",
    "properties":{
@@ -127,19 +84,18 @@ func TestDefinition_MarshalJSON(t *testing.T) {
                   }
                }
             }
-         }
+         },
+		 "additionalProperties":false,		
+		 "required":["name","age","address"]
       }
-   }
+   },
+   "additionalProperties":false,
+   "required":["user"]
 }`,
 		},
 		{
 			name: "Test with Array type Definition",
-			def: jsonschema.Definition{
-				Type: jsonschema.Array,
-				Items: &jsonschema.Definition{
-					Type: jsonschema.String,
-				},
-			},
+			def:  []string{},
 			want: `{
    "type":"array",
    "items":{
@@ -147,44 +103,61 @@ func TestDefinition_MarshalJSON(t *testing.T) {
    }
 }`,
 		},
+		{
+			name: "Test order prevention",
+			def: struct {
+				C string `json:"c"`
+				A int    `json:"a"`
+				B bool   `json:"b"`
+			}{},
+			want: `{
+   "type":"object",
+   "properties":{
+      "c":{
+         "type":"string"
+      },
+      "a":{
+         "type":"integer"
+      },
+      "b":{
+         "type":"boolean"
+      }
+   },
+   "additionalProperties":false,
+   "required":["c","a","b"]
+}
+`,
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			wantBytes := []byte(tt.want)
-			var want map[string]interface{}
-			err := json.Unmarshal(wantBytes, &want)
+			var wantDef jsonschema.Definition
+			err := json.Unmarshal(wantBytes, &wantDef)
 			if err != nil {
 				t.Errorf("Failed to Unmarshal JSON: error = %v", err)
 				return
 			}
-
-			got := structToMap(t, tt.def)
-			gotPtr := structToMap(t, &tt.def)
-
-			if !reflect.DeepEqual(got, want) {
-				t.Errorf("MarshalJSON() got = %v, want %v", got, want)
+			schema, err := jsonschema.GenerateSchemaForType(tt.def)
+			if err != nil {
+				t.Errorf("Failed to Unmarshal JSON: error = %v", err)
+				return
 			}
-			if !reflect.DeepEqual(gotPtr, want) {
-				t.Errorf("MarshalJSON() gotPtr = %v, want %v", gotPtr, want)
+			gotBytes, err := schema.MarshalJSON()
+			if err != nil {
+				t.Errorf("Failed to Marshal JSON: error = %v", err)
+				return
+			}
+			var gotDef jsonschema.Definition
+			err = json.Unmarshal(gotBytes, &gotDef)
+			if err != nil {
+				t.Errorf("Failed to Unmarshal JSON: error = %v", err)
+				return
+			}
+			if !reflect.DeepEqual(wantDef, gotDef) {
+				t.Errorf("Definition.MarshalJSON() = %v, want %v", gotDef, wantDef)
 			}
 		})
 	}
-}
-
-func structToMap(t *testing.T, v any) map[string]any {
-	t.Helper()
-	gotBytes, err := json.Marshal(v)
-	if err != nil {
-		t.Errorf("Failed to Marshal JSON: error = %v", err)
-		return nil
-	}
-
-	var got map[string]interface{}
-	err = json.Unmarshal(gotBytes, &got)
-	if err != nil {
-		t.Errorf("Failed to Unmarshal JSON: error =  %v", err)
-		return nil
-	}
-	return got
 }

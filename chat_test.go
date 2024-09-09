@@ -356,7 +356,7 @@ func TestMultipartChatCompletions(t *testing.T) {
 func TestMultipartChatMessageSerialization(t *testing.T) {
 	jsonText := `[{"role":"system","content":"system-message"},` +
 		`{"role":"user","content":[{"type":"text","text":"nice-text"},` +
-		`{"type":"image_url","image_url":{"url":"URL","detail":"high"}}]}]`
+		`{"type":"image_url","text":"","image_url":{"url":"URL","detail":"high"}}]}]`
 
 	var msgs []openai.ChatCompletionMessage
 	err := json.Unmarshal([]byte(jsonText), &msgs)

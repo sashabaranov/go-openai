@@ -88,7 +88,12 @@ func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (re
 		err = ErrModerationInvalidModel
 		return
 	}
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL("/moderations", request.Model), withBody(&request))
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL("/moderations", withModel(request.Model)),
+		withBody(&request),
+	)
 	if err != nil {
 		return
 	}

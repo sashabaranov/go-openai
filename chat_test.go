@@ -277,6 +277,32 @@ func TestChatCompletionsFunctions(t *testing.T) {
 		})
 		checks.NoError(t, err, "CreateChatCompletion with functions error")
 	})
+	t.Run("StructuredOutputs", func(t *testing.T) {
+		type testMessage struct {
+			Count int      `json:"count"`
+			Words []string `json:"words"`
+		}
+		msg := testMessage{
+			Count: 2,
+			Words: []string{"hello", "world"},
+		}
+		_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.GPT3Dot5Turbo0613,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Hello!",
+				},
+			},
+			Functions: []openai.FunctionDefinition{{
+				Name:       "test",
+				Strict:     true,
+				Parameters: &msg,
+			}},
+		})
+		checks.NoError(t, err, "CreateChatCompletion with functions error")
+	})
 }
 
 func TestAzureChatCompletions(t *testing.T) {

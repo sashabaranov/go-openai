@@ -82,6 +82,7 @@ type ChatMessagePart struct {
 type ChatCompletionMessage struct {
 	Role         string `json:"role"`
 	Content      string `json:"content"`
+	Refusal      string `json:"refusal,omitempty"`
 	MultiContent []ChatMessagePart
 
 	// This property isn't in the official documentation, but it's in
@@ -107,6 +108,7 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 		msg := struct {
 			Role         string            `json:"role"`
 			Content      string            `json:"-"`
+			Refusal      string            `json:"refusal,omitempty"`
 			MultiContent []ChatMessagePart `json:"content,omitempty"`
 			Name         string            `json:"name,omitempty"`
 			FunctionCall *FunctionCall     `json:"function_call,omitempty"`
@@ -115,9 +117,11 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 		}(m)
 		return json.Marshal(msg)
 	}
+
 	msg := struct {
 		Role         string            `json:"role"`
 		Content      string            `json:"content"`
+		Refusal      string            `json:"refusal,omitempty"`
 		MultiContent []ChatMessagePart `json:"-"`
 		Name         string            `json:"name,omitempty"`
 		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
@@ -131,12 +135,14 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 	msg := struct {
 		Role         string `json:"role"`
 		Content      string `json:"content"`
+		Refusal      string `json:"refusal,omitempty"`
 		MultiContent []ChatMessagePart
 		Name         string        `json:"name,omitempty"`
 		FunctionCall *FunctionCall `json:"function_call,omitempty"`
 		ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
 		ToolCallID   string        `json:"tool_call_id,omitempty"`
 	}{}
+
 	if err := json.Unmarshal(bs, &msg); err == nil {
 		*m = ChatCompletionMessage(msg)
 		return nil
@@ -144,6 +150,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 	multiMsg := struct {
 		Role         string `json:"role"`
 		Content      string
+		Refusal      string            `json:"refusal,omitempty"`
 		MultiContent []ChatMessagePart `json:"content"`
 		Name         string            `json:"name,omitempty"`
 		FunctionCall *FunctionCall     `json:"function_call,omitempty"`

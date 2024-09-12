@@ -87,6 +87,10 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
+		GPTO1Preview:         true,
+		GPTO1Preview20240912: true,
+		GPTO1Mini:            true,
+		GPTO1Mini20240912:    true,
 		GPT3Dot5Turbo:        true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,

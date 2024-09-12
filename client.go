@@ -285,12 +285,19 @@ func (c *Client) baseURLWithAzureDeployment(baseURL, suffix, model string) (newB
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {
+	data, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return &RequestError{
+			HTTPStatusCode: resp.StatusCode,
+			Err:            fmt.Errorf("read resp body failed: %w", err),
+		}
+	}
 	var errRes ErrorResponse
-	err := json.NewDecoder(resp.Body).Decode(&errRes)
+	err = json.Unmarshal(data, &errRes)
 	if err != nil || errRes.Error == nil {
 		reqErr := &RequestError{
 			HTTPStatusCode: resp.StatusCode,
-			Err:            err,
+			Err:            fmt.Errorf("resp is not valid json: %s", string(data)),
 		}
 		if errRes.Error != nil {
 			reqErr.Err = errRes.Error

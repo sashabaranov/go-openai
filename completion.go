@@ -17,6 +17,10 @@ var (
 // GPT3 Models are designed for text-based tasks. For code-specific
 // tasks, please refer to the Codex series of models.
 const (
+	O1Mini                = "o1-mini"
+	O1Mini20240912        = "o1-mini-2024-09-12"
+	O1Preview             = "o1-preview"
+	O1Preview20240912     = "o1-preview-2024-09-12"
 	GPT432K0613           = "gpt-4-32k-0613"
 	GPT432K0314           = "gpt-4-32k-0314"
 	GPT432K               = "gpt-4-32k"
@@ -83,6 +87,10 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
+		O1Mini:               true,
+		O1Mini20240912:       true,
+		O1Preview:            true,
+		O1Preview20240912:    true,
 		GPT3Dot5Turbo:        true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,

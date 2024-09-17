@@ -36,6 +36,10 @@ func Validate(schema Definition, data any) bool {
 		_, ok := data.(bool)
 		return ok
 	case Integer:
+		// Golang unmarshals all numbers as float64, so we need to check if the float64 is an integer
+		if num, ok := data.(float64); ok {
+			return num == float64(int64(num))
+		}
 		_, ok := data.(int)
 		return ok
 	case Null:

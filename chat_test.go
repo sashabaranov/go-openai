@@ -1,8 +1,10 @@
 package openai_test
 
 import (
+	"bytes"
 	"context"
 	"crypto/rand"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -555,11 +557,31 @@ func TestFinishReason(t *testing.T) {
 	}
 }
 
+func encodeImage(t *testing.T, mimeType string, data []byte) []byte {
+	encodedLength := base64.StdEncoding.EncodedLen(len(data))
+	buf := bytes.NewBuffer(make([]byte, 0, 13+len(mimeType)+encodedLength))
+
+	buf.WriteString(`data:`)
+	buf.WriteString(mimeType)
+	buf.WriteString(`;base64,`)
+
+	// base64 encode data and write it to the buffer
+	encoder := base64.NewEncoder(base64.StdEncoding, buf)
+	_, err := encoder.Write(data)
+	if err != nil {
+		t.Fatalf("Failed to encode image: %v", err)
+	}
+	err = encoder.Close()
+	if err != nil {
+		t.Fatalf("Failed to encode image: %v", err)
+	}
+	return buf.Bytes()
+}
+
 func TestChatCompletionRequest_MarshalJSON_LargeImage(t *testing.T) {
 	// generate 20 mb of random data
 	imageData := generateEncodedData(t, 20*1024*1024)
-	//imageData = []byte("test")
-	//imageURL := openai.ImageURL(fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(imageData)))
+	//imageURL := encodeImage(t, "image/png", imageData)
 	imageURL := openai.BinaryImageURL{
 		MimeType: "image/png",
 		Data:     imageData,

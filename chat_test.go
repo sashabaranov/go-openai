@@ -1,10 +1,8 @@
 package openai_test
 
 import (
-	"bytes"
 	"context"
 	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -557,7 +555,7 @@ func TestFinishReason(t *testing.T) {
 	}
 }
 
-func encodeImage(t *testing.T, mimeType string, data []byte) []byte {
+/*func encodeImage(t *testing.T, mimeType string, data []byte) []byte {
 	encodedLength := base64.StdEncoding.EncodedLen(len(data))
 	buf := bytes.NewBuffer(make([]byte, 0, 13+len(mimeType)+encodedLength))
 
@@ -576,7 +574,7 @@ func encodeImage(t *testing.T, mimeType string, data []byte) []byte {
 		t.Fatalf("Failed to encode image: %v", err)
 	}
 	return buf.Bytes()
-}
+}*/
 
 func TestChatCompletionRequest_MarshalJSON_LargeImage(t *testing.T) {
 	// generate 20 mb of random data

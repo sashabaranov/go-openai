@@ -64,14 +64,9 @@ const (
 )
 
 type ChatMessageImageURL struct {
+	// URL can be a string or a BinaryImageURL object.
 	URL    any            `json:"url,omitempty"`
 	Detail ImageURLDetail `json:"detail,omitempty"`
-}
-
-type ImageURL string
-
-func (i ImageURL) String() string {
-	return string(i)
 }
 
 type BinaryImageURL struct {

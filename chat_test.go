@@ -555,7 +555,7 @@ func TestFinishReason(t *testing.T) {
 	}
 }
 
-func TestChatCompletionMessageMarshalJSONWithMultiContent(t *testing.T) {
+func TestChatCompletionRequest_MarshalJSON_LargeImage(t *testing.T) {
 	// generate 20 mb of random data
 	imageData := generateEncodedData(t, 20*1024*1024)
 	//imageData = []byte("test")
@@ -597,8 +597,11 @@ func TestChatCompletionMessageMarshalJSONWithMultiContent(t *testing.T) {
 		},
 		ToolCallID: "tool-call-id",
 	}
+	req := openai.ChatCompletionRequest{
+		Messages: []openai.ChatCompletionMessage{msg},
+	}
 
-	data, err := json.Marshal(msg)
+	data, err := json.Marshal(req)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}

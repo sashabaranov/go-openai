@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	"context"
+	"crypto/rand"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -342,7 +343,7 @@ func TestMultipartChatCompletions(t *testing.T) {
 					{
 						Type: openai.ChatMessagePartTypeImageURL,
 						ImageURL: &openai.ChatMessageImageURL{
-							URL:    "URL",
+							URL:    openai.ImageURL("URL"),
 							Detail: openai.ImageURLDetailLow,
 						},
 					},
@@ -552,4 +553,64 @@ func TestFinishReason(t *testing.T) {
 			t.Errorf("%s should be quoted", r)
 		}
 	}
+}
+
+func TestChatCompletionMessageMarshalJSONWithMultiContent(t *testing.T) {
+	// generate 20 mb of random data
+	imageData := generateEncodedData(t, 20*1024*1024)
+	//imageData = []byte("test")
+	//imageURL := openai.ImageURL(fmt.Sprintf("data:image/png;base64,%s", base64.StdEncoding.EncodeToString(imageData)))
+	imageURL := openai.BinaryImageURL{
+		MimeType: "image/png",
+		Data:     imageData,
+	}
+
+	msg := openai.ChatCompletionMessage{
+		Role: openai.ChatMessageRoleUser,
+		MultiContent: []openai.ChatMessagePart{
+			{
+				Type: openai.ChatMessagePartTypeText,
+				Text: "Hello, world!",
+			},
+			{
+				Type: openai.ChatMessagePartTypeImageURL,
+				ImageURL: &openai.ChatMessageImageURL{
+					URL:    imageURL,
+					Detail: openai.ImageURLDetailHigh,
+				},
+			},
+		},
+		Name: "test-name",
+		FunctionCall: &openai.FunctionCall{
+			Name:      "test-function",
+			Arguments: `{"arg1":"value1"}`,
+		},
+		ToolCalls: []openai.ToolCall{
+			{
+				ID:   "tool1",
+				Type: openai.ToolTypeFunction,
+				Function: openai.FunctionCall{
+					Name:      "tool-function",
+					Arguments: `{"arg2":"value2"}`,
+				},
+			},
+		},
+		ToolCallID: "tool-call-id",
+	}
+
+	data, err := json.Marshal(msg)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	t.Logf("marshaled message: %s", data)
+}
+
+func generateEncodedData(t *testing.T, size int64) []byte {
+	data := make([]byte, size)
+	_, err := rand.Read(data)
+	if err != nil {
+		t.Fatalf("Failed to generate random data: %v", err)
+	}
+	return data
 }

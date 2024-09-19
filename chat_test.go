@@ -557,6 +557,18 @@ func TestFinishReason(t *testing.T) {
 	}
 }
 
+func TestChatCompletionRequest_MarshalJSON_LargeImage_Base64(t *testing.T) {
+	// generate 20 mb of random data
+	imageData := generateEncodedData(t, 20*1024*1024)
+	imageURL := encodeImage(t, "image/png", imageData)
+	req := generateRequestWithImage(imageURL)
+
+	_, err := json.Marshal(req)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+}
+
 func TestChatCompletionRequest_MarshalJSON_LargeImage_Binary(t *testing.T) {
 	// generate 20 mb of random data
 	imageData := generateEncodedData(t, 20*1024*1024)
@@ -566,26 +578,10 @@ func TestChatCompletionRequest_MarshalJSON_LargeImage_Binary(t *testing.T) {
 	}
 	req := generateRequestWithImage(imageURL)
 
-	data, err := json.Marshal(req)
+	_, err := json.Marshal(req)
 	if err != nil {
 		t.Fatalf("Expected no error, got %v", err)
 	}
-
-	t.Logf("marshaled message: %s", data)
-}
-
-func TestChatCompletionRequest_MarshalJSON_LargeImage_Base64(t *testing.T) {
-	// generate 20 mb of random data
-	imageData := generateEncodedData(t, 20*1024*1024)
-	imageURL := encodeImage(t, "image/png", imageData)
-	req := generateRequestWithImage(imageURL)
-
-	data, err := json.Marshal(req)
-	if err != nil {
-		t.Fatalf("Expected no error, got %v", err)
-	}
-
-	t.Logf("marshaled message: %s", data)
 }
 
 func generateEncodedData(t *testing.T, size int64) []byte {

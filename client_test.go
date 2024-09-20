@@ -340,7 +340,7 @@ func TestClientReturnsRequestBuilderErrors(t *testing.T) {
 			return client.CreateMessage(ctx, "", MessageRequest{})
 		}},
 		{"ListMessage", func() (any, error) {
-			return client.ListMessage(ctx, "", nil, nil, nil, nil)
+			return client.ListMessage(ctx, "", nil, nil, nil, nil, nil)
 		}},
 		{"RetrieveMessage", func() (any, error) {
 			return client.RetrieveMessage(ctx, "", "")

@@ -37,6 +37,8 @@ type Run struct {
 	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
 	// ThreadTruncationStrategy defines the truncation strategy to use for the thread.
 	TruncationStrategy *ThreadTruncationStrategy `json:"truncation_strategy,omitempty"`
+	// Disable the default behavior of parallel tool calls by setting it: false.
+	ParallelToolCalls any `json:"parallel_tool_calls,omitempty"`
 
 	httpHeader
 }

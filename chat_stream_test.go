@@ -36,6 +36,27 @@ func TestChatCompletionsStreamWrongModel(t *testing.T) {
 	}
 }
 
+func TestChatCompletionsStreamWithO1BetaLimitations(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1/chat/completions"
+	client := openai.NewClientWithConfig(config)
+	ctx := context.Background()
+
+	req := openai.ChatCompletionRequest{
+		Model: openai.O1Preview,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	}
+	_, err := client.CreateChatCompletionStream(ctx, req)
+	if !errors.Is(err, openai.ErrO1BetaLimitationsStreaming) {
+		t.Fatalf("CreateChatCompletion should return ErrO1BetaLimitationsStreaming, but returned: %v", err)
+	}
+}
+
 func TestCreateChatCompletionStream(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

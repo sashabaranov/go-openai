@@ -7,9 +7,18 @@ import (
 )
 
 var (
+	ErrO1MaxTokensDeprecated                   = errors.New("this model is not supported MaxTokens, please use MaxCompletionsTokens")                              //nolint:lll
 	ErrCompletionUnsupportedModel              = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
 	ErrCompletionStreamNotSupported            = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
 	ErrCompletionRequestPromptTypeNotSupported = errors.New("the type of CompletionRequest.Prompt only supports string and []string")                              //nolint:lll
+)
+
+var (
+	ErrO1BetaLimitationsMessageTypes = errors.New("this model has beta-limitations, user and assistant messages only, system messages are not supported")                                  //nolint:lll
+	ErrO1BetaLimitationsStreaming    = errors.New("this model has beta-limitations, streaming not supported")                                                                              //nolint:lll
+	ErrO1BetaLimitationsTools        = errors.New("this model has beta-limitations, tools, function calling, and response format parameters are not supported")                            //nolint:lll
+	ErrO1BetaLimitationsLogprobs     = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
+	ErrO1BetaLimitationsOther        = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -85,6 +94,15 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
+// O1SeriesModels List of new Series of OpenAI models.
+// Some old api attributes not supported.
+var O1SeriesModels = map[string]struct{}{
+	O1Mini:            {},
+	O1Mini20240912:    {},
+	O1Preview:         {},
+	O1Preview20240912: {},
+}
+
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
 		O1Mini:               true,
@@ -144,6 +162,70 @@ func checkPromptType(prompt any) bool {
 	_, isString := prompt.(string)
 	_, isStringSlice := prompt.([]string)
 	return isString || isStringSlice
+}
+
+var unsupportedToolsForO1Models = map[ToolType]struct{}{
+	ToolTypeFunction: {},
+}
+
+var availableMessageRoleForO1Models = map[string]struct{}{
+	ChatMessageRoleUser:      {},
+	ChatMessageRoleAssistant: {},
+}
+
+// validateRequestForO1Models checks for deprecated fields of OpenAI models.
+func validateRequestForO1Models(request ChatCompletionRequest) error {
+	if _, found := O1SeriesModels[request.Model]; !found {
+		return nil
+	}
+
+	if request.MaxTokens > 0 {
+		return ErrO1MaxTokensDeprecated
+	}
+
+	// Beta Limitations
+	// refs:https://platform.openai.com/docs/guides/reasoning/beta-limitations
+	// Streaming: not supported
+	if request.Stream {
+		return ErrO1BetaLimitationsStreaming
+	}
+	// Logprobs: not supported.
+	if request.LogProbs {
+		return ErrO1BetaLimitationsLogprobs
+	}
+
+	// Message types: user and assistant messages only, system messages are not supported.
+	for _, m := range request.Messages {
+		if _, found := availableMessageRoleForO1Models[m.Role]; !found {
+			return ErrO1BetaLimitationsMessageTypes
+		}
+	}
+
+	// Tools: tools, function calling, and response format parameters are not supported
+	for _, t := range request.Tools {
+		if _, found := unsupportedToolsForO1Models[t.Type]; found {
+			return ErrO1BetaLimitationsTools
+		}
+	}
+
+	// Other: temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
+	if request.Temperature > 0 && request.Temperature != 1 {
+		return ErrO1BetaLimitationsOther
+	}
+	if request.TopP > 0 && request.TopP != 1 {
+		return ErrO1BetaLimitationsOther
+	}
+	if request.N > 0 && request.N != 1 {
+		return ErrO1BetaLimitationsOther
+	}
+	if request.PresencePenalty > 0 {
+		return ErrO1BetaLimitationsOther
+	}
+	if request.FrequencyPenalty > 0 {
+		return ErrO1BetaLimitationsOther
+	}
+
+	return nil
 }
 
 // CompletionRequest represents a request structure for completion API.

@@ -371,6 +371,10 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
+	if err = validateRequestForO1Models(request); err != nil {
+		return
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

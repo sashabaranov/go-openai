@@ -144,7 +144,6 @@ func TestHandleErrorResp(t *testing.T) {
 		{
 			name:        "401 Invalid Authentication",
 			httpCode:    http.StatusUnauthorized,
-			httpStatus:  "",
 			contentType: "application/json",
 			body: bytes.NewReader([]byte(
 				`{
@@ -233,12 +232,6 @@ func TestHandleErrorResp(t *testing.T) {
 				t.Errorf("Unexpected error: %v , expected: %s", err, tc.expected)
 				t.Fail()
 			}
-
-			//e := &APIError{}
-			//if !errors.As(err, &e) {
-			//	t.Errorf("(%s) Expected error to be of type APIError", tc.name)
-			//	t.Fail()
-			//}
 		})
 	}
 }

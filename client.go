@@ -288,7 +288,7 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
 		body, err := io.ReadAll(resp.Body)
 		if err != nil {
-			return err
+			return fmt.Errorf("error, reading response body: %s", err)
 		}
 		return fmt.Errorf("error, status code: %d, status: %s, body: %s", resp.StatusCode, resp.Status, body)
 	}

@@ -215,6 +215,13 @@ func TestHandleErrorResp(t *testing.T) {
 </body>
 </html>`,
 		},
+		{
+			name:        "errorReader",
+			httpCode:    http.StatusRequestEntityTooLarge,
+			contentType: "text/html",
+			body:        &errorReader{err: errors.New("errorReader")},
+			expected:    "error, reading response body: errorReader",
+		},
 	}
 
 	for _, tc := range testCases {

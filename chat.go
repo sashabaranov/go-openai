@@ -207,9 +207,9 @@ type ChatCompletionRequest struct {
 	// This value is now deprecated in favor of max_completion_tokens, and is not compatible with o1 series models.
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
 	MaxTokens int `json:"max_tokens,omitempty"`
-	// MaxCompletionsTokens An upper bound for the number of tokens that can be generated for a completion,
+	// MaxCompletionTokens An upper bound for the number of tokens that can be generated for a completion,
 	// including visible output tokens and reasoning tokens https://platform.openai.com/docs/guides/reasoning
-	MaxCompletionsTokens int                           `json:"max_completions_tokens,omitempty"`
+	MaxCompletionTokens int                           `json:"max_completion_tokens,omitempty"`
 	Temperature          float32                       `json:"temperature,omitempty"`
 	TopP                 float32                       `json:"top_p,omitempty"`
 	N                    int                           `json:"n,omitempty"`

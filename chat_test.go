@@ -100,7 +100,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "log_probs_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				LogProbs:             true,
 				Model:                openai.O1Preview,
 			},
@@ -109,7 +109,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "message_type_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -122,7 +122,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "tool_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -143,7 +143,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "set_temperature_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -160,7 +160,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "set_top_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -178,7 +178,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "set_n_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -197,7 +197,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "set_presence_penalty_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -214,7 +214,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 		{
 			name: "set_frequency_penalty_unsupported",
 			in: openai.ChatCompletionRequest{
-				MaxCompletionsTokens: 1000,
+				MaxCompletionTokens: 1000,
 				Model:                openai.O1Mini,
 				Messages: []openai.ChatCompletionMessage{
 					{
@@ -297,7 +297,7 @@ func TestO1ModelChatCompletions(t *testing.T) {
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
 	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		Model:                openai.O1Preview,
-		MaxCompletionsTokens: 1000,
+		MaxCompletionTokens: 1000,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleUser,

@@ -13,6 +13,7 @@ type APIError struct {
 	Message        string      `json:"message"`
 	Param          *string     `json:"param,omitempty"`
 	Type           string      `json:"type"`
+	HTTPStatus     string      `json:"-"`
 	HTTPStatusCode int         `json:"-"`
 	InnerError     *InnerError `json:"innererror,omitempty"`
 }
@@ -25,6 +26,7 @@ type InnerError struct {
 
 // RequestError provides information about generic request errors.
 type RequestError struct {
+	HTTPStatus     string
 	HTTPStatusCode int
 	Err            error
 }
@@ -35,7 +37,7 @@ type ErrorResponse struct {
 
 func (e *APIError) Error() string {
 	if e.HTTPStatusCode > 0 {
-		return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Message)
+		return fmt.Sprintf("error, status code: %d, status: %s, message: %s", e.HTTPStatusCode, e.HTTPStatus, e.Message)
 	}
 
 	return e.Message
@@ -101,7 +103,7 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	return fmt.Sprintf("error, status code: %d, message: %s", e.HTTPStatusCode, e.Err)
+	return fmt.Sprintf("error, status code: %d, status: %s, message: %s", e.HTTPStatusCode, e.HTTPStatus, e.Err)
 }
 
 func (e *RequestError) Unwrap() error {

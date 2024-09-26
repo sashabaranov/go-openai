@@ -41,11 +41,17 @@ type Violence struct {
 	Severity string `json:"severity,omitempty"`
 }
 
+type JailBreak struct {
+	Filtered bool `json:"filtered"`
+	Detected bool `json:"detected"`
+}
+
 type ContentFilterResults struct {
-	Hate     Hate     `json:"hate,omitempty"`
-	SelfHarm SelfHarm `json:"self_harm,omitempty"`
-	Sexual   Sexual   `json:"sexual,omitempty"`
-	Violence Violence `json:"violence,omitempty"`
+	Hate      Hate      `json:"hate,omitempty"`
+	SelfHarm  SelfHarm  `json:"self_harm,omitempty"`
+	Sexual    Sexual    `json:"sexual,omitempty"`
+	Violence  Violence  `json:"violence,omitempty"`
+	JailBreak JailBreak `json:"jailbreak,omitempty"`
 }
 
 type PromptAnnotation struct {

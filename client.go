@@ -46,12 +46,19 @@ type RawResponse struct {
 }
 
 // NewClient creates new OpenAI API client.
-func NewClient(authToken string) *Client {
+func NewClient(authToken string, options ...ConfigOption) *Client {
 	config := DefaultConfig(authToken)
+
+	for _, opt := range options {
+		opt(&config)
+	}
+
 	return NewClientWithConfig(config)
 }
 
 // NewClientWithConfig creates new OpenAI API client for specified config.
+//
+// Deprecated: Please use NewClient with options.
 func NewClientWithConfig(config ClientConfig) *Client {
 	return &Client{
 		config:         config,
@@ -64,11 +71,9 @@ func NewClientWithConfig(config ClientConfig) *Client {
 
 // NewOrgClient creates new OpenAI API client for specified Organization ID.
 //
-// Deprecated: Please use NewClientWithConfig.
+// Deprecated: Please use NewClient with options.
 func NewOrgClient(authToken, org string) *Client {
-	config := DefaultConfig(authToken)
-	config.OrgID = org
-	return NewClientWithConfig(config)
+	return NewClient(authToken, WithOrgID(org))
 }
 
 type requestOptions struct {

@@ -238,18 +238,21 @@ type CompletionRequest struct {
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias
-	LogitBias       map[string]int `json:"logit_bias,omitempty"`
-	LogProbs        int            `json:"logprobs,omitempty"`
-	MaxTokens       int            `json:"max_tokens,omitempty"`
-	N               int            `json:"n,omitempty"`
-	PresencePenalty float32        `json:"presence_penalty,omitempty"`
-	Seed            *int           `json:"seed,omitempty"`
-	Stop            []string       `json:"stop,omitempty"`
-	Stream          bool           `json:"stream,omitempty"`
-	Suffix          string         `json:"suffix,omitempty"`
-	Temperature     float32        `json:"temperature,omitempty"`
-	TopP            float32        `json:"top_p,omitempty"`
-	User            string         `json:"user,omitempty"`
+	LogitBias map[string]int `json:"logit_bias,omitempty"`
+	// Store can be set to true to store the output of this completion request for use in distillations and evals.
+	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
+	Store           bool     `json:"store,omitempty"`
+	LogProbs        int      `json:"logprobs,omitempty"`
+	MaxTokens       int      `json:"max_tokens,omitempty"`
+	N               int      `json:"n,omitempty"`
+	PresencePenalty float32  `json:"presence_penalty,omitempty"`
+	Seed            *int     `json:"seed,omitempty"`
+	Stop            []string `json:"stop,omitempty"`
+	Stream          bool     `json:"stream,omitempty"`
+	Suffix          string   `json:"suffix,omitempty"`
+	Temperature     float32  `json:"temperature,omitempty"`
+	TopP            float32  `json:"top_p,omitempty"`
+	User            string   `json:"user,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

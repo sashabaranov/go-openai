@@ -87,7 +87,7 @@ const (
 
 type ChatMessagePart struct {
 	Type     ChatMessagePartType  `json:"type,omitempty"`
-	Text     string               `json:"text,omitempty"`
+	Text     string               `json:"text"`
 	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
 }
 

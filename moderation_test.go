@@ -37,6 +37,8 @@ func TestModerationsWithDifferentModelOptions(t *testing.T) {
 		getModerationModelTestOption(openai.GPT3Dot5Turbo, openai.ErrModerationInvalidModel),
 		getModerationModelTestOption(openai.ModerationTextStable, nil),
 		getModerationModelTestOption(openai.ModerationTextLatest, nil),
+		getModerationModelTestOption(openai.ModerationOmni20240926, nil),
+		getModerationModelTestOption(openai.ModerationOmniLatest, nil),
 		getModerationModelTestOption("", nil),
 	)
 	client, server, teardown := setupOpenAITestServer()

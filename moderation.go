@@ -14,8 +14,10 @@ import (
 // If you use text-moderation-stable, we will provide advanced notice before updating the model.
 // Accuracy of text-moderation-stable may be slightly lower than for text-moderation-latest.
 const (
-	ModerationTextStable = "text-moderation-stable"
-	ModerationTextLatest = "text-moderation-latest"
+	ModerationOmniLatest   = "omni-moderation-latest"
+	ModerationOmni20240926 = "omni-moderation-2024-09-26"
+	ModerationTextStable   = "text-moderation-stable"
+	ModerationTextLatest   = "text-moderation-latest"
 	// Deprecated: use ModerationTextStable and ModerationTextLatest instead.
 	ModerationText001 = "text-moderation-001"
 )
@@ -25,8 +27,10 @@ var (
 )
 
 var validModerationModel = map[string]struct{}{
-	ModerationTextStable: {},
-	ModerationTextLatest: {},
+	ModerationOmniLatest:   {},
+	ModerationOmni20240926: {},
+	ModerationTextStable:   {},
+	ModerationTextLatest:   {},
 }
 
 // ModerationRequest represents a request structure for moderation API.

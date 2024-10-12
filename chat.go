@@ -20,7 +20,7 @@ var (
 
 type ChatCompletionMessage struct {
 	Role    string `json:"role"`
-	Content string `json:"content"`
+	Content interface{} `json:"content"`
 
 	// This property isn't in the official documentation, but it's in
 	// the documentation for the official library for python:

@@ -29,6 +29,7 @@ type RequestError struct {
 	HTTPStatus     string
 	HTTPStatusCode int
 	Err            error
+	Body           []byte
 }
 
 type ErrorResponse struct {

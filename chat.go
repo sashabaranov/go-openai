@@ -255,6 +255,11 @@ type ChatCompletionRequest struct {
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
 	// Disable the default behavior of parallel tool calls by setting it: false.
 	ParallelToolCalls any `json:"parallel_tool_calls,omitempty"`
+	// Store can be set to true to store the output of this completion request for use in distillations and evals.
+	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
+	Store bool `json:"store,omitempty"`
+	// Metadata to store with the completion.
+	Metadata map[string]string `json:"metadata,omitempty"`
 }
 
 type StreamOptions struct {

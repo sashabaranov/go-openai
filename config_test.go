@@ -60,3 +60,10 @@ func TestGetAzureDeploymentByModel(t *testing.T) {
 		})
 	}
 }
+
+func TestSetApiVersion(t *testing.T) {
+	conf := DefaultAzureConfig("", "https://test.openai.azure.com/", WithAzureAPIVersion("2021-03-01-preview"))
+	if conf.APIVersion != "2021-03-01-preview" {
+		t.Errorf("Expected %s, got %s", "2021-03-01-preview", conf.APIVersion)
+	}
+}

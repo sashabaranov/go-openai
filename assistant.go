@@ -14,17 +14,20 @@ const (
 )
 
 type Assistant struct {
-	ID            string                 `json:"id"`
-	Object        string                 `json:"object"`
-	CreatedAt     int64                  `json:"created_at"`
-	Name          *string                `json:"name,omitempty"`
-	Description   *string                `json:"description,omitempty"`
-	Model         string                 `json:"model"`
-	Instructions  *string                `json:"instructions,omitempty"`
-	Tools         []AssistantTool        `json:"tools"`
-	FileIDs       []string               `json:"file_ids,omitempty"`
-	Metadata      map[string]any         `json:"metadata,omitempty"`
-	ToolResources *AssistantToolResource `json:"tool_resources,omitempty"`
+	ID             string                 `json:"id"`
+	Object         string                 `json:"object"`
+	CreatedAt      int64                  `json:"created_at"`
+	Name           *string                `json:"name,omitempty"`
+	Description    *string                `json:"description,omitempty"`
+	Model          string                 `json:"model"`
+	Instructions   *string                `json:"instructions,omitempty"`
+	Tools          []AssistantTool        `json:"tools"`
+	ToolResources  *AssistantToolResource `json:"tool_resources,omitempty"`
+	FileIDs        []string               `json:"file_ids,omitempty"` // Deprecated in v2
+	Metadata       map[string]any         `json:"metadata,omitempty"`
+	Temperature    *float32               `json:"temperature,omitempty"`
+	TopP           *float32               `json:"top_p,omitempty"`
+	ResponseFormat any                    `json:"response_format,omitempty"`
 
 	httpHeader
 }

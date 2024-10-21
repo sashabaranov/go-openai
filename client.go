@@ -289,9 +289,6 @@ func (c *Client) handleErrorResp(resp *http.Response) error {
 	if err != nil {
 		return fmt.Errorf("error, reading response body: %w", err)
 	}
-	if !strings.HasPrefix(resp.Header.Get("Content-Type"), "application/json") {
-		return fmt.Errorf("error, status code: %d, status: %s, body: %s", resp.StatusCode, resp.Status, body)
-	}
 	var errRes ErrorResponse
 	err = json.Unmarshal(body, &errRes)
 	if err != nil || errRes.Error == nil {

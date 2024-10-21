@@ -194,26 +194,31 @@ func TestHandleErrorResp(t *testing.T) {
 				{
 					"error":{}
 				}`)),
-			expected: "error, status code: 503, status: , message: ",
+			expected: `error, status code: 503, status: , message: , body: 
+				{
+					"error":{}
+				}`,
 		},
 		{
 			name:        "413 Request Entity Too Large",
 			httpCode:    http.StatusRequestEntityTooLarge,
 			contentType: "text/html",
-			body: bytes.NewReader([]byte(`<html>
-<head><title>413 Request Entity Too Large</title></head>
-<body>
-<center><h1>413 Request Entity Too Large</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>`)),
-			expected: `error, status code: 413, status: , body: <html>
-<head><title>413 Request Entity Too Large</title></head>
-<body>
-<center><h1>413 Request Entity Too Large</h1></center>
-<hr><center>nginx</center>
-</body>
-</html>`,
+			body: bytes.NewReader([]byte(`
+	<html>
+	<head><title>413 Request Entity Too Large</title></head>
+	<body>
+	<center><h1>413 Request Entity Too Large</h1></center>
+	<hr><center>nginx</center>
+	</body>
+	</html>`)),
+			expected: `error, status code: 413, status: , message: invalid character '<' looking for beginning of value, body: 
+	<html>
+	<head><title>413 Request Entity Too Large</title></head>
+	<body>
+	<center><h1>413 Request Entity Too Large</h1></center>
+	<hr><center>nginx</center>
+	</body>
+	</html>`,
 		},
 		{
 			name:        "errorReader",

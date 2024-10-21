@@ -104,7 +104,10 @@ func (e *APIError) UnmarshalJSON(data []byte) (err error) {
 }
 
 func (e *RequestError) Error() string {
-	return fmt.Sprintf("error, status code: %d, status: %s, message: %s", e.HTTPStatusCode, e.HTTPStatus, e.Err)
+	return fmt.Sprintf(
+		"error, status code: %d, status: %s, message: %s, body: %s",
+		e.HTTPStatusCode, e.HTTPStatus, e.Err, e.Body,
+	)
 }
 
 func (e *RequestError) Unwrap() error {

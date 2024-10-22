@@ -161,7 +161,17 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 func checkPromptType(prompt any) bool {
 	_, isString := prompt.(string)
 	_, isStringSlice := prompt.([]string)
-	return isString || isStringSlice
+	isInterfaceSlice := false
+	if slice, isSlice := prompt.([]interface{}); isSlice {
+		isInterfaceSlice = true
+		for _, item := range slice {
+			if _, isStringItem := item.(string); !isStringItem {
+				isInterfaceSlice = false
+				break
+			}
+		}
+	}
+	return isString || isStringSlice || isInterfaceSlice
 }
 
 var unsupportedToolsForO1Models = map[ToolType]struct{}{

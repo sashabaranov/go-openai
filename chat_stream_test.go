@@ -366,15 +366,19 @@ func TestCreateChatCompletionStreamWithRefusal(t *testing.T) {
 
 		dataBytes := []byte{}
 
+		//nolint:lll
 		dataBytes = append(dataBytes, []byte(`data: {"id":"1","object":"chat.completion.chunk","created":1729585728,"model":"gpt-4o-mini-2024-07-18","system_fingerprint":"fp_d9767fc5b9","choices":[{"index":0,"delta":{"role":"assistant","content":"","refusal":null},"finish_reason":null}]}`)...)
 		dataBytes = append(dataBytes, []byte("\n\n")...)
 
+		//nolint:lll
 		dataBytes = append(dataBytes, []byte(`data: {"id":"2","object":"chat.completion.chunk","created":1729585728,"model":"gpt-4o-mini-2024-07-18","system_fingerprint":"fp_d9767fc5b9","choices":[{"index":0,"delta":{"refusal":"Hello"},"finish_reason":null}]}`)...)
 		dataBytes = append(dataBytes, []byte("\n\n")...)
 
+		//nolint:lll
 		dataBytes = append(dataBytes, []byte(`data: {"id":"3","object":"chat.completion.chunk","created":1729585728,"model":"gpt-4o-mini-2024-07-18","system_fingerprint":"fp_d9767fc5b9","choices":[{"index":0,"delta":{"refusal":" World"},"finish_reason":null}]}`)...)
 		dataBytes = append(dataBytes, []byte("\n\n")...)
 
+		//nolint:lll
 		dataBytes = append(dataBytes, []byte(`data: {"id":"4","object":"chat.completion.chunk","created":1729585728,"model":"gpt-4o-mini-2024-07-18","system_fingerprint":"fp_d9767fc5b9","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`)...)
 		dataBytes = append(dataBytes, []byte("\n\n")...)
 

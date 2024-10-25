@@ -161,7 +161,23 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 func checkPromptType(prompt any) bool {
 	_, isString := prompt.(string)
 	_, isStringSlice := prompt.([]string)
-	return isString || isStringSlice
+	if isString || isStringSlice {
+		return true
+	}
+
+	// check if it is prompt is []string hidden under []any
+	slice, isSlice := prompt.([]any)
+	if !isSlice {
+		return false
+	}
+
+	for _, item := range slice {
+		_, itemIsString := item.(string)
+		if !itemIsString {
+			return false
+		}
+	}
+	return true // all items in the slice are string, so it is []string
 }
 
 var unsupportedToolsForO1Models = map[ToolType]struct{}{

@@ -534,7 +534,7 @@ func TestCreateChatCompletionStreamWithLogprobs(t *testing.T) {
 				{
 					Index: 0,
 					Delta: openai.ChatCompletionStreamChoiceDelta{},
-					Logprobs: openai.ChatCompletionStreamChoiceLogprobs{
+					Logprobs: &openai.ChatCompletionStreamChoiceLogprobs{
 						Content: []openai.ChatCompletionTokenLogprob{},
 					},
 				},
@@ -552,7 +552,7 @@ func TestCreateChatCompletionStreamWithLogprobs(t *testing.T) {
 					Delta: openai.ChatCompletionStreamChoiceDelta{
 						Content: "Hello",
 					},
-					Logprobs: openai.ChatCompletionStreamChoiceLogprobs{
+					Logprobs: &openai.ChatCompletionStreamChoiceLogprobs{
 						Content: []openai.ChatCompletionTokenLogprob{
 							{
 								Token:       "Hello",
@@ -577,7 +577,7 @@ func TestCreateChatCompletionStreamWithLogprobs(t *testing.T) {
 					Delta: openai.ChatCompletionStreamChoiceDelta{
 						Content: " World",
 					},
-					Logprobs: openai.ChatCompletionStreamChoiceLogprobs{
+					Logprobs: &openai.ChatCompletionStreamChoiceLogprobs{
 						Content: []openai.ChatCompletionTokenLogprob{
 							{
 								Token:       " World",

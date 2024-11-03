@@ -11,11 +11,6 @@ const (
 	messagesSuffix = "messages"
 )
 
-const (
-	MessageToolCodeInterpreter = "code_interpreter"
-	MessageToolFileSearch      = "file_search"
-)
-
 type Message struct {
 	ID          string           `json:"id"`
 	Object      string           `json:"object"`

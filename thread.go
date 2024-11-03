@@ -9,12 +9,6 @@ const (
 	threadsSuffix = "/threads"
 )
 
-const (
-	ThreadAttachmentToolCodeInterpreter = "code_interpreter"
-	ThreadAttachmentToolFunction        = "function"
-	ThreadAttachmentToolFileSearch      = "file_search"
-)
-
 type Thread struct {
 	ID            string         `json:"id"`
 	Object        string         `json:"object"`

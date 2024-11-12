@@ -63,3 +63,16 @@ func TestStreamReaderReturnsErrTestErrorAccumulatorWriteFailed(t *testing.T) {
 	_, err := stream.Recv()
 	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed, "Did not return error when write failed", err.Error())
 }
+
+func TestStreamReaderRecvRaw(t *testing.T) {
+	stream := &streamReader[ChatCompletionStreamResponse]{
+		reader: bufio.NewReader(bytes.NewReader([]byte("data: {\"key\": \"value\"}\n"))),
+	}
+	rawLine, err := stream.RecvRaw()
+	if err != nil {
+		t.Fatalf("Did not return raw line: %v", err)
+	}
+	if !bytes.Equal(rawLine, []byte("{\"key\": \"value\"}")) {
+		t.Fatalf("Did not return raw line: %v", string(rawLine))
+	}
+}

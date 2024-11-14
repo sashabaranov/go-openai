@@ -219,6 +219,9 @@ type ChatCompletionRequest struct {
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
+
+	TopK              int32   `json:"top_k,omitempty"`
+	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
 }
 
 type StreamOptions struct {

@@ -57,7 +57,7 @@ linters-settings:
         # Default: true
         skipRecvDeref: false
 
-  gomnd:
+  mnd:
     # List of function patterns to exclude from analysis.
     # Values always ignored: `time.Date`
     # Default: []
@@ -167,7 +167,7 @@ linters:
     - durationcheck # check for two durations multiplied together
     - errname # Checks that sentinel errors are prefixed with the Err and error types are suffixed with the Error.
     - errorlint # errorlint is a linter for that can be used to find code that will cause problems with the error wrapping scheme introduced in Go 1.13.
-    - execinquery # execinquery is a linter about query string checker in Query function which reads your Go src files and warning it finds
+    # Removed execinquery (deprecated). execinquery is a linter about query string checker in Query function which reads your Go src files and warning it finds
     - exhaustive # check exhaustiveness of enum switch statements
     - exportloopref # checks for pointers to enclosing loop variables
     - forbidigo # Forbids identifiers
@@ -180,7 +180,6 @@ linters:
     - gocyclo # Computes and checks the cyclomatic complexity of functions
     - godot # Check if comments end in a period
     - goimports # In addition to fixing imports, goimports also formats your code in the same style as gofmt.
-    - gomnd # An analyzer to detect magic numbers.
     - gomoddirectives # Manage the use of 'replace', 'retract', and 'excludes' directives in go.mod.
     - gomodguard # Allow and block list linter for direct Go module dependencies. This is different from depguard where there are different block types for example version constraints and module recommendations.
     - goprintffuncname # Checks that printf-like functions are named with f at the end
@@ -188,6 +187,7 @@ linters:
     - lll # Reports long lines
     - makezero # Finds slice declarations with non-zero initial length
     # - nakedret # Finds naked returns in functions greater than a specified function length
+    - mnd # An analyzer to detect magic numbers.
     - nestif # Reports deeply nested if statements
     - nilerr # Finds the code that returns nil even if it checks that the error is not nil.
     - nilnil # Checks that there is no simultaneous return of nil error and an invalid value.

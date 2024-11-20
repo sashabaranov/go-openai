@@ -15,7 +15,6 @@ var (
 
 var (
 	ErrO1BetaLimitationsMessageTypes = errors.New("this model has beta-limitations, user and assistant messages only, system messages are not supported")                                  //nolint:lll
-	ErrO1BetaLimitationsStreaming    = errors.New("this model has beta-limitations, streaming not supported")                                                                              //nolint:lll
 	ErrO1BetaLimitationsTools        = errors.New("this model has beta-limitations, tools, function calling, and response format parameters are not supported")                            //nolint:lll
 	ErrO1BetaLimitationsLogprobs     = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
 	ErrO1BetaLimitationsOther        = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
@@ -199,12 +198,6 @@ func validateRequestForO1Models(request ChatCompletionRequest) error {
 		return ErrO1MaxTokensDeprecated
 	}
 
-	// Beta Limitations
-	// refs:https://platform.openai.com/docs/guides/reasoning/beta-limitations
-	// Streaming: not supported
-	if request.Stream {
-		return ErrO1BetaLimitationsStreaming
-	}
 	// Logprobs: not supported.
 	if request.LogProbs {
 		return ErrO1BetaLimitationsLogprobs

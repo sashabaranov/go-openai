@@ -73,7 +73,7 @@ type tHelper interface {
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) bool {
+func Equal(t TestingT, expected, actual interface{}) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -93,7 +93,7 @@ func Equal(t TestingT, expected, actual interface{}, msgAndArgs ...interface{}) 
 // JSONEq asserts that two JSON strings are equivalent.
 //
 //	assert.JSONEq(t, `{"hello": "world", "foo": "bar"}`, `{"foo": "bar", "hello": "world"}`)
-func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{}) bool {
+func JSONEq(t TestingT, expected string, actual string) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -107,7 +107,7 @@ func JSONEq(t TestingT, expected string, actual string, msgAndArgs ...interface{
 		t.Fatalf("Input ('%s') needs to be valid json.\nJSON parsing error: '%s'", actual, err.Error())
 	}
 
-	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface, msgAndArgs...)
+	return Equal(t, expectedJSONAsInterface, actualJSONAsInterface)
 }
 
 // validateEqualArgs checks whether provided arguments can be safely used in the

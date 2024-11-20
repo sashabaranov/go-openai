@@ -5,7 +5,7 @@
 
 This library provides unofficial Go clients for [OpenAI API](https://platform.openai.com/). We support: 
 
-* ChatGPT
+* ChatGPT 4o, o1
 * GPT-3, GPT-4
 * DALL·E 2, DALL·E 3
 * Whisper

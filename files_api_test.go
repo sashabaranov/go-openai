@@ -152,6 +152,7 @@ func TestGetFileContentReturnError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/files/deadbeef/content", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
 		fmt.Fprint(w, wantErrorResp)
 	})

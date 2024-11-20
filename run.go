@@ -110,6 +110,8 @@ type RunRequest struct {
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// This can be either a string or a ResponseFormat object.
 	ResponseFormat any `json:"response_format,omitempty"`
+	// Disable the default behavior of parallel tool calls by setting it: false.
+	ParallelToolCalls any `json:"parallel_tool_calls,omitempty"`
 }
 
 // ThreadTruncationStrategy defines the truncation strategy to use for the thread.

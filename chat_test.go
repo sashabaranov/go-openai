@@ -52,6 +52,199 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	checks.ErrorIs(t, err, openai.ErrChatCompletionInvalidModel, msg)
 }
 
+func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
+	tests := []struct {
+		name          string
+		in            openai.ChatCompletionRequest
+		expectedError error
+	}{
+		{
+			name: "o1-preview_MaxTokens_deprecated",
+			in: openai.ChatCompletionRequest{
+				MaxTokens: 5,
+				Model:     openai.O1Preview,
+			},
+			expectedError: openai.ErrO1MaxTokensDeprecated,
+		},
+		{
+			name: "o1-mini_MaxTokens_deprecated",
+			in: openai.ChatCompletionRequest{
+				MaxTokens: 5,
+				Model:     openai.O1Mini,
+			},
+			expectedError: openai.ErrO1MaxTokensDeprecated,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := openai.DefaultConfig("whatever")
+			config.BaseURL = "http://localhost/v1"
+			client := openai.NewClientWithConfig(config)
+			ctx := context.Background()
+
+			_, err := client.CreateChatCompletion(ctx, tt.in)
+			checks.HasError(t, err)
+			msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+			checks.ErrorIs(t, err, tt.expectedError, msg)
+		})
+	}
+}
+
+func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
+	tests := []struct {
+		name          string
+		in            openai.ChatCompletionRequest
+		expectedError error
+	}{
+		{
+			name: "log_probs_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				LogProbs:            true,
+				Model:               openai.O1Preview,
+			},
+			expectedError: openai.ErrO1BetaLimitationsLogprobs,
+		},
+		{
+			name: "message_type_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleSystem,
+					},
+				},
+			},
+			expectedError: openai.ErrO1BetaLimitationsMessageTypes,
+		},
+		{
+			name: "tool_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Tools: []openai.Tool{
+					{
+						Type: openai.ToolTypeFunction,
+					},
+				},
+			},
+			expectedError: openai.ErrO1BetaLimitationsTools,
+		},
+		{
+			name: "set_temperature_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(2),
+			},
+			expectedError: openai.ErrO1BetaLimitationsOther,
+		},
+		{
+			name: "set_top_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(1),
+				TopP:        float32(0.1),
+			},
+			expectedError: openai.ErrO1BetaLimitationsOther,
+		},
+		{
+			name: "set_n_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(1),
+				TopP:        float32(1),
+				N:           2,
+			},
+			expectedError: openai.ErrO1BetaLimitationsOther,
+		},
+		{
+			name: "set_presence_penalty_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				PresencePenalty: float32(1),
+			},
+			expectedError: openai.ErrO1BetaLimitationsOther,
+		},
+		{
+			name: "set_frequency_penalty_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				FrequencyPenalty: float32(0.1),
+			},
+			expectedError: openai.ErrO1BetaLimitationsOther,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := openai.DefaultConfig("whatever")
+			config.BaseURL = "http://localhost/v1"
+			client := openai.NewClientWithConfig(config)
+			ctx := context.Background()
+
+			_, err := client.CreateChatCompletion(ctx, tt.in)
+			checks.HasError(t, err)
+			msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+			checks.ErrorIs(t, err, tt.expectedError, msg)
+		})
+	}
+}
+
 func TestChatRequestOmitEmpty(t *testing.T) {
 	data, err := json.Marshal(openai.ChatCompletionRequest{
 		// We set model b/c it's required, so omitempty doesn't make sense
@@ -87,6 +280,24 @@ func TestChatCompletions(t *testing.T) {
 	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		MaxTokens: 5,
 		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
+// TestCompletions Tests the completions endpoint of the API using the mocked server.
+func TestO1ModelChatCompletions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model:               openai.O1Preview,
+		MaxCompletionTokens: 1000,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleUser,

@@ -208,7 +208,7 @@ func TestMessages(t *testing.T) {
 	}
 
 	var msgs openai.MessagesList
-	msgs, err = client.ListMessage(ctx, threadID, nil, nil, nil, nil)
+	msgs, err = client.ListMessage(ctx, threadID, nil, nil, nil, nil, nil)
 	checks.NoError(t, err, "ListMessages error")
 	if len(msgs.Messages) != 1 {
 		t.Fatalf("unexpected length of fetched messages")
@@ -219,7 +219,8 @@ func TestMessages(t *testing.T) {
 	order := "desc"
 	after := "obj_foo"
 	before := "obj_bar"
-	msgs, err = client.ListMessage(ctx, threadID, &limit, &order, &after, &before)
+	runID := "run_abc123"
+	msgs, err = client.ListMessage(ctx, threadID, &limit, &order, &after, &before, &runID)
 	checks.NoError(t, err, "ListMessages error")
 	if len(msgs.Messages) != 1 {
 		t.Fatalf("unexpected length of fetched messages")

@@ -51,6 +51,24 @@ func TestEmbedding(t *testing.T) {
 			t.Fatalf("Expected embedding request to contain model field")
 		}
 
+		// test embedding request with strings and extra_body param
+		embeddingReqWithExtraBody := openai.EmbeddingRequest{
+			Input: []string{
+				"The food was delicious and the waiter",
+				"Other examples of embedding request",
+			},
+			Model: model,
+			ExtraBody: map[string]any{
+				"input_type": "query",
+				"truncate":   "NONE",
+			},
+		}
+		marshaled, err = json.Marshal(embeddingReqWithExtraBody)
+		checks.NoError(t, err, "Could not marshal embedding request")
+		if !bytes.Contains(marshaled, []byte(`"model":"`+model+`"`)) {
+			t.Fatalf("Expected embedding request to contain model field")
+		}
+
 		// test embedding request with strings
 		embeddingReqStrings := openai.EmbeddingRequestStrings{
 			Input: []string{
@@ -119,6 +137,21 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	)
 	// test create embeddings with strings (simple embedding request)
 	res, err := client.CreateEmbeddings(context.Background(), openai.EmbeddingRequest{})
+	checks.NoError(t, err, "CreateEmbeddings error")
+	if !reflect.DeepEqual(res.Data, sampleEmbeddings) {
+		t.Errorf("Expected %#v embeddings, got %#v", sampleEmbeddings, res.Data)
+	}
+
+	// test create embeddings with strings (ExtraBody in request)
+	res, err = client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			ExtraBody: map[string]any{
+				"input_type": "query",
+				"truncate":   "NONE",
+			},
+		},
+	)
 	checks.NoError(t, err, "CreateEmbeddings error")
 	if !reflect.DeepEqual(res.Data, sampleEmbeddings) {
 		t.Errorf("Expected %#v embeddings, got %#v", sampleEmbeddings, res.Data)

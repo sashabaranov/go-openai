@@ -150,6 +150,7 @@ func TestEmbeddingEndpoint(t *testing.T) {
 				"input_type": "query",
 				"truncate":   "NONE",
 			},
+			Dimensions: 1,
 		},
 	)
 	checks.NoError(t, err, "CreateEmbeddings error")

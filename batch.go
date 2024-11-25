@@ -19,6 +19,19 @@ const (
 	BatchEndpointEmbeddings      BatchEndpoint = "/v1/embeddings"
 )
 
+type BatchStatus string
+
+const (
+	BatchStatusValidating BatchStatus = "validating"
+	BatchStatusFailed     BatchStatus = "failed"
+	BatchStatusInProgress BatchStatus = "in_progress"
+	BatchStatusFinalizing BatchStatus = "finalizing"
+	BatchStatusCompleted  BatchStatus = "completed"
+	BatchStatusExpired    BatchStatus = "expired"
+	BatchStatusCancelling BatchStatus = "cancelling"
+	BatchStatusCancelled  BatchStatus = "cancelled"
+)
+
 type BatchLineItem interface {
 	MarshalBatchLineItem() []byte
 }
@@ -74,7 +87,7 @@ type Batch struct {
 	} `json:"errors"`
 	InputFileID      string             `json:"input_file_id"`
 	CompletionWindow string             `json:"completion_window"`
-	Status           string             `json:"status"`
+	Status           BatchStatus        `json:"status"`
 	OutputFileID     *string            `json:"output_file_id"`
 	ErrorFileID      *string            `json:"error_file_id"`
 	CreatedAt        int                `json:"created_at"`

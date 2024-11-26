@@ -156,10 +156,11 @@ type CompletionRequest struct {
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias
-	LogitBias           map[string]int `json:"logit_bias,omitempty"`
-	LogProbs            int            `json:"logprobs,omitempty"`
-	MaxCompletionTokens int            `json:"max_completion_tokens,omitempty"`
-	// Deprecated: use MaxCompletionTokens instead.
+	LogitBias map[string]int `json:"logit_bias,omitempty"`
+	LogProbs  int            `json:"logprobs,omitempty"`
+	// MaxCompletionTokens should be used for OpenAI provider
+	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
+	// MaxTokens should be used for Azure provider
 	MaxTokens       int      `json:"max_tokens,omitempty"`
 	N               int      `json:"n,omitempty"`
 	PresencePenalty float32  `json:"presence_penalty,omitempty"`

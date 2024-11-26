@@ -186,8 +186,9 @@ type ChatCompletionResponseFormat struct {
 type ChatCompletionRequest struct {
 	Model    string                  `json:"model"`
 	Messages []ChatCompletionMessage `json:"messages"`
-	// Deprecated: use MaxCompletionTokens instead.
-	MaxTokens           int                           `json:"max_tokens,omitempty"`
+	// MaxTokens should be used for Azure provider
+	MaxTokens int `json:"max_tokens,omitempty"`
+	// MaxCompletionTokens should be used for OpenAI provider
 	MaxCompletionTokens int                           `json:"max_completion_tokens,omitempty"`
 	Temperature         float32                       `json:"temperature,omitempty"`
 	TopP                float32                       `json:"top_p,omitempty"`

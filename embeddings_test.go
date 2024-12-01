@@ -162,11 +162,8 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	_, err = client.CreateEmbeddings(
 		context.Background(),
 		openai.EmbeddingRequest{
-			ExtraBody: map[string]any{
-				"input_type": "query",
-				"truncate":   make(chan int), // Channels cannot be serialized into JSON
-			},
-			Dimensions: 1,
+			Input: make(chan int), // Invalid UTF-8 string
+			Model: "example_model",
 		},
 	)
 	checks.HasError(t, err, "CreateEmbeddings error")

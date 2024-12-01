@@ -162,7 +162,7 @@ func TestEmbeddingEndpoint(t *testing.T) {
 	_, err = client.CreateEmbeddings(
 		context.Background(),
 		openai.EmbeddingRequest{
-			Input: make(chan int), // Invalid UTF-8 string
+			Input: make(chan int), // Channels are not serializable
 			Model: "example_model",
 		},
 	)

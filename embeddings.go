@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/base64"
 	"encoding/binary"
+	"encoding/json"
 	"errors"
 	"math"
 	"net/http"
@@ -253,28 +254,30 @@ func (c *Client) CreateEmbeddings(
 ) (res EmbeddingResponse, err error) {
 	baseReq := conv.Convert()
 
-	// Prepare the body with only the provided fields.
 	// The body map is used to dynamically construct the request payload for the embedding API.
 	// Instead of relying on a fixed struct, the body map allows for flexible inclusion of fields
 	// based on their presence, avoiding unnecessary or empty fields in the request.
-	body := make(map[string]any)
-	body["input"] = baseReq.Input
-	body["model"] = baseReq.Model
-	if baseReq.User != "" {
-		body["user"] = baseReq.User
+	extraBody := baseReq.ExtraBody
+	baseReq.ExtraBody = nil
+
+	// Serialize baseReq to JSON
+	jsonData, err := json.Marshal(baseReq)
+	if err != nil {
+		return
 	}
-	if baseReq.EncodingFormat != "" {
-		body["encoding_format"] = baseReq.EncodingFormat
+
+	// Deserialize JSON to map[string]any
+	var body map[string]any
+	if err = json.Unmarshal(jsonData, &body); err != nil {
+		return
 	}
-	if baseReq.Dimensions > 0 { // Assuming 0 means the field is not set
-		body["dimensions"] = baseReq.Dimensions
-	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL("/embeddings", withModel(string(baseReq.Model))),
-		withBody(body),                   // Main request body.
-		withExtraBody(baseReq.ExtraBody), // Merge ExtraBody fields.
+		withBody(body),           // Main request body.
+		withExtraBody(extraBody), // Merge ExtraBody fields.
 	)
 	if err != nil {
 		return

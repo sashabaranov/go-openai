@@ -268,9 +268,7 @@ func (c *Client) CreateEmbeddings(
 
 	// Deserialize JSON to map[string]any
 	var body map[string]any
-	if err = json.Unmarshal(jsonData, &body); err != nil {
-		return
-	}
+	_ = json.Unmarshal(jsonData, &body)
 
 	req, err := c.newRequest(
 		ctx,

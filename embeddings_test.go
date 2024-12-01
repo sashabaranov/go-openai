@@ -158,7 +158,20 @@ func TestEmbeddingEndpoint(t *testing.T) {
 		t.Errorf("Expected %#v embeddings, got %#v", sampleEmbeddings, res.Data)
 	}
 
-	// test create embeddings with strings (simple embedding request)
+	// test create embeddings with strings (ExtraBody in request and )
+	_, err = client.CreateEmbeddings(
+		context.Background(),
+		openai.EmbeddingRequest{
+			ExtraBody: map[string]any{
+				"input_type": "query",
+				"truncate":   make(chan int), // Channels cannot be serialized into JSON
+			},
+			Dimensions: 1,
+		},
+	)
+	checks.HasError(t, err, "CreateEmbeddings error")
+
+	// test failed (Serialize JSON error)
 	res, err = client.CreateEmbeddings(
 		context.Background(),
 		openai.EmbeddingRequest{

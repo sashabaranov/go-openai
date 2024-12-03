@@ -393,12 +393,12 @@ func (c *Client) CreateChatCompletion(
 	if err = validateRequestForO1Models(request); err != nil {
 		return
 	}
-
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(request),
+		withCustomHeaders(request.Metadata),
 	)
 	if err != nil {
 		return

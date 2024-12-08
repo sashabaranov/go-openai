@@ -19,8 +19,8 @@ func TestDefinition_GenerateSchemaForType(t *testing.T) {
 		MenuItems       []MenuItem `json:"menu_items" description:"List of menu items ordered by the user" required:"true"`
 		DeliveryAddress string     `json:"delivery_address" description:"Delivery address for the order" required:"true"`
 		UserName        string     `json:"user_name" description:"Name of the user placing the order" required:"true"`
-		PhoneNumber     string     `json:"phone_number" description:"Phone number of the user placing the order" required:"true"`
-		PaymentMethod   string     `json:"payment_method" description:"Payment method for the order, only transfer or cash accepted" required:"true" enum:"cash,transfer,check,card"`
+		PhoneNumber     string     `json:"phone_number" description:"Phone number of the user" required:"true"`
+		PaymentMethod   string     `json:"payment_method" description:"Payment method" required:"true" enum:"cash,transfer"`
 	}
 
 	tests := []struct {
@@ -100,16 +100,14 @@ func TestDefinition_GenerateSchemaForType(t *testing.T) {
       },
       "phone_number":{
          "type":"string",
-         "description":"Phone number of the user placing the order"
+         "description":"Phone number of the user"
       },
       "payment_method":{
          "type":"string",
-         "description":"Payment method for the order, only transfer or cash accepted",
+         "description":"Payment method",
          "enum":[
             "cash",
-            "transfer", 
-            "check",
-            "card"
+            "transfer"
          ]
       }
    },
@@ -163,19 +161,21 @@ func TestDefinition_SchemaGenerationComparison(t *testing.T) {
 		MenuItems       []MenuItem `json:"menu_items" description:"List of menu items ordered by the user" required:"true"`
 		DeliveryAddress string     `json:"delivery_address" description:"Delivery address for the order" required:"true"`
 		UserName        string     `json:"user_name" description:"Name of the user placing the order" required:"true"`
-		PhoneNumber     string     `json:"phone_number" description:"Phone number of the user placing the order" required:"true"`
-		PaymentMethod   string     `json:"payment_method" description:"Payment method for the order" required:"true" enum:"cash,transfer"`
+		PhoneNumber     string     `json:"phone_number" description:"Phone number of the user" required:"true"`
+		PaymentMethod   string     `json:"payment_method" description:"Payment method" required:"true" enum:"cash,transfer"`
 	}
 
 	// Manually created schema to compare against struct-generated schema
 	manualSchema := &jsonschema.Definition{
-		Type:     jsonschema.Object,
-		Required: []string{"menu_items", "delivery_address", "user_name", "phone_number", "payment_method"},
+		Type:                 jsonschema.Object,
+		AdditionalProperties: false,
 		Properties: map[string]jsonschema.Definition{
 			"menu_items": {
-				Type: jsonschema.Array,
+				Type:        jsonschema.Array,
+				Description: "List of menu items ordered by the user",
 				Items: &jsonschema.Definition{
-					Type: jsonschema.Object,
+					Type:                 jsonschema.Object,
+					AdditionalProperties: false,
 					Properties: map[string]jsonschema.Definition{
 						"item_name": {
 							Type:        jsonschema.String,
@@ -190,10 +190,8 @@ func TestDefinition_SchemaGenerationComparison(t *testing.T) {
 							Description: "Price of the menu item",
 						},
 					},
-					Required:             []string{"item_name", "quantity", "price"},
-					AdditionalProperties: false,
+					Required: []string{"item_name", "quantity", "price"},
 				},
-				Description: "List of menu items ordered by the user",
 			},
 			"delivery_address": {
 				Type:        jsonschema.String,
@@ -205,15 +203,15 @@ func TestDefinition_SchemaGenerationComparison(t *testing.T) {
 			},
 			"phone_number": {
 				Type:        jsonschema.String,
-				Description: "Phone number of the user placing the order",
+				Description: "Phone number of the user",
 			},
 			"payment_method": {
 				Type:        jsonschema.String,
-				Description: "Payment method for the order",
+				Description: "Payment method",
 				Enum:        []string{"cash", "transfer"},
 			},
 		},
-		AdditionalProperties: false,
+		Required: []string{"menu_items", "delivery_address", "user_name", "phone_number", "payment_method"},
 	}
 
 	t.Run("Compare Struct-Generated and Manual Schema", func(t *testing.T) {

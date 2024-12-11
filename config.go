@@ -7,6 +7,7 @@ import (
 
 const (
 	openaiAPIURLv1                 = "https://api.openai.com/v1"
+	openaiAPIDashboardURL          = "https://api.openai.com/dashboard"
 	defaultEmptyMessagesLimit uint = 300
 
 	azureAPIPrefix         = "openai"
@@ -35,6 +36,7 @@ type ClientConfig struct {
 	authToken string
 
 	BaseURL              string
+	DashboardBaseURL     string
 	OrgID                string
 	APIType              APIType
 	APIVersion           string // required when APIType is APITypeAzure or APITypeAzureAD
@@ -49,6 +51,7 @@ func DefaultConfig(authToken string) ClientConfig {
 	return ClientConfig{
 		authToken:        authToken,
 		BaseURL:          openaiAPIURLv1,
+		DashboardBaseURL: openaiAPIDashboardURL,
 		APIType:          APITypeOpenAI,
 		AssistantVersion: defaultAssistantVersion,
 		OrgID:            "",

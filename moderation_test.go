@@ -49,6 +49,17 @@ func TestModerations(t *testing.T) {
 			},
 			Model: openai.ModerationOmniLatest,
 		},
+		openai.ModerationArrayRequest{
+			Input: []openai.ModerationRequestItem{
+				{
+					Type: openai.ModerationItemTypeImageURL,
+					ImageURL: openai.ModerationImageURL{
+						URL: "https://cdn.openai.com/API/images/harass.png",
+					},
+				},
+			},
+			Model: openai.ModerationOmniLatest,
+		},
 	}
 
 	for _, input := range requestInputs {
@@ -211,6 +222,13 @@ func handleModerationEndpoint(w http.ResponseWriter, r *http.Request) {
 			resCatScore = openai.ResultCategoryScores{IllicitViolent: 1}
 			resCatApplied = openai.CategoryAppliedInputType{
 				IllicitViolent: []openai.ModerationItemType{openai.ModerationItemTypeText},
+			}
+		case moderationReq.Input[i].Type == openai.ModerationItemTypeImageURL &&
+			moderationReq.Input[i].ImageURL.URL == "https://cdn.openai.com/API/images/harass.png":
+			resCat = openai.ResultCategories{Harassment: true}
+			resCatScore = openai.ResultCategoryScores{Harassment: 1}
+			resCatApplied = openai.CategoryAppliedInputType{
+				Harassment: []openai.ModerationItemType{openai.ModerationItemTypeImageURL},
 			}
 		}
 

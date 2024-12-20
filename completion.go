@@ -12,10 +12,8 @@ var (
 	ErrCompletionRequestPromptTypeNotSupported = errors.New("the type of CompletionRequest.Prompt only supports string and []string")                              //nolint:lll
 )
 
-// GPT3 Defines the models provided by OpenAI to use when generating
+// Defines the models provided by OpenAI to use when generating
 // completions from OpenAI.
-// GPT3 Models are designed for text-based tasks. For code-specific
-// tasks, please refer to the Codex series of models.
 const (
 	GPTO120241217         = "o1-2024-12-17"
 	GPTO1Preview          = "o1-preview"

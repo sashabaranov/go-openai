@@ -29,16 +29,20 @@ func Test_Validate(t *testing.T) {
 		{"", args{data: 0, schema: jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Null}}}, false},
 		// array
 		{"", args{data: []any{"a", "b", "c"}, schema: jsonschema.Definition{
-			Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.String}}},
+			Type:  []jsonschema.DataType{jsonschema.Array},
+			Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.String}}},
 		}, true},
 		{"", args{data: []any{1, 2, 3}, schema: jsonschema.Definition{
-			Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.String}}},
+			Type:  []jsonschema.DataType{jsonschema.Array},
+			Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.String}}},
 		}, false},
 		{"", args{data: []any{1, 2, 3}, schema: jsonschema.Definition{
-			Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Integer}}},
+			Type:  []jsonschema.DataType{jsonschema.Array},
+			Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Integer}}},
 		}, true},
 		{"", args{data: []any{1, 2, 3.4}, schema: jsonschema.Definition{
-			Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Integer}}},
+			Type:  []jsonschema.DataType{jsonschema.Array},
+			Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Integer}}},
 		}, false},
 		// object
 		{"", args{data: map[string]any{
@@ -47,13 +51,17 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Object}, Properties: map[string]jsonschema.Definition{
-			"string":  {Type: []jsonschema.DataType{jsonschema.String}},
-			"integer": {Type: []jsonschema.DataType{jsonschema.Integer}},
-			"number":  {Type: []jsonschema.DataType{jsonschema.Number}},
-			"boolean": {Type: []jsonschema.DataType{jsonschema.Boolean}},
-			"array":   {Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Number}}},
-		},
+		}, schema: jsonschema.Definition{
+			Type: []jsonschema.DataType{jsonschema.Object}, Properties: map[string]jsonschema.Definition{
+				"string":  {Type: []jsonschema.DataType{jsonschema.String}},
+				"integer": {Type: []jsonschema.DataType{jsonschema.Integer}},
+				"number":  {Type: []jsonschema.DataType{jsonschema.Number}},
+				"boolean": {Type: []jsonschema.DataType{jsonschema.Boolean}},
+				"array": {
+					Type:  []jsonschema.DataType{jsonschema.Array},
+					Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Number}},
+				},
+			},
 			Required: []string{"string"},
 		}}, true},
 		{"", args{data: map[string]any{
@@ -61,13 +69,17 @@ func Test_Validate(t *testing.T) {
 			"number":  123.4,
 			"boolean": false,
 			"array":   []any{1, 2, 3},
-		}, schema: jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Object}, Properties: map[string]jsonschema.Definition{
-			"string":  {Type: []jsonschema.DataType{jsonschema.String}},
-			"integer": {Type: []jsonschema.DataType{jsonschema.Integer}},
-			"number":  {Type: []jsonschema.DataType{jsonschema.Number}},
-			"boolean": {Type: []jsonschema.DataType{jsonschema.Boolean}},
-			"array":   {Type: []jsonschema.DataType{jsonschema.Array}, Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Number}}},
-		},
+		}, schema: jsonschema.Definition{
+			Type: []jsonschema.DataType{jsonschema.Object}, Properties: map[string]jsonschema.Definition{
+				"string":  {Type: []jsonschema.DataType{jsonschema.String}},
+				"integer": {Type: []jsonschema.DataType{jsonschema.Integer}},
+				"number":  {Type: []jsonschema.DataType{jsonschema.Number}},
+				"boolean": {Type: []jsonschema.DataType{jsonschema.Boolean}},
+				"array": {
+					Type:  []jsonschema.DataType{jsonschema.Array},
+					Items: &jsonschema.Definition{Type: []jsonschema.DataType{jsonschema.Number}},
+				},
+			},
 			Required: []string{"string"},
 		}}, false},
 	}

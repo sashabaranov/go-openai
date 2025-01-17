@@ -108,6 +108,38 @@ func TestAPI(t *testing.T) {
 		},
 	)
 	checks.NoError(t, err, "CreateChatCompletion (with functions) returned error")
+
+	response, err := c.CreateChatCompletion(
+		ctx,
+		openai.ChatCompletionRequest{
+			Model: openai.GPT4oAudioPreview,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "hi",
+				},
+			},
+			Audio: &openai.AudioOutput{
+				Voice:  openai.AudioVoiceAlloy,
+				Format: openai.AudioFormatPCM16,
+			},
+			Modalities: []openai.Modality{openai.ModalityText, openai.ModalityAudio},
+		},
+	)
+	checks.NoError(t, err, "CreateChatCompletion (with audio) returned error")
+	if response.Choices[0].Message.Audio == nil {
+		t.Fatal("Audio response is nil")
+	}
+	if len(response.Choices[0].Message.Audio.Data) == 0 {
+		t.Fatal("Audio response data is empty")
+	}
+	if response.Choices[0].Message.Audio.Transcript == "" {
+		t.Fatal("Audio response transcript is empty")
+	}
+	if response.Usage.PromptTokens == 0 || response.Usage.CompletionTokens == 0 || response.Usage.TotalTokens == 0 {
+		t.Fatal("Usage is zero")
+	}
+	t.Logf("Usage: %+v", response.Usage)
 }
 
 func TestCompletionStream(t *testing.T) {
@@ -142,6 +174,60 @@ func TestCompletionStream(t *testing.T) {
 	}
 	if counter == 0 {
 		t.Error("Stream did not return any responses")
+	}
+}
+
+func TestChatCompletionStream(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	c := openai.NewClient(apiToken)
+	ctx := context.Background()
+
+	stream, err := c.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+		Model: openai.GPT4oAudioPreview,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "hi",
+			},
+		},
+		Audio: &openai.AudioOutput{
+			Voice:  openai.AudioVoiceAlloy,
+			Format: openai.AudioFormatPCM16,
+		},
+		Modalities: []openai.Modality{openai.ModalityText, openai.ModalityAudio},
+		StreamOptions: &openai.StreamOptions{
+			IncludeUsage: true,
+		},
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	var usage *openai.Usage
+	counter := 0
+	for {
+		response, err := stream.Recv()
+		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
+			t.Errorf("Stream error: %v", err)
+		} else {
+			counter++
+		}
+		if response.Usage != nil {
+			usage = response.Usage
+			t.Logf("Usage: %+v", usage)
+		}
+	}
+	if counter == 0 {
+		t.Error("Stream did not return any responses")
+	}
+	if usage == nil {
+		t.Error("Usage is nil")
 	}
 }
 

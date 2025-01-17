@@ -23,12 +23,12 @@ type PromptTokensDetails struct {
 	CachedTokens int `json:"cached_tokens"`
 }
 
-// NewFloat returns a pointer to a float, useful for setting the temperature on some APIs
+// NewFloat returns a pointer to a float, useful for setting the temperature on some APIs.
 func NewFloat(v float32) *float32 {
 	return &v
 }
 
-// NewInt returns a pointer to an int, useful for setting the seed and other nullable parameters
+// NewInt returns a pointer to an int, useful for setting the seed and other nullable parameters.
 func NewInt(v int) *int {
 	return &v
 }

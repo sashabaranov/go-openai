@@ -27,8 +27,3 @@ type PromptTokensDetails struct {
 func NewFloat(v float32) *float32 {
 	return &v
 }
-
-// NewInt returns a pointer to an int, useful for setting the seed and other nullable parameters.
-func NewInt(v int) *int {
-	return &v
-}

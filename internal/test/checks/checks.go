@@ -73,7 +73,7 @@ type tHelper interface {
 // Pointer variable equality is determined based on the equality of the
 // referenced values (as opposed to the memory addresses). Function equality
 // cannot be determined and will always fail.
-func Equal(t TestingT, expected, actual interface{}) bool {
+func Equal(t TestingT, expected, actual any) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
@@ -97,7 +97,7 @@ func JSONEq(t TestingT, expected string, actual string) bool {
 	if h, ok := t.(tHelper); ok {
 		h.Helper()
 	}
-	var expectedJSONAsInterface, actualJSONAsInterface interface{}
+	var expectedJSONAsInterface, actualJSONAsInterface any
 
 	if err := json.Unmarshal([]byte(expected), &expectedJSONAsInterface); err != nil {
 		t.Fatalf("Expected value ('%s') is not valid json.\nJSON parsing error: '%s'", expected, err.Error())
@@ -112,7 +112,7 @@ func JSONEq(t TestingT, expected string, actual string) bool {
 
 // validateEqualArgs checks whether provided arguments can be safely used in the
 // Equal/NotEqual functions.
-func validateEqualArgs(expected, actual interface{}) error {
+func validateEqualArgs(expected, actual any) error {
 	if expected == nil && actual == nil {
 		return nil
 	}
@@ -123,7 +123,7 @@ func validateEqualArgs(expected, actual interface{}) error {
 	return nil
 }
 
-func isFunction(arg interface{}) bool {
+func isFunction(arg any) bool {
 	if arg == nil {
 		return false
 	}
@@ -137,7 +137,7 @@ func isFunction(arg interface{}) bool {
 // ObjectsAreEqual determines if two objects are considered equal.
 //
 // This function does no assertion of any kind.
-func ObjectsAreEqual(expected, actual interface{}) bool {
+func ObjectsAreEqual(expected, actual any) bool {
 	if expected == nil || actual == nil {
 		return expected == actual
 	}

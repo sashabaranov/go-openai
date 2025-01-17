@@ -220,7 +220,7 @@ func validateRequestForO1Models(request ChatCompletionRequest) error {
 	}
 
 	// Other: temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
-	if request.Temperature > 0 && request.Temperature != 1 {
+	if request.Temperature != nil && *request.Temperature != 1 {
 		return ErrO1BetaLimitationsOther
 	}
 	if request.TopP > 0 && request.TopP != 1 {
@@ -263,7 +263,7 @@ type CompletionRequest struct {
 	Stop            []string          `json:"stop,omitempty"`
 	Stream          bool              `json:"stream,omitempty"`
 	Suffix          string            `json:"suffix,omitempty"`
-	Temperature     float32           `json:"temperature,omitempty"`
+	Temperature     *float32          `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`
 	User            string            `json:"user,omitempty"`
 }

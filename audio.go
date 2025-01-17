@@ -45,8 +45,8 @@ type AudioRequest struct {
 	Reader io.Reader
 
 	Prompt                 string
-	Temperature            float32
-	Language               string // Only for transcription.
+	Temperature            float32 // Defaults to 0, so fine to not be a pointer.
+	Language               string  // Only for transcription.
 	Format                 AudioResponseFormat
 	TimestampGranularities []TranscriptionTimestampGranularity // Only for transcription.
 }

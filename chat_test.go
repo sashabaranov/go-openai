@@ -631,7 +631,7 @@ func TestMultipartChatMessageSerialization(t *testing.T) {
 		t.Fatalf("Unexpected error")
 	}
 	res = strings.ReplaceAll(string(s), " ", "")
-	if res != `{"role":"user","content":""}` {
+	if res != `{"role":"user"}` {
 		t.Fatalf("invalid message: %s", string(s))
 	}
 }

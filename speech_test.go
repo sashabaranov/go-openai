@@ -21,10 +21,8 @@ func TestSpeechIntegration(t *testing.T) {
 	defer teardown()
 
 	server.RegisterHandler("/v1/audio/speech", func(w http.ResponseWriter, r *http.Request) {
-		dir, cleanup := test.CreateTestDirectory(t)
-		path := filepath.Join(dir, "fake.mp3")
+		path := filepath.Join(t.TempDir(), "fake.mp3")
 		test.CreateTestFile(t, path)
-		defer cleanup()
 
 		// audio endpoints only accept POST requests
 		if r.Method != "POST" {

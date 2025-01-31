@@ -19,16 +19,6 @@ func CreateTestFile(t *testing.T, path string) {
 	file.Close()
 }
 
-// CreateTestDirectory creates a temporary folder which will be deleted when cleanup is called.
-func CreateTestDirectory(t *testing.T) (path string, cleanup func()) {
-	t.Helper()
-
-	path, err := os.MkdirTemp(os.TempDir(), "")
-	checks.NoError(t, err)
-
-	return path, func() { os.RemoveAll(path) }
-}
-
 // TokenRoundTripper is a struct that implements the RoundTripper
 // interface, specifically to handle the authentication token by adding a token
 // to the request header. We need this because the API requires that each

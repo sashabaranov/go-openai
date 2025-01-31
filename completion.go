@@ -15,6 +15,8 @@ var (
 // Defines the models provided by OpenAI to use when generating
 // completions from OpenAI.
 const (
+	GPTO3MiniLatest       = "o3-mini"
+	GPTO3Mini20250131     = "o3-mini-2025-01-31"
 	GPTO120241217         = "o1-2024-12-17"
 	GPTO1Preview          = "o1-preview"
 	GPTO1Preview20240912  = "o1-preview-2024-09-12"
@@ -86,6 +88,8 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
+		GPTO3MiniLatest:      true,
+		GPTO3Mini20250131:    true,
 		GPTO120241217:        true,
 		GPTO1Preview:         true,
 		GPTO1Preview20240912: true,
@@ -171,6 +175,7 @@ type CompletionRequest struct {
 	Temperature     float32  `json:"temperature,omitempty"`
 	TopP            float32  `json:"top_p,omitempty"`
 	User            string   `json:"user,omitempty"`
+	ReasoningEffort string   `json:"reasoning_effort,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

@@ -153,7 +153,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(2),
+				Temperature: openai.NewFloat(2),
 			},
 			expectedError: openai.ErrO1BetaLimitationsOther,
 		},
@@ -170,7 +170,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: openai.NewFloat(1),
 				TopP:        float32(0.1),
 			},
 			expectedError: openai.ErrO1BetaLimitationsOther,
@@ -188,7 +188,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: openai.NewFloat(1),
 				TopP:        float32(1),
 				N:           2,
 			},
@@ -254,6 +254,22 @@ func TestChatRequestOmitEmpty(t *testing.T) {
 
 	// messages is also required so isn't omitted
 	const expected = `{"model":"gpt-4","messages":null}`
+	if string(data) != expected {
+		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
+	}
+}
+
+func TestChatRequestOmitEmptyWithZeroTemp(t *testing.T) {
+	data, err := json.Marshal(openai.ChatCompletionRequest{
+		// We set model b/c it's required, so omitempty doesn't make sense
+		Model:       "gpt-4",
+		Temperature: openai.NewFloat(0),
+	})
+	checks.NoError(t, err)
+
+	// messages is also required so isn't omitted
+	// but the zero-value for temp is not excluded, b/c that's a valid value to set the temp to!
+	const expected = `{"model":"gpt-4","messages":null,"temperature":0}`
 	if string(data) != expected {
 		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
 	}

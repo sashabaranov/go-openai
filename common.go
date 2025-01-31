@@ -22,3 +22,8 @@ type PromptTokensDetails struct {
 	AudioTokens  int `json:"audio_tokens"`
 	CachedTokens int `json:"cached_tokens"`
 }
+
+// NewFloat returns a pointer to a float, useful for setting the temperature on some APIs.
+func NewFloat(v float32) *float32 {
+	return &v
+}

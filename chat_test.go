@@ -245,6 +245,126 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 	}
 }
 
+func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
+	tests := []struct {
+		name          string
+		in            openai.ChatCompletionRequest
+		expectedError error
+	}{
+		{
+			name: "log_probs_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				LogProbs:            true,
+				Model:               openai.O3Mini,
+			},
+			expectedError: openai.ErrO3BetaLimitationsLogprobs,
+		},
+		{
+			name: "set_temperature_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O3Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(2),
+			},
+			expectedError: openai.ErrO3BetaLimitationsOther,
+		},
+		{
+			name: "set_top_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O3Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(1),
+				TopP:        float32(0.1),
+			},
+			expectedError: openai.ErrO3BetaLimitationsOther,
+		},
+		{
+			name: "set_n_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O3Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				Temperature: float32(1),
+				TopP:        float32(1),
+				N:           2,
+			},
+			expectedError: openai.ErrO3BetaLimitationsOther,
+		},
+		{
+			name: "set_presence_penalty_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O3Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				PresencePenalty: float32(1),
+			},
+			expectedError: openai.ErrO3BetaLimitationsOther,
+		},
+		{
+			name: "set_frequency_penalty_unsupported",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O3Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				FrequencyPenalty: float32(0.1),
+			},
+			expectedError: openai.ErrO3BetaLimitationsOther,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			config := openai.DefaultConfig("whatever")
+			config.BaseURL = "http://localhost/v1"
+			client := openai.NewClientWithConfig(config)
+			ctx := context.Background()
+
+			_, err := client.CreateChatCompletion(ctx, tt.in)
+			checks.HasError(t, err)
+			msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+			checks.ErrorIs(t, err, tt.expectedError, msg)
+		})
+	}
+}
+
 func TestChatRequestOmitEmpty(t *testing.T) {
 	data, err := json.Marshal(openai.ChatCompletionRequest{
 		// We set model b/c it's required, so omitempty doesn't make sense
@@ -297,6 +417,23 @@ func TestO1ModelChatCompletions(t *testing.T) {
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
 	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		Model:               openai.O1Preview,
+		MaxCompletionTokens: 1000,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
+func TestO3ModelChatCompletions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model:               openai.O3Mini,
 		MaxCompletionTokens: 1000,
 		Messages: []openai.ChatCompletionMessage{
 			{

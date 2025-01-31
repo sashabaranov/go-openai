@@ -20,6 +20,11 @@ var (
 	ErrO1BetaLimitationsOther        = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
+var (
+	ErrO3BetaLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
+	ErrO3BetaLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
+)
+
 // GPT3 Defines the models provided by OpenAI to use when generating
 // completions from OpenAI.
 // GPT3 Models are designed for text-based tasks. For code-specific
@@ -31,6 +36,8 @@ const (
 	O1Preview20240912     = "o1-preview-2024-09-12"
 	O1                    = "o1"
 	O120241217            = "o1-2024-12-17"
+	O3Mini                = "o3-mini"
+	O3Mini20250131        = "o3-mini-2025-01-31"
 	GPT432K0613           = "gpt-4-32k-0613"
 	GPT432K0314           = "gpt-4-32k-0314"
 	GPT432K               = "gpt-4-32k"
@@ -105,12 +112,20 @@ var O1SeriesModels = map[string]struct{}{
 	O1Preview20240912: {},
 }
 
+// O3SeriesModels List of new Series of OpenAI models.
+var O3SeriesModels = map[string]struct{}{
+	O3Mini:         {},
+	O3Mini20250131: {},
+}
+
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
 		O1Mini:               true,
 		O1Mini20240912:       true,
 		O1Preview:            true,
 		O1Preview20240912:    true,
+		O3Mini:               true,
+		O3Mini20250131:       true,
 		GPT3Dot5Turbo:        true,
 		GPT3Dot5Turbo0301:    true,
 		GPT3Dot5Turbo0613:    true,
@@ -236,6 +251,37 @@ func validateRequestForO1Models(request ChatCompletionRequest) error {
 	}
 	if request.FrequencyPenalty > 0 {
 		return ErrO1BetaLimitationsOther
+	}
+
+	return nil
+}
+
+// validateRequestForO3Models checks for deprecated fields of OpenAI models.
+func validateRequestForO3Models(request ChatCompletionRequest) error {
+	if _, found := O3SeriesModels[request.Model]; !found {
+		return nil
+	}
+
+	// Logprobs: not supported.
+	if request.LogProbs {
+		return ErrO3BetaLimitationsLogprobs
+	}
+
+	// Other: temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
+	if request.Temperature > 0 && request.Temperature != 1 {
+		return ErrO3BetaLimitationsOther
+	}
+	if request.TopP > 0 && request.TopP != 1 {
+		return ErrO3BetaLimitationsOther
+	}
+	if request.N > 0 && request.N != 1 {
+		return ErrO3BetaLimitationsOther
+	}
+	if request.PresencePenalty > 0 {
+		return ErrO3BetaLimitationsOther
+	}
+	if request.FrequencyPenalty > 0 {
+		return ErrO3BetaLimitationsOther
 	}
 
 	return nil

@@ -84,6 +84,10 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
+	if err = validateRequestForO3Models(request); err != nil {
+		return
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

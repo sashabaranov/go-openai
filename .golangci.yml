@@ -206,6 +206,7 @@ linters:
     - tparallel # tparallel detects inappropriate usage of t.Parallel() method in your Go test codes
     - unconvert # Remove unnecessary type conversions
     - unparam # Reports unused function parameters
+    - usetesting # Reports uses of functions with replacement inside the testing package
     - wastedassign # wastedassign finds wasted assignment statements.
     - whitespace # Tool for detection of leading and trailing whitespace
     ## you may want to enable

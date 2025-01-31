@@ -13,9 +13,7 @@ import (
 )
 
 func TestAudioWithFailingFormBuilder(t *testing.T) {
-	dir, cleanup := test.CreateTestDirectory(t)
-	defer cleanup()
-	path := filepath.Join(dir, "fake.mp3")
+	path := filepath.Join(t.TempDir(), "fake.mp3")
 	test.CreateTestFile(t, path)
 
 	req := AudioRequest{
@@ -63,9 +61,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 
 func TestCreateFileField(t *testing.T) {
 	t.Run("createFileField failing file", func(t *testing.T) {
-		dir, cleanup := test.CreateTestDirectory(t)
-		defer cleanup()
-		path := filepath.Join(dir, "fake.mp3")
+		path := filepath.Join(t.TempDir(), "fake.mp3")
 		test.CreateTestFile(t, path)
 
 		req := AudioRequest{

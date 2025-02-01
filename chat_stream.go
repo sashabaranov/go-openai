@@ -80,11 +80,7 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	request.Stream = true
-	if err = validateRequestForO1Models(request); err != nil {
-		return
-	}
-
-	if err = validateRequestForO3Models(request); err != nil {
+	if err = validateOSeriesRequest(request); err != nil {
 		return
 	}
 

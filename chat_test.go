@@ -64,7 +64,7 @@ func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 				MaxTokens: 5,
 				Model:     openai.O1Preview,
 			},
-			expectedError: openai.ErrO1MaxTokensDeprecated,
+			expectedError: openai.ErrO3MaxTokensDeprecated,
 		},
 		{
 			name: "o1-mini_MaxTokens_deprecated",
@@ -72,7 +72,7 @@ func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 				MaxTokens: 5,
 				Model:     openai.O1Mini,
 			},
-			expectedError: openai.ErrO1MaxTokensDeprecated,
+			expectedError: openai.ErrO3MaxTokensDeprecated,
 		},
 	}
 
@@ -104,7 +104,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				LogProbs:            true,
 				Model:               openai.O1Preview,
 			},
-			expectedError: openai.ErrO1BetaLimitationsLogprobs,
+			expectedError: openai.ErrO3BetaLimitationsLogprobs,
 		},
 		{
 			name: "message_type_unsupported",
@@ -155,7 +155,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				Temperature: float32(2),
 			},
-			expectedError: openai.ErrO1BetaLimitationsOther,
+			expectedError: openai.ErrO3BetaLimitationsOther,
 		},
 		{
 			name: "set_top_unsupported",
@@ -173,7 +173,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				Temperature: float32(1),
 				TopP:        float32(0.1),
 			},
-			expectedError: openai.ErrO1BetaLimitationsOther,
+			expectedError: openai.ErrO3BetaLimitationsOther,
 		},
 		{
 			name: "set_n_unsupported",
@@ -192,7 +192,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				TopP:        float32(1),
 				N:           2,
 			},
-			expectedError: openai.ErrO1BetaLimitationsOther,
+			expectedError: openai.ErrO3BetaLimitationsOther,
 		},
 		{
 			name: "set_presence_penalty_unsupported",
@@ -209,7 +209,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				PresencePenalty: float32(1),
 			},
-			expectedError: openai.ErrO1BetaLimitationsOther,
+			expectedError: openai.ErrO3BetaLimitationsOther,
 		},
 		{
 			name: "set_frequency_penalty_unsupported",
@@ -226,7 +226,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				FrequencyPenalty: float32(0.1),
 			},
-			expectedError: openai.ErrO1BetaLimitationsOther,
+			expectedError: openai.ErrO3BetaLimitationsOther,
 		},
 	}
 

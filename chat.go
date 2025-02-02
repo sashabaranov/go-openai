@@ -392,7 +392,8 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	if err = validateOSeriesRequest(request); err != nil {
+	reasoningValidator := NewReasoningValidator(request)
+	if err = reasoningValidator.Validate(); err != nil {
 		return
 	}
 

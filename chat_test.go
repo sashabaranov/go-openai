@@ -64,7 +64,7 @@ func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 				MaxTokens: 5,
 				Model:     openai.O1Preview,
 			},
-			expectedError: openai.ErrO3MaxTokensDeprecated,
+			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
 		},
 		{
 			name: "o1-mini_MaxTokens_deprecated",
@@ -72,7 +72,7 @@ func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 				MaxTokens: 5,
 				Model:     openai.O1Mini,
 			},
-			expectedError: openai.ErrO3MaxTokensDeprecated,
+			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
 		},
 	}
 
@@ -104,7 +104,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				LogProbs:            true,
 				Model:               openai.O1Preview,
 			},
-			expectedError: openai.ErrO3BetaLimitationsLogprobs,
+			expectedError: openai.ErrReasoningModelLimitationsLogprobs,
 		},
 		{
 			name: "message_type_unsupported",
@@ -155,7 +155,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				Temperature: float32(2),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_top_unsupported",
@@ -173,7 +173,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				Temperature: float32(1),
 				TopP:        float32(0.1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_n_unsupported",
@@ -192,7 +192,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				TopP:        float32(1),
 				N:           2,
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_presence_penalty_unsupported",
@@ -209,7 +209,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				PresencePenalty: float32(1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_frequency_penalty_unsupported",
@@ -226,7 +226,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				FrequencyPenalty: float32(0.1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 	}
 
@@ -258,7 +258,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				LogProbs:            true,
 				Model:               openai.O3Mini,
 			},
-			expectedError: openai.ErrO3BetaLimitationsLogprobs,
+			expectedError: openai.ErrReasoningModelLimitationsLogprobs,
 		},
 		{
 			name: "set_temperature_unsupported",
@@ -275,7 +275,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				Temperature: float32(2),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_top_unsupported",
@@ -293,7 +293,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				Temperature: float32(1),
 				TopP:        float32(0.1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_n_unsupported",
@@ -312,7 +312,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				TopP:        float32(1),
 				N:           2,
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_presence_penalty_unsupported",
@@ -329,7 +329,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				PresencePenalty: float32(1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
 			name: "set_frequency_penalty_unsupported",
@@ -346,7 +346,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 				},
 				FrequencyPenalty: float32(0.1),
 			},
-			expectedError: openai.ErrO3BetaLimitationsOther,
+			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 	}
 

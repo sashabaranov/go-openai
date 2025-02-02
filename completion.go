@@ -7,7 +7,7 @@ import (
 )
 
 var (
-	// Deprecated: use ErrO3MaxTokensDeprecated instead.
+	// Deprecated: use ErrReasoningModelMaxTokensDeprecated instead.
 	ErrO1MaxTokensDeprecated                   = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")                               //nolint:lll
 	ErrCompletionUnsupportedModel              = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
 	ErrCompletionStreamNotSupported            = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
@@ -17,15 +17,16 @@ var (
 var (
 	ErrO1BetaLimitationsMessageTypes = errors.New("this model has beta-limitations, user and assistant messages only, system messages are not supported")       //nolint:lll
 	ErrO1BetaLimitationsTools        = errors.New("this model has beta-limitations, tools, function calling, and response format parameters are not supported") //nolint:lll
-	// Deprecated: use Err03BetaLimitations* instead.
+	// Deprecated: use ErrReasoningModelLimitations* instead.
 	ErrO1BetaLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
 	ErrO1BetaLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
 var (
-	ErrO3MaxTokensDeprecated     = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")
-	ErrO3BetaLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
-	ErrO3BetaLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
+	//nolint:lll
+	ErrReasoningModelMaxTokensDeprecated = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")
+	ErrReasoningModelLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
+	ErrReasoningModelLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -105,21 +106,6 @@ const (
 	CodexCodeCushman001 = "code-cushman-001"
 	CodexCodeDavinci001 = "code-davinci-001"
 )
-
-// O1SeriesModels List of new Series of OpenAI models.
-// Some old api attributes not supported.
-var O1SeriesModels = map[string]struct{}{
-	O1Mini:            {},
-	O1Mini20240912:    {},
-	O1Preview:         {},
-	O1Preview20240912: {},
-}
-
-// O3SeriesModels List of new Series of OpenAI models.
-var O3SeriesModels = map[string]struct{}{
-	O3Mini:         {},
-	O3Mini20250131: {},
-}
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
@@ -208,78 +194,6 @@ var unsupportedToolsForO1Models = map[ToolType]struct{}{
 var availableMessageRoleForO1Models = map[string]struct{}{
 	ChatMessageRoleUser:      {},
 	ChatMessageRoleAssistant: {},
-}
-
-// validateOSeriesRequest checks for fields in requests which are not allowed for o-series models
-// this includes: o1 does not support function calling, or system messages.
-func validateOSeriesRequest(request ChatCompletionRequest) error {
-	_, o1Series := O1SeriesModels[request.Model]
-	_, o3Series := O3SeriesModels[request.Model]
-
-	if !o1Series && !o3Series {
-		return nil
-	}
-
-	if err := validateBasicParams(request); err != nil {
-		return err
-	}
-
-	if err := validateModelParams(request); err != nil {
-		return err
-	}
-
-	if o1Series {
-		if err := validateO1Specific(request); err != nil {
-			return err
-		}
-	}
-
-	return nil
-}
-
-func validateBasicParams(request ChatCompletionRequest) error {
-	if request.MaxTokens > 0 {
-		return ErrO3MaxTokensDeprecated
-	}
-	if request.LogProbs {
-		return ErrO3BetaLimitationsLogprobs
-	}
-	return nil
-}
-
-func validateModelParams(request ChatCompletionRequest) error {
-	if request.Temperature > 0 && request.Temperature != 1 {
-		return ErrO3BetaLimitationsOther
-	}
-	if request.TopP > 0 && request.TopP != 1 {
-		return ErrO3BetaLimitationsOther
-	}
-	if request.N > 0 && request.N != 1 {
-		return ErrO3BetaLimitationsOther
-	}
-	if request.PresencePenalty > 0 {
-		return ErrO3BetaLimitationsOther
-	}
-	if request.FrequencyPenalty > 0 {
-		return ErrO3BetaLimitationsOther
-	}
-
-	return nil
-}
-
-func validateO1Specific(request ChatCompletionRequest) error {
-	for _, m := range request.Messages {
-		if _, found := availableMessageRoleForO1Models[m.Role]; !found {
-			return ErrO1BetaLimitationsMessageTypes
-		}
-	}
-
-	for _, t := range request.Tools {
-		if _, found := unsupportedToolsForO1Models[t.Type]; found {
-			return ErrO1BetaLimitationsTools
-		}
-	}
-	return nil
 }
 
 // CompletionRequest represents a request structure for completion API.

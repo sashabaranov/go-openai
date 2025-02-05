@@ -300,8 +300,9 @@ func TestO1ModelChatCompletions(t *testing.T) {
 		MaxCompletionTokens: 1000,
 		Messages: []openai.ChatCompletionMessage{
 			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: "Hello!",
+				Role:             openai.ChatMessageRoleUser,
+				Content:          "Hello!",
+				ReasoningContent: "hi!",
 			},
 		},
 	})

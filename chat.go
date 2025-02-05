@@ -222,6 +222,7 @@ type ChatCompletionRequest struct {
 
 	TopK              int32   `json:"top_k,omitempty"`
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
+	IncludeReasoning  bool    `json:"include_reasoning,omitempty"`
 }
 
 type StreamOptions struct {

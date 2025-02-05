@@ -2,31 +2,7 @@ package openai
 
 import (
 	"context"
-	"errors"
 	"net/http"
-)
-
-var (
-	// Deprecated: use ErrReasoningModelMaxTokensDeprecated instead.
-	ErrO1MaxTokensDeprecated                   = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")                               //nolint:lll
-	ErrCompletionUnsupportedModel              = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
-	ErrCompletionStreamNotSupported            = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
-	ErrCompletionRequestPromptTypeNotSupported = errors.New("the type of CompletionRequest.Prompt only supports string and []string")                              //nolint:lll
-)
-
-var (
-	ErrO1BetaLimitationsMessageTypes = errors.New("this model has beta-limitations, user and assistant messages only, system messages are not supported")       //nolint:lll
-	ErrO1BetaLimitationsTools        = errors.New("this model has beta-limitations, tools, function calling, and response format parameters are not supported") //nolint:lll
-	// Deprecated: use ErrReasoningModelLimitations* instead.
-	ErrO1BetaLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
-	ErrO1BetaLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
-)
-
-var (
-	//nolint:lll
-	ErrReasoningModelMaxTokensDeprecated = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")
-	ErrReasoningModelLimitationsLogprobs = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
-	ErrReasoningModelLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -185,15 +161,6 @@ func checkPromptType(prompt any) bool {
 		}
 	}
 	return true // all items in the slice are string, so it is []string
-}
-
-var unsupportedToolsForO1Models = map[ToolType]struct{}{
-	ToolTypeFunction: {},
-}
-
-var availableMessageRoleForO1Models = map[string]struct{}{
-	ChatMessageRoleUser:      {},
-	ChatMessageRoleAssistant: {},
 }
 
 // CompletionRequest represents a request structure for completion API.

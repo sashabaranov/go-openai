@@ -934,6 +934,31 @@ func TestCreateChatCompletionStreamWithReasoningModel(t *testing.T) {
 	}
 }
 
+func TestCreateChatCompletionStreamReasoningValidatorFails(t *testing.T) {
+	client, _, _ := setupOpenAITestServer()
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 100, // This will trigger the validator to fail
+		Model:     openai.O3Mini,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+
+	if stream != nil {
+		t.Error("Expected nil stream when validation fails")
+		stream.Close()
+	}
+
+	if !errors.Is(err, openai.ErrReasoningModelMaxTokensDeprecated) {
+		t.Errorf("Expected ErrReasoningModelMaxTokensDeprecated, got: %v", err)
+	}
+}
+
 func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) bool {
 	if c1.Index != c2.Index {
 		return false

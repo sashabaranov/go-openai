@@ -80,8 +80,8 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	request.Stream = true
-	reasoningValidator := NewReasoningValidator(request)
-	if err = reasoningValidator.Validate(); err != nil {
+	reasoningValidator := NewReasoningValidator()
+	if err = reasoningValidator.Validate(request); err != nil {
 		return
 	}
 

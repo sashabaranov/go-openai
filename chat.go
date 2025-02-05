@@ -392,8 +392,8 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	reasoningValidator := NewReasoningValidator(request)
-	if err = reasoningValidator.Validate(); err != nil {
+	reasoningValidator := NewReasoningValidator()
+	if err = reasoningValidator.Validate(request); err != nil {
 		return
 	}
 

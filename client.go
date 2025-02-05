@@ -255,6 +255,9 @@ func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeAzureAD {
 		baseURL = c.baseURLWithAzureDeployment(baseURL, suffix, args.model)
 	}
+	if c.config.APIType == APITypeOllama {
+		suffix = c.suffixOllamaChat(suffix)
+	}
 
 	if c.config.APIVersion != "" {
 		suffix = c.suffixWithAPIVersion(suffix)
@@ -282,6 +285,12 @@ func (c *Client) baseURLWithAzureDeployment(baseURL, suffix, model string) (newB
 		baseURL = fmt.Sprintf("%s/%s/%s", baseURL, azureDeploymentsPrefix, azureDeploymentName)
 	}
 	return baseURL
+}
+func (c *Client) suffixOllamaChat(suffix string) (newSuffix string) {
+	if suffix == chatCompletionsSuffix {
+		return "/api/chat"
+	}
+	return
 }
 
 func (c *Client) handleErrorResp(resp *http.Response) error {

@@ -792,6 +792,173 @@ func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 	return true
 }
 
+func TestCreateChatCompletionStreamWithReasoningModel(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "text/event-stream")
+
+		dataBytes := []byte{}
+
+		//nolint:lll
+		dataBytes = append(dataBytes, []byte(`data: {"id":"1","object":"chat.completion.chunk","created":1729585728,"model":"o3-mini-2025-01-31","system_fingerprint":"fp_mini","choices":[{"index":0,"delta":{"role":"assistant","content":""},"finish_reason":null}]}`)...)
+		dataBytes = append(dataBytes, []byte("\n\n")...)
+
+		//nolint:lll
+		dataBytes = append(dataBytes, []byte(`data: {"id":"2","object":"chat.completion.chunk","created":1729585728,"model":"o3-mini-2025-01-31","system_fingerprint":"fp_mini","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}`)...)
+		dataBytes = append(dataBytes, []byte("\n\n")...)
+
+		//nolint:lll
+		dataBytes = append(dataBytes, []byte(`data: {"id":"3","object":"chat.completion.chunk","created":1729585728,"model":"o3-mini-2025-01-31","system_fingerprint":"fp_mini","choices":[{"index":0,"delta":{"content":" from"},"finish_reason":null}]}`)...)
+		dataBytes = append(dataBytes, []byte("\n\n")...)
+
+		//nolint:lll
+		dataBytes = append(dataBytes, []byte(`data: {"id":"4","object":"chat.completion.chunk","created":1729585728,"model":"o3-mini-2025-01-31","system_fingerprint":"fp_mini","choices":[{"index":0,"delta":{"content":" O3Mini"},"finish_reason":null}]}`)...)
+		dataBytes = append(dataBytes, []byte("\n\n")...)
+
+		//nolint:lll
+		dataBytes = append(dataBytes, []byte(`data: {"id":"5","object":"chat.completion.chunk","created":1729585728,"model":"o3-mini-2025-01-31","system_fingerprint":"fp_mini","choices":[{"index":0,"delta":{},"finish_reason":"stop"}]}`)...)
+		dataBytes = append(dataBytes, []byte("\n\n")...)
+
+		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxCompletionTokens: 2000,
+		Model:               openai.O3Mini20250131,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+	checks.NoError(t, err, "CreateCompletionStream returned error")
+	defer stream.Close()
+
+	expectedResponses := []openai.ChatCompletionStreamResponse{
+		{
+			ID:                "1",
+			Object:            "chat.completion.chunk",
+			Created:           1729585728,
+			Model:             openai.O3Mini20250131,
+			SystemFingerprint: "fp_mini",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Index: 0,
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Role: "assistant",
+					},
+				},
+			},
+		},
+		{
+			ID:                "2",
+			Object:            "chat.completion.chunk",
+			Created:           1729585728,
+			Model:             openai.O3Mini20250131,
+			SystemFingerprint: "fp_mini",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Index: 0,
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Content: "Hello",
+					},
+				},
+			},
+		},
+		{
+			ID:                "3",
+			Object:            "chat.completion.chunk",
+			Created:           1729585728,
+			Model:             openai.O3Mini20250131,
+			SystemFingerprint: "fp_mini",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Index: 0,
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Content: " from",
+					},
+				},
+			},
+		},
+		{
+			ID:                "4",
+			Object:            "chat.completion.chunk",
+			Created:           1729585728,
+			Model:             openai.O3Mini20250131,
+			SystemFingerprint: "fp_mini",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Index: 0,
+					Delta: openai.ChatCompletionStreamChoiceDelta{
+						Content: " O3Mini",
+					},
+				},
+			},
+		},
+		{
+			ID:                "5",
+			Object:            "chat.completion.chunk",
+			Created:           1729585728,
+			Model:             openai.O3Mini20250131,
+			SystemFingerprint: "fp_mini",
+			Choices: []openai.ChatCompletionStreamChoice{
+				{
+					Index:        0,
+					Delta:        openai.ChatCompletionStreamChoiceDelta{},
+					FinishReason: "stop",
+				},
+			},
+		},
+	}
+
+	for ix, expectedResponse := range expectedResponses {
+		b, _ := json.Marshal(expectedResponse)
+		t.Logf("%d: %s", ix, string(b))
+
+		receivedResponse, streamErr := stream.Recv()
+		checks.NoError(t, streamErr, "stream.Recv() failed")
+		if !compareChatResponses(expectedResponse, receivedResponse) {
+			t.Errorf("Stream response %v is %v, expected %v", ix, receivedResponse, expectedResponse)
+		}
+	}
+
+	_, streamErr := stream.Recv()
+	if !errors.Is(streamErr, io.EOF) {
+		t.Errorf("stream.Recv() did not return EOF in the end: %v", streamErr)
+	}
+}
+
+func TestCreateChatCompletionStreamReasoningValidatorFails(t *testing.T) {
+	client, _, _ := setupOpenAITestServer()
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 100, // This will trigger the validator to fail
+		Model:     openai.O3Mini,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+
+	if stream != nil {
+		t.Error("Expected nil stream when validation fails")
+		stream.Close()
+	}
+
+	if !errors.Is(err, openai.ErrReasoningModelMaxTokensDeprecated) {
+		t.Errorf("Expected ErrReasoningModelMaxTokensDeprecated, got: %v", err)
+	}
+}
+
 func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) bool {
 	if c1.Index != c2.Index {
 		return false

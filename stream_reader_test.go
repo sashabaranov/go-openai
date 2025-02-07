@@ -75,4 +75,16 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 	if !bytes.Equal(rawLine, []byte("{\"key\": \"value\"}")) {
 		t.Fatalf("Did not return raw line: %v", string(rawLine))
 	}
+
+	// issue: https://github.com/sashabaranov/go-openai/issues/781
+	streamDataPrefixWithoutSpace := &streamReader[ChatCompletionStreamResponse]{
+		reader: bufio.NewReader(bytes.NewReader([]byte("data:{\"key\": \"value\"}\n"))),
+	}
+	rawLine1, err := streamDataPrefixWithoutSpace.RecvRaw()
+	if err != nil {
+		t.Fatalf("Did not return raw line: %v", err)
+	}
+	if !bytes.Equal(rawLine1, []byte("{\"key\": \"value\"}")) {
+		t.Fatalf("Did not return raw line: %v", string(rawLine1))
+	}
 }

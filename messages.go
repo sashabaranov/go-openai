@@ -41,6 +41,7 @@ type MessageContent struct {
 	Type      string       `json:"type"`
 	Text      *MessageText `json:"text,omitempty"`
 	ImageFile *ImageFile   `json:"image_file,omitempty"`
+	ImageURL  *ImageURL    `json:"image_url,omitempty"`
 }
 type MessageText struct {
 	Value       string `json:"value"`
@@ -49,6 +50,11 @@ type MessageText struct {
 
 type ImageFile struct {
 	FileID string `json:"file_id"`
+}
+
+type ImageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail"`
 }
 
 type MessageRequest struct {

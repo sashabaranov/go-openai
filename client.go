@@ -185,6 +185,8 @@ func (c *Client) setCommonHeaders(req *http.Request) {
 	// Azure API Key authentication
 	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeCloudflareAzure {
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
+	} else if c.config.APIType == APITypeAnthropic {
+		req.Header.Set("anthropic-version", c.config.APIVersion)
 	} else if c.config.authToken != "" {
 		// OpenAI or Azure AD authentication
 		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))

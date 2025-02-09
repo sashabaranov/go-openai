@@ -41,7 +41,7 @@ type MessageContent struct {
 	Type      string       `json:"type"`
 	Text      *MessageText `json:"text,omitempty"`
 	ImageFile *ImageFile   `json:"image_file,omitempty"`
-	ImageUrl  *ImageUrl    `json:"image_url,omitempty"`
+	ImageUrl  *ImageURL    `json:"image_url,omitempty"`
 }
 type MessageText struct {
 	Value       string `json:"value"`
@@ -52,7 +52,7 @@ type ImageFile struct {
 	FileID string `json:"file_id"`
 }
 
-type ImageUrl struct {
+type ImageURL struct {
 	URL    string `json:"url"`
 	Detail string `json:"detail"`
 }

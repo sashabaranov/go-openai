@@ -182,15 +182,19 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 
 func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
-	// Azure API Key authentication
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeCloudflareAzure {
+	switch c.config.APIType {
+	case APITypeAzure, APITypeCloudflareAzure:
+		// Azure API Key authentication
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
-	} else if c.config.APIType == APITypeAnthropic {
+	case APITypeAnthropic:
 		req.Header.Set("anthropic-version", c.config.APIVersion)
-	} else if c.config.authToken != "" {
+	default:
 		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		if c.config.authToken != "" {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		}
 	}
+
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)
 	}

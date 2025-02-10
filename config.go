@@ -11,6 +11,8 @@ const (
 
 	azureAPIPrefix         = "openai"
 	azureDeploymentsPrefix = "deployments"
+
+	AnthropicAPIVersion = "2023-06-01"
 )
 
 type APIType string
@@ -86,7 +88,7 @@ func DefaultAnthropicConfig(apiKey, baseURL string) ClientConfig {
 		BaseURL:    baseURL,
 		OrgID:      "",
 		APIType:    APITypeAnthropic,
-		APIVersion: "2023-06-01",
+		APIVersion: AnthropicAPIVersion,
 
 		HTTPClient: &http.Client{},
 

@@ -71,7 +71,7 @@ func TestDefaultAnthropicConfig(t *testing.T) {
 		t.Errorf("Expected APIType to be %v, got %v", openai.APITypeAnthropic, config.APIType)
 	}
 
-	if config.APIVersion != "2023-06-01" {
+	if config.APIVersion != openai.AnthropicAPIVersion {
 		t.Errorf("Expected APIVersion to be 2023-06-01, got %v", config.APIVersion)
 	}
 
@@ -91,8 +91,8 @@ func TestDefaultAnthropicConfigWithEmptyValues(t *testing.T) {
 		t.Errorf("Expected APIType to be %v, got %v", openai.APITypeAnthropic, config.APIType)
 	}
 
-	if config.APIVersion != "2023-06-01" {
-		t.Errorf("Expected APIVersion to be 2023-06-01, got %v", config.APIVersion)
+	if config.APIVersion != openai.AnthropicAPIVersion {
+		t.Errorf("Expected APIVersion to be %s, got %v", openai.AnthropicAPIVersion, config.APIVersion)
 	}
 
 	expectedBaseURL := "https://api.anthropic.com/v1"

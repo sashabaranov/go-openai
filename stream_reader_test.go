@@ -76,7 +76,6 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 		t.Fatalf("Did not return raw line: %v", string(rawLine))
 	}
 
-	// issue: https://github.com/sashabaranov/go-openai/issues/781
 	streamDataPrefixWithoutSpace := &streamReader[ChatCompletionStreamResponse]{
 		reader: bufio.NewReader(bytes.NewReader([]byte("data:{\"key\": \"value\"}\n"))),
 	}

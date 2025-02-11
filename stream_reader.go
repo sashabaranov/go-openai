@@ -83,7 +83,12 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 		}
 
 		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
-			writeErr := stream.errAccumulator.Write(noPrefixLine)
+			var writeErr error
+			if noPrefixLine == nil && noSpaceLine != nil {
+				writeErr = stream.errAccumulator.Write(noSpaceLine)
+			} else {
+				writeErr = stream.errAccumulator.Write(noPrefixLine)
+			}
 			if writeErr != nil {
 				return nil, writeErr
 			}

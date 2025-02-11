@@ -14,6 +14,7 @@ const (
 	ChatMessageRoleAssistant = "assistant"
 	ChatMessageRoleFunction  = "function"
 	ChatMessageRoleTool      = "tool"
+	ChatMessageRoleDeveloper = "developer"
 )
 
 const chatCompletionsSuffix = "/chat/completions"

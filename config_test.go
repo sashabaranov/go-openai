@@ -60,3 +60,43 @@ func TestGetAzureDeploymentByModel(t *testing.T) {
 		})
 	}
 }
+
+func TestDefaultAnthropicConfig(t *testing.T) {
+	apiKey := "test-key"
+	baseURL := "https://api.anthropic.com/v1"
+
+	config := openai.DefaultAnthropicConfig(apiKey, baseURL)
+
+	if config.APIType != openai.APITypeAnthropic {
+		t.Errorf("Expected APIType to be %v, got %v", openai.APITypeAnthropic, config.APIType)
+	}
+
+	if config.APIVersion != openai.AnthropicAPIVersion {
+		t.Errorf("Expected APIVersion to be 2023-06-01, got %v", config.APIVersion)
+	}
+
+	if config.BaseURL != baseURL {
+		t.Errorf("Expected BaseURL to be %v, got %v", baseURL, config.BaseURL)
+	}
+
+	if config.EmptyMessagesLimit != 300 {
+		t.Errorf("Expected EmptyMessagesLimit to be 300, got %v", config.EmptyMessagesLimit)
+	}
+}
+
+func TestDefaultAnthropicConfigWithEmptyValues(t *testing.T) {
+	config := openai.DefaultAnthropicConfig("", "")
+
+	if config.APIType != openai.APITypeAnthropic {
+		t.Errorf("Expected APIType to be %v, got %v", openai.APITypeAnthropic, config.APIType)
+	}
+
+	if config.APIVersion != openai.AnthropicAPIVersion {
+		t.Errorf("Expected APIVersion to be %s, got %v", openai.AnthropicAPIVersion, config.APIVersion)
+	}
+
+	expectedBaseURL := "https://api.anthropic.com/v1"
+	if config.BaseURL != expectedBaseURL {
+		t.Errorf("Expected BaseURL to be %v, got %v", expectedBaseURL, config.BaseURL)
+	}
+}

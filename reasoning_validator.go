@@ -35,6 +35,7 @@ var unsupportedToolsForO1Models = map[ToolType]struct{}{
 var availableMessageRoleForO1Models = map[string]struct{}{
 	ChatMessageRoleUser:      {},
 	ChatMessageRoleAssistant: {},
+	ChatMessageRoleDeveloper: {},
 }
 
 // ReasoningValidator handles validation for o-series model requests.

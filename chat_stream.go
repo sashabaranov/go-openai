@@ -5,12 +5,19 @@ import (
 	"net/http"
 )
 
+type ChatCompletionStreamChoiceDeltaAudio struct {
+	ID         string `json:"id,omitempty"`
+	Transcript string `json:"transcript,omitempty"`
+	Data       string `json:"data,omitempty"`
+}
+
 type ChatCompletionStreamChoiceDelta struct {
-	Content      string        `json:"content,omitempty"`
-	Role         string        `json:"role,omitempty"`
-	FunctionCall *FunctionCall `json:"function_call,omitempty"`
-	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
-	Refusal      string        `json:"refusal,omitempty"`
+	Content      string                                `json:"content,omitempty"`
+	Role         string                                `json:"role,omitempty"`
+	FunctionCall *FunctionCall                         `json:"function_call,omitempty"`
+	ToolCalls    []ToolCall                            `json:"tool_calls,omitempty"`
+	Refusal      string                                `json:"refusal,omitempty"`
+	Audio        *ChatCompletionStreamChoiceDeltaAudio `json:"audio,omitempty"`
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {

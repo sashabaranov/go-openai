@@ -18,7 +18,7 @@ jobs:
       run: |
         go vet .
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v4
+      uses: golangci/golangci-lint-action@v6
       with:
         version: latest
     - name: Run tests

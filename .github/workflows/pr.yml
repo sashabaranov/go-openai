@@ -19,8 +19,6 @@ jobs:
         go vet .
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v6
-      with:
-        version: latest
     - name: Run tests
       run: go test -race -covermode=atomic -coverprofile=coverage.out -v .
     - name: Upload coverage reports to Codecov

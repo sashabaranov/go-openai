@@ -39,6 +39,21 @@ func TestClient(t *testing.T) {
 	}
 }
 
+func TestSetCommonHeadersAnthropic(t *testing.T) {
+	config := DefaultAnthropicConfig("mock-token", "")
+	client := NewClientWithConfig(config)
+	req, err := http.NewRequest("GET", "http://example.com", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	client.setCommonHeaders(req)
+
+	if got := req.Header.Get("anthropic-version"); got != AnthropicAPIVersion {
+		t.Errorf("Expected anthropic-version header to be %q, got %q", AnthropicAPIVersion, got)
+	}
+}
+
 func TestDecodeResponse(t *testing.T) {
 	stringInput := ""
 

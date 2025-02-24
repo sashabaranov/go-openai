@@ -11,8 +11,10 @@ import (
 )
 
 var (
-	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"error":`)
+	dataFlag        = "data"
+	doneFlag        = []byte("[DONE]")
+	errorFlag       = []byte(`"error"`)
+	errorPrefixFlag = []byte(`{"error`)
 )
 
 type streamable interface {
@@ -52,7 +54,6 @@ func (stream *streamReader[T]) RecvRaw() ([]byte, error) {
 	return stream.processLines()
 }
 
-//nolint:gocognit
 func (stream *streamReader[T]) processLines() ([]byte, error) {
 	var (
 		emptyMessagesCount uint
@@ -61,7 +62,7 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 
 	for {
 		rawLine, readErr := stream.reader.ReadBytes('\n')
-		if readErr != nil || hasErrorPrefix {
+		if readErr != nil || (hasErrorPrefix && readErr == io.EOF) {
 			respErr := stream.unmarshalError()
 			if respErr != nil {
 				return nil, fmt.Errorf("error, %w", respErr.Error)
@@ -69,18 +70,42 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 			return nil, readErr
 		}
 
-		noSpaceLine := bytes.TrimSpace(rawLine)
-		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
-			hasErrorPrefix = true
+		// Split a string like "event: bar" into name="event" and value=" bar".
+		name, value, _ := bytes.Cut(rawLine, []byte(":"))
+		value = bytes.TrimSpace(value)
+
+		// Consume an optional space after the colon if it exists.
+		if len(value) > 0 && value[0] == ' ' {
+			value = value[1:]
 		}
-		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
-			if hasErrorPrefix {
-				noSpaceLine = bytes.TrimPrefix(noSpaceLine, headerData)
+
+		switch string(name) {
+		case dataFlag:
+			if bytes.Equal(value, doneFlag) {
+				stream.isFinished = true
+				return nil, io.EOF
 			}
-			writeErr := stream.errAccumulator.Write(noSpaceLine)
-			if writeErr != nil {
+			if bytes.HasPrefix(value, errorPrefixFlag) {
+				if writeErr := stream.writeErrAccumulator(value); writeErr != nil {
+					return nil, writeErr
+				}
+				respErr := stream.unmarshalError()
+				if respErr != nil {
+					return nil, fmt.Errorf("error, %w", respErr.Error)
+				}
+				continue
+			}
+
+			return value, nil
+		default:
+			if writeErr := stream.writeErrAccumulator(rawLine); writeErr != nil {
 				return nil, writeErr
 			}
+			if bytes.Equal(name, errorFlag) {
+				hasErrorPrefix = true
+				continue
+			}
+
 			emptyMessagesCount++
 			if emptyMessagesCount > stream.emptyMessagesLimit {
 				return nil, ErrTooManyEmptyStreamMessages
@@ -88,15 +113,16 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 
 			continue
 		}
-
-		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
-		if string(noPrefixLine) == "[DONE]" {
-			stream.isFinished = true
-			return nil, io.EOF
-		}
-
-		return noPrefixLine, nil
 	}
+}
+
+func (stream *streamReader[T]) writeErrAccumulator(p []byte) error {
+	writeErr := stream.errAccumulator.Write(p)
+	if writeErr != nil {
+		return writeErr
+	}
+
+	return nil
 }
 
 func (stream *streamReader[T]) unmarshalError() (errResp *ErrorResponse) {

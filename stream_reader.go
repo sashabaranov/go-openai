@@ -63,57 +63,75 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 	for {
 		rawLine, readErr := stream.reader.ReadBytes('\n')
 		if readErr != nil || (hasErrorPrefix && readErr == io.EOF) {
-			respErr := stream.unmarshalError()
-			if respErr != nil {
-				return nil, fmt.Errorf("error, %w", respErr.Error)
-			}
-			return nil, readErr
+			return stream.handleReadError()
 		}
 
-		// Split a string like "event: bar" into name="event" and value=" bar".
-		name, value, _ := bytes.Cut(rawLine, []byte(":"))
-		value = bytes.TrimSpace(value)
-
-		// Consume an optional space after the colon if it exists.
-		if len(value) > 0 && value[0] == ' ' {
-			value = value[1:]
-		}
+		name, value := stream.parseLine(rawLine)
 
 		switch string(name) {
 		case dataFlag:
-			if bytes.Equal(value, doneFlag) {
-				stream.isFinished = true
-				return nil, io.EOF
-			}
-			if bytes.HasPrefix(value, errorPrefixFlag) {
-				if writeErr := stream.writeErrAccumulator(value); writeErr != nil {
-					return nil, writeErr
-				}
-				respErr := stream.unmarshalError()
-				if respErr != nil {
-					return nil, fmt.Errorf("error, %w", respErr.Error)
-				}
-				continue
-			}
-
-			return value, nil
+			return stream.handleDataFlag(value)
 		default:
-			if writeErr := stream.writeErrAccumulator(rawLine); writeErr != nil {
-				return nil, writeErr
+			if err := stream.handleDefaultCase(rawLine, name, &emptyMessagesCount, &hasErrorPrefix); err != nil {
+				return nil, err
 			}
-			if bytes.Equal(name, errorFlag) {
-				hasErrorPrefix = true
-				continue
-			}
-
-			emptyMessagesCount++
-			if emptyMessagesCount > stream.emptyMessagesLimit {
-				return nil, ErrTooManyEmptyStreamMessages
-			}
-
-			continue
 		}
 	}
+}
+
+func (stream *streamReader[T]) handleReadError() ([]byte, error) {
+	respErr := stream.unmarshalError()
+	if respErr != nil {
+		return nil, fmt.Errorf("error, %w", respErr.Error)
+	}
+	return nil, io.EOF
+}
+
+func (stream *streamReader[T]) parseLine(rawLine []byte) ([]byte, []byte) {
+	name, value, _ := bytes.Cut(rawLine, []byte(":"))
+	value = bytes.TrimSpace(value)
+	if len(value) > 0 && value[0] == ' ' {
+		value = value[1:]
+	}
+	return name, value
+}
+
+func (stream *streamReader[T]) handleDataFlag(value []byte) ([]byte, error) {
+	if bytes.Equal(value, doneFlag) {
+		stream.isFinished = true
+		return nil, io.EOF
+	}
+	if bytes.HasPrefix(value, errorPrefixFlag) {
+		if err := stream.writeErrAccumulator(value); err != nil {
+			return nil, err
+		}
+		respErr := stream.unmarshalError()
+		if respErr != nil {
+			return nil, fmt.Errorf("error, %w", respErr.Error)
+		}
+		return nil, nil
+	}
+	return value, nil
+}
+
+func (stream *streamReader[T]) handleDefaultCase(
+	rawLine, name []byte,
+	emptyMessagesCount *uint,
+	hasErrorPrefix *bool,
+) error {
+	if err := stream.writeErrAccumulator(rawLine); err != nil {
+		return err
+	}
+	if bytes.Equal(name, errorFlag) {
+		*hasErrorPrefix = true
+		return nil
+	}
+
+	*emptyMessagesCount++
+	if *emptyMessagesCount > stream.emptyMessagesLimit {
+		return ErrTooManyEmptyStreamMessages
+	}
+	return nil
 }
 
 func (stream *streamReader[T]) writeErrAccumulator(p []byte) error {

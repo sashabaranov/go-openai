@@ -89,7 +89,7 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 }
 
 func TestStreamReaderParseLine(t *testing.T) {
-	tests := []struct {
+	testUnits := []struct {
 		rawLine []byte
 		want    [2][]byte
 	}{
@@ -101,12 +101,12 @@ func TestStreamReaderParseLine(t *testing.T) {
 		{[]byte(""), [2][]byte{[]byte(""), []byte("")}},
 	}
 
-	for _, test_ := range tests {
+	for _, testUnit := range testUnits {
 		stream := &streamReader[ChatCompletionStreamResponse]{}
-		name, value := stream.parseLine(test_.rawLine)
-		if !bytes.Equal(name, test_.want[0]) || !bytes.Equal(value, test_.want[1]) {
+		name, value := stream.parseLine(testUnit.rawLine)
+		if !bytes.Equal(name, testUnit.want[0]) || !bytes.Equal(value, testUnit.want[1]) {
 			t.Errorf("parseLine(%q) = %q, %q; want %q, %q",
-				test_.rawLine, name, value, test_.want[0], test_.want[1])
+				testUnit.rawLine, name, value, testUnit.want[0], testUnit.want[1])
 		}
 	}
 }

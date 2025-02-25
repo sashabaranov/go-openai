@@ -139,11 +139,6 @@ linters-settings:
     # Default: false
     all: true
 
-  varcheck:
-    # Check usage of exported fields and variables.
-    # Default: false
-    exported-fields: false # default false # TODO: enable after fixing false positives
-
 
 linters:
   disable-all: true

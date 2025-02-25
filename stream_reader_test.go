@@ -87,3 +87,40 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 		t.Fatalf("Did not return raw line: %v", string(rawLine1))
 	}
 }
+
+func TestStreamReaderParseLine(t *testing.T) {
+	tests := []struct {
+		rawLine []byte
+		want    [2][]byte
+	}{
+		{[]byte("data: value"), [2][]byte{[]byte("data"), []byte("value")}},
+		{[]byte("datavalue"), [2][]byte{[]byte("datavalue"), []byte("")}},
+		{[]byte("data: "), [2][]byte{[]byte("data"), nil}},
+		{[]byte("data:value"), [2][]byte{[]byte("data"), []byte("value")}},
+		{[]byte(":"), [2][]byte{[]byte(""), []byte("")}},
+		{[]byte(""), [2][]byte{[]byte(""), []byte("")}},
+	}
+
+	for _, test_ := range tests {
+		stream := &streamReader[ChatCompletionStreamResponse]{}
+		name, value := stream.parseLine(test_.rawLine)
+		if !bytes.Equal(name, test_.want[0]) || !bytes.Equal(value, test_.want[1]) {
+			t.Errorf("parseLine(%q) = %q, %q; want %q, %q",
+				test_.rawLine, name, value, test_.want[0], test_.want[1])
+		}
+	}
+}
+
+func TestStreamReaderHandleDataFlagWriteErrAccumulatorError(t *testing.T) {
+	stream := &streamReader[ChatCompletionStreamResponse]{
+		errAccumulator: &utils.DefaultErrorAccumulator{
+			Buffer: &test.FailingErrorBuffer{},
+		},
+	}
+	res, err := stream.handleDataFlag([]byte(`{"error`))
+	if res != nil {
+		t.Fatalf("Did not return nil when write failed: %v", res)
+	}
+	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed,
+		"Did not return error when write failed", err.Error())
+}

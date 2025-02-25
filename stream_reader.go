@@ -90,9 +90,6 @@ func (stream *streamReader[T]) handleReadError() ([]byte, error) {
 func (stream *streamReader[T]) parseLine(rawLine []byte) ([]byte, []byte) {
 	name, value, _ := bytes.Cut(rawLine, []byte(":"))
 	value = bytes.TrimSpace(value)
-	if len(value) > 0 && value[0] == ' ' {
-		value = value[1:]
-	}
 	return name, value
 }
 
@@ -109,7 +106,6 @@ func (stream *streamReader[T]) handleDataFlag(value []byte) ([]byte, error) {
 		if respErr != nil {
 			return nil, fmt.Errorf("error, %w", respErr.Error)
 		}
-		return nil, nil
 	}
 	return value, nil
 }

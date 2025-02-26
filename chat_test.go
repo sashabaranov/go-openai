@@ -867,3 +867,284 @@ func TestFinishReason(t *testing.T) {
 		}
 	}
 }
+
+func TestChatCompletionRequestAudio(t *testing.T) {
+	cases := []struct {
+		request openai.ChatCompletionRequest
+		want    string
+	}{
+		{
+			request: openai.ChatCompletionRequest{
+				Model:      openai.GPT4oAudioPreview,
+				Modalities: []openai.Modality{openai.ModalityText, openai.ModalityAudio},
+				Audio: &openai.AudioOutput{
+					Voice:  "alloy",
+					Format: "pcm16",
+				},
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role:    openai.ChatMessageRoleUser,
+						Content: "Is a golden retriever a good family dog?",
+					},
+				},
+			},
+			want: `{
+    "model": "gpt-4o-audio-preview",
+    "modalities": [
+        "text",
+        "audio"
+    ],
+    "audio": {
+        "voice": "alloy",
+        "format": "pcm16"
+    },
+    "messages": [
+        {
+            "role": "user",
+            "content": "Is a golden retriever a good family dog?"
+        }
+    ]
+}`,
+		},
+	}
+
+	for _, c := range cases {
+		resBytes, _ := json.Marshal(c.request)
+		checks.JSONEq(t, c.want, string(resBytes))
+
+		var expected openai.ChatCompletionRequest
+		err := json.Unmarshal([]byte(c.want), &expected)
+		checks.NoError(t, err)
+		checks.Equal(t, c.request, expected)
+	}
+}
+
+func TestChatCompletionResponseAudio(t *testing.T) {
+	cases := []struct {
+		response openai.ChatCompletionResponse
+		want     string
+	}{
+		{
+			response: openai.ChatCompletionResponse{
+				ID:      "chatcmpl-ASKCthZk3MUOqqRh64CbUbeTmZ6xl",
+				Object:  "chat.completion",
+				Created: 1731314223,
+				Model:   openai.GPT4oAudioPreview20241001,
+				Choices: []openai.ChatCompletionChoice{
+					{
+						Index: 0,
+						Message: openai.ChatCompletionMessage{
+							Role: openai.ChatMessageRoleAssistant,
+							Audio: &openai.ChatCompletionAudio{
+								ID:         "audio_6731c23369048190aee358c51e0373d2",
+								Data:       "base64 encoded data",
+								ExpiresAt:  1731317827,
+								Transcript: "Yes, golden retrievers are known to be excellent family dogs. They are friendly, gentle, and great with children. Golden retrievers are also intelligent and eager to please, making them easy to train. They tend to get along well with other pets and are known for their loyalty and protective nature.", //nolint:lll
+							},
+						},
+						FinishReason: openai.FinishReasonStop,
+					},
+				},
+				Usage: openai.Usage{
+					PromptTokens:     17,
+					CompletionTokens: 483,
+					TotalTokens:      500,
+					PromptTokensDetails: &openai.PromptTokensDetails{
+						CachedTokens: 0,
+						AudioTokens:  0,
+						TextTokens:   17,
+						ImageTokens:  0,
+					},
+					CompletionTokensDetails: &openai.CompletionTokensDetails{
+						ReasoningTokens:          0,
+						AudioTokens:              398,
+						TextTokens:               85,
+						AcceptedPredictionTokens: 0,
+						RejectedPredictionTokens: 0,
+					},
+				},
+				SystemFingerprint: "fp_49254d0e9b",
+			},
+			want: `{"id":"chatcmpl-ASKCthZk3MUOqqRh64CbUbeTmZ6xl","object":"chat.completion","created":1731314223,"model":"gpt-4o-audio-preview-2024-10-01","choices":[{"index":0,"message":{"role":"assistant","content":null,"refusal":null,"audio":{"id":"audio_6731c23369048190aee358c51e0373d2","data":"base64 encoded data","expires_at":1731317827,"transcript":"Yes, golden retrievers are known to be excellent family dogs. They are friendly, gentle, and great with children. Golden retrievers are also intelligent and eager to please, making them easy to train. They tend to get along well with other pets and are known for their loyalty and protective nature."}},"finish_reason":"stop"}],"usage":{"prompt_tokens":17,"completion_tokens":483,"total_tokens":500,"prompt_tokens_details":{"cached_tokens":0,"audio_tokens":0,"text_tokens":17,"image_tokens":0},"completion_tokens_details":{"reasoning_tokens":0,"audio_tokens":398,"text_tokens":85,"accepted_prediction_tokens":0,"rejected_prediction_tokens":0}},"system_fingerprint":"fp_49254d0e9b"}`, //nolint:lll
+		},
+	}
+
+	for _, c := range cases {
+		var expected openai.ChatCompletionResponse
+		err := json.Unmarshal([]byte(c.want), &expected)
+		checks.NoError(t, err)
+		checks.Equal(t, c.response, expected)
+	}
+}
+
+func TestChatCompletionStreamResponseAudio(t *testing.T) {
+	cases := []struct {
+		response openai.ChatCompletionStreamResponse
+		want     string
+	}{
+		{
+			response: openai.ChatCompletionStreamResponse{
+				ID:                "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+				Object:            "chat.completion.chunk",
+				Created:           1731313962,
+				Model:             openai.GPT4oAudioPreview20241001,
+				SystemFingerprint: "fp_49254d0e9b",
+				Choices: []openai.ChatCompletionStreamChoice{
+					{
+						Index: 0,
+						Delta: openai.ChatCompletionStreamChoiceDelta{
+							Audio: &openai.ChatCompletionStreamChoiceDeltaAudio{
+								ID:         "audio_6731c12b1c148190bb8db8af1330221a",
+								Transcript: "Yes",
+							},
+						},
+					},
+				},
+			},
+			want: `{
+    "id": "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+    "object": "chat.completion.chunk",
+    "created": 1731313962,
+    "model": "gpt-4o-audio-preview-2024-10-01",
+    "system_fingerprint": "fp_49254d0e9b",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {
+                "content": null,
+                "audio": {
+                    "id": "audio_6731c12b1c148190bb8db8af1330221a",
+                    "transcript": "Yes"
+                }
+            },
+            "finish_reason": null
+        }
+    ]
+}`,
+		},
+		{
+			response: openai.ChatCompletionStreamResponse{
+				ID:                "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+				Object:            "chat.completion.chunk",
+				Created:           1731313962,
+				Model:             openai.GPT4oAudioPreview20241001,
+				SystemFingerprint: "fp_49254d0e9b",
+				Choices: []openai.ChatCompletionStreamChoice{
+					{
+						Index: 0,
+						Delta: openai.ChatCompletionStreamChoiceDelta{
+							Audio: &openai.ChatCompletionStreamChoiceDeltaAudio{
+								Transcript: ",",
+							},
+						},
+					},
+				},
+			},
+			want: `{
+    "id": "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+    "object": "chat.completion.chunk",
+    "created": 1731313962,
+    "model": "gpt-4o-audio-preview-2024-10-01",
+    "system_fingerprint": "fp_49254d0e9b",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {
+                "audio": {
+                    "transcript": ","
+                }
+            },
+            "finish_reason": null
+        }
+    ]
+}`,
+		},
+		{
+			response: openai.ChatCompletionStreamResponse{
+				ID:                "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+				Object:            "chat.completion.chunk",
+				Created:           1731313962,
+				Model:             openai.GPT4oAudioPreview20241001,
+				SystemFingerprint: "fp_49254d0e9b",
+				Choices: []openai.ChatCompletionStreamChoice{
+					{
+						Index: 0,
+						Delta: openai.ChatCompletionStreamChoiceDelta{
+							Role: openai.ChatMessageRoleAssistant,
+							Audio: &openai.ChatCompletionStreamChoiceDeltaAudio{
+								ID:   "audio_6731c12b1c148190bb8db8af1330221a",
+								Data: "base64 encoded data",
+							},
+						},
+					},
+				},
+			},
+			want: `{
+    "id": "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+    "object": "chat.completion.chunk",
+    "created": 1731313962,
+    "model": "gpt-4o-audio-preview-2024-10-01",
+    "system_fingerprint": "fp_49254d0e9b",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {
+                "role": "assistant",
+                "content": null,
+                "refusal": null,
+                "audio": {
+                    "id": "audio_6731c12b1c148190bb8db8af1330221a",
+                    "data": "base64 encoded data"
+                }
+            },
+            "finish_reason": null
+        }
+    ]
+}`,
+		},
+		{
+			response: openai.ChatCompletionStreamResponse{
+				ID:                "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+				Object:            "chat.completion.chunk",
+				Created:           1731313962,
+				Model:             openai.GPT4oAudioPreview20241001,
+				SystemFingerprint: "fp_49254d0e9b",
+				Choices: []openai.ChatCompletionStreamChoice{
+					{
+						Index: 0,
+						Delta: openai.ChatCompletionStreamChoiceDelta{
+							Audio: &openai.ChatCompletionStreamChoiceDeltaAudio{
+								Data: "base64 encoded data",
+							},
+						},
+					},
+				},
+			},
+			want: `{
+    "id": "chatcmpl-ASK8gd4isaVFw7qClLmtrcwWvka7p",
+    "object": "chat.completion.chunk",
+    "created": 1731313962,
+    "model": "gpt-4o-audio-preview-2024-10-01",
+    "system_fingerprint": "fp_49254d0e9b",
+    "choices": [
+        {
+            "index": 0,
+            "delta": {
+                "audio": {
+                    "data": "base64 encoded data"
+                }
+            },
+            "finish_reason": null
+        }
+    ]
+}`,
+		},
+	}
+
+	for _, c := range cases {
+		var expected openai.ChatCompletionStreamResponse
+		err := json.Unmarshal([]byte(c.want), &expected)
+		checks.NoError(t, err)
+		checks.Equal(t, c.response, expected)
+	}
+}

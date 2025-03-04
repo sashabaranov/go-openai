@@ -15,6 +15,10 @@ var (
 	errorPrefix = []byte(`{"error":`)
 )
 
+const (
+	splitParts = 2
+)
+
 type streamable interface {
 	ChatCompletionStreamResponse | CompletionResponse
 }
@@ -74,9 +78,9 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 
 		var value []byte
 
-		split := bytes.SplitN(noSpaceLine, []byte(":"), 2)
+		split := bytes.SplitN(noSpaceLine, []byte(":"), splitParts)
 
-		if len(split) != 2 || !bytes.Equal(split[0], dataField) {
+		if len(split) != splitParts || !bytes.Equal(split[0], dataField) {
 			dataFieldNotFound = true
 		} else {
 			value = split[1]

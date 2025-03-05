@@ -11,8 +11,12 @@ import (
 )
 
 var (
-	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"error":`)
+	dataField   = []byte("data")
+	errorPrefix = []byte(`{"error":`)
+)
+
+const (
+	splitParts = 2
 )
 
 type streamable interface {
@@ -55,13 +59,14 @@ func (stream *streamReader[T]) RecvRaw() ([]byte, error) {
 //nolint:gocognit
 func (stream *streamReader[T]) processLines() ([]byte, error) {
 	var (
-		emptyMessagesCount uint
-		hasErrorPrefix     bool
+		emptyMessagesCount  uint
+		dataFieldNotFound   bool
+		valueHasErrorPrefix bool
 	)
 
 	for {
 		rawLine, readErr := stream.reader.ReadBytes('\n')
-		if readErr != nil || hasErrorPrefix {
+		if readErr != nil || valueHasErrorPrefix {
 			respErr := stream.unmarshalError()
 			if respErr != nil {
 				return nil, fmt.Errorf("error, %w", respErr.Error)
@@ -70,12 +75,28 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 		}
 
 		noSpaceLine := bytes.TrimSpace(rawLine)
-		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
-			hasErrorPrefix = true
+
+		var value []byte
+
+		split := bytes.SplitN(noSpaceLine, []byte(":"), splitParts)
+
+		if len(split) != splitParts || !bytes.Equal(split[0], dataField) {
+			dataFieldNotFound = true
+		} else {
+			value = split[1]
+
+			if bytes.HasPrefix(value, []byte(" ")) {
+				value = value[1:]
+			}
+
+			if bytes.HasPrefix(value, errorPrefix) {
+				valueHasErrorPrefix = true
+			}
 		}
-		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
-			if hasErrorPrefix {
-				noSpaceLine = bytes.TrimPrefix(noSpaceLine, headerData)
+
+		if dataFieldNotFound || valueHasErrorPrefix {
+			if valueHasErrorPrefix {
+				noSpaceLine = value
 			}
 			writeErr := stream.errAccumulator.Write(noSpaceLine)
 			if writeErr != nil {
@@ -85,11 +106,12 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 			if emptyMessagesCount > stream.emptyMessagesLimit {
 				return nil, ErrTooManyEmptyStreamMessages
 			}
+			dataFieldNotFound = false
 
 			continue
 		}
 
-		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
+		noPrefixLine := value
 		if string(noPrefixLine) == "[DONE]" {
 			stream.isFinished = true
 			return nil, io.EOF

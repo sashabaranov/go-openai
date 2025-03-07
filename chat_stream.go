@@ -80,7 +80,8 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	request.Stream = true
-	if err = validateRequestForO1Models(request); err != nil {
+	reasoningValidator := NewReasoningValidator()
+	if err = reasoningValidator.Validate(request); err != nil {
 		return
 	}
 

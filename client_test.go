@@ -39,6 +39,21 @@ func TestClient(t *testing.T) {
 	}
 }
 
+func TestSetCommonHeadersAnthropic(t *testing.T) {
+	config := DefaultAnthropicConfig("mock-token", "")
+	client := NewClientWithConfig(config)
+	req, err := http.NewRequest("GET", "http://example.com", nil)
+	if err != nil {
+		t.Fatalf("Failed to create request: %v", err)
+	}
+
+	client.setCommonHeaders(req)
+
+	if got := req.Header.Get("anthropic-version"); got != AnthropicAPIVersion {
+		t.Errorf("Expected anthropic-version header to be %q, got %q", AnthropicAPIVersion, got)
+	}
+}
+
 func TestDecodeResponse(t *testing.T) {
 	stringInput := ""
 
@@ -513,8 +528,14 @@ func TestClient_suffixWithAPIVersion(t *testing.T) {
 			}
 			defer func() {
 				if r := recover(); r != nil {
-					if r.(string) != tt.wantPanic {
-						t.Errorf("suffixWithAPIVersion() = %v, want %v", r, tt.wantPanic)
+					// Check if the panic message matches the expected panic message
+					if rStr, ok := r.(string); ok {
+						if rStr != tt.wantPanic {
+							t.Errorf("suffixWithAPIVersion() = %v, want %v", rStr, tt.wantPanic)
+						}
+					} else {
+						// If the panic is not a string, log it
+						t.Errorf("suffixWithAPIVersion() panicked with non-string value: %v", r)
 					}
 				}
 			}()

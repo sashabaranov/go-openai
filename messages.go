@@ -41,6 +41,7 @@ type MessageContent struct {
 	Type      string       `json:"type"`
 	Text      *MessageText `json:"text,omitempty"`
 	ImageFile *ImageFile   `json:"image_file,omitempty"`
+	ImageURL  *ImageURL    `json:"image_url,omitempty"`
 }
 type MessageText struct {
 	Value       string `json:"value"`
@@ -51,11 +52,17 @@ type ImageFile struct {
 	FileID string `json:"file_id"`
 }
 
+type ImageURL struct {
+	URL    string `json:"url"`
+	Detail string `json:"detail"`
+}
+
 type MessageRequest struct {
-	Role     string         `json:"role"`
-	Content  string         `json:"content"`
-	FileIds  []string       `json:"file_ids,omitempty"` //nolint:revive // backwards-compatibility
-	Metadata map[string]any `json:"metadata,omitempty"`
+	Role        string             `json:"role"`
+	Content     string             `json:"content"`
+	FileIds     []string           `json:"file_ids,omitempty"` //nolint:revive // backwards-compatibility
+	Metadata    map[string]any     `json:"metadata,omitempty"`
+	Attachments []ThreadAttachment `json:"attachments,omitempty"`
 }
 
 type MessageFile struct {

@@ -148,6 +148,8 @@ type CompletionRequest struct {
 
 	TopK              int32   `json:"top_k,omitempty"`
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
+
+	Provider PostOpenrouterProviderRequest `json:"provider,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

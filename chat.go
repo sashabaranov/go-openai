@@ -224,6 +224,8 @@ type ChatCompletionRequest struct {
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
 
 	Provider PostOpenrouterProviderRequest `json:"provider,omitempty"`
+
+	Reasoning PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
 }
 
 type PostOpenrouterProviderRequest struct {
@@ -234,6 +236,16 @@ type PostOpenrouterProviderRequest struct {
 	RequireParameters bool     `json:"require_parameters"` // Only use providers that support all parameters in your request.
 	AllowFallbacks    bool     `json:"allow_fallbacks"`    // Whether to allow backup providers when the primary is unavailable.
 	Order             []string `json:"order"`              // List of provider names to try in order
+}
+
+// context : https://openrouter.ai/docs/use-cases/reasoning-tokens
+type PostOpenrouterReasoningRequest struct {
+	// One of the following (not both):
+	Effort    string `json:"effort,omitempty"`     // Can be "high", "medium", or "low" (OpenAI-style)
+	MaxTokens int    `json:"max_tokens,omitempty"` // Specific token limit (Anthropic-style)
+
+	// Optional: Default is false. All models support this.
+	Exclude bool `json:"exclude"` // // Set to true to exclude reasoning tokens from response
 }
 
 type StreamOptions struct {

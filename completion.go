@@ -150,6 +150,8 @@ type CompletionRequest struct {
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
 
 	Provider PostOpenrouterProviderRequest `json:"provider,omitempty"`
+
+	Reasoning PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

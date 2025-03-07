@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/jsonschema"
+	"github.com/lgl8023/go-openai"
+	"github.com/lgl8023/go-openai/jsonschema"
 )
 
 func main() {

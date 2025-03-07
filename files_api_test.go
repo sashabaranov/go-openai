@@ -12,8 +12,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"github.com/lgl8023/go-openai"
+	"github.com/lgl8023/go-openai/internal/test/checks"
 )
 
 func TestFileBytesUpload(t *testing.T) {

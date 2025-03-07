@@ -222,7 +222,18 @@ type ChatCompletionRequest struct {
 
 	TopK              int32   `json:"top_k,omitempty"`
 	RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
-	IncludeReasoning  bool    `json:"include_reasoning,omitempty"`
+
+	Provider PostOpenrouterProviderRequest `json:"provider,omitempty"`
+}
+
+type PostOpenrouterProviderRequest struct {
+	Sort              string   `json:"sort"`               // Sort providers by price or throughput. (e.g. "price" or "throughput")
+	Quantization      []string `json:"quantization"`       // List of quantization levels to filter by (e.g. ["int4", "int8"])
+	Ignore            []string `json:"ignore"`             // List of provider names to skip for this request.
+	DataCollection    string   `json:"data_collection"`    // Control whether to use providers that may store data. "deny" or "allow"
+	RequireParameters bool     `json:"require_parameters"` // Only use providers that support all parameters in your request.
+	AllowFallbacks    bool     `json:"allow_fallbacks"`    // Whether to allow backup providers when the primary is unavailable.
+	Order             []string `json:"order"`              // List of provider names to try in order
 }
 
 type StreamOptions struct {

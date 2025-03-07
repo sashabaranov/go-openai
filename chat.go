@@ -241,8 +241,8 @@ type PostOpenrouterProviderRequest struct {
 // context : https://openrouter.ai/docs/use-cases/reasoning-tokens
 type PostOpenrouterReasoningRequest struct {
 	// One of the following (not both):
-	Effort    string `json:"effort"`     // Can be "high", "medium", or "low" (OpenAI-style)
-	MaxTokens int    `json:"max_tokens"` // Specific token limit (Anthropic-style)
+	Effort    string `json:"effort,omitempty"`     // Can be "high", "medium", or "low" (OpenAI-style)
+	MaxTokens int    `json:"max_tokens,omitempty"` // Specific token limit (Anthropic-style)
 
 	// Optional: Default is false. All models support this.
 	Exclude bool `json:"exclude"` // // Set to true to exclude reasoning tokens from response

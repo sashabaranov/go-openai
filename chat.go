@@ -238,6 +238,7 @@ type PostOpenrouterProviderRequest struct {
 	Order             []string `json:"order"`              // List of provider names to try in order
 }
 
+// context : https://openrouter.ai/docs/use-cases/reasoning-tokens
 type PostOpenrouterReasoningRequest struct {
 	// One of the following (not both):
 	Effort    string `json:"effort"`     // Can be "high", "medium", or "low" (OpenAI-style)

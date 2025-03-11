@@ -47,7 +47,6 @@ func (c *Client) ListAdminProjectUsers(
 	after *string,
 ) (response AdminProjectUserList, err error) {
 	urlValues := url.Values{}
-	urlValues.Add("project", projectID)
 	if limit != nil {
 		urlValues.Add("limit", fmt.Sprintf("%d", *limit))
 	}
@@ -60,7 +59,7 @@ func (c *Client) ListAdminProjectUsers(
 		encodedValues = "?" + urlValues.Encode()
 	}
 
-	urlSuffix := fmt.Sprintf("/v1/projects/%s/users%s", projectID, encodedValues)
+	urlSuffix := fmt.Sprintf("/organization/projects/%s/users%s", projectID, encodedValues)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
@@ -85,7 +84,7 @@ func (c *Client) CreateAdminProjectUser(
 		Role:   role,
 	}
 
-	urlSuffix := fmt.Sprintf("/v1/projects/%s/users", projectID)
+	urlSuffix := fmt.Sprintf("/organization/projects/%s/users", projectID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
@@ -101,7 +100,7 @@ func (c *Client) RetrieveAdminProjectUser(
 	projectID string,
 	userID string,
 ) (response AdminProjectUser, err error) {
-	urlSuffix := fmt.Sprintf("/v1/projects/%s/users/%s", projectID, userID)
+	urlSuffix := fmt.Sprintf("/organization/projects/%s/users/%s", projectID, userID)
 	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return
@@ -124,7 +123,7 @@ func (c *Client) ModifyAdminProjectUser(
 		Role: role,
 	}
 
-	urlSuffix := fmt.Sprintf("/v1/projects/%s/users/%s", projectID, userID)
+	urlSuffix := fmt.Sprintf("/organization/projects/%s/users/%s", projectID, userID)
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request))
 	if err != nil {
 		return
@@ -140,7 +139,7 @@ func (c *Client) DeleteAdminProjectUser(
 	projectID string,
 	userID string,
 ) (response AdminProjectDeleteResponse, err error) {
-	urlSuffix := fmt.Sprintf("/v1/projects/%s/users/%s", projectID, userID)
+	urlSuffix := fmt.Sprintf("/organization/projects/%s/users/%s", projectID, userID)
 
 	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix))
 	if err != nil {

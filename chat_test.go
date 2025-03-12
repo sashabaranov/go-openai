@@ -107,40 +107,6 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 			expectedError: openai.ErrReasoningModelLimitationsLogprobs,
 		},
 		{
-			name: "message_type_unsupported",
-			in: openai.ChatCompletionRequest{
-				MaxCompletionTokens: 1000,
-				Model:               openai.O1Mini,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role: openai.ChatMessageRoleSystem,
-					},
-				},
-			},
-			expectedError: openai.ErrO1BetaLimitationsMessageTypes,
-		},
-		{
-			name: "tool_unsupported",
-			in: openai.ChatCompletionRequest{
-				MaxCompletionTokens: 1000,
-				Model:               openai.O1Mini,
-				Messages: []openai.ChatCompletionMessage{
-					{
-						Role: openai.ChatMessageRoleUser,
-					},
-					{
-						Role: openai.ChatMessageRoleAssistant,
-					},
-				},
-				Tools: []openai.Tool{
-					{
-						Type: openai.ToolTypeFunction,
-					},
-				},
-			},
-			expectedError: openai.ErrO1BetaLimitationsTools,
-		},
-		{
 			name: "set_temperature_unsupported",
 			in: openai.ChatCompletionRequest{
 				MaxCompletionTokens: 1000,

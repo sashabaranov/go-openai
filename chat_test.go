@@ -867,6 +867,9 @@ func handleDeepseekR1ChatCompletionEndpoint(w http.ResponseWriter, r *http.Reque
 	if n == 0 {
 		n = 1
 	}
+	if completionReq.MaxTokens == 0 {
+		completionReq.MaxTokens = 100
+	}
 	for i := 0; i < n; i++ {
 		reasoningContent := "User says hello! And I need to reply"
 		tokens := numTokens(reasoningContent)

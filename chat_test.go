@@ -411,6 +411,24 @@ func TestO3ModelChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion error")
 }
 
+func TestDeepseekR1ModelChatCompletions(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleDeepseekR1ChatCompletionEndpoint)
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model:               "deepseek-reasoner",
+		MaxCompletionTokens: 1000,
+		MaxTokens:           100,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateChatCompletion error")
+}
+
 // TestCompletions Tests the completions endpoint of the API using the mocked server.
 func TestChatCompletionsWithHeaders(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
@@ -798,6 +816,66 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 			Message: openai.ChatCompletionMessage{
 				Role:    openai.ChatMessageRoleAssistant,
 				Content: completionStr,
+			},
+			Index: i,
+		})
+	}
+	inputTokens := numTokens(completionReq.Messages[0].Content) * n
+	completionTokens := completionReq.MaxTokens * n
+	res.Usage = openai.Usage{
+		PromptTokens:     inputTokens,
+		CompletionTokens: completionTokens,
+		TotalTokens:      inputTokens + completionTokens,
+	}
+	resBytes, _ = json.Marshal(res)
+	w.Header().Set(xCustomHeader, xCustomHeaderValue)
+	for k, v := range rateLimitHeaders {
+		switch val := v.(type) {
+		case int:
+			w.Header().Set(k, strconv.Itoa(val))
+		default:
+			w.Header().Set(k, fmt.Sprintf("%s", v))
+		}
+	}
+	fmt.Fprintln(w, string(resBytes))
+}
+
+func handleDeepseekR1ChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
+	var err error
+	var resBytes []byte
+
+	// completions only accepts POST requests
+	if r.Method != "POST" {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+	}
+	var completionReq openai.ChatCompletionRequest
+	if completionReq, err = getChatCompletionBody(r); err != nil {
+		http.Error(w, "could not read request", http.StatusInternalServerError)
+		return
+	}
+	res := openai.ChatCompletionResponse{
+		ID:      strconv.Itoa(int(time.Now().Unix())),
+		Object:  "test-object",
+		Created: time.Now().Unix(),
+		// would be nice to validate Model during testing, but
+		// this may not be possible with how much upkeep
+		// would be required / wouldn't make much sense
+		Model: completionReq.Model,
+	}
+	// create completions
+	n := completionReq.N
+	if n == 0 {
+		n = 1
+	}
+	for i := 0; i < n; i++ {
+		reasoningContent := "User says hello! And I need to reply"
+		tokens := numTokens(reasoningContent)
+		completionStr := strings.Repeat("a", completionReq.MaxTokens-tokens)
+		res.Choices = append(res.Choices, openai.ChatCompletionChoice{
+			Message: openai.ChatCompletionMessage{
+				Role:             openai.ChatMessageRoleAssistant,
+				ReasoningContent: reasoningContent,
+				Content:          completionStr,
 			},
 			Index: i,
 		})

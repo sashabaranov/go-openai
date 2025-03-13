@@ -417,8 +417,7 @@ func TestDeepseekR1ModelChatCompletions(t *testing.T) {
 	server.RegisterHandler("/v1/chat/completions", handleDeepseekR1ChatCompletionEndpoint)
 	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		Model:               "deepseek-reasoner",
-		MaxCompletionTokens: 1000,
-		MaxTokens:           100,
+		MaxCompletionTokens: 100,
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleUser,
@@ -867,13 +866,12 @@ func handleDeepseekR1ChatCompletionEndpoint(w http.ResponseWriter, r *http.Reque
 	if n == 0 {
 		n = 1
 	}
-	if completionReq.MaxTokens == 0 {
-		completionReq.MaxTokens = 100
+	if completionReq.MaxCompletionTokens == 0 {
+		completionReq.MaxCompletionTokens = 1000
 	}
 	for i := 0; i < n; i++ {
 		reasoningContent := "User says hello! And I need to reply"
-		tokens := numTokens(reasoningContent)
-		completionStr := strings.Repeat("a", completionReq.MaxTokens-tokens)
+		completionStr := strings.Repeat("a", completionReq.MaxCompletionTokens-numTokens(reasoningContent))
 		res.Choices = append(res.Choices, openai.ChatCompletionChoice{
 			Message: openai.ChatCompletionMessage{
 				Role:             openai.ChatMessageRoleAssistant,

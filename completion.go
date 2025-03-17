@@ -179,6 +179,8 @@ type CompletionResponse struct {
 	Choices []CompletionChoice `json:"choices"`
 	Usage   Usage              `json:"usage"`
 
+	Provider string `json:"provider"`
+
 	httpHeader
 }
 

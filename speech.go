@@ -8,20 +8,24 @@ import (
 type SpeechModel string
 
 const (
-	TTSModel1      SpeechModel = "tts-1"
-	TTSModel1HD    SpeechModel = "tts-1-hd"
-	TTSModelCanary SpeechModel = "canary-tts"
+	TTSModel1         SpeechModel = "tts-1"
+	TTSModel1HD       SpeechModel = "tts-1-hd"
+	TTSModelGPT4oMini SpeechModel = "gpt-4o-mini-tts"
 )
 
 type SpeechVoice string
 
 const (
 	VoiceAlloy   SpeechVoice = "alloy"
+	VoiceAsh     SpeechVoice = "ash"
+	VoiceBallad  SpeechVoice = "ballad"
+	VoiceCoral   SpeechVoice = "coral"
 	VoiceEcho    SpeechVoice = "echo"
 	VoiceFable   SpeechVoice = "fable"
 	VoiceOnyx    SpeechVoice = "onyx"
 	VoiceNova    SpeechVoice = "nova"
 	VoiceShimmer SpeechVoice = "shimmer"
+	VoiceVerse   SpeechVoice = "verse"
 )
 
 type SpeechResponseFormat string

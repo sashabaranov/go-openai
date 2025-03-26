@@ -10,6 +10,7 @@ type SpeechModel string
 const (
 	TTSModel1         SpeechModel = "tts-1"
 	TTSModel1HD       SpeechModel = "tts-1-hd"
+	TTSModelCanary    SpeechModel = "canary-tts"
 	TTSModelGPT4oMini SpeechModel = "gpt-4o-mini-tts"
 )
 

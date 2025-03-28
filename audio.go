@@ -49,6 +49,9 @@ type AudioRequest struct {
 	Language               string // Only for transcription.
 	Format                 AudioResponseFormat
 	TimestampGranularities []TranscriptionTimestampGranularity // Only for transcription.
+	ExtraHeaders           map[string]string
+	ExtraQuery             map[string]string
+	ExtraBody              map[string]any
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -128,6 +131,9 @@ func (c *Client) callAudioAPI(
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(&formBody),
 		withContentType(builder.FormDataContentType()),
+		withExtraHeaders(request.ExtraHeaders),
+		withExtraQuery(request.ExtraQuery),
+		withExtraBody(request.ExtraBody),
 	)
 	if err != nil {
 		return AudioResponse{}, err

@@ -72,8 +72,11 @@ func NewOrgClient(authToken, org string) *Client {
 }
 
 type requestOptions struct {
-	body   any
-	header http.Header
+	body         any
+	header       http.Header
+	extraHeaders map[string]string
+	extraQuery   map[string]string
+	extraBody    map[string]any
 }
 
 type requestOption func(*requestOptions)
@@ -81,6 +84,30 @@ type requestOption func(*requestOptions)
 func withBody(body any) requestOption {
 	return func(args *requestOptions) {
 		args.body = body
+	}
+}
+
+func withHeader(header http.Header) requestOption {
+	return func(args *requestOptions) {
+		args.header = header
+	}
+}
+
+func withExtraHeaders(extraHeaders map[string]string) requestOption {
+	return func(args *requestOptions) {
+		args.extraHeaders = extraHeaders
+	}
+}
+
+func withExtraQuery(extraQuery map[string]string) requestOption {
+	return func(args *requestOptions) {
+		args.extraQuery = extraQuery
+	}
+}
+
+func withExtraBody(extraBody map[string]any) requestOption {
+	return func(args *requestOptions) {
+		args.extraBody = extraBody
 	}
 }
 
@@ -105,7 +132,15 @@ func (c *Client) newRequest(ctx context.Context, method, url string, setters ...
 	for _, setter := range setters {
 		setter(args)
 	}
-	req, err := c.requestBuilder.Build(ctx, method, url, args.body, args.header)
+	req, err := c.requestBuilder.Build(ctx, &utils.Request{
+		Method:       method,
+		URL:          url,
+		Body:         args.body,
+		Header:       args.header,
+		ExtraHeaders: args.extraHeaders,
+		ExtraQuery:   args.extraQuery,
+		ExtraBody:    args.extraBody,
+	})
 	if err != nil {
 		return nil, err
 	}

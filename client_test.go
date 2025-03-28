@@ -10,6 +10,7 @@ import (
 	"reflect"
 	"testing"
 
+	utils "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
@@ -18,7 +19,7 @@ var errTestRequestBuilderFailed = errors.New("test request builder failed")
 
 type failingRequestBuilder struct{}
 
-func (*failingRequestBuilder) Build(_ context.Context, _, _ string, _ any, _ http.Header) (*http.Request, error) {
+func (*failingRequestBuilder) Build(_ context.Context, _ *utils.Request) (*http.Request, error) {
 	return nil, errTestRequestBuilderFailed
 }
 

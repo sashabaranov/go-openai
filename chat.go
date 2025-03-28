@@ -265,43 +265,10 @@ type ChatCompletionRequest struct {
 	Metadata map[string]string `json:"metadata,omitempty"`
 	// Add additional JSON properties to the request
 	ExtraBody map[string]any `json:"extra_body,omitempty"`
-}
-
-func (m ChatCompletionRequest) MarshalJSON() ([]byte, error) {
-	// Create a new anonymous struct that omits ExtraBody
-	type Alias ChatCompletionRequest
-	temp := struct {
-		Alias
-		ExtraBody map[string]any `json:"-"` // Omit ExtraBody from direct serialization
-	}{
-		Alias:     Alias(m),
-		ExtraBody: m.ExtraBody,
-	}
-
-	// First marshal the main structure
-	data, err := json.Marshal(temp)
-	if err != nil {
-		return nil, err
-	}
-
-	// If there's no ExtraBody, return the marshaled data as is
-	if len(m.ExtraBody) == 0 {
-		return data, nil
-	}
-
-	// Unmarshal into a map to modify the JSON structure
-	var rawMap map[string]any
-	if err := json.Unmarshal(data, &rawMap); err != nil {
-		return nil, err
-	}
-
-	// Add ExtraBody fields to the root level
-	for k, v := range m.ExtraBody {
-		rawMap[k] = v
-	}
-
-	// Marshal the combined map back to JSON
-	return json.Marshal(rawMap)
+	// ExtraHeaders to add to the request
+	ExtraHeaders map[string]string `json:"extra_headers,omitempty"`
+	// ExtraQueryParams to add to the request
+	ExtraQuery map[string]string `json:"extra_query,omitempty"`
 }
 
 type StreamOptions struct {
@@ -442,6 +409,9 @@ func (c *Client) CreateChatCompletion(
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(request),
+		withExtraHeaders(request.ExtraHeaders),
+		withExtraQuery(request.ExtraQuery),
+		withExtraBody(request.ExtraBody),
 	)
 	if err != nil {
 		return

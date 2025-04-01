@@ -69,10 +69,10 @@ type ChatMessageImageURL struct {
 
 // API docs: https://platform.openai.com/docs/guides/pdf-files?api-mode=chat&lang=python
 type ChatMessageFileData struct {
-	FileData string `json:"file_data"`
+	FileData string `json:"file_data,omitempty"`
 	// Filename seems to be a required field, even when passing in the file data as bytes.
 	// But it doesn't get used or validated in anyway.
-	Filename string `json:"filename"`
+	Filename string `json:"filename,omitempty"`
 }
 
 type ChatMessagePartType string

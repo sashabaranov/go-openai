@@ -12,9 +12,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
-	"github.com/sashabaranov/go-openai/jsonschema"
+	"github.com/meguminnnnnnnnn/go-openai"
+	"github.com/meguminnnnnnnnn/go-openai/internal/test/checks"
+	"github.com/meguminnnnnnnnn/go-openai/jsonschema"
 )
 
 const (
@@ -91,6 +91,10 @@ func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 	}
 }
 
+func ptrOf[T any](v T) *T {
+	return &v
+}
+
 func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 	tests := []struct {
 		name          string
@@ -119,7 +123,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(2),
+				Temperature: ptrOf(float32(2)),
 			},
 			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
@@ -136,7 +140,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: ptrOf(float32(1)),
 				TopP:        float32(0.1),
 			},
 			expectedError: openai.ErrReasoningModelLimitationsOther,
@@ -154,7 +158,7 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: ptrOf(float32(1)),
 				TopP:        float32(1),
 				N:           2,
 			},
@@ -239,7 +243,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(2),
+				Temperature: ptrOf(float32(2)),
 			},
 			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
@@ -256,7 +260,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: ptrOf(float32(1)),
 				TopP:        float32(0.1),
 			},
 			expectedError: openai.ErrReasoningModelLimitationsOther,
@@ -274,7 +278,7 @@ func TestO3ModelsChatCompletionsBetaLimitations(t *testing.T) {
 						Role: openai.ChatMessageRoleAssistant,
 					},
 				},
-				Temperature: float32(1),
+				Temperature: ptrOf(float32(1)),
 				TopP:        float32(1),
 				N:           2,
 			},

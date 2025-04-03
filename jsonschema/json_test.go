@@ -17,7 +17,7 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 		{
 			name: "Test with empty Definition",
 			def:  jsonschema.Definition{},
-			want: `{"properties":{}}`,
+			want: `{}`,
 		},
 		{
 			name: "Test with Definition properties set",
@@ -35,8 +35,7 @@ func TestDefinition_MarshalJSON(t *testing.T) {
    "description":"A string type",
    "properties":{
       "name":{
-         "type":"string",
-         "properties":{}
+         "type":"string"
       }
    }
 }`,
@@ -66,12 +65,10 @@ func TestDefinition_MarshalJSON(t *testing.T) {
          "type":"object",
          "properties":{
             "name":{
-               "type":"string",
-               "properties":{}
+               "type":"string"
             },
             "age":{
-               "type":"integer",
-               "properties":{}
+               "type":"integer"
             }
          }
       }
@@ -114,23 +111,19 @@ func TestDefinition_MarshalJSON(t *testing.T) {
          "type":"object",
          "properties":{
             "name":{
-               "type":"string",
-               "properties":{}
+               "type":"string"
             },
             "age":{
-               "type":"integer",
-               "properties":{}
+               "type":"integer"
             },
             "address":{
                "type":"object",
                "properties":{
                   "city":{
-                     "type":"string",
-                     "properties":{}
+                     "type":"string"
                   },
                   "country":{
-                     "type":"string",
-                     "properties":{}
+                     "type":"string"
                   }
                }
             }
@@ -155,15 +148,11 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 			want: `{
    "type":"array",
    "items":{
-      "type":"string",
-      "properties":{
-         
-      }
+      "type":"string"
    },
    "properties":{
       "name":{
-         "type":"string",
-         "properties":{}
+         "type":"string"
       }
    }
 }`,

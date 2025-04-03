@@ -31,14 +31,14 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 				},
 			},
 			want: `{
-   "type":"string",
-   "description":"A string type",
-   "properties":{
-      "name":{
-         "type":"string"
-      }
-   }
-}`,
+				"type":"string",
+				"description":"A string type",
+				"properties":{
+						"name":{
+							"type":"string"
+						}
+				}
+			}`,
 		},
 		{
 			name: "Test with nested Definition properties",
@@ -59,21 +59,21 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 				},
 			},
 			want: `{
-   "type":"object",
-   "properties":{
-      "user":{
-         "type":"object",
-         "properties":{
-            "name":{
-               "type":"string"
-            },
-            "age":{
-               "type":"integer"
-            }
-         }
-      }
-   }
-}`,
+				"type":"object",
+				"properties":{
+						"user":{
+							"type":"object",
+							"properties":{
+									"name":{
+										"type":"string"
+									},
+									"age":{
+										"type":"integer"
+									}
+							}
+						}
+				}
+			}`,
 		},
 		{
 			name: "Test with complex nested Definition",
@@ -105,32 +105,32 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 				},
 			},
 			want: `{
-   "type":"object",
-   "properties":{
-      "user":{
-         "type":"object",
-         "properties":{
-            "name":{
-               "type":"string"
-            },
-            "age":{
-               "type":"integer"
-            },
-            "address":{
-               "type":"object",
-               "properties":{
-                  "city":{
-                     "type":"string"
-                  },
-                  "country":{
-                     "type":"string"
-                  }
-               }
-            }
-         }
-      }
-   }
-}`,
+				"type":"object",
+				"properties":{
+						"user":{
+							"type":"object",
+							"properties":{
+									"name":{
+										"type":"string"
+									},
+									"age":{
+										"type":"integer"
+									},
+									"address":{
+										"type":"object",
+										"properties":{
+												"city":{
+													"type":"string"
+												},
+												"country":{
+													"type":"string"
+												}
+										}
+									}
+							}
+						}
+				}
+			}`,
 		},
 		{
 			name: "Test with Array type Definition",
@@ -146,16 +146,16 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 				},
 			},
 			want: `{
-   "type":"array",
-   "items":{
-      "type":"string"
-   },
-   "properties":{
-      "name":{
-         "type":"string"
-      }
-   }
-}`,
+				"type":"array",
+				"items":{
+						"type":"string"
+				},
+				"properties":{
+						"name":{
+							"type":"string"
+						}
+				}
+			}`,
 		},
 	}
 
@@ -171,6 +171,146 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 
 			got := structToMap(t, tt.def)
 			gotPtr := structToMap(t, &tt.def)
+
+			if !reflect.DeepEqual(got, want) {
+				t.Errorf("MarshalJSON() got = %v, want %v", got, want)
+			}
+			if !reflect.DeepEqual(gotPtr, want) {
+				t.Errorf("MarshalJSON() gotPtr = %v, want %v", gotPtr, want)
+			}
+		})
+	}
+}
+
+func TestStructToSchema(t *testing.T) {
+	tests := []struct {
+		name string
+		in   any
+		want string
+	}{
+		{
+			name: "Test with empty struct",
+			in:   struct{}{},
+			want: `{
+				"type":"object",
+				"additionalProperties":false
+			}`,
+		},
+		{
+			name: "Test with struct containing many fields",
+			in: struct {
+				Name   string `json:"name"`
+				Age    int    `json:"age"`
+				Active bool   `json:"active"`
+				Height float64 `json:"height"`
+				Cities []struct {
+					Name  string `json:"name"`
+					State string `json:"state"`
+				} `json:"cities"`
+			}{
+				Name: "John Doe",
+				Age:  30,
+				Cities: []struct {
+					Name  string `json:"name"`
+					State string `json:"state"`
+				}{
+					{Name: "New York", State: "NY"},
+					{Name: "Los Angeles", State: "CA"},
+				},
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"name":{
+						"type":"string"
+					},
+					"age":{
+						"type":"integer"
+					},
+					"active":{
+						"type":"boolean"
+					},
+					"height":{
+						"type":"number"
+					},
+					"cities":{
+						"type":"array",
+						"items":{
+							"additionalProperties":false,
+							"type":"object",
+							"properties":{
+								"name":{
+									"type":"string"
+								},
+								"state":{
+									"type":"string"
+								}
+							},
+							"required":["name","state"]
+						}
+					}
+				},
+				"required":["name","age","active","height","cities"],
+				"additionalProperties":false
+			}`,
+		},
+		{
+			name: "Test with description tag",
+			in: struct {
+				Name        string `json:"name" description:"The name of the person"`
+			}{
+				Name: "John Doe",
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"name":{
+						"type":"string",
+						"description":"The name of the person"
+					}
+				},
+				"required":["name"],
+				"additionalProperties":false
+			}`,
+		},
+		{
+			name: "Test with required tag",
+			in: struct {
+				Name string `json:"name" required:"false"`
+			}{
+				Name: "John Doe",
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"name":{
+						"type":"string"
+					}
+				},
+				"additionalProperties":false
+			}`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			wantBytes := []byte(tt.want)
+
+			schema, err := jsonschema.GenerateSchemaForType(tt.in)
+			if err != nil {
+				t.Errorf("Failed to generate schema: error = %v", err)
+				return
+			}
+
+			var want map[string]interface{}
+			err = json.Unmarshal(wantBytes, &want)
+			if err != nil {
+				t.Errorf("Failed to Unmarshal JSON: error = %v", err)
+				return
+			}
+
+			got := structToMap(t, schema)
+			gotPtr := structToMap(t, &schema)
 
 			if !reflect.DeepEqual(got, want) {
 				t.Errorf("MarshalJSON() got = %v, want %v", got, want)

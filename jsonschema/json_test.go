@@ -199,9 +199,9 @@ func TestStructToSchema(t *testing.T) {
 		{
 			name: "Test with struct containing many fields",
 			in: struct {
-				Name   string `json:"name"`
-				Age    int    `json:"age"`
-				Active bool   `json:"active"`
+				Name   string  `json:"name"`
+				Age    int     `json:"age"`
+				Active bool    `json:"active"`
 				Height float64 `json:"height"`
 				Cities []struct {
 					Name  string `json:"name"`
@@ -257,7 +257,7 @@ func TestStructToSchema(t *testing.T) {
 		{
 			name: "Test with description tag",
 			in: struct {
-				Name        string `json:"name" description:"The name of the person"`
+				Name string `json:"name" description:"The name of the person"`
 			}{
 				Name: "John Doe",
 			},
@@ -287,6 +287,25 @@ func TestStructToSchema(t *testing.T) {
 						"type":"string"
 					}
 				},
+				"additionalProperties":false
+			}`,
+		},
+		{
+			name: "Test with enum tag",
+			in: struct {
+				Color string `json:"color" enum:"red,green,blue"`
+			}{
+				Color: "red",
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"color":{
+						"type":"string",
+						"enum":["red","green","blue"]
+					}
+				},
+				"required":["color"],
 				"additionalProperties":false
 			}`,
 		},

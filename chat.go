@@ -79,17 +79,30 @@ type ChatMessageImageURL struct {
 	Detail ImageURLDetail `json:"detail,omitempty"`
 }
 
+type ChatMessageInputAudio struct {
+	Data   string `json:"data,omitempty"`
+	Format string `json:"format,omitempty"`
+}
+
+type ChatMessageVideoURL struct {
+	URL string `json:"url,omitempty"`
+}
+
 type ChatMessagePartType string
 
 const (
-	ChatMessagePartTypeText     ChatMessagePartType = "text"
-	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
+	ChatMessagePartTypeText       ChatMessagePartType = "text"
+	ChatMessagePartTypeImageURL   ChatMessagePartType = "image_url"
+	ChatMessagePartTypeInputAudio ChatMessagePartType = "input_audio"
+	ChatMessagePartTypeVideoURL   ChatMessagePartType = "video_url"
 )
 
 type ChatMessagePart struct {
-	Type     ChatMessagePartType  `json:"type,omitempty"`
-	Text     string               `json:"text,omitempty"`
-	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+	Type       ChatMessagePartType    `json:"type,omitempty"`
+	Text       string                 `json:"text,omitempty"`
+	ImageURL   *ChatMessageImageURL   `json:"image_url,omitempty"`
+	InputAudio *ChatMessageInputAudio `json:"input_audio,omitempty"`
+	VideoURL   *ChatMessageVideoURL   `json:"video_url,omitempty"`
 }
 
 type ChatCompletionMessage struct {

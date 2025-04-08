@@ -309,6 +309,26 @@ func TestStructToSchema(t *testing.T) {
 				"additionalProperties":false
 			}`,
 		},
+		{
+			name: "Test with nullable tag",
+			in: struct {
+				Name *string `json:"name" nullable:"true"`
+			}{
+				Name: nil,
+			},
+			want: `{
+
+				"type":"object",
+				"properties":{
+					"name":{
+						"type":"string",
+						"nullable":true
+					}
+				},
+				"required":["name"],
+				"additionalProperties":false
+			}`,
+		},
 	}
 
 	for _, tt := range tests {

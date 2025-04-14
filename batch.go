@@ -97,10 +97,13 @@ type BatchRequestCounts struct {
 }
 
 type CreateBatchRequest struct {
-	InputFileID      string         `json:"input_file_id"`
-	Endpoint         BatchEndpoint  `json:"endpoint"`
-	CompletionWindow string         `json:"completion_window"`
-	Metadata         map[string]any `json:"metadata"`
+	InputFileID      string            `json:"input_file_id"`
+	Endpoint         BatchEndpoint     `json:"endpoint"`
+	CompletionWindow string            `json:"completion_window"`
+	Metadata         map[string]any    `json:"metadata"`
+	ExtraHeaders     map[string]string `json:"extra_headers"`
+	ExtraQuery       map[string]string `json:"extra_query"`
+	ExtraBody        map[string]any    `json:"extra_body"`
 }
 
 type BatchResponse struct {
@@ -117,7 +120,12 @@ func (c *Client) CreateBatch(
 		request.CompletionWindow = "24h"
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix), withBody(request))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(batchesSuffix),
+		withBody(request),
+		withExtraHeaders(request.ExtraHeaders),
+		withExtraQuery(request.ExtraQuery),
+		withExtraBody(request.ExtraBody),
+	)
 	if err != nil {
 		return
 	}

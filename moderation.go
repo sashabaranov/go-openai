@@ -22,9 +22,7 @@ const (
 	ModerationText001 = "text-moderation-001"
 )
 
-var (
-	ErrModerationInvalidModel = errors.New("this model is not supported with moderation, please use text-moderation-stable or text-moderation-latest instead") //nolint:lll
-)
+var ErrModerationInvalidModel = errors.New("this model is not supported with moderation, please use text-moderation-stable or text-moderation-latest instead") //nolint:lll
 
 var validModerationModel = map[string]struct{}{
 	ModerationOmniLatest:   {},
@@ -35,8 +33,11 @@ var validModerationModel = map[string]struct{}{
 
 // ModerationRequest represents a request structure for moderation API.
 type ModerationRequest struct {
-	Input string `json:"input,omitempty"`
-	Model string `json:"model,omitempty"`
+	Input        string            `json:"input,omitempty"`
+	Model        string            `json:"model,omitempty"`
+	ExtraHeaders map[string]string `json:"extra_headers,omitempty"`
+	ExtraQuery   map[string]string `json:"extra_query,omitempty"`
+	ExtraBody    map[string]any    `json:"extra_body,omitempty"`
 }
 
 // Result represents one of possible moderation results.
@@ -97,6 +98,9 @@ func (c *Client) Moderations(ctx context.Context, request ModerationRequest) (re
 		http.MethodPost,
 		c.fullURL("/moderations", withModel(request.Model)),
 		withBody(&request),
+		withExtraHeaders(request.ExtraHeaders),
+		withExtraQuery(request.ExtraQuery),
+		withExtraBody(request.ExtraBody),
 	)
 	if err != nil {
 		return

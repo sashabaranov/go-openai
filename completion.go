@@ -127,6 +127,13 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT432K:                 true,
 		GPT432K0314:             true,
 		GPT432K0613:             true,
+		O1:                      true,
+		GPT4Dot1:                true,
+		GPT4Dot120250414:        true,
+		GPT4Dot1Mini:            true,
+		GPT4Dot1Mini20250414:    true,
+		GPT4Dot1Nano:            true,
+		GPT4Dot1Nano20250414:    true,
 	},
 	chatCompletionsSuffix: {
 		CodexCodeDavinci002:     true,

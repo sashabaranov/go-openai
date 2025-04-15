@@ -182,7 +182,7 @@ func getCompletionBody(r *http.Request) (openai.CompletionRequest, error) {
 	return completion, nil
 }
 
-// TestCompletionWithO1Model Tests that O1 model is not supported for completion endpoint
+// TestCompletionWithO1Model Tests that O1 model is not supported for completion endpoint.
 func TestCompletionWithO1Model(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
@@ -200,7 +200,7 @@ func TestCompletionWithO1Model(t *testing.T) {
 	}
 }
 
-// TestCompletionWithGPT4DotModels Tests that newer GPT4 models are not supported for completion endpoint
+// TestCompletionWithGPT4DotModels Tests that newer GPT4 models are not supported for completion endpoint.
 func TestCompletionWithGPT4DotModels(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
@@ -233,7 +233,7 @@ func TestCompletionWithGPT4DotModels(t *testing.T) {
 	}
 }
 
-// TestCompletionWithGPT4oModels Tests that GPT4o models are not supported for completion endpoint
+// TestCompletionWithGPT4oModels Tests that GPT4o models are not supported for completion endpoint.
 func TestCompletionWithGPT4oModels(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"

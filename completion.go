@@ -15,41 +15,49 @@ var (
 // Defines the models provided by OpenAI to use when generating
 // completions from OpenAI.
 const (
-	GPT4Dot5PreviewLatest   = "gpt-4.5-preview"
-	GPT4Dot5Preview20250227 = "gpt-4.5-preview-2025-02-27"
-	GPTO3MiniLatest         = "o3-mini"
-	GPTO3Mini20250131       = "o3-mini-2025-01-31"
-	GPTO120241217           = "o1-2024-12-17"
-	GPTO1Preview            = "o1-preview"
-	GPTO1Preview20240912    = "o1-preview-2024-09-12"
-	GPTO1Mini               = "o1-mini"
-	GPTO1Mini20240912       = "o1-mini-2024-09-12"
-	GPT432K0613             = "gpt-4-32k-0613"
-	GPT432K0314             = "gpt-4-32k-0314"
-	GPT432K                 = "gpt-4-32k"
-	GPT40613                = "gpt-4-0613"
-	GPT40314                = "gpt-4-0314"
-	GPT4o                   = "gpt-4o"
-	GPT4o20240513           = "gpt-4o-2024-05-13"
-	GPT4o20240806           = "gpt-4o-2024-08-06"
-	GPT4oLatest             = "chatgpt-4o-latest"
-	GPT4oMini               = "gpt-4o-mini"
-	GPT4oMini20240718       = "gpt-4o-mini-2024-07-18"
-	GPT4Turbo               = "gpt-4-turbo"
-	GPT4Turbo20240409       = "gpt-4-turbo-2024-04-09"
-	GPT4Turbo0125           = "gpt-4-0125-preview"
-	GPT4Turbo1106           = "gpt-4-1106-preview"
-	GPT4TurboPreview        = "gpt-4-turbo-preview"
-	GPT4VisionPreview       = "gpt-4-vision-preview"
-	GPT4                    = "gpt-4"
-	GPT3Dot5Turbo0125       = "gpt-3.5-turbo-0125"
-	GPT3Dot5Turbo1106       = "gpt-3.5-turbo-1106"
-	GPT3Dot5Turbo0613       = "gpt-3.5-turbo-0613"
-	GPT3Dot5Turbo0301       = "gpt-3.5-turbo-0301"
-	GPT3Dot5Turbo16K        = "gpt-3.5-turbo-16k"
-	GPT3Dot5Turbo16K0613    = "gpt-3.5-turbo-16k-0613"
-	GPT3Dot5Turbo           = "gpt-3.5-turbo"
-	GPT3Dot5TurboInstruct   = "gpt-3.5-turbo-instruct"
+	GPT4Dot1              = "gpt-4.1"
+	GPT4Dot120250414      = "gpt-4.1-2025-04-14"
+	GPT4Dot1Mini          = "gpt-4.1-mini"
+	GPT4Dot1Mini20250414  = "gpt-4.1-mini-2025-04-14"
+	GPT4Dot1Nano          = "gpt-4.1-nano"
+	GPT4Dot1Nano20250414  = "gpt-4.1-nano-2025-04-14"
+	GPTO3Latest           = "o3"
+	GPTO320250416         = "o3-2025-04-16"
+	GPTO4MiniLatest       = "o4-mini"
+	GPTO4Mini20250416     = "o4-mini-2025-04-16"
+	GPTO3MiniLatest       = "o3-mini"
+	GPTO3Mini20250131     = "o3-mini-2025-01-31"
+	GPTO120241217         = "o1-2024-12-17"
+	GPTO1Preview          = "o1-preview"
+	GPTO1Preview20240912  = "o1-preview-2024-09-12"
+	GPTO1Mini             = "o1-mini"
+	GPTO1Mini20240912     = "o1-mini-2024-09-12"
+	GPT432K0613           = "gpt-4-32k-0613"
+	GPT432K0314           = "gpt-4-32k-0314"
+	GPT432K               = "gpt-4-32k"
+	GPT40613              = "gpt-4-0613"
+	GPT40314              = "gpt-4-0314"
+	GPT4o                 = "gpt-4o"
+	GPT4o20240513         = "gpt-4o-2024-05-13"
+	GPT4o20240806         = "gpt-4o-2024-08-06"
+	GPT4oLatest           = "chatgpt-4o-latest"
+	GPT4oMini             = "gpt-4o-mini"
+	GPT4oMini20240718     = "gpt-4o-mini-2024-07-18"
+	GPT4Turbo             = "gpt-4-turbo"
+	GPT4Turbo20240409     = "gpt-4-turbo-2024-04-09"
+	GPT4Turbo0125         = "gpt-4-0125-preview"
+	GPT4Turbo1106         = "gpt-4-1106-preview"
+	GPT4TurboPreview      = "gpt-4-turbo-preview"
+	GPT4VisionPreview     = "gpt-4-vision-preview"
+	GPT4                  = "gpt-4"
+	GPT3Dot5Turbo0125     = "gpt-3.5-turbo-0125"
+	GPT3Dot5Turbo1106     = "gpt-3.5-turbo-1106"
+	GPT3Dot5Turbo0613     = "gpt-3.5-turbo-0613"
+	GPT3Dot5Turbo0301     = "gpt-3.5-turbo-0301"
+	GPT3Dot5Turbo16K      = "gpt-3.5-turbo-16k"
+	GPT3Dot5Turbo16K0613  = "gpt-3.5-turbo-16k-0613"
+	GPT3Dot5Turbo         = "gpt-3.5-turbo"
+	GPT3Dot5TurboInstruct = "gpt-3.5-turbo-instruct"
 	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci003 = "text-davinci-003"
 	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
@@ -90,40 +98,48 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
-		GPT4Dot5PreviewLatest:   true,
-		GPT4Dot5Preview20250227: true,
-		GPTO3MiniLatest:         true,
-		GPTO3Mini20250131:       true,
-		GPTO120241217:           true,
-		GPTO1Preview:            true,
-		GPTO1Preview20240912:    true,
-		GPTO1Mini:               true,
-		GPTO1Mini20240912:       true,
-		GPT3Dot5Turbo:           true,
-		GPT3Dot5Turbo0301:       true,
-		GPT3Dot5Turbo0613:       true,
-		GPT3Dot5Turbo1106:       true,
-		GPT3Dot5Turbo0125:       true,
-		GPT3Dot5Turbo16K:        true,
-		GPT3Dot5Turbo16K0613:    true,
-		GPT4:                    true,
-		GPT4o:                   true,
-		GPT4o20240513:           true,
-		GPT4o20240806:           true,
-		GPT4oLatest:             true,
-		GPT4oMini:               true,
-		GPT4oMini20240718:       true,
-		GPT4TurboPreview:        true,
-		GPT4VisionPreview:       true,
-		GPT4Turbo1106:           true,
-		GPT4Turbo0125:           true,
-		GPT4Turbo:               true,
-		GPT4Turbo20240409:       true,
-		GPT40314:                true,
-		GPT40613:                true,
-		GPT432K:                 true,
-		GPT432K0314:             true,
-		GPT432K0613:             true,
+		GPT4Dot1:             true,
+		GPT4Dot120250414:     true,
+		GPT4Dot1Mini:         true,
+		GPT4Dot1Mini20250414: true,
+		GPT4Dot1Nano:         true,
+		GPT4Dot1Nano20250414: true,
+		GPTO3Latest:          true,
+		GPTO320250416:        true,
+		GPTO4MiniLatest:      true,
+		GPTO4Mini20250416:    true,
+		GPTO3MiniLatest:      true,
+		GPTO3Mini20250131:    true,
+		GPTO120241217:        true,
+		GPTO1Preview:         true,
+		GPTO1Preview20240912: true,
+		GPTO1Mini:            true,
+		GPTO1Mini20240912:    true,
+		GPT3Dot5Turbo:        true,
+		GPT3Dot5Turbo0301:    true,
+		GPT3Dot5Turbo0613:    true,
+		GPT3Dot5Turbo1106:    true,
+		GPT3Dot5Turbo0125:    true,
+		GPT3Dot5Turbo16K:     true,
+		GPT3Dot5Turbo16K0613: true,
+		GPT4:                 true,
+		GPT4o:                true,
+		GPT4o20240513:        true,
+		GPT4o20240806:        true,
+		GPT4oLatest:          true,
+		GPT4oMini:            true,
+		GPT4oMini20240718:    true,
+		GPT4TurboPreview:     true,
+		GPT4VisionPreview:    true,
+		GPT4Turbo1106:        true,
+		GPT4Turbo0125:        true,
+		GPT4Turbo:            true,
+		GPT4Turbo20240409:    true,
+		GPT40314:             true,
+		GPT40613:             true,
+		GPT432K:              true,
+		GPT432K0314:          true,
+		GPT432K0613:          true,
 	},
 	chatCompletionsSuffix: {
 		CodexCodeDavinci002:     true,

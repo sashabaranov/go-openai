@@ -959,6 +959,56 @@ func TestCreateChatCompletionStreamReasoningValidatorFails(t *testing.T) {
 	}
 }
 
+func TestCreateChatCompletionStreamO3ReasoningValidatorFails(t *testing.T) {
+	client, _, _ := setupOpenAITestServer()
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 100, // This will trigger the validator to fail
+		Model:     openai.O3,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+
+	if stream != nil {
+		t.Error("Expected nil stream when validation fails")
+		stream.Close()
+	}
+
+	if !errors.Is(err, openai.ErrReasoningModelMaxTokensDeprecated) {
+		t.Errorf("Expected ErrReasoningModelMaxTokensDeprecated for O3, got: %v", err)
+	}
+}
+
+func TestCreateChatCompletionStreamO4MiniReasoningValidatorFails(t *testing.T) {
+	client, _, _ := setupOpenAITestServer()
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 100, // This will trigger the validator to fail
+		Model:     openai.O4Mini,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+
+	if stream != nil {
+		t.Error("Expected nil stream when validation fails")
+		stream.Close()
+	}
+
+	if !errors.Is(err, openai.ErrReasoningModelMaxTokensDeprecated) {
+		t.Errorf("Expected ErrReasoningModelMaxTokensDeprecated for O4Mini, got: %v", err)
+	}
+}
+
 func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) bool {
 	if c1.Index != c2.Index {
 		return false

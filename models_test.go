@@ -47,6 +47,24 @@ func TestGetModel(t *testing.T) {
 	checks.NoError(t, err, "GetModel error")
 }
 
+// TestGetModelO3 Tests the retrieve O3 model endpoint of the API using the mocked server.
+func TestGetModelO3(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/models/o3", handleGetModelEndpoint)
+	_, err := client.GetModel(context.Background(), "o3")
+	checks.NoError(t, err, "GetModel error for O3")
+}
+
+// TestGetModelO4Mini Tests the retrieve O4Mini model endpoint of the API using the mocked server.
+func TestGetModelO4Mini(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/models/o4-mini", handleGetModelEndpoint)
+	_, err := client.GetModel(context.Background(), "o4-mini")
+	checks.NoError(t, err, "GetModel error for O4Mini")
+}
+
 func TestAzureGetModel(t *testing.T) {
 	client, server, teardown := setupAzureTestServer()
 	defer teardown()

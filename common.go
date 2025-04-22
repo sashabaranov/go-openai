@@ -13,8 +13,10 @@ type Usage struct {
 
 // CompletionTokensDetails Breakdown of tokens used in a completion.
 type CompletionTokensDetails struct {
-	AudioTokens     int `json:"audio_tokens"`
-	ReasoningTokens int `json:"reasoning_tokens"`
+	AudioTokens              int `json:"audio_tokens"`
+	ReasoningTokens          int `json:"reasoning_tokens"`
+	AcceptedPredictionTokens int `json:"accepted_prediction_tokens"`
+	RejectedPredictionTokens int `json:"rejected_prediction_tokens"`
 }
 
 // PromptTokensDetails Breakdown of tokens used in the prompt.

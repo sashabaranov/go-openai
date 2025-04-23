@@ -39,31 +39,31 @@ const (
 	CreateImageQualityHD       = "hd"
 	CreateImageQualityStandard = "standard"
 
-	// gpt-image-1 only
+	// gpt-image-1 only.
 	CreateImageQualityHigh   = "high"
 	CreateImageQualityMedium = "medium"
 	CreateImageQualityLow    = "low"
 )
 
 const (
-	// dall-e-3 only
+	// dall-e-3 only.
 	CreateImageStyleVivid   = "vivid"
 	CreateImageStyleNatural = "natural"
 )
 
 const (
-	// gpt-image-1 only
+	// gpt-image-1 only.
 	CreateImageBackgroundTransparent = "transparent"
 	CreateImageBackgroundOpaque      = "opaque"
 )
 
 const (
-	// gpt-image-1 only
+	// gpt-image-1 only.
 	CreateImageModerationLow = "low"
 )
 
 const (
-	// gpt-image-1 only
+	// gpt-image-1 only.
 	CreateImageOutputFormatPNG  = "png"
 	CreateImageOutputFormatJPEG = "jpeg"
 	CreateImageOutputFormatWEBP = "webp"

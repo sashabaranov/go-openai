@@ -270,6 +270,17 @@ type ChatCompletionRequest struct {
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
+
+	// reasoning for deepseek
+	Reasoning bool `json:"reasoning,omitempty"`
+
+	// GD
+	GuidedChoice []string `json:"guided_choice,omitempty"`
+	GuidedRegex  string   `json:"guided_regex,omitempty"`
+	GuidedJson   string   `json:"guided_json,omitempty"`
+
+	// LoraType
+	LoraType string `json:"lora_type,omitempty"`
 }
 
 type StreamOptions struct {

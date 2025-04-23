@@ -1,19 +1,27 @@
 package main
 
 import (
-	"bufio"
 	"context"
+	"crypto/tls"
 	"fmt"
-	"os"
+	"net/http"
 
 	"github.com/sashabaranov/go-openai"
 )
 
 func main() {
-	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+	config := openai.DefaultConfig("sk-xxxx")
+	config.BaseURL = "https://10.20.152.76:30002/v1"
+	config.HTTPClient = &http.Client{
+		Transport: &http.Transport{
+			DisableKeepAlives: true,
+			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
+		},
+	}
+	client := openai.NewClientWithConfig(config)
 
 	req := openai.ChatCompletionRequest{
-		Model: openai.GPT3Dot5Turbo,
+		Model: "HengNao-v4",
 		Messages: []openai.ChatCompletionMessage{
 			{
 				Role:    openai.ChatMessageRoleSystem,
@@ -24,19 +32,33 @@ func main() {
 	fmt.Println("Conversation")
 	fmt.Println("---------------------")
 	fmt.Print("> ")
-	s := bufio.NewScanner(os.Stdin)
-	for s.Scan() {
-		req.Messages = append(req.Messages, openai.ChatCompletionMessage{
-			Role:    openai.ChatMessageRoleUser,
-			Content: s.Text(),
-		})
-		resp, err := client.CreateChatCompletion(context.Background(), req)
+	// s := bufio.NewScanner(os.Stdin)
+	// for s.Scan() {
+	req.Messages = append(req.Messages, openai.ChatCompletionMessage{
+		Role:    openai.ChatMessageRoleUser,
+		Content: "你好",
+	})
+	resp, err := client.CreateChatCompletion(context.Background(), req)
+	if err != nil {
+		fmt.Printf("ChatCompletion error: %v\n", err)
+		// continue
+	}
+	fmt.Printf("%s\n\n", resp.Choices[0].Message.Content)
+	req.Messages = append(req.Messages, resp.Choices[0].Message)
+	fmt.Print("> ")
+	// }
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), req)
+	if err != nil {
+		return
+	}
+
+	for {
+		evt, err := stream.Recv()
 		if err != nil {
-			fmt.Printf("ChatCompletion error: %v\n", err)
-			continue
+			return
 		}
-		fmt.Printf("%s\n\n", resp.Choices[0].Message.Content)
-		req.Messages = append(req.Messages, resp.Choices[0].Message)
-		fmt.Print("> ")
+
+		fmt.Printf("%s", evt.Choices[0].Delta.Content)
 	}
 }

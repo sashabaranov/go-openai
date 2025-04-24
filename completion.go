@@ -196,9 +196,10 @@ type CompletionRequest struct {
 	User            string            `json:"user,omitempty"`
 
 	// GD
-	GuidedChoice []string `json:"guided_choice,omitempty"`
-	GuidedRegex  string   `json:"guided_regex,omitempty"`
-	GuidedJson   string   `json:"guided_json,omitempty"`
+	GuidedChoice  []string `json:"guided_choice,omitempty"`
+	GuidedRegex   string   `json:"guided_regex,omitempty"`
+	GuidedJson    string   `json:"guided_json,omitempty"`
+	GuidedGrammar string   `json:"guided_grammar,omitempty"`
 
 	// For Hugging Face models
 	TopK              int     `json:"top_k,omitempty"`
@@ -241,7 +242,6 @@ type CompletionResponse struct {
 func (c *Client) CreateCompletion(
 	ctx context.Context,
 	request CompletionRequest,
-	opts ...requestOption,
 ) (response CompletionResponse, err error) {
 	if request.Stream {
 		err = ErrCompletionStreamNotSupported
@@ -263,7 +263,7 @@ func (c *Client) CreateCompletion(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		append(opts, withBody(request))...,
+		withBody(request),
 	)
 	if err != nil {
 		return

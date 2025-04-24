@@ -44,8 +44,8 @@ type ClientConfig struct {
 	AssistantVersion     string
 	AzureModelMapperFunc func(model string) string // replace model to azure deployment name func
 	HTTPClient           HTTPDoer
-
-	EmptyMessagesLimit uint
+	HTTPHeaderSets       http.Header
+	EmptyMessagesLimit   uint
 }
 
 func DefaultConfig(authToken string) ClientConfig {

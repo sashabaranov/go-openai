@@ -275,9 +275,10 @@ type ChatCompletionRequest struct {
 	Reasoning bool `json:"reasoning,omitempty"`
 
 	// GD
-	GuidedChoice []string `json:"guided_choice,omitempty"`
-	GuidedRegex  string   `json:"guided_regex,omitempty"`
-	GuidedJson   string   `json:"guided_json,omitempty"`
+	GuidedChoice  []string `json:"guided_choice,omitempty"`
+	GuidedRegex   string   `json:"guided_regex,omitempty"`
+	GuidedJson    string   `json:"guided_json,omitempty"`
+	GuidedGrammar string   `json:"guided_grammar,omitempty"`
 
 	// LoraType
 	LoraType string `json:"lora_type,omitempty"`
@@ -403,7 +404,6 @@ type ChatCompletionResponse struct {
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,
-	opts ...requestOption,
 ) (response ChatCompletionResponse, err error) {
 	if request.Stream {
 		err = ErrChatCompletionStreamNotSupported
@@ -425,7 +425,7 @@ func (c *Client) CreateChatCompletion(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		append(opts, withBody(request))...,
+		withBody(request),
 	)
 	if err != nil {
 		return

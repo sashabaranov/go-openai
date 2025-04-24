@@ -96,12 +96,6 @@ func withBetaAssistantVersion(version string) requestOption {
 	}
 }
 
-func WithHeader(key, value string) requestOption {
-	return func(ro *requestOptions) {
-		ro.header.Set(key, value)
-	}
-}
-
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
 	args := &requestOptions{
@@ -205,6 +199,10 @@ func (c *Client) setCommonHeaders(req *http.Request) {
 
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)
+	}
+
+	for k, v := range c.config.HTTPHeaderSets {
+		req.Header[k] = v
 	}
 }
 

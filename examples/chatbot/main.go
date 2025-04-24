@@ -12,12 +12,18 @@ import (
 func main() {
 	config := openai.DefaultConfig("sk-xxxx")
 	config.BaseURL = "https://10.20.152.76:30002/v1"
+	config.HTTPHeaderSets = http.Header{
+		"123": []string{"Bearer sk-xxxx"},
+		"abc": []string{"application/json"},
+		"efg": []string{"application/json"},
+	}
 	config.HTTPClient = &http.Client{
 		Transport: &http.Transport{
 			DisableKeepAlives: true,
 			TLSClientConfig:   &tls.Config{InsecureSkipVerify: true},
 		},
 	}
+
 	client := openai.NewClientWithConfig(config)
 
 	req := openai.ChatCompletionRequest{

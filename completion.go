@@ -2,22 +2,7 @@ package openai
 
 import (
 	"context"
-	"errors"
 	"net/http"
-)
-
-var (
-	ErrO1MaxTokensDeprecated                   = errors.New("this model is not supported MaxTokens, please use MaxCompletionTokens")                               //nolint:lll
-	ErrCompletionUnsupportedModel              = errors.New("this model is not supported with this method, please use CreateChatCompletion client method instead") //nolint:lll
-	ErrCompletionStreamNotSupported            = errors.New("streaming is not supported with this method, please use CreateCompletionStream")                      //nolint:lll
-	ErrCompletionRequestPromptTypeNotSupported = errors.New("the type of CompletionRequest.Prompt only supports string and []string")                              //nolint:lll
-)
-
-var (
-	ErrO1BetaLimitationsMessageTypes = errors.New("this model has beta-limitations, user and assistant messages only, system messages are not supported")                                  //nolint:lll
-	ErrO1BetaLimitationsTools        = errors.New("this model has beta-limitations, tools, function calling, and response format parameters are not supported")                            //nolint:lll
-	ErrO1BetaLimitationsLogprobs     = errors.New("this model has beta-limitations, logprobs not supported")                                                                               //nolint:lll
-	ErrO1BetaLimitationsOther        = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
 // GPT3 Defines the models provided by OpenAI to use when generating
@@ -25,39 +10,49 @@ var (
 // GPT3 Models are designed for text-based tasks. For code-specific
 // tasks, please refer to the Codex series of models.
 const (
-	O1Mini                = "o1-mini"
-	O1Mini20240912        = "o1-mini-2024-09-12"
-	O1Preview             = "o1-preview"
-	O1Preview20240912     = "o1-preview-2024-09-12"
-	O1                    = "o1"
-	O120241217            = "o1-2024-12-17"
-	GPT432K0613           = "gpt-4-32k-0613"
-	GPT432K0314           = "gpt-4-32k-0314"
-	GPT432K               = "gpt-4-32k"
-	GPT40613              = "gpt-4-0613"
-	GPT40314              = "gpt-4-0314"
-	GPT4o                 = "gpt-4o"
-	GPT4o20240513         = "gpt-4o-2024-05-13"
-	GPT4o20240806         = "gpt-4o-2024-08-06"
-	GPT4o20241120         = "gpt-4o-2024-11-20"
-	GPT4oLatest           = "chatgpt-4o-latest"
-	GPT4oMini             = "gpt-4o-mini"
-	GPT4oMini20240718     = "gpt-4o-mini-2024-07-18"
-	GPT4Turbo             = "gpt-4-turbo"
-	GPT4Turbo20240409     = "gpt-4-turbo-2024-04-09"
-	GPT4Turbo0125         = "gpt-4-0125-preview"
-	GPT4Turbo1106         = "gpt-4-1106-preview"
-	GPT4TurboPreview      = "gpt-4-turbo-preview"
-	GPT4VisionPreview     = "gpt-4-vision-preview"
-	GPT4                  = "gpt-4"
-	GPT3Dot5Turbo0125     = "gpt-3.5-turbo-0125"
-	GPT3Dot5Turbo1106     = "gpt-3.5-turbo-1106"
-	GPT3Dot5Turbo0613     = "gpt-3.5-turbo-0613"
-	GPT3Dot5Turbo0301     = "gpt-3.5-turbo-0301"
-	GPT3Dot5Turbo16K      = "gpt-3.5-turbo-16k"
-	GPT3Dot5Turbo16K0613  = "gpt-3.5-turbo-16k-0613"
-	GPT3Dot5Turbo         = "gpt-3.5-turbo"
-	GPT3Dot5TurboInstruct = "gpt-3.5-turbo-instruct"
+	O1Mini                  = "o1-mini"
+	O1Mini20240912          = "o1-mini-2024-09-12"
+	O1Preview               = "o1-preview"
+	O1Preview20240912       = "o1-preview-2024-09-12"
+	O1                      = "o1"
+	O120241217              = "o1-2024-12-17"
+	O3Mini                  = "o3-mini"
+	O3Mini20250131          = "o3-mini-2025-01-31"
+	GPT432K0613             = "gpt-4-32k-0613"
+	GPT432K0314             = "gpt-4-32k-0314"
+	GPT432K                 = "gpt-4-32k"
+	GPT40613                = "gpt-4-0613"
+	GPT40314                = "gpt-4-0314"
+	GPT4o                   = "gpt-4o"
+	GPT4o20240513           = "gpt-4o-2024-05-13"
+	GPT4o20240806           = "gpt-4o-2024-08-06"
+	GPT4o20241120           = "gpt-4o-2024-11-20"
+	GPT4oLatest             = "chatgpt-4o-latest"
+	GPT4oMini               = "gpt-4o-mini"
+	GPT4oMini20240718       = "gpt-4o-mini-2024-07-18"
+	GPT4Turbo               = "gpt-4-turbo"
+	GPT4Turbo20240409       = "gpt-4-turbo-2024-04-09"
+	GPT4Turbo0125           = "gpt-4-0125-preview"
+	GPT4Turbo1106           = "gpt-4-1106-preview"
+	GPT4TurboPreview        = "gpt-4-turbo-preview"
+	GPT4VisionPreview       = "gpt-4-vision-preview"
+	GPT4                    = "gpt-4"
+	GPT4Dot1                = "gpt-4.1"
+	GPT4Dot120250414        = "gpt-4.1-2025-04-14"
+	GPT4Dot1Mini            = "gpt-4.1-mini"
+	GPT4Dot1Mini20250414    = "gpt-4.1-mini-2025-04-14"
+	GPT4Dot1Nano            = "gpt-4.1-nano"
+	GPT4Dot1Nano20250414    = "gpt-4.1-nano-2025-04-14"
+	GPT4Dot5Preview         = "gpt-4.5-preview"
+	GPT4Dot5Preview20250227 = "gpt-4.5-preview-2025-02-27"
+	GPT3Dot5Turbo0125       = "gpt-3.5-turbo-0125"
+	GPT3Dot5Turbo1106       = "gpt-3.5-turbo-1106"
+	GPT3Dot5Turbo0613       = "gpt-3.5-turbo-0613"
+	GPT3Dot5Turbo0301       = "gpt-3.5-turbo-0301"
+	GPT3Dot5Turbo16K        = "gpt-3.5-turbo-16k"
+	GPT3Dot5Turbo16K0613    = "gpt-3.5-turbo-16k-0613"
+	GPT3Dot5Turbo           = "gpt-3.5-turbo"
+	GPT3Dot5TurboInstruct   = "gpt-3.5-turbo-instruct"
 	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
 	GPT3TextDavinci003 = "text-davinci-003"
 	// Deprecated: Model is shutdown. Use gpt-3.5-turbo-instruct instead.
@@ -96,47 +91,49 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
-// O1SeriesModels List of new Series of OpenAI models.
-// Some old api attributes not supported.
-var O1SeriesModels = map[string]struct{}{
-	O1Mini:            {},
-	O1Mini20240912:    {},
-	O1Preview:         {},
-	O1Preview20240912: {},
-}
-
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
-		O1Mini:               true,
-		O1Mini20240912:       true,
-		O1Preview:            true,
-		O1Preview20240912:    true,
-		GPT3Dot5Turbo:        true,
-		GPT3Dot5Turbo0301:    true,
-		GPT3Dot5Turbo0613:    true,
-		GPT3Dot5Turbo1106:    true,
-		GPT3Dot5Turbo0125:    true,
-		GPT3Dot5Turbo16K:     true,
-		GPT3Dot5Turbo16K0613: true,
-		GPT4:                 true,
-		GPT4o:                true,
-		GPT4o20240513:        true,
-		GPT4o20240806:        true,
-		GPT4o20241120:        true,
-		GPT4oLatest:          true,
-		GPT4oMini:            true,
-		GPT4oMini20240718:    true,
-		GPT4TurboPreview:     true,
-		GPT4VisionPreview:    true,
-		GPT4Turbo1106:        true,
-		GPT4Turbo0125:        true,
-		GPT4Turbo:            true,
-		GPT4Turbo20240409:    true,
-		GPT40314:             true,
-		GPT40613:             true,
-		GPT432K:              true,
-		GPT432K0314:          true,
-		GPT432K0613:          true,
+		O1Mini:                  true,
+		O1Mini20240912:          true,
+		O1Preview:               true,
+		O1Preview20240912:       true,
+		O3Mini:                  true,
+		O3Mini20250131:          true,
+		GPT3Dot5Turbo:           true,
+		GPT3Dot5Turbo0301:       true,
+		GPT3Dot5Turbo0613:       true,
+		GPT3Dot5Turbo1106:       true,
+		GPT3Dot5Turbo0125:       true,
+		GPT3Dot5Turbo16K:        true,
+		GPT3Dot5Turbo16K0613:    true,
+		GPT4:                    true,
+		GPT4Dot5Preview:         true,
+		GPT4Dot5Preview20250227: true,
+		GPT4o:                   true,
+		GPT4o20240513:           true,
+		GPT4o20240806:           true,
+		GPT4o20241120:           true,
+		GPT4oLatest:             true,
+		GPT4oMini:               true,
+		GPT4oMini20240718:       true,
+		GPT4TurboPreview:        true,
+		GPT4VisionPreview:       true,
+		GPT4Turbo1106:           true,
+		GPT4Turbo0125:           true,
+		GPT4Turbo:               true,
+		GPT4Turbo20240409:       true,
+		GPT40314:                true,
+		GPT40613:                true,
+		GPT432K:                 true,
+		GPT432K0314:             true,
+		GPT432K0613:             true,
+		O1:                      true,
+		GPT4Dot1:                true,
+		GPT4Dot120250414:        true,
+		GPT4Dot1Mini:            true,
+		GPT4Dot1Mini20250414:    true,
+		GPT4Dot1Nano:            true,
+		GPT4Dot1Nano20250414:    true,
 	},
 	chatCompletionsSuffix: {
 		CodexCodeDavinci002:     true,
@@ -181,64 +178,6 @@ func checkPromptType(prompt any) bool {
 		}
 	}
 	return true // all items in the slice are string, so it is []string
-}
-
-var unsupportedToolsForO1Models = map[ToolType]struct{}{
-	ToolTypeFunction: {},
-}
-
-var availableMessageRoleForO1Models = map[string]struct{}{
-	ChatMessageRoleUser:      {},
-	ChatMessageRoleAssistant: {},
-}
-
-// validateRequestForO1Models checks for deprecated fields of OpenAI models.
-func validateRequestForO1Models(request ChatCompletionRequest) error {
-	if _, found := O1SeriesModels[request.Model]; !found {
-		return nil
-	}
-
-	if request.MaxTokens > 0 {
-		return ErrO1MaxTokensDeprecated
-	}
-
-	// Logprobs: not supported.
-	if request.LogProbs {
-		return ErrO1BetaLimitationsLogprobs
-	}
-
-	// Message types: user and assistant messages only, system messages are not supported.
-	for _, m := range request.Messages {
-		if _, found := availableMessageRoleForO1Models[m.Role]; !found {
-			return ErrO1BetaLimitationsMessageTypes
-		}
-	}
-
-	// Tools: tools, function calling, and response format parameters are not supported
-	for _, t := range request.Tools {
-		if _, found := unsupportedToolsForO1Models[t.Type]; found {
-			return ErrO1BetaLimitationsTools
-		}
-	}
-
-	// Other: temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0.
-	if request.Temperature > 0 && request.Temperature != 1 {
-		return ErrO1BetaLimitationsOther
-	}
-	if request.TopP > 0 && request.TopP != 1 {
-		return ErrO1BetaLimitationsOther
-	}
-	if request.N > 0 && request.N != 1 {
-		return ErrO1BetaLimitationsOther
-	}
-	if request.PresencePenalty > 0 {
-		return ErrO1BetaLimitationsOther
-	}
-	if request.FrequencyPenalty > 0 {
-		return ErrO1BetaLimitationsOther
-	}
-
-	return nil
 }
 
 // CompletionRequest represents a request structure for completion API.

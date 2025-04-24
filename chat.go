@@ -14,6 +14,7 @@ const (
 	ChatMessageRoleAssistant = "assistant"
 	ChatMessageRoleFunction  = "function"
 	ChatMessageRoleTool      = "tool"
+	ChatMessageRoleDeveloper = "developer"
 )
 
 const chatCompletionsSuffix = "/chat/completions"
@@ -410,7 +411,8 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	if err = validateRequestForO1Models(request); err != nil {
+	reasoningValidator := NewReasoningValidator()
+	if err = reasoningValidator.Validate(request); err != nil {
 		return
 	}
 

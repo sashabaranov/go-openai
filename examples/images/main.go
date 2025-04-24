@@ -37,15 +37,24 @@ func main() {
 	res, err := client.CreateImage(
 		context.Background(),
 		openai.ImageRequest{
-			Prompt:            "Parrot on a skateboard performing a trick. Large bold text \"SKATE MASTER\" banner at the bottom of the image. Cartoon style, natural light, high detail",
-			Background:        openai.CreateImageBackgroundTransparent,
-			Model:             openai.CreateImageModelGptImage1,
-			Size:              openai.CreateImageSize1024x1024,
-			N:                 1,
-			Quality:           openai.CreateImageQualityLow,
-			OutputCompression: 100,
+			Prompt:  "Parrot on a skateboard performing a trick. Large bold text \"SKATE MASTER\" banner at the bottom of the image. Cartoon style, natural light, high detail",
+			Model:   openai.CreateImageModelGptImage1,
+			Size:    openai.CreateImageSize1024x1024,
+			N:       1,
+			Quality: openai.CreateImageQualityLow,
+			// User: "", //
+
+			// Only for GPT Image 1
 			OutputFormat:      openai.CreateImageOutputFormatJPEG,
+			OutputCompression: 100,
+			Background:        openai.CreateImageBackgroundTransparent,
+			// Moderation: openai.CreateImageModerationLow,
+
+			// Only for dall-e-2 and dall-e-3
 			// ResponseFormat:    openai.CreateImageResponseFormatB64JSON,
+
+			// Only for dall-e 3
+			// Style: openai.CreateImageStyleVivid,
 		},
 	)
 
@@ -64,7 +73,6 @@ func main() {
 		return
 	}
 
-	// Save the image using the new function
 	outputPath, err := saveImageToFile(imageBytes, "examples/images", "generated_image.jpg")
 	if err != nil {
 		fmt.Printf("Error saving image: %v\n", err)

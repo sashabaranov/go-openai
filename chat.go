@@ -281,6 +281,10 @@ type ChatCompletionRequest struct {
 
 	// LoraType
 	LoraType string `json:"lora_type,omitempty"`
+
+	// For Hugging Face models
+	TopK              int     `json:"top_k,omitempty"`
+	RepetitionPenalty float32 `json:"repetition_penalty,omitempty"`
 }
 
 type StreamOptions struct {
@@ -399,6 +403,7 @@ type ChatCompletionResponse struct {
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,
+	opts ...requestOption,
 ) (response ChatCompletionResponse, err error) {
 	if request.Stream {
 		err = ErrChatCompletionStreamNotSupported
@@ -420,7 +425,7 @@ func (c *Client) CreateChatCompletion(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		append(opts, withBody(request))...,
 	)
 	if err != nil {
 		return

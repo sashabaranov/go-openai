@@ -96,6 +96,12 @@ func withBetaAssistantVersion(version string) requestOption {
 	}
 }
 
+func WithHeader(key, value string) requestOption {
+	return func(ro *requestOptions) {
+		ro.header.Set(key, value)
+	}
+}
+
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
 	args := &requestOptions{

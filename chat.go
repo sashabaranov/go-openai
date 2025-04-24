@@ -81,8 +81,9 @@ type ChatMessageImageURL struct {
 type ChatMessagePartType string
 
 const (
-	ChatMessagePartTypeText     ChatMessagePartType = "text"
-	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
+	ChatMessagePartTypeText       ChatMessagePartType = "text"
+	ChatMessagePartTypeImageURL   ChatMessagePartType = "image_url"
+	ChatMessagePartTypeInputAudio ChatMessagePartType = "input_audio"
 )
 
 type ChatMessagePart struct {

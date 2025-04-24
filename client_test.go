@@ -475,11 +475,11 @@ func TestClientReturnsRequestBuilderErrorsAddition(t *testing.T) {
 	client := NewClientWithConfig(config)
 	client.requestBuilder = &failingRequestBuilder{}
 	ctx := context.Background()
-	_, err := client.CreateCompletion(ctx, CompletionRequest{Model: GPT3TextDavinci003, Prompt: 1})
+	_, err := client.CreateCompletion(ctx, CompletionRequest{Model: GPT3Dot5TurboInstruct, Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}
-	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Model: GPT3TextDavinci003, Prompt: 1})
+	_, err = client.CreateCompletionStream(ctx, CompletionRequest{Model: GPT3Dot5TurboInstruct, Prompt: 1})
 	if !errors.Is(err, ErrCompletionRequestPromptTypeNotSupported) {
 		t.Fatalf("Did not return error when request builder failed: %v", err)
 	}

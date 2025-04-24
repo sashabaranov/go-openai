@@ -5,6 +5,11 @@ import (
 	"net/http"
 )
 
+// Endpoint constants.
+const (
+	completionsEndpoint = "/completions"
+)
+
 // GPT3 Defines the models provided by OpenAI to use when generating
 // completions from OpenAI.
 // GPT3 Models are designed for text-based tasks. For code-specific
@@ -91,71 +96,61 @@ const (
 	CodexCodeDavinci001 = "code-davinci-001"
 )
 
-var disabledModelsForEndpoints = map[string]map[string]bool{
-	"/completions": {
-		O1Mini:                  true,
-		O1Mini20240912:          true,
-		O1Preview:               true,
-		O1Preview20240912:       true,
-		O3Mini:                  true,
-		O3Mini20250131:          true,
-		GPT3Dot5Turbo:           true,
-		GPT3Dot5Turbo0301:       true,
-		GPT3Dot5Turbo0613:       true,
-		GPT3Dot5Turbo1106:       true,
-		GPT3Dot5Turbo0125:       true,
-		GPT3Dot5Turbo16K:        true,
-		GPT3Dot5Turbo16K0613:    true,
-		GPT4:                    true,
-		GPT4Dot5Preview:         true,
-		GPT4Dot5Preview20250227: true,
-		GPT4o:                   true,
-		GPT4o20240513:           true,
-		GPT4o20240806:           true,
-		GPT4o20241120:           true,
-		GPT4oLatest:             true,
-		GPT4oMini:               true,
-		GPT4oMini20240718:       true,
-		GPT4TurboPreview:        true,
-		GPT4VisionPreview:       true,
-		GPT4Turbo1106:           true,
-		GPT4Turbo0125:           true,
-		GPT4Turbo:               true,
-		GPT4Turbo20240409:       true,
-		GPT40314:                true,
-		GPT40613:                true,
-		GPT432K:                 true,
-		GPT432K0314:             true,
-		GPT432K0613:             true,
-		O1:                      true,
-		GPT4Dot1:                true,
-		GPT4Dot120250414:        true,
-		GPT4Dot1Mini:            true,
-		GPT4Dot1Mini20250414:    true,
-		GPT4Dot1Nano:            true,
-		GPT4Dot1Nano20250414:    true,
-	},
-	chatCompletionsSuffix: {
-		CodexCodeDavinci002:     true,
-		CodexCodeCushman001:     true,
-		CodexCodeDavinci001:     true,
-		GPT3TextDavinci003:      true,
-		GPT3TextDavinci002:      true,
-		GPT3TextCurie001:        true,
-		GPT3TextBabbage001:      true,
-		GPT3TextAda001:          true,
-		GPT3TextDavinci001:      true,
-		GPT3DavinciInstructBeta: true,
-		GPT3Davinci:             true,
-		GPT3CurieInstructBeta:   true,
-		GPT3Curie:               true,
-		GPT3Ada:                 true,
-		GPT3Babbage:             true,
-	},
+// This map lists models that are *not* supported by the chat completions endpoint.
+// We maintain this deny list because most new models *are* supported by chat completions.
+// It is simpler to list the exceptions rather than updating an allow list
+// each time a new model is released and supported.
+var disabledModelsForChatCompletionsEndpoint = map[string]bool{
+	CodexCodeCushman001:     true,
+	CodexCodeDavinci001:     true,
+	CodexCodeDavinci002:     true,
+	GPT3Ada:                 true,
+	GPT3Babbage:             true,
+	GPT3Curie:               true,
+	GPT3CurieInstructBeta:   true,
+	GPT3Davinci:             true,
+	GPT3DavinciInstructBeta: true,
+	GPT3TextAda001:          true,
+	GPT3TextBabbage001:      true,
+	GPT3TextCurie001:        true,
+	GPT3TextDavinci001:      true,
+	GPT3TextDavinci002:      true,
+	GPT3TextDavinci003:      true,
+}
+
+// This map lists models that *are* supported by the deprecated completions endpoint.
+// We maintain this allow list because the completions endpoint is deprecated and most new models
+// are *not* supported by it. It is simpler to list the older models that are supported
+// rather than updating a deny list each time a new model is released and *not* supported.
+var enabledModelsForDeprecatedCompletionsEndpoint = map[string]bool{
+	CodexCodeCushman001:     true,
+	CodexCodeDavinci001:     true,
+	CodexCodeDavinci002:     true,
+	GPT3Ada:                 true,
+	GPT3Ada002:              true,
+	GPT3Babbage:             true,
+	GPT3Babbage002:          true,
+	GPT3Curie:               true,
+	GPT3Curie002:            true,
+	GPT3CurieInstructBeta:   true,
+	GPT3Davinci:             true,
+	GPT3Davinci002:          true,
+	GPT3DavinciInstructBeta: true,
+	GPT3Dot5TurboInstruct:   true,
+	GPT3TextAda001:          true,
+	GPT3TextBabbage001:      true,
+	GPT3TextCurie001:        true,
+	GPT3TextDavinci001:      true,
+	GPT3TextDavinci002:      true,
+	GPT3TextDavinci003:      true,
 }
 
 func checkEndpointSupportsModel(endpoint, model string) bool {
-	return !disabledModelsForEndpoints[endpoint][model]
+	if endpoint == completionsEndpoint {
+		return enabledModelsForDeprecatedCompletionsEndpoint[model]
+	}
+
+	return !disabledModelsForChatCompletionsEndpoint[model]
 }
 
 func checkPromptType(prompt any) bool {
@@ -251,7 +246,7 @@ func (c *Client) CreateCompletion(
 		return
 	}
 
-	urlSuffix := "/completions"
+	urlSuffix := completionsEndpoint
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
 		err = ErrCompletionUnsupportedModel
 		return

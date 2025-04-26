@@ -17,12 +17,23 @@ func (*failingMarshaller) Marshal(_ any) ([]byte, error) {
 	return []byte{}, errTestMarshallerFailed
 }
 
+func (*failingMarshaller) Unmarshal(_ []byte, _ any) error {
+	return errTestMarshallerFailed
+}
+
 func TestRequestBuilderReturnsMarshallerErrors(t *testing.T) {
 	builder := HTTPRequestBuilder{
 		marshaller: &failingMarshaller{},
 	}
 
-	_, err := builder.Build(context.Background(), "", "", struct{}{}, nil)
+	_, err := builder.Build(context.Background(), &Request{
+		Method:       http.MethodGet,
+		URL:          "/foo",
+		Body:         struct{}{},
+		Header:       nil,
+		ExtraHeaders: nil,
+		ExtraQuery:   nil,
+	})
 	if !errors.Is(err, errTestMarshallerFailed) {
 		t.Fatalf("Did not return error when marshaller failed: %v", err)
 	}
@@ -38,7 +49,14 @@ func TestRequestBuilderReturnsRequest(t *testing.T) {
 		reqBytes, _ = b.marshaller.Marshal(request)
 		want, _     = http.NewRequestWithContext(ctx, method, url, bytes.NewBuffer(reqBytes))
 	)
-	got, _ := b.Build(ctx, method, url, request, nil)
+	got, _ := b.Build(ctx, &Request{
+		Method:       method,
+		URL:          url,
+		Body:         request,
+		Header:       nil,
+		ExtraHeaders: nil,
+		ExtraQuery:   nil,
+	})
 	if !reflect.DeepEqual(got.Body, want.Body) ||
 		!reflect.DeepEqual(got.URL, want.URL) ||
 		!reflect.DeepEqual(got.Method, want.Method) {
@@ -54,7 +72,14 @@ func TestRequestBuilderReturnsRequestWhenRequestOfArgsIsNil(t *testing.T) {
 		want, _ = http.NewRequestWithContext(ctx, method, url, nil)
 	)
 	b := NewRequestBuilder()
-	got, _ := b.Build(ctx, method, url, nil, nil)
+	got, _ := b.Build(ctx, &Request{
+		Method:       method,
+		URL:          url,
+		Body:         nil,
+		Header:       nil,
+		ExtraHeaders: nil,
+		ExtraQuery:   nil,
+	})
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Build() got = %v, want %v", got, want)
 	}

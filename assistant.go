@@ -76,6 +76,9 @@ type AssistantRequest struct {
 	ResponseFormat any                    `json:"response_format,omitempty"`
 	Temperature    *float32               `json:"temperature,omitempty"`
 	TopP           *float32               `json:"top_p,omitempty"`
+	ExtraHeaders   map[string]string      `json:"extra_headers,omitempty"`
+	ExtraQuery     map[string]string      `json:"extra_query,omitempty"`
+	ExtraBody      map[string]any         `json:"extra_body,omitempty"`
 }
 
 // MarshalJSON provides a custom marshaller for the assistant request to handle the API use cases
@@ -137,7 +140,11 @@ type AssistantFilesList struct {
 // CreateAssistant creates a new assistant.
 func (c *Client) CreateAssistant(ctx context.Context, request AssistantRequest) (response Assistant, err error) {
 	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(assistantsSuffix), withBody(request),
-		withBetaAssistantVersion(c.config.AssistantVersion))
+		withBetaAssistantVersion(c.config.AssistantVersion),
+		withExtraHeaders(request.ExtraHeaders),
+		withExtraQuery(request.ExtraQuery),
+		withExtraBody(request.ExtraBody),
+	)
 	if err != nil {
 		return
 	}

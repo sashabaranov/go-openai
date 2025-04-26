@@ -159,7 +159,10 @@ type EmbeddingRequest struct {
 	EncodingFormat EmbeddingEncodingFormat `json:"encoding_format,omitempty"`
 	// Dimensions The number of dimensions the resulting output embeddings should have.
 	// Only supported in text-embedding-3 and later models.
-	Dimensions int `json:"dimensions,omitempty"`
+	Dimensions   int               `json:"dimensions,omitempty"`
+	ExtraHeaders map[string]string `json:"extra_headers,omitempty"`
+	ExtraQuery   map[string]string `json:"extra_query,omitempty"`
+	ExtraBody    map[string]any    `json:"extra_body,omitempty"`
 }
 
 func (r EmbeddingRequest) Convert() EmbeddingRequest {
@@ -246,6 +249,9 @@ func (c *Client) CreateEmbeddings(
 		http.MethodPost,
 		c.fullURL("/embeddings", withModel(string(baseReq.Model))),
 		withBody(baseReq),
+		withExtraHeaders(baseReq.ExtraHeaders),
+		withExtraQuery(baseReq.ExtraQuery),
+		withExtraBody(baseReq.ExtraBody),
 	)
 	if err != nil {
 		return

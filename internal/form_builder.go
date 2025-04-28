@@ -36,7 +36,6 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 	return fb.createFormFile(fieldname, r, path.Base(filename))
 }
 
-
 var quoteEscaper = strings.NewReplacer("\\", "\\\\", `"`, "\\\"")
 
 func escapeQuotes(s string) string {

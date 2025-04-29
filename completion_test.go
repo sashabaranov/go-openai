@@ -33,6 +33,42 @@ func TestCompletionsWrongModel(t *testing.T) {
 	}
 }
 
+// TestCompletionsWrongModelO3 Tests the completions endpoint with O3 model which is not supported.
+func TestCompletionsWrongModelO3(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.O3,
+		},
+	)
+	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for O3, but returned: %v", err)
+	}
+}
+
+// TestCompletionsWrongModelO4Mini Tests the completions endpoint with O4Mini model which is not supported.
+func TestCompletionsWrongModelO4Mini(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.O4Mini,
+		},
+	)
+	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for O4Mini, but returned: %v", err)
+	}
+}
+
 func TestCompletionWithStream(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	client := openai.NewClientWithConfig(config)

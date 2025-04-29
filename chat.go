@@ -273,6 +273,8 @@ type ChatCompletionRequest struct {
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
+	// Configuration for a predicted output.
+	Prediction *Prediction `json:"prediction,omitempty"`
 }
 
 type StreamOptions struct {
@@ -338,6 +340,11 @@ type LogProb struct {
 type LogProbs struct {
 	// Content is a list of message content tokens with log probability information.
 	Content []LogProb `json:"content"`
+}
+
+type Prediction struct {
+	Content string `json:"content"`
+	Type    string `json:"type"`
 }
 
 type FinishReason string

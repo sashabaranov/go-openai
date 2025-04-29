@@ -215,6 +215,8 @@ type CompletionRequest struct {
 	Temperature     float32           `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`
 	User            string            `json:"user,omitempty"`
+	// Options for streaming response. Only set this when you set stream: true.
+	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

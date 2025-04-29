@@ -382,13 +382,11 @@ func main() {
 		Model:             openai.CreateImageModelGptImage1,
 		Size:              openai.CreateImageSize1024x1024,
 		N:                 1,
-		Quality:           op
-enai.CreateImageQualityLow,
+		Quality:           openai.CreateImageQualityLow,
 		OutputCompression: 100,
 		OutputFormat:      openai.CreateImageOutputFormatJPEG,
 		// Moderation: 		 openai.CreateImageModerationLow,
 		// User: 					 "",
-
 	}
 
 	resp, err := c.CreateImage(ctx, req)

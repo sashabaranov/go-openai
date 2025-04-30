@@ -21,8 +21,12 @@ const (
 	O1Preview20240912       = "o1-preview-2024-09-12"
 	O1                      = "o1"
 	O120241217              = "o1-2024-12-17"
+	O3                      = "o3"
+	O320250416              = "o3-2025-04-16"
 	O3Mini                  = "o3-mini"
 	O3Mini20250131          = "o3-mini-2025-01-31"
+	O4Mini                  = "o4-mini"
+	O4Mini2020416           = "o4-mini-2025-04-16"
 	GPT432K0613             = "gpt-4-32k-0613"
 	GPT432K0314             = "gpt-4-32k-0314"
 	GPT432K                 = "gpt-4-32k"
@@ -202,6 +206,8 @@ type CompletionRequest struct {
 	Temperature     float32           `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`
 	User            string            `json:"user,omitempty"`
+	// Options for streaming response. Only set this when you set stream: true.
+	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

@@ -997,6 +997,13 @@ func TestTemperature(t *testing.T) {
 			},
 			expectedTemperature: &[]float32{0.5}[0],
 		},
+		{
+			name: "set_new_explicit_zero",
+			in: openai.ChatCompletionRequest{
+				TemperatureOpt: &[]float32{0}[0],
+			},
+			expectedTemperature: &[]float32{0}[0],
+		},
 	}
 
 	for _, tt := range tests {

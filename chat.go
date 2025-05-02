@@ -288,13 +288,23 @@ func (r *ChatCompletionRequest) UnmarshalJSON(data []byte) error {
 		return err
 	}
 	if r.TemperatureOpt != nil {
-		r.Temperature = *r.TemperatureOpt
-		// Link TemperatureOpt to temperature. This ensures that code modifying temperature
-		// after unmarshaling (i.e., when TemperatureOpt might be set) will continue to
-		// work correctly.
-		r.TemperatureOpt = &r.Temperature
-	} else if r.Temperature != 0 {
-		r.TemperatureOpt = &r.Temperature
+		if *r.TemperatureOpt == 0 {
+			// Explicit zero. This can only be represented in the TemperatureOpt field, so
+			// we need to preserve it.
+			// We still link r.TemperatureOpt to r.Temperature, such that legacy code modifying
+			// temperature after unmarshaling will continue to work correctly.
+			r.Temperature = 0
+			r.TemperatureOpt = &r.Temperature
+		} else {
+			// Non-zero temperature. This can be represented in the legacy field, and in order
+			// to minimize incompatibilities, we use the legacy field exclusively.
+			// New code should use `GetTemperature()` to retrieve the temperature, and explicitly
+			// setting TemperatureOpt will still be respected.
+			r.Temperature = *r.TemperatureOpt
+			r.TemperatureOpt = nil
+		}
+	} else {
+		r.Temperature = 0
 	}
 	return nil
 }

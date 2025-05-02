@@ -124,6 +124,23 @@ func TestO1ModelsChatCompletionsBetaLimitations(t *testing.T) {
 			expectedError: openai.ErrReasoningModelLimitationsOther,
 		},
 		{
+			name: "set_temperature_unsupported_new",
+			in: openai.ChatCompletionRequest{
+				MaxCompletionTokens: 1000,
+				Model:               openai.O1Mini,
+				Messages: []openai.ChatCompletionMessage{
+					{
+						Role: openai.ChatMessageRoleUser,
+					},
+					{
+						Role: openai.ChatMessageRoleAssistant,
+					},
+				},
+				TemperatureOpt: &[]float32{2}[0],
+			},
+			expectedError: openai.ErrReasoningModelLimitationsOther,
+		},
+		{
 			name: "set_top_unsupported",
 			in: openai.ChatCompletionRequest{
 				MaxCompletionTokens: 1000,
@@ -944,5 +961,89 @@ func TestFinishReason(t *testing.T) {
 		if !strings.Contains(string(resBytes), fmt.Sprintf(`"finish_reason":"%s"`, r)) {
 			t.Errorf("%s should be quoted", r)
 		}
+	}
+}
+
+func TestTemperature(t *testing.T) {
+	tests := []struct {
+		name                string
+		in                  openai.ChatCompletionRequest
+		expectedTemperature *float32
+	}{
+		{
+			name:                "not_set",
+			in:                  openai.ChatCompletionRequest{},
+			expectedTemperature: nil,
+		},
+		{
+			name: "set_legacy",
+			in: openai.ChatCompletionRequest{
+				Temperature: 0.5,
+			},
+			expectedTemperature: &[]float32{0.5}[0],
+		},
+		{
+			name: "set_new",
+			in: openai.ChatCompletionRequest{
+				TemperatureOpt: &[]float32{0.5}[0],
+			},
+			expectedTemperature: &[]float32{0.5}[0],
+		},
+		{
+			name: "set_both",
+			in: openai.ChatCompletionRequest{
+				Temperature:    0.4,
+				TemperatureOpt: &[]float32{0.5}[0],
+			},
+			expectedTemperature: &[]float32{0.5}[0],
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(tt.in)
+			checks.NoError(t, err, "failed to marshal request to JSON")
+
+			var req openai.ChatCompletionRequest
+			err = json.Unmarshal(data, &req)
+			checks.NoError(t, err, "failed to unmarshal request from JSON")
+
+			temp := req.GetTemperature()
+			if tt.expectedTemperature == nil {
+				if temp != nil {
+					t.Error("expected temperature to be nil")
+				}
+			} else {
+				if temp == nil {
+					t.Error("expected temperature to be set")
+				} else if *tt.expectedTemperature != *temp {
+					t.Errorf("expected temperature to be %v but was %v", *tt.expectedTemperature, *temp)
+				}
+			}
+		})
+	}
+}
+
+func TestTemperature_ModifyLegacyAfterUnmarshal(t *testing.T) {
+	req := openai.ChatCompletionRequest{
+		TemperatureOpt: &[]float32{0.5}[0],
+	}
+
+	data, err := json.Marshal(req)
+	checks.NoError(t, err, "failed to marshal request to JSON")
+
+	var req2 openai.ChatCompletionRequest
+	err = json.Unmarshal(data, &req2)
+	checks.NoError(t, err, "failed to unmarshal request from JSON")
+
+	if temp := req2.GetTemperature(); temp == nil || *temp != 0.5 {
+		t.Errorf("expected temperature to be 0.5 but was %v", temp)
+	}
+
+	// Modify the legacy temperature field
+	req2.Temperature = 0.4
+
+	if temp := req2.GetTemperature(); temp == nil || *temp != 0.4 {
+		t.Errorf("expected temperature to be 0.4 but was %v", temp)
 	}
 }

@@ -232,16 +232,21 @@ type ChatCompletionRequest struct {
 	MaxTokens int `json:"max_tokens,omitempty"`
 	// MaxCompletionTokens An upper bound for the number of tokens that can be generated for a completion,
 	// including visible output tokens and reasoning tokens https://platform.openai.com/docs/guides/reasoning
-	MaxCompletionTokens int                           `json:"max_completion_tokens,omitempty"`
-	Temperature         float32                       `json:"temperature,omitempty"`
-	TopP                float32                       `json:"top_p,omitempty"`
-	N                   int                           `json:"n,omitempty"`
-	Stream              bool                          `json:"stream,omitempty"`
-	Stop                []string                      `json:"stop,omitempty"`
-	PresencePenalty     float32                       `json:"presence_penalty,omitempty"`
-	ResponseFormat      *ChatCompletionResponseFormat `json:"response_format,omitempty"`
-	Seed                *int                          `json:"seed,omitempty"`
-	FrequencyPenalty    float32                       `json:"frequency_penalty,omitempty"`
+	MaxCompletionTokens int `json:"max_completion_tokens,omitempty"`
+
+	// Deprecated: Use TemperatureOpt instead. When TemperatureOpt is set, Temperature is ignored
+	// regardless of its value. Otherwise (if TemperatureOpt is nil), Temperature is used when
+	// non-zero.
+	Temperature      float32                       `json:"-"`
+	TemperatureOpt   *float32                      `json:"temperature,omitempty"`
+	TopP             float32                       `json:"top_p,omitempty"`
+	N                int                           `json:"n,omitempty"`
+	Stream           bool                          `json:"stream,omitempty"`
+	Stop             []string                      `json:"stop,omitempty"`
+	PresencePenalty  float32                       `json:"presence_penalty,omitempty"`
+	ResponseFormat   *ChatCompletionResponseFormat `json:"response_format,omitempty"`
+	Seed             *int                          `json:"seed,omitempty"`
+	FrequencyPenalty float32                       `json:"frequency_penalty,omitempty"`
 	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
@@ -275,6 +280,42 @@ type ChatCompletionRequest struct {
 	Metadata map[string]string `json:"metadata,omitempty"`
 	// Configuration for a predicted output.
 	Prediction *Prediction `json:"prediction,omitempty"`
+}
+
+func (r *ChatCompletionRequest) UnmarshalJSON(data []byte) error {
+	type plainChatCompletionRequest ChatCompletionRequest
+	if err := json.Unmarshal(data, (*plainChatCompletionRequest)(r)); err != nil {
+		return err
+	}
+	if r.TemperatureOpt != nil {
+		r.Temperature = *r.TemperatureOpt
+		// Link TemperatureOpt to temperature. This ensures that code modifying temperature
+		// after unmarshaling (i.e., when TemperatureOpt might be set) will continue to
+		// work correctly.
+		r.TemperatureOpt = &r.Temperature
+	} else if r.Temperature != 0 {
+		r.TemperatureOpt = &r.Temperature
+	}
+	return nil
+}
+
+func (r ChatCompletionRequest) MarshalJSON() ([]byte, error) {
+	type plainChatCompletionRequest ChatCompletionRequest
+	plainR := plainChatCompletionRequest(r)
+	if plainR.TemperatureOpt == nil && plainR.Temperature != 0 {
+		plainR.TemperatureOpt = &plainR.Temperature
+	}
+	return json.Marshal(&plainR)
+}
+
+func (r *ChatCompletionRequest) GetTemperature() *float32 {
+	if r.TemperatureOpt != nil {
+		return r.TemperatureOpt
+	}
+	if r.Temperature != 0 {
+		return &r.Temperature
+	}
+	return nil
 }
 
 type StreamOptions struct {

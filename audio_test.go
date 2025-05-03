@@ -138,7 +138,7 @@ func (f *failingFormBuilder) FormDataContentType() string {
 // failingAudioRequestBuilder simulates an error during HTTP request construction.
 type failingAudioRequestBuilder struct{ err error }
 
-func (f *failingAudioRequestBuilder) Build(_ context.Context, method, _ string, _ any, _ http.Header) (*http.Request, error) {
+func (f *failingAudioRequestBuilder) Build(_ context.Context, _, _ string, _ any, _ http.Header) (*http.Request, error) {
 	return nil, f.err
 }
 

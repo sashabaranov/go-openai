@@ -115,15 +115,15 @@ func TestCreateFileField(t *testing.T) {
 // failingFormBuilder always returns an error when creating form files.
 type failingFormBuilder struct{ err error }
 
-func (f *failingFormBuilder) CreateFormFile(fieldname string, file *os.File) error {
+func (f *failingFormBuilder) CreateFormFile(_ string, _ *os.File) error {
 	return f.err
 }
 
-func (f *failingFormBuilder) CreateFormFileReader(fieldname string, r io.Reader, filename string) error {
+func (f *failingFormBuilder) CreateFormFileReader(_ string, _ io.Reader, _ string) error {
 	return f.err
 }
 
-func (f *failingFormBuilder) WriteField(fieldname, value string) error {
+func (f *failingFormBuilder) WriteField(_, _ string) error {
 	return nil
 }
 
@@ -138,14 +138,14 @@ func (f *failingFormBuilder) FormDataContentType() string {
 // failingAudioRequestBuilder simulates an error during HTTP request construction.
 type failingAudioRequestBuilder struct{ err error }
 
-func (f *failingAudioRequestBuilder) Build(ctx context.Context, method, url string, body any, header http.Header) (*http.Request, error) {
+func (f *failingAudioRequestBuilder) Build(_ context.Context, method, _ string, _ any, _ http.Header) (*http.Request, error) {
 	return nil, f.err
 }
 
 // errorHTTPClient always returns an error when making HTTP calls.
 type errorHTTPClient struct{ err error }
 
-func (e *errorHTTPClient) Do(req *http.Request) (*http.Response, error) {
+func (e *errorHTTPClient) Do(_ *http.Request) (*http.Response, error) {
 	return nil, e.err
 }
 
@@ -153,7 +153,7 @@ func TestCallAudioAPIMultipartFormError(t *testing.T) {
 	client := NewClient("test-token")
 	errForm := errors.New("mock create form file failure")
 	// Override form builder to force an error during multipart form creation.
-	client.createFormBuilder = func(body io.Writer) utils.FormBuilder {
+	client.createFormBuilder = func(_ io.Writer) utils.FormBuilder {
 		return &failingFormBuilder{err: errForm}
 	}
 

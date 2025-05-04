@@ -7,7 +7,7 @@ This library provides unofficial Go clients for [OpenAI API](https://platform.op
 
 * ChatGPT 4o, o1
 * GPT-3, GPT-4
-* DALL·E 2, DALL·E 3
+* DALL·E 2, DALL·E 3, GPT Image 1
 * Whisper
 
 ## Installation
@@ -354,6 +354,66 @@ func main() {
 	fmt.Println("The image was saved as example.png")
 }
 
+```
+</details>
+
+<details>
+<summary>GPT Image 1 image generation</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/base64"
+	"fmt"
+	"os"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	c := openai.NewClient("your token")
+	ctx := context.Background()
+
+	req := openai.ImageRequest{
+		Prompt:            "Parrot on a skateboard performing a trick. Large bold text \"SKATE MASTER\" banner at the bottom of the image. Cartoon style, natural light, high detail, 1:1 aspect ratio.",
+		Background:        openai.CreateImageBackgroundOpaque,
+		Model:             openai.CreateImageModelGptImage1,
+		Size:              openai.CreateImageSize1024x1024,
+		N:                 1,
+		Quality:           openai.CreateImageQualityLow,
+		OutputCompression: 100,
+		OutputFormat:      openai.CreateImageOutputFormatJPEG,
+		// Moderation: 		 openai.CreateImageModerationLow,
+		// User: 					 "",
+	}
+
+	resp, err := c.CreateImage(ctx, req)
+	if err != nil {
+		fmt.Printf("Image creation Image generation with GPT Image 1error: %v\n", err)
+		return
+	}
+
+	fmt.Println("Image Base64:", resp.Data[0].B64JSON)
+
+	// Decode the base64 data
+	imgBytes, err := base64.StdEncoding.DecodeString(resp.Data[0].B64JSON)
+	if err != nil {
+		fmt.Printf("Base64 decode error: %v\n", err)
+		return
+	}
+
+	// Write image to file
+	outputPath := "generated_image.jpg"
+	err = os.WriteFile(outputPath, imgBytes, 0644)
+	if err != nil {
+		fmt.Printf("Failed to write image file: %v\n", err)
+		return
+	}
+
+	fmt.Printf("The image was saved as %s\n", outputPath)
+}
 ```
 </details>
 

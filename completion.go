@@ -214,6 +214,7 @@ type CompletionRequest struct {
 	Suffix          string            `json:"suffix,omitempty"`
 	Temperature     float32           `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`
+	TopK            int               `json:"top_k,omitempty"`
 	User            string            `json:"user,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`

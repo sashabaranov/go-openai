@@ -111,6 +111,23 @@ func TestAdminProjectUser(t *testing.T) {
 		}
 	})
 
+	t.Run("ListAdminProjectUsersFilter", func(t *testing.T) {
+		limit := 5
+		after := "after_id"
+
+		adminProjectUsers, err := client.ListAdminProjectUsers(ctx, adminProjectID, &limit, &after)
+		checks.NoError(t, err, "ListAdminProjectUsers error")
+
+		if len(adminProjectUsers.Data) != 1 {
+			t.Errorf("expected 1 project user, got %d", len(adminProjectUsers.Data))
+		}
+
+		adminProjectUser := adminProjectUsers.Data[0]
+		if adminProjectUser.ID != adminProjectUserID {
+			t.Errorf("expected user ID %s, got %s", adminProjectUserID, adminProjectUser.ID)
+		}
+	})
+
 	t.Run("CreateAdminProjectUser", func(t *testing.T) {
 		adminProjectUser, err := client.CreateAdminProjectUser(
 			ctx,

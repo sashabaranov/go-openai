@@ -106,6 +106,19 @@ func TestAdminInvite(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("ListAdminInvites", func(t *testing.T) {
+		adminInvites, err := client.ListAdminInvites(ctx, nil, nil)
+		checks.NoError(t, err, "ListAdminInvites error")
+
+		if len(adminInvites.AdminInvites) != 1 {
+			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
+		}
+
+		if adminInvites.AdminInvites[0].ID != adminInviteID {
+			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
+		}
+	})
+
+	t.Run("ListAdminInvitesFilter", func(t *testing.T) {
 		limit := 10
 		after := "after-id"
 

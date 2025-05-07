@@ -99,6 +99,23 @@ func TestAdminUser(t *testing.T) {
 		}
 	})
 
+	t.Run("ListAdminUsersFilter", func(t *testing.T) {
+		limit := 10
+		after := "after-id"
+		emails := []string{"test@here.com"}
+
+		response, err := client.ListAdminUsers(ctx, &limit, &after, &emails)
+		checks.NoError(t, err, "AdminListUsers error")
+
+		if len(response.User) != 1 {
+			t.Errorf("AdminListUsers returned %d users, want 1", len(response.User))
+		}
+
+		if response.User[0].ID != adminUserID {
+			t.Errorf("AdminListUsers returned user ID %s, want %s", response.User[0].ID, adminUserID)
+		}
+	})
+
 	t.Run("ModifyAdminUser", func(t *testing.T) {
 		response, err := client.ModifyAdminUser(ctx, adminUserID, adminUserRole)
 		checks.NoError(t, err, "ModifyAdminUser error")

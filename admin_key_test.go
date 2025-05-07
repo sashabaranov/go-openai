@@ -127,6 +127,23 @@ func TestAdminKey(t *testing.T) {
 		}
 	})
 
+	t.Run("ListAdminKeysFilter", func(t *testing.T) {
+		limit := 5
+		order := "asc"
+		after := "after_id"
+
+		adminKeys, err := client.ListAdminKeys(ctx, &limit, &order, &after)
+		checks.NoError(t, err, "ListAdminKeys error")
+
+		if len(adminKeys.AdminKeys) != 1 {
+			t.Fatalf("ListAdminKeys: expected 1 key, got %d", len(adminKeys.AdminKeys))
+		}
+
+		if adminKeys.AdminKeys[0].ID != adminKeyID {
+			t.Fatalf("ListAdminKeys: expected key ID %s, got %s", adminKeyID, adminKeys.AdminKeys[0].ID)
+		}
+	})
+
 	t.Run("CreateAdminKey", func(t *testing.T) {
 		adminKey, err := client.CreateAdminKey(ctx, adminKeyName)
 		checks.NoError(t, err, "CreateAdminKey error")

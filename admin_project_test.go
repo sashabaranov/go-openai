@@ -107,7 +107,11 @@ func TestAdminProject(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("ListAdminProjects", func(t *testing.T) {
-		adminProjects, err := client.ListAdminProjects(ctx, nil, nil, nil)
+		limit := 5
+		after := "after_id"
+		includeArchived := true
+
+		adminProjects, err := client.ListAdminProjects(ctx, &limit, &after, &includeArchived)
 		checks.NoError(t, err, "ListAdminProjects error")
 
 		if len(adminProjects.Data) != 1 {

@@ -62,8 +62,21 @@ func TestAdminUsageCost(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("GetAdminUsageCost", func(t *testing.T) {
+
+		bucketWidth := "1h"
+		groupBy := "project_id"
+		projectIDs := []string{"project_1", "project_2"}
+		limit := 10
+		page := "page_1"
+
 		request := openai.AdminUsageCostRequest{
-			StartTime: startTime,
+			StartTime:   startTime,
+			EndTime:     &endTime,
+			BucketWidth: &bucketWidth,
+			GroupBy:     &groupBy,
+			ProjectIDs:  projectIDs,
+			Limit:       &limit,
+			Page:        &page,
 		}
 		costResult, err := client.GetAdminUsageCost(ctx, request)
 		checks.NoError(t, err)

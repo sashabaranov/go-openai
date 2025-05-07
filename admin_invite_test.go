@@ -106,7 +106,11 @@ func TestAdminInvite(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("ListAdminInvites", func(t *testing.T) {
-		adminInvites, err := client.ListAdminInvites(ctx, nil, nil)
+
+		limit := 10
+		after := "after-id"
+
+		adminInvites, err := client.ListAdminInvites(ctx, &limit, &after)
 		checks.NoError(t, err, "ListAdminInvites error")
 
 		if len(adminInvites.AdminInvites) != 1 {

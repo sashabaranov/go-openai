@@ -33,6 +33,42 @@ func TestCompletionsWrongModel(t *testing.T) {
 	}
 }
 
+// TestCompletionsWrongModelO3 Tests the completions endpoint with O3 model which is not supported.
+func TestCompletionsWrongModelO3(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.O3,
+		},
+	)
+	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for O3, but returned: %v", err)
+	}
+}
+
+// TestCompletionsWrongModelO4Mini Tests the completions endpoint with O4Mini model which is not supported.
+func TestCompletionsWrongModelO4Mini(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.O4Mini,
+		},
+	)
+	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for O4Mini, but returned: %v", err)
+	}
+}
+
 func TestCompletionWithStream(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	client := openai.NewClientWithConfig(config)
@@ -180,4 +216,87 @@ func getCompletionBody(r *http.Request) (openai.CompletionRequest, error) {
 		return openai.CompletionRequest{}, err
 	}
 	return completion, nil
+}
+
+// TestCompletionWithO1Model Tests that O1 model is not supported for completion endpoint.
+func TestCompletionWithO1Model(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	_, err := client.CreateCompletion(
+		context.Background(),
+		openai.CompletionRequest{
+			MaxTokens: 5,
+			Model:     openai.O1,
+		},
+	)
+	if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+		t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for O1 model, but returned: %v", err)
+	}
+}
+
+// TestCompletionWithGPT4DotModels Tests that newer GPT4 models are not supported for completion endpoint.
+func TestCompletionWithGPT4DotModels(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	models := []string{
+		openai.GPT4Dot1,
+		openai.GPT4Dot120250414,
+		openai.GPT4Dot1Mini,
+		openai.GPT4Dot1Mini20250414,
+		openai.GPT4Dot1Nano,
+		openai.GPT4Dot1Nano20250414,
+		openai.GPT4Dot5Preview,
+		openai.GPT4Dot5Preview20250227,
+	}
+
+	for _, model := range models {
+		t.Run(model, func(t *testing.T) {
+			_, err := client.CreateCompletion(
+				context.Background(),
+				openai.CompletionRequest{
+					MaxTokens: 5,
+					Model:     model,
+				},
+			)
+			if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+				t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for %s model, but returned: %v", model, err)
+			}
+		})
+	}
+}
+
+// TestCompletionWithGPT4oModels Tests that GPT4o models are not supported for completion endpoint.
+func TestCompletionWithGPT4oModels(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	models := []string{
+		openai.GPT4o,
+		openai.GPT4o20240513,
+		openai.GPT4o20240806,
+		openai.GPT4o20241120,
+		openai.GPT4oLatest,
+		openai.GPT4oMini,
+		openai.GPT4oMini20240718,
+	}
+
+	for _, model := range models {
+		t.Run(model, func(t *testing.T) {
+			_, err := client.CreateCompletion(
+				context.Background(),
+				openai.CompletionRequest{
+					MaxTokens: 5,
+					Model:     model,
+				},
+			)
+			if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+				t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for %s model, but returned: %v", model, err)
+			}
+		})
+	}
 }

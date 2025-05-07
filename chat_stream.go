@@ -17,8 +17,6 @@ type ChatCompletionStreamChoiceDelta struct {
 	// the doc from deepseek:
 	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
 	ReasoningContent string `json:"reasoning_content,omitempty"`
-	// sb sentence
-	Message string `json:"message,omitempty"`
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {
@@ -45,6 +43,8 @@ type ChatCompletionStreamChoice struct {
 	Logprobs             *ChatCompletionStreamChoiceLogprobs `json:"logprobs,omitempty"`
 	FinishReason         FinishReason                        `json:"finish_reason"`
 	ContentFilterResults ContentFilterResults                `json:"content_filter_results,omitempty"`
+	// sb sentence
+	Message string `json:"message,omitempty"`
 }
 
 type PromptFilterResult struct {

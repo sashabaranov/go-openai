@@ -106,7 +106,6 @@ func TestAdminInvite(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("ListAdminInvites", func(t *testing.T) {
-
 		limit := 10
 		after := "after-id"
 

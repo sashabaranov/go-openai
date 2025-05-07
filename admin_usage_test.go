@@ -62,7 +62,6 @@ func TestAdminUsageCost(t *testing.T) {
 	ctx := context.Background()
 
 	t.Run("GetAdminUsageCost", func(t *testing.T) {
-
 		bucketWidth := "1h"
 		groupBy := "project_id"
 		projectIDs := []string{"project_1", "project_2"}

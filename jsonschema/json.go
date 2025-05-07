@@ -46,6 +46,8 @@ type Definition struct {
 	// additionalProperties: false
 	// additionalProperties: jsonschema.Definition{Type: jsonschema.String}
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
+	// Whether the schema is nullable or not.
+	Nullable bool `json:"nullable,omitempty"`
 }
 
 func (d *Definition) MarshalJSON() ([]byte, error) {
@@ -139,6 +141,16 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 		if description != "" {
 			item.Description = description
 		}
+		enum := field.Tag.Get("enum")
+		if enum != "" {
+			item.Enum = strings.Split(enum, ",")
+		}
+
+		if n := field.Tag.Get("nullable"); n != "" {
+			nullable, _ := strconv.ParseBool(n)
+			item.Nullable = nullable
+		}
+
 		properties[jsonTag] = *item
 
 		if s := field.Tag.Get("required"); s != "" {

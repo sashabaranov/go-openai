@@ -43,3 +43,20 @@ func TestFormBuilderWithClosedFile(t *testing.T) {
 	checks.HasError(t, err, "formbuilder should return error if file is closed")
 	checks.ErrorIs(t, err, os.ErrClosed, "formbuilder should return error if file is closed")
 }
+
+type failingReader struct {
+}
+
+var errMockFailingReaderError = errors.New("mock reader failed")
+
+func (*failingReader) Read([]byte) (int, error) {
+	return 0, errMockFailingReaderError
+}
+
+func TestFormBuilderWithFailingReader(t *testing.T) {
+	reader := &failingReader{}
+	body := &bytes.Buffer{}
+	builder := NewFormBuilder(body)
+	err := builder.CreateFormFileReader("file", reader, "")
+	checks.ErrorIs(t, err, errMockFailingReaderError, "formbuilder should return error if writer fails")
+}

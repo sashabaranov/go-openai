@@ -54,13 +54,21 @@ func (*failingReader) Read([]byte) (int, error) {
 }
 
 func TestFormBuilderWithReader(t *testing.T) {
+	file, err := os.CreateTemp(t.TempDir(), "")
+	if err != nil {
+		t.Fatalf("Error creating tmp file: %v", err)
+	}
+	defer file.Close()
+	builder := NewFormBuilder(&failingWriter{})
+	err = builder.CreateFormFileReader("file", file, file.Name())
+	checks.ErrorIs(t, err, errMockFailingWriterError, "formbuilder should return error if writer fails")
+
+	builder = NewFormBuilder(&bytes.Buffer{})
 	reader := &failingReader{}
-	body := &bytes.Buffer{}
-	builder := NewFormBuilder(body)
-	err := builder.CreateFormFileReader("file", reader, "")
-	checks.ErrorIs(t, err, errMockFailingReaderError, "formbuilder should return error if writer fails")
+	err = builder.CreateFormFileReader("file", reader, "")
+	checks.ErrorIs(t, err, errMockFailingReaderError, "formbuilder should return error if copy reader fails")
 
 	successReader := &bytes.Buffer{}
 	err = builder.CreateFormFileReader("file", successReader, "")
-	checks.NoError(t, err, "formbuilder should not return error if writer fails")
+	checks.NoError(t, err, "formbuilder should not return error")
 }

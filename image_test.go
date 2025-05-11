@@ -119,13 +119,13 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	req := ImageVariRequest{}
 
 	mockFailedErr := fmt.Errorf("mock form builder fail")
-	mockBuilder.mockCreateFormFileReader = func(name string, _ io.Reader, _ string) error {
+	mockBuilder.mockCreateFormFileReader = func(string, io.Reader, string) error {
 		return mockFailedErr
 	}
 	_, err := client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateVariImage should return error if form builder fails")
 
-	mockBuilder.mockCreateFormFileReader = func(name string, _ io.Reader, _ string) error {
+	mockBuilder.mockCreateFormFileReader = func(string, io.Reader, string) error {
 		return nil
 	}
 

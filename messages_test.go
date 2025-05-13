@@ -7,9 +7,9 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/sashabaranov/go-openai"
-	"github.com/sashabaranov/go-openai/internal/test"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
+	"github.com/lantiancai/go-openai"
+	"github.com/lantiancai/go-openai/internal/test"
+	"github.com/lantiancai/go-openai/internal/test/checks"
 )
 
 var emptyStr = ""

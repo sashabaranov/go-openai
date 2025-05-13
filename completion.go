@@ -26,7 +26,7 @@ const (
 	O3Mini                  = "o3-mini"
 	O3Mini20250131          = "o3-mini-2025-01-31"
 	O4Mini                  = "o4-mini"
-	O4Mini2020416           = "o4-mini-2025-04-16"
+	O4Mini20250416          = "o4-mini-2025-04-16"
 	GPT432K0613             = "gpt-4-32k-0613"
 	GPT432K0314             = "gpt-4-32k-0314"
 	GPT432K                 = "gpt-4-32k"
@@ -150,10 +150,16 @@ var enabledModelsForDeprecatedCompletionsEndpoint = map[string]bool{
 }
 
 func checkEndpointSupportsModel(endpoint, model string) bool {
+	// If the endpoint is the deprecated completions endpoint, we check if the model is supported by it.
+	// Usually, only older models are supported by the deprecated completions endpoint, so it is simpler
+	// to check if the model is in the allow list rather than checking if it is not in the deny list.
 	if endpoint == completionsEndpoint {
 		return enabledModelsForDeprecatedCompletionsEndpoint[model]
 	}
 
+	// If the endpoint is the chat completions endpoint, we check if the model is not in the deny list.
+	// Most of the new models are supported by the chat completions endpoint, so it is simpler to check
+	// if the model is not in the deny list rather than checking if it is in the allow list.
 	return !disabledModelsForChatCompletionsEndpoint[model]
 }
 

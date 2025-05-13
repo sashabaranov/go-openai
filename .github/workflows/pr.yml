@@ -18,10 +18,12 @@ jobs:
       run: |
         go vet .
     - name: Run golangci-lint
-      uses: golangci/golangci-lint-action@v6
+      uses: golangci/golangci-lint-action@v7
       with:
-        version: v1.64.5
+        version: v2.1.5
     - name: Run tests
       run: go test -race -covermode=atomic -coverprofile=coverage.out -v ./...
     - name: Upload coverage reports to Codecov
-      uses: codecov/codecov-action@v4
+      uses: codecov/codecov-action@v5
+      with:
+        token: ${{ secrets.CODECOV_TOKEN }}

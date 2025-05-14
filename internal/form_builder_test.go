@@ -105,8 +105,8 @@ func TestMultiPartFormUploads(t *testing.T) {
 	t.Run("LargeFileConcurrent", func(t *testing.T) {
 		bigFile, _ := os.CreateTemp(t.TempDir(), "*.bin")
 		defer bigFile.Close()
-		bigFile.Write(make([]byte, 1024*1024*5)) // 5MB test file
-
+		_, err := bigFile.Write(make([]byte, 1024*1024*5)) // 5MB test file
+		checks.NoError(t, err, "Failed to write large file data")
 		checks.NoError(t, builder.CreateFormFile("bigfile", bigFile), "Large file upload failed")
 		checks.NoError(t, builder.WriteField("note", "large file test"), "Field write failed")
 	})
@@ -148,7 +148,7 @@ func TestCreateFormFileReader(t *testing.T) {
 
 type failingReader struct{}
 
-func (r *failingReader) Read(p []byte) (int, error) {
+func (r *failingReader) Read(_ []byte) (int, error) {
 	return 0, errors.New("mock read error")
 }
 

@@ -8,8 +8,10 @@ import (
 )
 
 func TestDefaultErrorAccumulator_WriteMultiple(t *testing.T) {
-	ea := openai.NewErrorAccumulator().(*openai.DefaultErrorAccumulator)
-
+	ea, ok := openai.NewErrorAccumulator().(*openai.DefaultErrorAccumulator)
+	if !ok {
+		t.Fatal("type assertion to *DefaultErrorAccumulator failed")
+	}
 	checks.NoError(t, ea.Write([]byte("{\"error\": \"test1\"}")))
 	checks.NoError(t, ea.Write([]byte("{\"error\": \"test2\"}")))
 
@@ -20,8 +22,10 @@ func TestDefaultErrorAccumulator_WriteMultiple(t *testing.T) {
 }
 
 func TestDefaultErrorAccumulator_EmptyBuffer(t *testing.T) {
-	ea := openai.NewErrorAccumulator().(*openai.DefaultErrorAccumulator)
-
+	ea, ok := openai.NewErrorAccumulator().(*openai.DefaultErrorAccumulator)
+	if !ok {
+		t.Fatal("type assertion to *DefaultErrorAccumulator failed")
+	}
 	if len(ea.Bytes()) != 0 {
 		t.Fatal("Buffer should be empty initially")
 	}

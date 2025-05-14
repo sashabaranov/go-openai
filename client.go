@@ -99,7 +99,9 @@ func withBetaAssistantVersion(version string) requestOption {
 func withExtraHeaders(header ExtraHeaders) requestOption {
 	return func(args *requestOptions) {
 		for k, v := range header {
-			args.header[k] = v
+			if len(v) > 0 {
+				args.header.Set(k, v[0])
+			}
 		}
 	}
 }

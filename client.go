@@ -96,6 +96,14 @@ func withBetaAssistantVersion(version string) requestOption {
 	}
 }
 
+func withExtraHeaders(header ExtraHeaders) requestOption {
+	return func(args *requestOptions) {
+		for k, v := range header {
+			args.header[k] = v
+		}
+	}
+}
+
 func (c *Client) newRequest(ctx context.Context, method, url string, setters ...requestOption) (*http.Request, error) {
 	// Default Options
 	args := &requestOptions{

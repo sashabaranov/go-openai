@@ -280,6 +280,7 @@ type ChatCompletionRequest struct {
 	// Such as think mode for qwen3. "chat_template_kwargs": {"enable_thinking": false}
 	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
+	ExtraHeaders       ExtraHeaders   `json:"extra_headers,omitempty"`
 }
 
 type StreamOptions struct {
@@ -399,6 +400,8 @@ type ChatCompletionResponse struct {
 	httpHeader
 }
 
+type ExtraHeaders map[string][]string
+
 // CreateChatCompletion — API call to Create a completion for the chat message.
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
@@ -425,6 +428,7 @@ func (c *Client) CreateChatCompletion(
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(request),
+		withExtraHeaders(request.ExtraHeaders),
 	)
 	if err != nil {
 		return

@@ -300,3 +300,27 @@ func TestCompletionWithGPT4oModels(t *testing.T) {
 		})
 	}
 }
+
+func TestRegisterSupportsModel(t *testing.T) {
+	type args struct {
+		endpoint string
+		model    string
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{
+			name: "Register model ",
+			args: args{
+				endpoint: "/chat/completions",
+				model:    "local-model-3.5",
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			openai.RegisterSupportsModel(tt.args.endpoint, tt.args.model)
+		})
+	}
+}

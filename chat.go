@@ -388,20 +388,20 @@ type ChatCompletionChoice struct {
 }
 
 type FlexibleTime struct {
-	Time int64  //openai
-	Raw  string // azure
+	TimeNumber int64  //openai
+	TimeStr    string // azure
 }
 
 func (ft *FlexibleTime) UnmarshalJSON(data []byte) error {
 	var timestamp int64
 	if err := json.Unmarshal(data, &timestamp); err == nil {
-		ft.Time = timestamp
-		ft.Raw = fmt.Sprintf("%d", timestamp)
+		ft.TimeNumber = timestamp
+		ft.TimeStr = fmt.Sprintf("%d", timestamp)
 		return nil
 	}
 	var timeStr string
 	if err := json.Unmarshal(data, &timeStr); err == nil {
-		ft.Raw = timeStr
+		ft.TimeStr = timeStr
 		layouts := []string{
 			"2006/01/02 15:04:05",
 			time.RFC3339,
@@ -409,7 +409,7 @@ func (ft *FlexibleTime) UnmarshalJSON(data []byte) error {
 		}
 		for _, layout := range layouts {
 			if t, err := time.Parse(layout, timeStr); err == nil {
-				ft.Time = t.Unix()
+				ft.TimeNumber = t.Unix()
 				return nil
 			}
 		}

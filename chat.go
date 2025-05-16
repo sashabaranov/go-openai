@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -385,11 +387,43 @@ type ChatCompletionChoice struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
 }
 
+type FlexibleTime struct {
+	Time int64  //openai
+	Raw  string // azure
+}
+
+func (ft *FlexibleTime) UnmarshalJSON(data []byte) error {
+	var timestamp int64
+	if err := json.Unmarshal(data, &timestamp); err == nil {
+		ft.Time = timestamp
+		ft.Raw = fmt.Sprintf("%d", timestamp)
+		return nil
+	}
+	var timeStr string
+	if err := json.Unmarshal(data, &timeStr); err == nil {
+		ft.Raw = timeStr
+		layouts := []string{
+			"2006/01/02 15:04:05",
+			time.RFC3339,
+			"2006-01-02 15:04:05",
+		}
+		for _, layout := range layouts {
+			if t, err := time.Parse(layout, timeStr); err == nil {
+				ft.Time = t.Unix()
+				return nil
+			}
+		}
+		return fmt.Errorf("无法解析时间字符串: %s", timeStr)
+	}
+
+	return fmt.Errorf("created 字段必须是整数或字符串")
+}
+
 // ChatCompletionResponse represents a response structure for chat completion API.
 type ChatCompletionResponse struct {
 	ID                  string                 `json:"id"`
 	Object              string                 `json:"object"`
-	Created             int64                  `json:"created"`
+	Created             FlexibleTime           `json:"created,omitempty"`
 	Model               string                 `json:"model"`
 	Choices             []ChatCompletionChoice `json:"choices"`
 	Usage               Usage                  `json:"usage"`

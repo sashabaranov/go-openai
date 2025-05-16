@@ -1,10 +1,13 @@
 package openai
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
+	"time"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -385,11 +388,65 @@ type ChatCompletionChoice struct {
 	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
 }
 
+type FlexibleTime struct {
+	TimeNumber int64
+	TimeStr    string
+}
+
+func (ft *FlexibleTime) UnmarshalJSON(data []byte) error {
+	if isNullOrEmpty(data) {
+		return nil
+	}
+	var timestamp int64
+	if err := json.Unmarshal(data, &timestamp); err == nil {
+		ft.TimeNumber = timestamp
+		ft.TimeStr = fmt.Sprintf("%d", timestamp)
+		return nil
+	}
+	var timeStr string
+	if err := json.Unmarshal(data, &timeStr); err != nil {
+		return fmt.Errorf("created type need number or string")
+	}
+
+	return ft.parseWithLayouts([]string{
+		"2006/01/02 15:04:05",
+		time.RFC3339,
+		"2006-01-02 15:04:05",
+	})
+}
+
+func isNullOrEmpty(data []byte) bool {
+	if bytes.Equal(data, []byte("null")) {
+		return true
+	}
+
+	if len(data) == 0 {
+		return true
+	}
+
+	if len(data) == 2 && data[0] == '"' && data[1] == '"' {
+		return true
+	}
+
+	return false
+}
+
+func (ft *FlexibleTime) parseWithLayouts(layouts []string) error {
+	for _, layout := range layouts {
+		parsedTime, err := time.Parse(layout, ft.TimeStr)
+		if err == nil {
+			ft.TimeNumber = parsedTime.Unix()
+			return nil
+		}
+	}
+	return fmt.Errorf("time string cannot be parsed: %s", ft.TimeStr)
+}
+
 // ChatCompletionResponse represents a response structure for chat completion API.
 type ChatCompletionResponse struct {
 	ID                  string                 `json:"id"`
 	Object              string                 `json:"object"`
-	Created             int64                  `json:"created"`
+	Created             FlexibleTime           `json:"created,omitempty"`
 	Model               string                 `json:"model"`
 	Choices             []ChatCompletionChoice `json:"choices"`
 	Usage               Usage                  `json:"usage"`

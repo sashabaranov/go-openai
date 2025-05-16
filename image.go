@@ -150,7 +150,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	// image
+	// image, filename is not required
 	err = builder.CreateFormFileReader("image", request.Image, "")
 	if err != nil {
 		return
@@ -158,6 +158,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 
 	// mask, it is optional
 	if request.Mask != nil {
+		// mask, filename is not required
 		err = builder.CreateFormFileReader("mask", request.Mask, "")
 		if err != nil {
 			return
@@ -220,7 +221,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	// image
+	// image, filename is not required
 	err = builder.CreateFormFileReader("image", request.Image, "")
 	if err != nil {
 		return

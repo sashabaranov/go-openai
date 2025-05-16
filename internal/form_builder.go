@@ -37,6 +37,9 @@ func escapeQuotes(s string) string {
 	return quoteEscaper.Replace(s)
 }
 
+// CreateFormFileReader creates a form field with a file reader
+// The filename in parameters can be an empty string
+// filename in Content-Disposition is required, But it can be an empty string
 func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader, filename string) error {
 	h := make(textproto.MIMEHeader)
 	h.Set("Content-Disposition",

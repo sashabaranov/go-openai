@@ -407,7 +407,6 @@ func (ft *FlexibleTime) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &timeStr); err != nil {
 		return fmt.Errorf("created type need number or string")
 	}
-
 	return ft.parseWithLayouts([]string{
 		"2006/01/02 15:04:05",
 		time.RFC3339,
@@ -446,7 +445,7 @@ func (ft *FlexibleTime) parseWithLayouts(layouts []string) error {
 type ChatCompletionResponse struct {
 	ID                  string                 `json:"id"`
 	Object              string                 `json:"object"`
-	Created             FlexibleTime           `json:"created,omitempty"`
+	Created             interface{}            `json:"created,omitempty"`
 	Model               string                 `json:"model"`
 	Choices             []ChatCompletionChoice `json:"choices"`
 	Usage               Usage                  `json:"usage"`

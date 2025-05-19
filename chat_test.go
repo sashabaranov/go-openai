@@ -773,10 +773,11 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	res := openai.ChatCompletionResponse{
 		ID:     strconv.Itoa(int(time.Now().Unix())),
 		Object: "test-object",
-		Created: openai.FlexibleTime{
+		/*	Created: openai.FlexibleTime{
 			TimeNumber: time.Now().Unix(),
-			TimeStr:    time.Now().String(),
-		},
+			TimeStr:    time.Now().Format(time.RFC3339),
+		},*/
+		Created: time.Now().Unix(),
 		// would be nice to validate Model during testing, but
 		// this may not be possible with how much upkeep
 		// would be required / wouldn't make much sense
@@ -858,10 +859,11 @@ func handleDeepseekR1ChatCompletionEndpoint(w http.ResponseWriter, r *http.Reque
 	res := openai.ChatCompletionResponse{
 		ID:     strconv.Itoa(int(time.Now().Unix())),
 		Object: "test-object",
-		Created: openai.FlexibleTime{
-			TimeNumber: time.Now().Unix(),
-			TimeStr:    time.Now().String(),
-		},
+		//Created: openai.FlexibleTime{
+		//	TimeNumber: time.Now().Unix(),
+		//	TimeStr:    time.Now().Format(time.RFC3339),
+		//},
+		Created: time.Now().Format(time.RFC3339),
 		// would be nice to validate Model during testing, but
 		// this may not be possible with how much upkeep
 		// would be required / wouldn't make much sense

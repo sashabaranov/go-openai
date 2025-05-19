@@ -950,3 +950,52 @@ func TestFinishReason(t *testing.T) {
 		}
 	}
 }
+
+func TestChatCompletionRequestExtraFields(t *testing.T) {
+	req := openai.ChatCompletionRequest{
+		Model: "gpt-4",
+	}
+
+	// 测试设置额外字段
+	extraFields := map[string]any{
+		"custom_field":  "test_value",
+		"numeric_field": 42,
+		"bool_field":    true,
+	}
+	req.SetExtraFields(extraFields)
+
+	// 测试获取额外字段
+	gotFields := req.GetExtraFields()
+
+	// 验证字段数量
+	if len(gotFields) != len(extraFields) {
+		t.Errorf("Expected %d extra fields, got %d", len(extraFields), len(gotFields))
+	}
+
+	// 验证字段值
+	for key, expectedValue := range extraFields {
+		gotValue, exists := gotFields[key]
+		if !exists {
+			t.Errorf("Expected field %s not found", key)
+			continue
+		}
+		if gotValue != expectedValue {
+			t.Errorf("Field %s: expected %v, got %v", key, expectedValue, gotValue)
+		}
+	}
+
+	// 测试覆盖已存在的字段
+	newFields := map[string]any{
+		"custom_field": "new_value",
+	}
+	req.SetExtraFields(newFields)
+	gotFields = req.GetExtraFields()
+
+	if len(gotFields) != len(newFields) {
+		t.Errorf("Expected %d extra fields after override, got %d", len(newFields), len(gotFields))
+	}
+
+	if gotFields["custom_field"] != "new_value" {
+		t.Errorf("Expected overridden value 'new_value', got %v", gotFields["custom_field"])
+	}
+}

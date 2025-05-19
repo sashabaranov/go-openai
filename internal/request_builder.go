@@ -38,6 +38,7 @@ func (b *HTTPRequestBuilder) Build(
 			if err != nil {
 				return
 			}
+
 			bodyReader = bytes.NewBuffer(reqBytes)
 		}
 	}

@@ -286,13 +286,23 @@ type ChatCompletionRequest struct {
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
-	// Configuration for a predicted output.
-	Prediction *Prediction `json:"prediction,omitempty"`
-	// ChatTemplateKwargs provides a way to add non-standard parameters to the request body.
-	// Additional kwargs to pass to the template renderer. Will be accessible by the chat template.
-	// Such as think mode for qwen3. "chat_template_kwargs": {"enable_thinking": false}
-	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
-	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
+
+	// Extra fields to be sent in the request.
+	// Useful for experimental features not yet officially supported.
+	extraFields map[string]any
+}
+
+// SetExtraFields adds extra fields to the JSON object.
+//
+// SetExtraFields will override any existing fields with the same key.
+// For security reasons, ensure this is only used with trusted input data.
+func (r *ChatCompletionRequest) SetExtraFields(extraFields map[string]any) {
+	r.extraFields = extraFields
+}
+
+// GetExtraFields returns the extra fields set in the request.
+func (r *ChatCompletionRequest) GetExtraFields() map[string]any {
+	return r.extraFields
 }
 
 type StreamOptions struct {

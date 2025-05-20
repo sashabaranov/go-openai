@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"net/textproto"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -42,9 +43,14 @@ func escapeQuotes(s string) string {
 // The filename in Content-Disposition is required, But it can be an empty string.
 func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader, filename string) error {
 	h := make(textproto.MIMEHeader)
-	h.Set("Content-Disposition",
-		fmt.Sprintf(`form-data; name="%s"; filename="%s"`,
-			escapeQuotes(fieldname), escapeQuotes(filename)))
+	h.Set(
+		"Content-Disposition",
+		fmt.Sprintf(
+			`form-data; name="%s"; filename="%s"`,
+			escapeQuotes(fieldname),
+			escapeQuotes(filepath.Base(filename)),
+		),
+	)
 
 	fieldWriter, err := fb.writer.CreatePart(h)
 	if err != nil {

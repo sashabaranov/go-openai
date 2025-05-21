@@ -773,7 +773,7 @@ func handleChatCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	res := openai.ChatCompletionResponse{
 		ID:      strconv.Itoa(int(time.Now().Unix())),
 		Object:  "test-object",
-		Created: time.Now().Unix(),
+		Created: time.Now().Format(time.RFC3339),
 		// would be nice to validate Model during testing, but
 		// this may not be possible with how much upkeep
 		// would be required / wouldn't make much sense

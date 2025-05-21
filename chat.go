@@ -225,7 +225,8 @@ type ChatCompletionRequest struct {
 
 	Provider *PostOpenrouterProviderRequest `json:"provider,omitempty"`
 
-	Reasoning *PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
+	IncludeReasoning bool                            `json:"include_reasoning,omitempty"` // Whether to include reasoning in the response for OpenRouter
+	Reasoning        *PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
 }
 
 type PostOpenrouterProviderRequest struct {

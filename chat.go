@@ -355,6 +355,8 @@ type ChatCompletionResponse struct {
 	Usage             Usage                  `json:"usage"`
 	SystemFingerprint string                 `json:"system_fingerprint"`
 
+	Provider string `json:"provider"`
+
 	httpHeader
 }
 

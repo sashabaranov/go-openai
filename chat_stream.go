@@ -37,12 +37,18 @@ type ChatCompletionTokenLogprobTopLogprob struct {
 	Logprob float64 `json:"logprob"`
 }
 
+type MessageData struct {
+	Role    string `json:"role"`
+	Content string `json:"content"`
+}
 type ChatCompletionStreamChoice struct {
 	Index                int                                 `json:"index"`
 	Delta                ChatCompletionStreamChoiceDelta     `json:"delta"`
 	Logprobs             *ChatCompletionStreamChoiceLogprobs `json:"logprobs,omitempty"`
 	FinishReason         FinishReason                        `json:"finish_reason"`
 	ContentFilterResults ContentFilterResults                `json:"content_filter_results,omitempty"`
+	// sb sentence
+	Message MessageData `json:"message,omitempty"`
 }
 
 type PromptFilterResult struct {

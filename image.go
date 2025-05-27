@@ -134,7 +134,7 @@ func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (respons
 
 // ImageEditRequest represents the request structure for the image API.
 type ImageEditRequest struct {
-	Image          []io.Reader `json:"image,omitempty"`
+	Images         []io.Reader `json:"images,omitempty"`
 	Mask           io.Reader   `json:"mask,omitempty"`
 	Prompt         string      `json:"prompt,omitempty"`
 	Model          string      `json:"model,omitempty"`
@@ -150,7 +150,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	for _, img := range request.Image {
+	for _, img := range request.Images {
 		// image, filename is not required
 		err = builder.CreateFormFileReader("image", img, "")
 		if err != nil {

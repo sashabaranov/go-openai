@@ -70,6 +70,10 @@ const (
 	CreateImageOutputFormatWEBP = "webp"
 )
 
+const (
+	minFileTypeLength = 6 // "image/"
+)
+
 // ImageRequest represents the request structure for the image API.
 type ImageRequest struct {
 	Prompt            string `json:"prompt,omitempty"`
@@ -159,12 +163,12 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 			return
 		}
 		fileType := http.DetectContentType(data)
-		if len(fileType) < 6 {
+		if len(fileType) < minFileTypeLength {
 			err = fmt.Errorf("invalid file type: %s", fileType)
 			return
 		}
 		// get file extension
-		ext := fileType[6:]
+		ext := fileType[minFileTypeLength:]
 		filename := fmt.Sprintf("%d.%s", i, ext)
 		err = builder.CreateFormFileReader("image", img, filename)
 		if err != nil {

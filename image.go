@@ -152,8 +152,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	builder := c.createFormBuilder(body)
 
 	for i, img := range request.Images {
-		// image, filename is not required
-		// 判断文件类型
+		// judge file type
 		var data []byte
 		data, err = io.ReadAll(img)
 		if err != nil {
@@ -164,7 +163,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 			err = fmt.Errorf("invalid file type: %s", fileType)
 			return
 		}
-		// 截取文件类型后缀
+		// get file extension
 		ext := fileType[6:]
 		filename := fmt.Sprintf("%d.%s", i, ext)
 		err = builder.CreateFormFileReader("image", img, filename)

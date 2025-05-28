@@ -3,6 +3,7 @@ package openai
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -150,9 +151,23 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	for _, img := range request.Images {
+	for i, img := range request.Images {
 		// image, filename is not required
-		err = builder.CreateFormFileReader("image", img, "")
+		// 判断文件类型
+		var data []byte
+		data, err = io.ReadAll(img)
+		if err != nil {
+			return
+		}
+		fileType := http.DetectContentType(data)
+		if len(fileType) < 6 {
+			err = fmt.Errorf("invalid file type: %s", fileType)
+			return
+		}
+		// 截取文件类型后缀
+		ext := fileType[6:]
+		filename := fmt.Sprintf("%d.%s", i, ext)
+		err = builder.CreateFormFileReader("image", img, filename)
 		if err != nil {
 			return
 		}
@@ -182,9 +197,11 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	err = builder.WriteField("response_format", request.ResponseFormat)
-	if err != nil {
-		return
+	if request.ResponseFormat != "" {
+		err = builder.WriteField("response_format", request.ResponseFormat)
+		if err != nil {
+			return
+		}
 	}
 
 	err = builder.Close()

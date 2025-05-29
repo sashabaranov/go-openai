@@ -126,9 +126,12 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 		}
 		jsonTag := field.Tag.Get("json")
 		var required = true
-		if jsonTag == "" {
+		switch {
+		case jsonTag == "-":
+			continue
+		case jsonTag == "":
 			jsonTag = field.Name
-		} else if strings.HasSuffix(jsonTag, ",omitempty") {
+		case strings.HasSuffix(jsonTag, ",omitempty"):
 			jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
 			required = false
 		}

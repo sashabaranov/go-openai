@@ -329,6 +329,18 @@ func TestStructToSchema(t *testing.T) {
 				"additionalProperties":false
 			}`,
 		},
+		{
+			name: "Test with exclude mark",
+			in: struct {
+				Name string `json:"-"`
+			}{
+				Name: "Name",
+			},
+			want: `{
+				"type":"object",
+				"additionalProperties":false
+			}`,
+		},
 	}
 
 	for _, tt := range tests {

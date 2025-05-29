@@ -341,6 +341,41 @@ func TestStructToSchema(t *testing.T) {
 				"additionalProperties":false
 			}`,
 		},
+		{
+			name: "Test with no json tag",
+			in: struct {
+				Name string
+			}{
+				Name: "",
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"Name":{
+						"type":"string"
+					}
+				},
+				"required":["Name"],
+				"additionalProperties":false
+			}`,
+		},
+		{
+			name: "Test with omitempty tag",
+			in: struct {
+				Name string `json:"name,omitempty"`
+			}{
+				Name: "",
+			},
+			want: `{
+				"type":"object",
+				"properties":{
+					"name":{
+						"type":"string"
+					}
+				},
+				"additionalProperties":false
+			}`,
+		},
 	}
 
 	for _, tt := range tests {

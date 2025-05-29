@@ -100,7 +100,7 @@ func TestImageEdit(t *testing.T) {
 	defer mask.Close()
 
 	_, err = client.CreateEditImage(context.Background(), openai.ImageEditRequest{
-		Image:          origin,
+		Images:         []io.Reader{origin},
 		Mask:           mask,
 		Prompt:         "There is a turtle in the pool",
 		N:              3,
@@ -122,7 +122,7 @@ func TestImageEditWithoutMask(t *testing.T) {
 	defer origin.Close()
 
 	_, err = client.CreateEditImage(context.Background(), openai.ImageEditRequest{
-		Image:          origin,
+		Images:         []io.Reader{origin},
 		Prompt:         "There is a turtle in the pool",
 		N:              3,
 		Size:           openai.CreateImageSize1024x1024,

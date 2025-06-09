@@ -301,7 +301,7 @@ func (r *ChatCompletionRequest) SetExtraFields(extraFields map[string]any) {
 }
 
 // GetExtraFields returns the extra fields set in the request.
-func (r ChatCompletionRequest) GetExtraFields() map[string]any {
+func (r *ChatCompletionRequest) GetExtraFields() map[string]any {
 	return r.extraFields
 }
 

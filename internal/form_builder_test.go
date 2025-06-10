@@ -64,7 +64,7 @@ func (*readerWithNameAndContentType) Name() string {
 }
 
 func (*readerWithNameAndContentType) ContentType() string {
-	return ""
+	return "image/png"
 }
 
 func TestFormBuilderWithReader(t *testing.T) {

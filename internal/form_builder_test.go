@@ -53,6 +53,20 @@ func (*failingReader) Read([]byte) (int, error) {
 	return 0, errMockFailingReaderError
 }
 
+type readerWithNameAndContentType struct{}
+
+func (*readerWithNameAndContentType) Read([]byte) (int, error) {
+	return 0, nil
+}
+
+func (*readerWithNameAndContentType) Name() string {
+	return ""
+}
+
+func (*readerWithNameAndContentType) ContentType() string {
+	return ""
+}
+
 func TestFormBuilderWithReader(t *testing.T) {
 	file, err := os.CreateTemp(t.TempDir(), "")
 	if err != nil {
@@ -70,5 +84,9 @@ func TestFormBuilderWithReader(t *testing.T) {
 
 	successReader := &bytes.Buffer{}
 	err = builder.CreateFormFileReader("file", successReader, "")
+	checks.NoError(t, err, "formbuilder should not return error")
+
+	rnc := &readerWithNameAndContentType{}
+	err = builder.CreateFormFileReader("file", rnc, "")
 	checks.NoError(t, err, "formbuilder should not return error")
 }

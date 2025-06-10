@@ -1,6 +1,8 @@
 package openai //nolint:testpackage // testing private field
 
 import (
+	"io"
+
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
 	"bytes"
@@ -53,10 +55,8 @@ func (*failingReader) Read([]byte) (int, error) {
 	return 0, errMockFailingReaderError
 }
 
-type readerWithNameAndContentType struct{}
-
-func (*readerWithNameAndContentType) Read([]byte) (int, error) {
-	return 0, nil
+type readerWithNameAndContentType struct {
+	io.Reader
 }
 
 func (*readerWithNameAndContentType) Name() string {
@@ -86,7 +86,7 @@ func TestFormBuilderWithReader(t *testing.T) {
 	err = builder.CreateFormFileReader("file", successReader, "")
 	checks.NoError(t, err, "formbuilder should not return error")
 
-	rnc := &readerWithNameAndContentType{}
+	rnc := &readerWithNameAndContentType{Reader: &bytes.Buffer{}}
 	err = builder.CreateFormFileReader("file", rnc, "")
 	checks.NoError(t, err, "formbuilder should not return error")
 }

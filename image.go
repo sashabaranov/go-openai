@@ -132,7 +132,32 @@ func (c *Client) CreateImage(ctx context.Context, request ImageRequest) (respons
 	return
 }
 
+// WrapReader wraps an io.Reader with filename and Content-type.
+func WrapReader(rdr io.Reader, filename string, contentType string) io.Reader {
+	return file{rdr, filename, contentType}
+}
+
+type file struct {
+	io.Reader
+	name        string
+	contentType string
+}
+
+func (f file) Name() string {
+	if f.name != "" {
+		return f.name
+	} else if named, ok := f.Reader.(interface{ Name() string }); ok {
+		return named.Name()
+	}
+	return ""
+}
+
+func (f file) ContentType() string {
+	return f.contentType
+}
+
 // ImageEditRequest represents the request structure for the image API.
+// Use WrapReader to wrap an io.Reader with filename and Content-type.
 type ImageEditRequest struct {
 	Image          io.Reader `json:"image,omitempty"`
 	Mask           io.Reader `json:"mask,omitempty"`
@@ -150,7 +175,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	// image, filename is not required
+	// image, filename verification can be postponed
 	err = builder.CreateFormFileReader("image", request.Image, "")
 	if err != nil {
 		return
@@ -158,7 +183,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 
 	// mask, it is optional
 	if request.Mask != nil {
-		// mask, filename is not required
+		// filename verification can be postponed
 		err = builder.CreateFormFileReader("mask", request.Mask, "")
 		if err != nil {
 			return
@@ -206,6 +231,7 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 }
 
 // ImageVariRequest represents the request structure for the image API.
+// Use WrapReader to wrap an io.Reader with filename and Content-type.
 type ImageVariRequest struct {
 	Image          io.Reader `json:"image,omitempty"`
 	Model          string    `json:"model,omitempty"`
@@ -221,7 +247,7 @@ func (c *Client) CreateVariImage(ctx context.Context, request ImageVariRequest) 
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
 
-	// image, filename is not required
+	// image, filename verification can be postponed
 	err = builder.CreateFormFileReader("image", request.Image, "")
 	if err != nil {
 		return

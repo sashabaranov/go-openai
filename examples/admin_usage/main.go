@@ -19,8 +19,17 @@ func main() {
 
 	// Specify the date range of the usage data you want to retrieve, the end date is optional,
 	// but when specified, it should include through the end of the day you want to retrieve.
-	startTime := convertDateStringToTimestamp("2025-02-01")
-	endTime := convertDateStringToTimestamp("2025-03-01")
+	startTime, err := convertDateStringToTimestamp("2025-02-01")
+	if err != nil {
+		fmt.Printf("error converting start date to timestamp: %v\n", err)
+		return
+	}
+
+	endTime, err := convertDateStringToTimestamp("2025-03-01")
+	if err != nil {
+		fmt.Printf("error converting end date to timestamp: %v\n", err)
+		return
+	}
 
 	// In this example each bucket represents a day of usage data. To avoid
 	// making several requests to get the data for each day, we'll increase
@@ -53,10 +62,10 @@ func main() {
 }
 
 // Helper function to convert a date string to a Unix timestamp.
-func convertDateStringToTimestamp(date string) int64 {
+func convertDateStringToTimestamp(date string) (int64, error) {
 	t, err := time.Parse("2006-01-02", date)
 	if err != nil {
-		panic(err)
+		return 0, err
 	}
-	return t.Unix()
+	return t.Unix(), nil
 }

@@ -242,7 +242,7 @@ type CompletionResponse struct {
 	Created int64              `json:"created"`
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
-	Usage   Usage              `json:"usage"`
+	Usage   *Usage             `json:"usage,omitempty"`
 
 	httpHeader
 }

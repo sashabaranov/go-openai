@@ -131,3 +131,15 @@ func TestFormBuilderWithReader(t *testing.T) {
 	err = builder.CreateFormFileReader("file", rnc, "")
 	checks.NoError(t, err, "formbuilder should not return error")
 }
+
+func TestFormDataContentType(t *testing.T) {
+	t.Run("ReturnsUnderlyingWriterContentType", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		builder := NewFormBuilder(buf)
+
+		contentType := builder.FormDataContentType()
+		if contentType == "" {
+			t.Errorf("expected non-empty content type, got empty string")
+		}
+	})
+}

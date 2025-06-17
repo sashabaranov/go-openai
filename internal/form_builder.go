@@ -97,6 +97,9 @@ func (fb *DefaultFormBuilder) createFormFile(fieldname string, r io.Reader, file
 }
 
 func (fb *DefaultFormBuilder) WriteField(fieldname, value string) error {
+	if fieldname == "" {
+		return fmt.Errorf("fieldname cannot be empty")
+	}
 	return fb.writer.WriteField(fieldname, value)
 }
 

@@ -160,5 +160,4 @@ func TestWriteField(t *testing.T) {
 		err := builder.WriteField("key", "value")
 		checks.NoError(t, err, "should write field without error")
 	})
-
 }

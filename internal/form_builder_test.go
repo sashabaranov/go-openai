@@ -143,3 +143,22 @@ func TestFormDataContentType(t *testing.T) {
 		}
 	})
 }
+
+func TestWriteField(t *testing.T) {
+	t.Run("EmptyFieldNameShouldReturnError", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		builder := NewFormBuilder(buf)
+
+		err := builder.WriteField("", "some value")
+		checks.HasError(t, err, "fieldname is required")
+	})
+
+	t.Run("ValidFieldNameShouldSucceed", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		builder := NewFormBuilder(buf)
+
+		err := builder.WriteField("key", "value")
+		checks.NoError(t, err, "should write field without error")
+	})
+
+}

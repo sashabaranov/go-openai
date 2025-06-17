@@ -192,7 +192,7 @@ func handleCompletionEndpoint(w http.ResponseWriter, r *http.Request) {
 	}
 	inputTokens *= n
 	completionTokens := completionReq.MaxTokens * len(prompts) * n
-	res.Usage = openai.Usage{
+	res.Usage = &openai.Usage{
 		PromptTokens:     inputTokens,
 		CompletionTokens: completionTokens,
 		TotalTokens:      inputTokens + completionTokens,

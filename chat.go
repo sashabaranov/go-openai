@@ -248,6 +248,9 @@ type PostOpenrouterReasoningRequest struct {
 
 	// Optional: Default is false. All models support this.
 	Exclude bool `json:"exclude"` // // Set to true to exclude reasoning tokens from response
+
+	// Or enable reasoning with the default parameters:
+	Enabled bool `json:"enabled"` // Default: inferred from `effort` or `max_tokens`
 }
 
 type StreamOptions struct {

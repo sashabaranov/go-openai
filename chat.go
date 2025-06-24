@@ -368,9 +368,10 @@ const (
 type ServiceTier string
 
 const (
-	ServiceTierAuto    ServiceTier = "auto"
-	ServiceTierDefault ServiceTier = "default"
-	ServiceTierFlex    ServiceTier = "flex"
+	ServiceTierAuto     ServiceTier = "auto"
+	ServiceTierDefault  ServiceTier = "default"
+	ServiceTierFlex     ServiceTier = "flex"
+	ServiceTierPriority ServiceTier = "priority"
 )
 
 func (r FinishReason) MarshalJSON() ([]byte, error) {

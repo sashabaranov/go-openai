@@ -217,11 +217,6 @@ type CompletionRequest struct {
 	User            string            `json:"user,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
-	Thinking      *Thinking      `json:"thinking,omitempty"`
-}
-
-type Thinking struct {
-	Type string `json:"type"`
 }
 
 // CompletionChoice represents one of possible completions.

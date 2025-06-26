@@ -281,6 +281,11 @@ type ChatCompletionRequest struct {
 	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	ExtraHeaders       ExtraHeaders   `json:"extra_headers,omitempty"`
+	Thinking           *Thinking      `json:"thinking,omitempty"`
+}
+
+type Thinking struct {
+	Type string `json:"type"`
 }
 
 type StreamOptions struct {

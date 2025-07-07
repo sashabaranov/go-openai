@@ -214,11 +214,15 @@ type ChatCompletionResponseFormat struct {
 	JSONSchema *ChatCompletionResponseFormatJSONSchema `json:"json_schema,omitempty"`
 }
 
+type JSONSchema interface {
+	json.Marshaler
+	json.Unmarshaler
+}
 type ChatCompletionResponseFormatJSONSchema struct {
-	Name        string         `json:"name"`
-	Description string         `json:"description,omitempty"`
-	Schema      json.Marshaler `json:"schema"`
-	Strict      bool           `json:"strict"`
+	Name        string     `json:"name"`
+	Description string     `json:"description,omitempty"`
+	Schema      JSONSchema `json:"schema"`
+	Strict      bool       `json:"strict"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

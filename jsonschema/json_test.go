@@ -182,6 +182,171 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 	}
 }
 
+func TestDefinition_UnmarshalJSON(t *testing.T) {
+	tests := []struct {
+		name string
+		def  string
+		want jsonschema.Definition
+	}{
+		{
+			name: "Test with empty Definition",
+			def:  `{}`,
+			want: jsonschema.Definition{},
+		},
+		{
+			name: "Test with Definition properties set",
+			def: `{
+				"type":"string",
+				"description":"A string type",
+				"properties":{
+						"name":{
+							"type":"string"
+						}
+				}
+			}`,
+			want: jsonschema.Definition{
+				Type:        jsonschema.String,
+				Description: "A string type",
+				Properties: map[string]jsonschema.Definition{
+					"name": {
+						Type: jsonschema.String,
+					},
+				},
+			},
+		},
+		{
+			name: "Test with nested Definition properties",
+			def: `{
+				"type":"object",
+				"properties":{
+						"user":{
+							"type":"object",
+							"properties":{
+									"name":{
+										"type":"string"
+									},
+									"age":{
+										"type":"integer"
+									}
+							}
+						}
+				}
+			}`,
+			want: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"user": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"name": {
+								Type: jsonschema.String,
+							},
+							"age": {
+								Type: jsonschema.Integer,
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Test with complex nested Definition",
+			def: `{
+				"type":"object",
+				"properties":{
+						"user":{
+							"type":"object",
+							"properties":{
+									"name":{
+										"type":"string"
+									},
+									"age":{
+										"type":"integer"
+									},
+									"address":{
+										"type":"object",
+										"properties":{
+												"city":{
+													"type":"string"
+												},
+												"country":{
+													"type":"string"
+												}
+										}
+									}
+							}
+						}
+				}
+			}`,
+			want: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"user": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"name": {
+								Type: jsonschema.String,
+							},
+							"age": {
+								Type: jsonschema.Integer,
+							},
+							"address": {
+								Type: jsonschema.Object,
+								Properties: map[string]jsonschema.Definition{
+									"city": {
+										Type: jsonschema.String,
+									},
+									"country": {
+										Type: jsonschema.String,
+									},
+								},
+							},
+						},
+					},
+				},
+			},
+		},
+		{
+			name: "Test with Array type Definition",
+			def: `{
+				"type":"array",
+				"items":{
+						"type":"string"
+				},
+				"properties":{
+						"name":{
+							"type":"string"
+						}
+				}
+			}`,
+			want: jsonschema.Definition{
+				Type: jsonschema.Array,
+				Items: &jsonschema.Definition{
+					Type: jsonschema.String,
+				},
+				Properties: map[string]jsonschema.Definition{
+					"name": {
+						Type: jsonschema.String,
+					},
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := jsonschema.Definition{}
+			err := got.UnmarshalJSON([]byte(tt.def))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("MarshalJSON() got = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
 func TestStructToSchema(t *testing.T) {
 	tests := []struct {
 		name string

@@ -960,7 +960,6 @@ func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
 			"",
 			args{
 				data: []byte(`{
-
       "name":   "math_response",
       "strict": true,
       "schema": {
@@ -986,6 +985,35 @@ func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
   }`),
 			},
 			false,
+		},
+		{
+			"",
+			args{
+				data: []byte(`{
+      "name":   "math_response",
+      "strict": true,
+      "schema": null
+  }`),
+			},
+			false,
+		},
+		{
+			"",
+			args{
+				data: []byte(`[123,456]`),
+			},
+			true,
+		},
+		{
+			"",
+			args{
+				data: []byte(`{
+      "name":   "math_response",
+      "strict": true,
+      "schema": 123456
+  }`),
+			},
+			true,
 		},
 	}
 	for _, tt := range tests {

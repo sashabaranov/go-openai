@@ -948,7 +948,6 @@ func TestFinishReason(t *testing.T) {
 }
 
 func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
-
 	type args struct {
 		data []byte
 	}

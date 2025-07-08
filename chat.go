@@ -234,15 +234,17 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	if err := json.Unmarshal(data, &raw); err != nil {
 		return err
 	}
-	var d jsonschema.Definition
-	err := json.Unmarshal(raw.Schema, &d)
-	if err != nil {
-		return err
-	}
 	r.Name = raw.Name
 	r.Description = raw.Description
 	r.Strict = raw.Strict
-	r.Schema = &d
+	if len(raw.Schema) > 0 && string(raw.Schema) != "null" {
+		var d jsonschema.Definition
+		err := json.Unmarshal(raw.Schema, &d)
+		if err != nil {
+			return err
+		}
+		r.Schema = &d
+	}
 	return nil
 }
 

@@ -948,24 +948,17 @@ func TestFinishReason(t *testing.T) {
 }
 
 func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
-	type fields struct {
-		Name        string
-		Description string
-		Schema      openai.JSONSchema
-		Strict      bool
-	}
+
 	type args struct {
 		data []byte
 	}
 	tests := []struct {
 		name    string
-		fields  fields
 		args    args
 		wantErr bool
 	}{
 		{
 			"",
-			fields{},
 			args{
 				data: []byte(`{
 

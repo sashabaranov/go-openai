@@ -307,6 +307,8 @@ type ChatCompletionRequest struct {
 	// Such as think mode for qwen3. "chat_template_kwargs": {"enable_thinking": false}
 	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
+	// Specifies the latency tier to use for processing the request.
+	ServiceTier ServiceTier `json:"service_tier,omitempty"`
 }
 
 type StreamOptions struct {
@@ -390,6 +392,15 @@ const (
 	FinishReasonNull          FinishReason = "null"
 )
 
+type ServiceTier string
+
+const (
+	ServiceTierAuto     ServiceTier = "auto"
+	ServiceTierDefault  ServiceTier = "default"
+	ServiceTierFlex     ServiceTier = "flex"
+	ServiceTierPriority ServiceTier = "priority"
+)
+
 func (r FinishReason) MarshalJSON() ([]byte, error) {
 	if r == FinishReasonNull || r == "" {
 		return []byte("null"), nil
@@ -422,6 +433,7 @@ type ChatCompletionResponse struct {
 	Usage               Usage                  `json:"usage"`
 	SystemFingerprint   string                 `json:"system_fingerprint"`
 	PromptFilterResults []PromptFilterResult   `json:"prompt_filter_results,omitempty"`
+	ServiceTier         ServiceTier            `json:"service_tier,omitempty"`
 
 	httpHeader
 }

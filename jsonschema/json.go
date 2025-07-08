@@ -62,16 +62,6 @@ func (d *Definition) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (d *Definition) UnmarshalJSON(data []byte) error {
-	type Alias Definition
-	aux := &struct {
-		*Alias
-	}{
-		Alias: (*Alias)(d),
-	}
-	return json.Unmarshal(data, &aux)
-}
-
 func (d *Definition) Unmarshal(content string, v any) error {
 	return VerifySchemaAndUnmarshal(*d, []byte(content), v)
 }

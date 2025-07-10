@@ -182,6 +182,18 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 	}
 }
 
+type User struct {
+	ID     int      `json:"id,omitempty"`
+	Name   string   `json:"name,omitempty"`
+	Orders []*Order `json:"orders,omitempty"`
+}
+
+type Order struct {
+	ID     int     `json:"id,omitempty"`
+	Amount float64 `json:"amount,omitempty"`
+	Buyer  *User   `json:"buyer,omitempty"`
+}
+
 func TestStructToSchema(t *testing.T) {
 	type Tweet struct {
 		Text string `json:"text"`
@@ -549,6 +561,63 @@ func TestStructToSchema(t *testing.T) {
     "snake_case"
   ],
   "additionalProperties": false
+}`,
+		},
+		{
+			name: "Test User",
+			in:   User{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "orders": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Order"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Order": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "buyer": {
+          "$ref": "#/$defs/User"
+        },
+        "id": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "orders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Order"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
 }`,
 		},
 	}

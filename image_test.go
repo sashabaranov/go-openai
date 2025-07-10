@@ -165,10 +165,13 @@ func (testNamedReader) Name() string { return "named.txt" }
 func TestWrapReader(t *testing.T) {
 	r := bytes.NewBufferString("data")
 	wrapped := WrapReader(r, "file.png", "image/png")
-	f := wrapped.(interface {
+	f, ok := wrapped.(interface {
 		Name() string
 		ContentType() string
 	})
+	if !ok {
+		t.Fatal("wrapped reader missing Name or ContentType")
+	}
 	if f.Name() != "file.png" {
 		t.Fatalf("expected name file.png, got %s", f.Name())
 	}
@@ -179,10 +182,13 @@ func TestWrapReader(t *testing.T) {
 	// test name from underlying reader
 	nr := testNamedReader{Reader: bytes.NewBufferString("d")}
 	wrapped = WrapReader(nr, "", "text/plain")
-	f = wrapped.(interface {
+	f, ok = wrapped.(interface {
 		Name() string
 		ContentType() string
 	})
+	if !ok {
+		t.Fatal("wrapped named reader missing Name or ContentType")
+	}
 	if f.Name() != "named.txt" {
 		t.Fatalf("expected name named.txt, got %s", f.Name())
 	}
@@ -192,7 +198,10 @@ func TestWrapReader(t *testing.T) {
 
 	// no name provided
 	wrapped = WrapReader(bytes.NewBuffer(nil), "", "")
-	f2 := wrapped.(interface{ Name() string })
+	f2, ok := wrapped.(interface{ Name() string })
+	if !ok {
+		t.Fatal("wrapped anonymous reader missing Name")
+	}
 	if f2.Name() != "" {
 		t.Fatalf("expected empty name, got %s", f2.Name())
 	}

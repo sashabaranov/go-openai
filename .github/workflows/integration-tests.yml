@@ -2,15 +2,44 @@ name: Integration tests
 
 on:
   push:
-    branches:
-      - master
+    branches: [master]
+  pull_request_target:
+    branches: [master]
+    types:   [opened, synchronize, reopened]
 
 jobs:
+  decide-if-trusted:
+    runs-on: ubuntu-latest
+    outputs:
+      ok: ${{ steps.check.outputs.ok }}
+    steps:
+      - name: Trust gate
+        id: check
+        run: |
+          # default to skip
+          echo "ok=false" >> "$GITHUB_OUTPUT"
+
+          # Push events are always safe
+          if [ "${{ github.event_name }}" = "push" ]; then
+            echo "ok=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          # For PRs, look at the author's relationship
+          case "${{ github.event.pull_request.author_association }}" in
+            OWNER|MEMBER|COLLABORATOR|CONTRIBUTOR)
+              echo "ok=true" >> "$GITHUB_OUTPUT"
+              ;;
+          esac
+
   integration_tests:
-    name: Run integration tests
+    needs: decide-if-trusted
+    if: needs.decide-if-trusted.outputs.ok == 'true'
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        ref: ${{ github.event.pull_request.head.sha || github.sha }}
     - name: Setup Go
       uses: actions/setup-go@v5
       with:

@@ -80,8 +80,11 @@ func GenerateSchemaForType(v any) (*Definition, error) {
 	if def.Ref != "" {
 		key := strings.TrimPrefix(def.Ref, "#/$defs/")
 		if root, ok := defs[key]; ok {
-			if !containsRef(root, def.Ref) {
-				delete(defs, key)
+			delete(defs, key)
+			root.Defs = defs
+			if containsRef(root, def.Ref) {
+				root.Defs = nil
+				defs[key] = root
 			}
 			*def = root
 		}
@@ -205,6 +208,12 @@ func containsRef(def Definition, targetRef string) bool {
 		return true
 	}
 
+	for _, d := range def.Defs {
+		if containsRef(d, targetRef) {
+			return true
+		}
+	}
+
 	for _, prop := range def.Properties {
 		if containsRef(prop, targetRef) {
 			return true
@@ -213,12 +222,6 @@ func containsRef(def Definition, targetRef string) bool {
 
 	if def.Items != nil && containsRef(*def.Items, targetRef) {
 		return true
-	}
-
-	for _, d := range def.Defs {
-		if containsRef(d, targetRef) {
-			return true
-		}
 	}
 	return false
 }

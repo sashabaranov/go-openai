@@ -77,6 +77,16 @@ func GenerateSchemaForType(v any) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
+	if def.Ref != "" {
+		key := strings.TrimPrefix(def.Ref, "#/$defs/")
+		if root, ok := defs[key]; ok {
+			if !containsRef(root, def.Ref) {
+				delete(defs, key)
+			}
+			*def = root
+		}
+		def.Ref = ""
+	}
 	def.Defs = defs
 	return def, nil
 }
@@ -188,4 +198,27 @@ func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definitio
 	d.Required = requiredFields
 	d.Properties = properties
 	return &d, nil
+}
+
+func containsRef(def Definition, targetRef string) bool {
+	if def.Ref == targetRef {
+		return true
+	}
+
+	for _, prop := range def.Properties {
+		if containsRef(prop, targetRef) {
+			return true
+		}
+	}
+
+	if def.Items != nil && containsRef(*def.Items, targetRef) {
+		return true
+	}
+
+	for _, d := range def.Defs {
+		if containsRef(d, targetRef) {
+			return true
+		}
+	}
+	return false
 }

@@ -194,6 +194,13 @@ func TestStructToSchema(t *testing.T) {
 		Tweets  []Tweet  `json:"tweets,omitempty"`
 	}
 
+	type MyStructuredResponse struct {
+		PascalCase string `json:"pascal_case" required:"true" description:"PascalCase"`
+		CamelCase  string `json:"camel_case" required:"true" description:"CamelCase"`
+		KebabCase  string `json:"kebab_case" required:"true" description:"KebabCase"`
+		SnakeCase  string `json:"snake_case" required:"true" description:"SnakeCase"`
+	}
+
 	tests := []struct {
 		name string
 		in   any
@@ -444,6 +451,104 @@ func TestStructToSchema(t *testing.T) {
       "additionalProperties" : false
     }
   }
+}`,
+		},
+		{
+			name: "Test Person",
+			in:   Person{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "age": {
+      "type": "integer"
+    },
+    "friends": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Person"
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "tweets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Tweet"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Person": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "friends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Person"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "tweets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Tweet"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tweet": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  }
+}`,
+		},
+		{
+			name: "Test MyStructuredResponse",
+			in:   MyStructuredResponse{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "camel_case": {
+      "type": "string",
+      "description": "CamelCase"
+    },
+    "kebab_case": {
+      "type": "string",
+      "description": "KebabCase"
+    },
+    "pascal_case": {
+      "type": "string",
+      "description": "PascalCase"
+    },
+    "snake_case": {
+      "type": "string",
+      "description": "SnakeCase"
+    }
+  },
+  "required": [
+    "pascal_case",
+    "camel_case",
+    "kebab_case",
+    "snake_case"
+  ],
+  "additionalProperties": false
 }`,
 		},
 	}

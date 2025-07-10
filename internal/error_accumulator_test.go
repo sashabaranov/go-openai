@@ -4,6 +4,7 @@ import (
 	"testing"
 
 	openai "github.com/sashabaranov/go-openai/internal"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
@@ -29,4 +30,10 @@ func TestDefaultErrorAccumulator_EmptyBuffer(t *testing.T) {
 	if len(ea.Bytes()) != 0 {
 		t.Fatal("Buffer should be empty initially")
 	}
+}
+
+func TestDefaultErrorAccumulator_WriteError(t *testing.T) {
+	ea := &openai.DefaultErrorAccumulator{Buffer: &test.FailingErrorBuffer{}}
+	err := ea.Write([]byte("fail"))
+	checks.ErrorIs(t, err, test.ErrTestErrorAccumulatorWriteFailed, "Write should propagate buffer errors")
 }

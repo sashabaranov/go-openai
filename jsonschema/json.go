@@ -48,6 +48,11 @@ type Definition struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 	// Whether the schema is nullable or not.
 	Nullable bool `json:"nullable,omitempty"`
+
+	// Ref Reference to a definition in $defs or external schema.
+	Ref string `json:"$ref,omitempty"`
+	// Defs A map of reusable schema definitions.
+	Defs map[string]Definition `json:"$defs,omitempty"`
 }
 
 func (d *Definition) MarshalJSON() ([]byte, error) {
@@ -67,10 +72,16 @@ func (d *Definition) Unmarshal(content string, v any) error {
 }
 
 func GenerateSchemaForType(v any) (*Definition, error) {
-	return reflectSchema(reflect.TypeOf(v))
+	var defs = make(map[string]Definition)
+	def, err := reflectSchema(reflect.TypeOf(v), defs)
+	if err != nil {
+		return nil, err
+	}
+	def.Defs = defs
+	return def, nil
 }
 
-func reflectSchema(t reflect.Type) (*Definition, error) {
+func reflectSchema(t reflect.Type, defs map[string]Definition) (*Definition, error) {
 	var d Definition
 	switch t.Kind() {
 	case reflect.String:
@@ -84,21 +95,32 @@ func reflectSchema(t reflect.Type) (*Definition, error) {
 		d.Type = Boolean
 	case reflect.Slice, reflect.Array:
 		d.Type = Array
-		items, err := reflectSchema(t.Elem())
+		items, err := reflectSchema(t.Elem(), defs)
 		if err != nil {
 			return nil, err
 		}
 		d.Items = items
 	case reflect.Struct:
+		if t.Name() != "" {
+			if _, ok := defs[t.Name()]; !ok {
+				defs[t.Name()] = Definition{}
+				object, err := reflectSchemaObject(t, defs)
+				if err != nil {
+					return nil, err
+				}
+				defs[t.Name()] = *object
+			}
+			return &Definition{Ref: "#/$defs/" + t.Name()}, nil
+		}
 		d.Type = Object
 		d.AdditionalProperties = false
-		object, err := reflectSchemaObject(t)
+		object, err := reflectSchemaObject(t, defs)
 		if err != nil {
 			return nil, err
 		}
 		d = *object
 	case reflect.Ptr:
-		definition, err := reflectSchema(t.Elem())
+		definition, err := reflectSchema(t.Elem(), defs)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +134,7 @@ func reflectSchema(t reflect.Type) (*Definition, error) {
 	return &d, nil
 }
 
-func reflectSchemaObject(t reflect.Type) (*Definition, error) {
+func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definition, error) {
 	var d = Definition{
 		Type:                 Object,
 		AdditionalProperties: false,
@@ -136,7 +158,7 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 			required = false
 		}
 
-		item, err := reflectSchema(field.Type)
+		item, err := reflectSchema(field.Type, defs)
 		if err != nil {
 			return nil, err
 		}

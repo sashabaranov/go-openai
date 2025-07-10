@@ -183,6 +183,17 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 }
 
 func TestStructToSchema(t *testing.T) {
+	type Tweet struct {
+		Text string `json:"text"`
+	}
+
+	type Person struct {
+		Name    string   `json:"name,omitempty"`
+		Age     int      `json:"age,omitempty"`
+		Friends []Person `json:"friends,omitempty"`
+		Tweets  []Tweet  `json:"tweets,omitempty"`
+	}
+
 	tests := []struct {
 		name string
 		in   any
@@ -375,6 +386,65 @@ func TestStructToSchema(t *testing.T) {
 				},
 				"additionalProperties":false
 			}`,
+		},
+		{
+			name: "Test with $ref and $defs",
+			in: struct {
+				Person Person  `json:"person"`
+				Tweets []Tweet `json:"tweets"`
+			}{},
+			want: `{
+  "type" : "object",
+  "properties" : {
+    "person" : {
+      "$ref" : "#/$defs/Person"
+    },
+    "tweets" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/$defs/Tweet"
+      }
+    }
+  },
+  "required" : [ "person", "tweets" ],
+  "additionalProperties" : false,
+  "$defs" : {
+    "Person" : {
+      "type" : "object",
+      "properties" : {
+        "age" : {
+          "type" : "integer"
+        },
+        "friends" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Person"
+          }
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "tweets" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Tweet"
+          }
+        }
+      },
+      "additionalProperties" : false
+    },
+    "Tweet" : {
+      "type" : "object",
+      "properties" : {
+        "text" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "text" ],
+      "additionalProperties" : false
+    }
+  }
+}`,
 		},
 	}
 

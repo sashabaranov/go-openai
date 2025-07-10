@@ -4,6 +4,7 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -155,4 +156,44 @@ func TestVariImageFormBuilderFailures(t *testing.T) {
 	}
 	_, err = client.CreateVariImage(ctx, req)
 	checks.ErrorIs(t, err, mockFailedErr, "CreateImage should return error if form builder fails")
+}
+
+type testNamedReader struct{ io.Reader }
+
+func (testNamedReader) Name() string { return "named.txt" }
+
+func TestWrapReader(t *testing.T) {
+	r := bytes.NewBufferString("data")
+	wrapped := WrapReader(r, "file.png", "image/png")
+	f := wrapped.(interface {
+		Name() string
+		ContentType() string
+	})
+	if f.Name() != "file.png" {
+		t.Fatalf("expected name file.png, got %s", f.Name())
+	}
+	if f.ContentType() != "image/png" {
+		t.Fatalf("expected content type image/png, got %s", f.ContentType())
+	}
+
+	// test name from underlying reader
+	nr := testNamedReader{Reader: bytes.NewBufferString("d")}
+	wrapped = WrapReader(nr, "", "text/plain")
+	f = wrapped.(interface {
+		Name() string
+		ContentType() string
+	})
+	if f.Name() != "named.txt" {
+		t.Fatalf("expected name named.txt, got %s", f.Name())
+	}
+	if f.ContentType() != "text/plain" {
+		t.Fatalf("expected content type text/plain, got %s", f.ContentType())
+	}
+
+	// no name provided
+	wrapped = WrapReader(bytes.NewBuffer(nil), "", "")
+	f2 := wrapped.(interface{ Name() string })
+	if f2.Name() != "" {
+		t.Fatalf("expected empty name, got %s", f2.Name())
+	}
 }

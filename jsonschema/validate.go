@@ -15,7 +15,7 @@ func collectDefsRecursive(def Definition, result map[string]Definition, prefix s
 	for k, v := range def.Defs {
 		path := prefix + "/$defs/" + k
 		result[path] = v
-		collectDefsRecursive(v, result, path) // 嵌套
+		collectDefsRecursive(v, result, path)
 	}
 	for k, sub := range def.Properties {
 		collectDefsRecursive(sub, result, prefix+"/properties/"+k)
@@ -38,7 +38,7 @@ func VerifySchemaAndUnmarshal(schema Definition, content []byte, v any) error {
 }
 
 type validateArgs struct {
-	Defs map[string]Definition `json:"$defs,omitempty"` // 可选字段
+	Defs map[string]Definition
 }
 
 type ValidateOption func(*validateArgs)

@@ -309,6 +309,8 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// GuidedChoice restricts output to a set of predefined choices.
+	GuidedChoice []string `json:"guided_choice,omitempty"`
 }
 
 type StreamOptions struct {

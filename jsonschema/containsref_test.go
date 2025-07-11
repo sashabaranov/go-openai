@@ -1,34 +1,48 @@
-package jsonschema
+package jsonschema_test
 
-import "testing"
+import (
+	"testing"
 
-// TestContainsRef ensures containsRef recursively searches definitions and items.
-func TestContainsRef(t *testing.T) {
-	schema := Definition{
-		Type: Object,
-		Properties: map[string]Definition{
-			"person": {Ref: "#/$defs/Person"},
-		},
-		Defs: map[string]Definition{
-			"Person": {
-				Type: Object,
-				Properties: map[string]Definition{
-					"friends": {
-						Type:  Array,
-						Items: &Definition{Ref: "#/$defs/Person"},
-					},
-				},
-			},
-		},
-	}
+	"github.com/sashabaranov/go-openai/jsonschema"
+)
 
-	if !containsRef(schema, "#/$defs/Person") {
-		t.Fatal("expected to find reference in root")
+// SelfRef struct used to produce a self-referential schema.
+type SelfRef struct {
+	Friends []SelfRef `json:"friends"`
+}
+
+// Address struct referenced by Person without self-reference.
+type Address struct {
+	Street string `json:"street"`
+}
+
+type Person struct {
+	Address Address `json:"address"`
+}
+
+// TestGenerateSchemaForType_SelfRef ensures that self-referential types are not
+// flattened during schema generation.
+func TestGenerateSchemaForType_SelfRef(t *testing.T) {
+	schema, err := jsonschema.GenerateSchemaForType(SelfRef{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-	if !containsRef(schema.Defs["Person"], "#/$defs/Person") {
-		t.Fatal("expected to find self reference in defs")
+	if _, ok := schema.Defs["SelfRef"]; !ok {
+		t.Fatal("expected defs to contain SelfRef for self reference")
 	}
-	if containsRef(schema, "#/$defs/Unknown") {
-		t.Fatal("unexpected reference found")
+}
+
+// TestGenerateSchemaForType_NoSelfRef ensures that non-self-referential types
+// are flattened and do not reappear in $defs.
+func TestGenerateSchemaForType_NoSelfRef(t *testing.T) {
+	schema, err := jsonschema.GenerateSchemaForType(Person{})
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
+	}
+	if _, ok := schema.Defs["Person"]; ok {
+		t.Fatal("unexpected Person definition in defs")
+	}
+	if _, ok := schema.Defs["Address"]; !ok {
+		t.Fatal("expected Address definition in defs")
 	}
 }

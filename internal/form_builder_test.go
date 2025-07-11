@@ -161,3 +161,17 @@ func TestWriteField(t *testing.T) {
 		checks.NoError(t, err, "should write field without error")
 	})
 }
+
+func TestCreateFormFile(t *testing.T) {
+	buf := &bytes.Buffer{}
+	builder := NewFormBuilder(buf)
+
+	err := builder.createFormFile("file", bytes.NewBufferString("data"), "")
+	if err == nil {
+		t.Fatal("expected error for empty filename")
+	}
+
+	builder = NewFormBuilder(&failingWriter{})
+	err = builder.createFormFile("file", bytes.NewBufferString("data"), "name")
+	checks.ErrorIs(t, err, errMockFailingWriterError, "should propagate writer error")
+}

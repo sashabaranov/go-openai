@@ -8,6 +8,7 @@ import (
 
 	"bytes"
 	"os"
+	"strings"
 	"testing"
 )
 
@@ -174,4 +175,16 @@ func TestCreateFormFile(t *testing.T) {
 	builder = NewFormBuilder(&failingWriter{})
 	err = builder.createFormFile("file", bytes.NewBufferString("data"), "name")
 	checks.ErrorIs(t, err, errMockFailingWriterError, "should propagate writer error")
+}
+
+func TestCreateFormFileSuccess(t *testing.T) {
+	buf := &bytes.Buffer{}
+	builder := NewFormBuilder(buf)
+
+	err := builder.createFormFile("file", bytes.NewBufferString("data"), "foo.txt")
+	checks.NoError(t, err, "createFormFile should succeed")
+
+	if !strings.Contains(buf.String(), "filename=\"foo.txt\"") {
+		t.Fatalf("expected filename header, got %q", buf.String())
+	}
 }

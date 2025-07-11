@@ -77,6 +77,27 @@ func GenerateSchemaForType(v any) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the schema has a root $ref, resolve it by:
+	// 1. Extracting the key from the $ref.
+	// 2. Detaching the referenced definition from $defs.
+	// 3. Checking for self-references in the detached definition.
+	//    - If a self-reference is found, restore the original $defs structure.
+	// 4. Flattening the referenced definition into the root schema.
+	// 5. Clearing the $ref field in the root schema.
+	if def.Ref != "" {
+		origRef := def.Ref
+		key := strings.TrimPrefix(origRef, "#/$defs/")
+		if root, ok := defs[key]; ok {
+			delete(defs, key)
+			root.Defs = defs
+			if containsRef(root, origRef) {
+				root.Defs = nil
+				defs[key] = root
+			}
+			*def = root
+		}
+		def.Ref = ""
+	}
 	def.Defs = defs
 	return def, nil
 }
@@ -188,4 +209,27 @@ func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definitio
 	d.Required = requiredFields
 	d.Properties = properties
 	return &d, nil
+}
+
+func containsRef(def Definition, targetRef string) bool {
+	if def.Ref == targetRef {
+		return true
+	}
+
+	for _, d := range def.Defs {
+		if containsRef(d, targetRef) {
+			return true
+		}
+	}
+
+	for _, prop := range def.Properties {
+		if containsRef(prop, targetRef) {
+			return true
+		}
+	}
+
+	if def.Items != nil && containsRef(*def.Items, targetRef) {
+		return true
+	}
+	return false
 }

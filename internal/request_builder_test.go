@@ -86,3 +86,11 @@ func TestRequestBuilderWithReaderBodyAndHeader(t *testing.T) {
 		t.Fatalf("expected header set to val, got %q", req.Header.Get("X-Test"))
 	}
 }
+
+func TestRequestBuilderInvalidURL(t *testing.T) {
+	b := NewRequestBuilder()
+	_, err := b.Build(context.Background(), http.MethodGet, ":", nil, nil)
+	if err == nil {
+		t.Fatal("expected error for invalid URL")
+	}
+}

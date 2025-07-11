@@ -77,6 +77,13 @@ func GenerateSchemaForType(v any) (*Definition, error) {
 	if err != nil {
 		return nil, err
 	}
+	// If the schema has a root $ref, resolve it by:
+	// 1. Extracting the key from the $ref.
+	// 2. Detaching the referenced definition from $defs.
+	// 3. Checking for self-references in the detached definition.
+	//    - If a self-reference is found, restore the original $defs structure.
+	// 4. Flattening the referenced definition into the root schema.
+	// 5. Clearing the $ref field in the root schema.
 	if def.Ref != "" {
 		key := strings.TrimPrefix(def.Ref, "#/$defs/")
 		if root, ok := defs[key]; ok {

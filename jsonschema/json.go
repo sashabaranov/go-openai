@@ -85,11 +85,12 @@ func GenerateSchemaForType(v any) (*Definition, error) {
 	// 4. Flattening the referenced definition into the root schema.
 	// 5. Clearing the $ref field in the root schema.
 	if def.Ref != "" {
-		key := strings.TrimPrefix(def.Ref, "#/$defs/")
+		origRef := def.Ref
+		key := strings.TrimPrefix(origRef, "#/$defs/")
 		if root, ok := defs[key]; ok {
 			delete(defs, key)
 			root.Defs = defs
-			if containsRef(root, def.Ref) {
+			if containsRef(root, origRef) {
 				root.Defs = nil
 				defs[key] = root
 			}

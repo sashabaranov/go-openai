@@ -1,11 +1,15 @@
+//nolint:testpackage // need access to unexported fields and types for testing
 package test
 
-import "testing"
+import (
+	"errors"
+	"testing"
+)
 
 func TestFailingErrorBuffer(t *testing.T) {
 	buf := &FailingErrorBuffer{}
 	n, err := buf.Write([]byte("test"))
-	if err != ErrTestErrorAccumulatorWriteFailed {
+	if !errors.Is(err, ErrTestErrorAccumulatorWriteFailed) {
 		t.Fatalf("expected %v, got %v", ErrTestErrorAccumulatorWriteFailed, err)
 	}
 	if n != 0 {

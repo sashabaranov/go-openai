@@ -1,4 +1,4 @@
-package test
+package test_test
 
 import (
 	"io"
@@ -7,12 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"testing"
+
+	internaltest "github.com/sashabaranov/go-openai/internal/test"
 )
 
 func TestCreateTestFile(t *testing.T) {
 	dir := t.TempDir()
 	path := filepath.Join(dir, "file.txt")
-	CreateTestFile(t, path)
+	internaltest.CreateTestFile(t, path)
 	data, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("failed to read created file: %v", err)
@@ -24,7 +26,7 @@ func TestCreateTestFile(t *testing.T) {
 
 func TestTokenRoundTripperAddsHeader(t *testing.T) {
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		if r.Header.Get("Authorization") != "Bearer "+GetTestToken() {
+		if r.Header.Get("Authorization") != "Bearer "+internaltest.GetTestToken() {
 			t.Fatalf("authorization header not set")
 		}
 		w.WriteHeader(http.StatusOK)
@@ -32,7 +34,7 @@ func TestTokenRoundTripperAddsHeader(t *testing.T) {
 	defer srv.Close()
 
 	client := srv.Client()
-	client.Transport = &TokenRoundTripper{Token: GetTestToken(), Fallback: client.Transport}
+	client.Transport = &internaltest.TokenRoundTripper{Token: internaltest.GetTestToken(), Fallback: client.Transport}
 
 	req, err := http.NewRequest(http.MethodGet, srv.URL, nil)
 	if err != nil {
@@ -42,7 +44,9 @@ func TestTokenRoundTripperAddsHeader(t *testing.T) {
 	if err != nil {
 		t.Fatalf("client request error: %v", err)
 	}
-	io.Copy(io.Discard, resp.Body)
+	if _, err = io.Copy(io.Discard, resp.Body); err != nil {
+		t.Fatalf("read body: %v", err)
+	}
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusOK {
 		t.Fatalf("unexpected status: %d", resp.StatusCode)

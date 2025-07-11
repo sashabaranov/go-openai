@@ -1,17 +1,19 @@
-package checks
+package checks_test
 
 import (
 	"errors"
 	"testing"
+
+	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
 func TestChecksSuccessPaths(t *testing.T) {
-	NoError(t, nil)
-	NoErrorF(t, nil)
-	HasError(t, errors.New("err"))
+	checks.NoError(t, nil)
+	checks.NoErrorF(t, nil)
+	checks.HasError(t, errors.New("err"))
 	target := errors.New("x")
-	ErrorIs(t, target, target)
-	ErrorIsF(t, target, target, "msg")
-	ErrorIsNot(t, errors.New("y"), target)
-	ErrorIsNotf(t, errors.New("y"), target, "msg")
+	checks.ErrorIs(t, target, target)
+	checks.ErrorIsF(t, target, target, "msg")
+	checks.ErrorIsNot(t, errors.New("y"), target)
+	checks.ErrorIsNotf(t, errors.New("y"), target, "msg")
 }

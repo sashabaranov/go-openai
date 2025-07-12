@@ -231,6 +231,8 @@ type ChatCompletionRequest struct {
 	// This can be either a string or an ToolChoice object.
 	ToolChoice      any    `json:"tool_choice,omitempty"`
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+	// Specifies the latency tier to use for processing the request.
+	ServiceTier ServiceTier `json:"service_tier,omitempty"`
 }
 
 type ToolType string
@@ -289,6 +291,15 @@ type LogProbs struct {
 	Content []LogProb `json:"content"`
 }
 
+type ServiceTier string
+
+const (
+	ServiceTierAuto     ServiceTier = "auto"
+	ServiceTierDefault  ServiceTier = "default"
+	ServiceTierFlex     ServiceTier = "flex"
+	ServiceTierPriority ServiceTier = "priority"
+)
+
 type FinishReason string
 
 const (
@@ -330,6 +341,7 @@ type ChatCompletionResponse struct {
 	Choices           []ChatCompletionChoice `json:"choices"`
 	Usage             Usage                  `json:"usage"`
 	SystemFingerprint string                 `json:"system_fingerprint"`
+	ServiceTier       ServiceTier            `json:"service_tier,omitempty"`
 
 	httpHeader
 }

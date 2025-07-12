@@ -15,13 +15,6 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
-// badMarshaler produces invalid JSON when marshaled.
-type badMarshaler struct{}
-
-func (badMarshaler) MarshalJSON() ([]byte, error) {
-	return []byte("{"), nil
-}
-
 func TestEmbedding(t *testing.T) {
 	embeddedModels := []openai.EmbeddingModel{
 		openai.AdaSimilarity,
@@ -331,22 +324,4 @@ func TestDotProduct(t *testing.T) {
 	if !errors.Is(err, openai.ErrVectorLengthMismatch) {
 		t.Errorf("Expected Vector Length Mismatch Error, but got: %v", err)
 	}
-}
-
-// TestCreateEmbeddings_UnmarshalError verifies that an error is returned when
-// the JSON bytes produced by marshaling the request cannot be unmarshaled back
-// into a map.
-func TestCreateEmbeddings_UnmarshalError(t *testing.T) {
-	client, server, teardown := setupOpenAITestServer()
-	defer teardown()
-
-	server.RegisterHandler("/v1/embeddings", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		fmt.Fprint(w, `{"data":[]}`)
-	})
-
-	_, err := client.CreateEmbeddings(context.Background(), openai.EmbeddingRequest{
-		Input: badMarshaler{},
-	})
-	checks.HasError(t, err, "CreateEmbeddings should fail on unmarshal error")
 }

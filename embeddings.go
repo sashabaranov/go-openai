@@ -268,8 +268,7 @@ func (c *Client) CreateEmbeddings(
 
 	// Deserialize JSON to map[string]any
 	var body map[string]any
-	err = json.Unmarshal(jsonData, &body)
-	if err != nil {
+	if err = json.Unmarshal(jsonData, &body); err != nil {
 		return
 	}
 

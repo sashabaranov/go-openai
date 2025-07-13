@@ -248,7 +248,7 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-// NonOpenAIExtensions contains non-standard OpenAI API extensions
+// NonOpenAIExtensions contains non-standard OpenAI API extensions.
 type NonOpenAIExtensions struct {
 	// GuidedChoice restricts output to a set of predefined choices.
 	GuidedChoice []string `json:"guided_choice,omitempty"`

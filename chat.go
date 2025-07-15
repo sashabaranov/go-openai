@@ -107,8 +107,8 @@ type ChatCompletionResponseFormat struct {
 
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
-	Model            string                        `json:"model"`
-	Meta             Meta                          `json:"meta"`
+	Model string `json:"model"`
+	//Meta             Meta                          `json:"meta"`
 	Messages         []ChatCompletionMessage       `json:"messages"`
 	MaxTokens        int                           `json:"max_tokens,omitempty"`
 	Temperature      float32                       `json:"temperature,omitempty"`

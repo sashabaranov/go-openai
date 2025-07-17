@@ -309,6 +309,10 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// Support Google VertexAI Gemini-specific parameters
+	// https://cloud.google.com/vertex-ai/generative-ai/docs/migrate/openai/overview#extra_body_features
+	ExtraBody   map[string]any `json:"extra_body,omitempty"`
+	ExtraPart   map[string]any `json:"extra_part,omitempty"`
 }
 
 type StreamOptions struct {

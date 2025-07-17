@@ -214,9 +214,18 @@ type CompletionRequest struct {
 	Suffix          string            `json:"suffix,omitempty"`
 	Temperature     float32           `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`
+    MinP            float32           `json:"min_p,omitempty"`
 	User            string            `json:"user,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
+
+    TopK              int32   `json:"top_k,omitempty"`
+    RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
+
+    Provider *PostOpenrouterProviderRequest `json:"provider,omitempty"`
+
+    IncludeReasoning bool                            `json:"include_reasoning,omitempty"` // Whether to include reasoning in the response for OpenRouter
+    Reasoning        *PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.
@@ -243,6 +252,8 @@ type CompletionResponse struct {
 	Model   string             `json:"model"`
 	Choices []CompletionChoice `json:"choices"`
 	Usage   *Usage             `json:"usage,omitempty"`
+
+	Provider string `json:"provider"`
 
 	httpHeader
 }

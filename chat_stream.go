@@ -63,6 +63,8 @@ type ChatCompletionStreamResponse struct {
 	// When present, it contains a null value except for the last chunk which contains the token usage statistics
 	// for the entire request.
 	Usage *Usage `json:"usage,omitempty"`
+
+	Provider string `json:"provider"`
 }
 
 // ChatCompletionStream

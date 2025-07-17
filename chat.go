@@ -262,6 +262,9 @@ type ChatCompletionRequest struct {
 	MaxCompletionTokens int                           `json:"max_completion_tokens,omitempty"`
 	Temperature         float32                       `json:"temperature,omitempty"`
 	TopP                float32                       `json:"top_p,omitempty"`
+    MinP             float32                       `json:"min_p,omitempty"`
+    TopK              int32   `json:"top_k,omitempty"`
+    RepetitionPenalty float64 `json:"repetition_penalty,omitempty"`
 	N                   int                           `json:"n,omitempty"`
 	Stream              bool                          `json:"stream,omitempty"`
 	Stop                []string                      `json:"stop,omitempty"`
@@ -309,6 +312,35 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+
+    Provider *PostOpenrouterProviderRequest `json:"provider,omitempty"`
+
+    IncludeReasoning bool                            `json:"include_reasoning,omitempty"` // Whether to include reasoning in the response for OpenRouter
+    Reasoning        *PostOpenrouterReasoningRequest `json:"reasoning,omitempty"`
+}
+
+type PostOpenrouterProviderRequest struct {
+  Sort              string   `json:"sort,omitempty"`               // Sort providers by price or throughput. (e.g. "price" or "throughput")
+  Quantizations     []string `json:"quantizations,omitempty"`      // List of quantization levels to filter by (e.g. ["int4", "int8"])
+  Ignore            []string `json:"ignore,omitempty"`             // List of provider names to skip for this request.
+  DataCollection    string   `json:"data_collection,omitempty"`    // Control whether to use providers that may store data. "deny" or "allow"
+  RequireParameters bool     `json:"require_parameters,omitempty"` // Only use providers that support all parameters in your request.
+  AllowFallbacks    bool     `json:"allow_fallbacks,omitempty"`    // Whether to allow backup providers when the primary is unavailable.
+  Order             []string `json:"order,omitempty"`              // List of provider names to try in order
+  Only              []string `json:"only,omitempty"`               // List of provider slugs to allow for this request.
+}
+
+// context : https://openrouter.ai/docs/use-cases/reasoning-tokens
+type PostOpenrouterReasoningRequest struct {
+  // One of the following (not both):
+  Effort    string `json:"effort,omitempty"`     // Can be "high", "medium", or "low" (OpenAI-style)
+  MaxTokens int    `json:"max_tokens,omitempty"` // Specific token limit (Anthropic-style)
+
+  // Optional: Default is false. All models support this.
+  Exclude bool `json:"exclude"` // // Set to true to exclude reasoning tokens from response
+
+  // Or enable reasoning with the default parameters:
+  Enabled bool `json:"enabled"` // Default: inferred from `effort` or `max_tokens`
 }
 
 type StreamOptions struct {
@@ -434,6 +466,8 @@ type ChatCompletionResponse struct {
 	SystemFingerprint   string                 `json:"system_fingerprint"`
 	PromptFilterResults []PromptFilterResult   `json:"prompt_filter_results,omitempty"`
 	ServiceTier         ServiceTier            `json:"service_tier,omitempty"`
+
+	Provider string `json:"provider"`
 
 	httpHeader
 }

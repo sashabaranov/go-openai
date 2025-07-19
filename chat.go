@@ -250,7 +250,11 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 
 // ChatCompletionRequestExtensions contains non-standard OpenAI API extensions.
 type ChatCompletionRequestExtensions struct {
-	// GuidedChoice restricts output to a set of predefined choices.
+	// GuidedChoice is a vLLM-specific extension that restricts the model's output
+	// to one of the predefined string choices provided in this field. This feature
+	// is used to constrain the model's responses to a controlled set of options,
+	// ensuring predictable and consistent outputs in scenarios where specific
+	// choices are required.
 	GuidedChoice []string `json:"guided_choice,omitempty"`
 }
 

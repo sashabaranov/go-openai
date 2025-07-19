@@ -248,7 +248,7 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-// ChatCompletionRequestExtensions contains non-standard OpenAI API extensions.
+// ChatCompletionRequestExtensions contains third-party OpenAI API extensions (e.g., vendor-specific implementations like vLLM).
 type ChatCompletionRequestExtensions struct {
 	// GuidedChoice is a vLLM-specific extension that restricts the model's output
 	// to one of the predefined string choices provided in this field. This feature

@@ -39,9 +39,18 @@ func escapeQuotes(s string) string {
 }
 
 // CreateFormFileReader creates a form field with a file reader.
-// The filename in parameters can be an empty string.
-// The filename in Content-Disposition is required, But it can be an empty string.
+// The filename in Content-Disposition is required.
 func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader, filename string) error {
+	if filename == "" {
+		if f, ok := r.(interface{ Name() string }); ok {
+			filename = f.Name()
+		}
+	}
+	var contentType string
+	if f, ok := r.(interface{ ContentType() string }); ok {
+		contentType = f.ContentType()
+	}
+
 	h := make(textproto.MIMEHeader)
 	h.Set(
 		"Content-Disposition",
@@ -51,6 +60,10 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 			escapeQuotes(filepath.Base(filename)),
 		),
 	)
+	// content type is optional, but it can be set
+	if contentType != "" {
+		h.Set("Content-Type", contentType)
+	}
 
 	fieldWriter, err := fb.writer.CreatePart(h)
 	if err != nil {
@@ -84,6 +97,9 @@ func (fb *DefaultFormBuilder) createFormFile(fieldname string, r io.Reader, file
 }
 
 func (fb *DefaultFormBuilder) WriteField(fieldname, value string) error {
+	if fieldname == "" {
+		return fmt.Errorf("fieldname cannot be empty")
+	}
 	return fb.writer.WriteField(fieldname, value)
 }
 

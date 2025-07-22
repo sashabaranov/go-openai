@@ -48,6 +48,11 @@ type Definition struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 	// Whether the schema is nullable or not.
 	Nullable bool `json:"nullable,omitempty"`
+
+	// Ref Reference to a definition in $defs or external schema.
+	Ref string `json:"$ref,omitempty"`
+	// Defs A map of reusable schema definitions.
+	Defs map[string]Definition `json:"$defs,omitempty"`
 }
 
 func (d *Definition) MarshalJSON() ([]byte, error) {
@@ -67,10 +72,37 @@ func (d *Definition) Unmarshal(content string, v any) error {
 }
 
 func GenerateSchemaForType(v any) (*Definition, error) {
-	return reflectSchema(reflect.TypeOf(v))
+	var defs = make(map[string]Definition)
+	def, err := reflectSchema(reflect.TypeOf(v), defs)
+	if err != nil {
+		return nil, err
+	}
+	// If the schema has a root $ref, resolve it by:
+	// 1. Extracting the key from the $ref.
+	// 2. Detaching the referenced definition from $defs.
+	// 3. Checking for self-references in the detached definition.
+	//    - If a self-reference is found, restore the original $defs structure.
+	// 4. Flattening the referenced definition into the root schema.
+	// 5. Clearing the $ref field in the root schema.
+	if def.Ref != "" {
+		origRef := def.Ref
+		key := strings.TrimPrefix(origRef, "#/$defs/")
+		if root, ok := defs[key]; ok {
+			delete(defs, key)
+			root.Defs = defs
+			if containsRef(root, origRef) {
+				root.Defs = nil
+				defs[key] = root
+			}
+			*def = root
+		}
+		def.Ref = ""
+	}
+	def.Defs = defs
+	return def, nil
 }
 
-func reflectSchema(t reflect.Type) (*Definition, error) {
+func reflectSchema(t reflect.Type, defs map[string]Definition) (*Definition, error) {
 	var d Definition
 	switch t.Kind() {
 	case reflect.String:
@@ -84,21 +116,32 @@ func reflectSchema(t reflect.Type) (*Definition, error) {
 		d.Type = Boolean
 	case reflect.Slice, reflect.Array:
 		d.Type = Array
-		items, err := reflectSchema(t.Elem())
+		items, err := reflectSchema(t.Elem(), defs)
 		if err != nil {
 			return nil, err
 		}
 		d.Items = items
 	case reflect.Struct:
+		if t.Name() != "" {
+			if _, ok := defs[t.Name()]; !ok {
+				defs[t.Name()] = Definition{}
+				object, err := reflectSchemaObject(t, defs)
+				if err != nil {
+					return nil, err
+				}
+				defs[t.Name()] = *object
+			}
+			return &Definition{Ref: "#/$defs/" + t.Name()}, nil
+		}
 		d.Type = Object
 		d.AdditionalProperties = false
-		object, err := reflectSchemaObject(t)
+		object, err := reflectSchemaObject(t, defs)
 		if err != nil {
 			return nil, err
 		}
 		d = *object
 	case reflect.Ptr:
-		definition, err := reflectSchema(t.Elem())
+		definition, err := reflectSchema(t.Elem(), defs)
 		if err != nil {
 			return nil, err
 		}
@@ -112,7 +155,7 @@ func reflectSchema(t reflect.Type) (*Definition, error) {
 	return &d, nil
 }
 
-func reflectSchemaObject(t reflect.Type) (*Definition, error) {
+func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definition, error) {
 	var d = Definition{
 		Type:                 Object,
 		AdditionalProperties: false,
@@ -136,7 +179,7 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 			required = false
 		}
 
-		item, err := reflectSchema(field.Type)
+		item, err := reflectSchema(field.Type, defs)
 		if err != nil {
 			return nil, err
 		}
@@ -166,4 +209,27 @@ func reflectSchemaObject(t reflect.Type) (*Definition, error) {
 	d.Required = requiredFields
 	d.Properties = properties
 	return &d, nil
+}
+
+func containsRef(def Definition, targetRef string) bool {
+	if def.Ref == targetRef {
+		return true
+	}
+
+	for _, d := range def.Defs {
+		if containsRef(d, targetRef) {
+			return true
+		}
+	}
+
+	for _, prop := range def.Properties {
+		if containsRef(prop, targetRef) {
+			return true
+		}
+	}
+
+	if def.Items != nil && containsRef(*def.Items, targetRef) {
+		return true
+	}
+	return false
 }

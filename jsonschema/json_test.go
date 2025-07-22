@@ -182,7 +182,37 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 	}
 }
 
+type User struct {
+	ID     int      `json:"id,omitempty"`
+	Name   string   `json:"name,omitempty"`
+	Orders []*Order `json:"orders,omitempty"`
+}
+
+type Order struct {
+	ID     int     `json:"id,omitempty"`
+	Amount float64 `json:"amount,omitempty"`
+	Buyer  *User   `json:"buyer,omitempty"`
+}
+
 func TestStructToSchema(t *testing.T) {
+	type Tweet struct {
+		Text string `json:"text"`
+	}
+
+	type Person struct {
+		Name    string   `json:"name,omitempty"`
+		Age     int      `json:"age,omitempty"`
+		Friends []Person `json:"friends,omitempty"`
+		Tweets  []Tweet  `json:"tweets,omitempty"`
+	}
+
+	type MyStructuredResponse struct {
+		PascalCase string `json:"pascal_case" required:"true" description:"PascalCase"`
+		CamelCase  string `json:"camel_case" required:"true" description:"CamelCase"`
+		KebabCase  string `json:"kebab_case" required:"true" description:"KebabCase"`
+		SnakeCase  string `json:"snake_case" required:"true" description:"SnakeCase"`
+	}
+
 	tests := []struct {
 		name string
 		in   any
@@ -375,6 +405,220 @@ func TestStructToSchema(t *testing.T) {
 				},
 				"additionalProperties":false
 			}`,
+		},
+		{
+			name: "Test with $ref and $defs",
+			in: struct {
+				Person Person  `json:"person"`
+				Tweets []Tweet `json:"tweets"`
+			}{},
+			want: `{
+  "type" : "object",
+  "properties" : {
+    "person" : {
+      "$ref" : "#/$defs/Person"
+    },
+    "tweets" : {
+      "type" : "array",
+      "items" : {
+        "$ref" : "#/$defs/Tweet"
+      }
+    }
+  },
+  "required" : [ "person", "tweets" ],
+  "additionalProperties" : false,
+  "$defs" : {
+    "Person" : {
+      "type" : "object",
+      "properties" : {
+        "age" : {
+          "type" : "integer"
+        },
+        "friends" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Person"
+          }
+        },
+        "name" : {
+          "type" : "string"
+        },
+        "tweets" : {
+          "type" : "array",
+          "items" : {
+            "$ref" : "#/$defs/Tweet"
+          }
+        }
+      },
+      "additionalProperties" : false
+    },
+    "Tweet" : {
+      "type" : "object",
+      "properties" : {
+        "text" : {
+          "type" : "string"
+        }
+      },
+      "required" : [ "text" ],
+      "additionalProperties" : false
+    }
+  }
+}`,
+		},
+		{
+			name: "Test Person",
+			in:   Person{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "age": {
+      "type": "integer"
+    },
+    "friends": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Person"
+      }
+    },
+    "name": {
+      "type": "string"
+    },
+    "tweets": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Tweet"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Person": {
+      "type": "object",
+      "properties": {
+        "age": {
+          "type": "integer"
+        },
+        "friends": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Person"
+          }
+        },
+        "name": {
+          "type": "string"
+        },
+        "tweets": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Tweet"
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "Tweet": {
+      "type": "object",
+      "properties": {
+        "text": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "text"
+      ],
+      "additionalProperties": false
+    }
+  }
+}`,
+		},
+		{
+			name: "Test MyStructuredResponse",
+			in:   MyStructuredResponse{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "camel_case": {
+      "type": "string",
+      "description": "CamelCase"
+    },
+    "kebab_case": {
+      "type": "string",
+      "description": "KebabCase"
+    },
+    "pascal_case": {
+      "type": "string",
+      "description": "PascalCase"
+    },
+    "snake_case": {
+      "type": "string",
+      "description": "SnakeCase"
+    }
+  },
+  "required": [
+    "pascal_case",
+    "camel_case",
+    "kebab_case",
+    "snake_case"
+  ],
+  "additionalProperties": false
+}`,
+		},
+		{
+			name: "Test User",
+			in:   User{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "orders": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/Order"
+      }
+    }
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "Order": {
+      "type": "object",
+      "properties": {
+        "amount": {
+          "type": "number"
+        },
+        "buyer": {
+          "$ref": "#/$defs/User"
+        },
+        "id": {
+          "type": "integer"
+        }
+      },
+      "additionalProperties": false
+    },
+    "User": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "orders": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/Order"
+          }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}`,
 		},
 	}
 

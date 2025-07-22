@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/meguminnnnnnnnn/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -234,13 +236,49 @@ type ChatCompletionResponseFormatJSONSchema struct {
 	Strict      bool           `json:"strict"`
 }
 
+func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) error {
+	type rawJSONSchema struct {
+		Name        string          `json:"name"`
+		Description string          `json:"description,omitempty"`
+		Schema      json.RawMessage `json:"schema"`
+		Strict      bool            `json:"strict"`
+	}
+	var raw rawJSONSchema
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	r.Name = raw.Name
+	r.Description = raw.Description
+	r.Strict = raw.Strict
+	if len(raw.Schema) > 0 && string(raw.Schema) != "null" {
+		var d jsonschema.Definition
+		err := json.Unmarshal(raw.Schema, &d)
+		if err != nil {
+			return err
+		}
+		r.Schema = &d
+	}
+	return nil
+}
+
+// ChatCompletionRequestExtensions contains third-party OpenAI API extensions
+// (e.g., vendor-specific implementations like vLLM).
+type ChatCompletionRequestExtensions struct {
+	// GuidedChoice is a vLLM-specific extension that restricts the model's output
+	// to one of the predefined string choices provided in this field. This feature
+	// is used to constrain the model's responses to a controlled set of options,
+	// ensuring predictable and consistent outputs in scenarios where specific
+	// choices are required.
+	GuidedChoice []string `json:"guided_choice,omitempty"`
+}
+
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
 	Model    string                  `json:"model"`
 	Messages []ChatCompletionMessage `json:"messages"`
 	// MaxTokens The maximum number of tokens that can be generated in the chat completion.
 	// This value can be used to control costs for text generated via API.
-	// This value is now deprecated in favor of max_completion_tokens, and is not compatible with o1 series models.
+	// Deprecated: use MaxCompletionTokens. Not compatible with o1-series models.
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
 	MaxTokens int `json:"max_tokens,omitempty"`
 	// MaxCompletionTokens An upper bound for the number of tokens that can be generated for a completion,
@@ -286,7 +324,15 @@ type ChatCompletionRequest struct {
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
-
+	// Configuration for a predicted output.
+	Prediction *Prediction `json:"prediction,omitempty"`
+	// ChatTemplateKwargs provides a way to add non-standard parameters to the request body.
+	// Additional kwargs to pass to the template renderer. Will be accessible by the chat template.
+	// Such as think mode for qwen3. "chat_template_kwargs": {"enable_thinking": false}
+	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
+	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
+	// Specifies the latency tier to use for processing the request.
+	ServiceTier ServiceTier `json:"service_tier,omitempty"`
 	// Extra fields to be sent in the request.
 	// Useful for experimental features not yet officially supported.
 	extraFields map[string]any
@@ -386,6 +432,15 @@ const (
 	FinishReasonNull          FinishReason = "null"
 )
 
+type ServiceTier string
+
+const (
+	ServiceTierAuto     ServiceTier = "auto"
+	ServiceTierDefault  ServiceTier = "default"
+	ServiceTierFlex     ServiceTier = "flex"
+	ServiceTierPriority ServiceTier = "priority"
+)
+
 func (r FinishReason) MarshalJSON() ([]byte, error) {
 	if r == FinishReasonNull || r == "" {
 		return []byte("null"), nil
@@ -418,6 +473,7 @@ type ChatCompletionResponse struct {
 	Usage               Usage                  `json:"usage"`
 	SystemFingerprint   string                 `json:"system_fingerprint"`
 	PromptFilterResults []PromptFilterResult   `json:"prompt_filter_results,omitempty"`
+	ServiceTier         ServiceTier            `json:"service_tier,omitempty"`
 
 	httpHeader
 }

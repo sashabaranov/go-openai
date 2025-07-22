@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
 	"reflect"
 	"testing"
@@ -89,7 +90,7 @@ func TestRequestBuilderReturnsRequestWhenRequestHasExtraFields(t *testing.T) {
 
 	// 验证序列化结果包含原始字段和额外字段
 	var result map[string]interface{}
-	if err := json.Unmarshal(reqBytes, &result); err != nil {
+	if err = json.Unmarshal(reqBytes, &result); err != nil {
 		t.Fatalf("Unmarshal failed: %v", err)
 	}
 
@@ -106,5 +107,39 @@ func TestRequestBuilderReturnsRequestWhenRequestHasExtraFields(t *testing.T) {
 		!reflect.DeepEqual(got.URL, want.URL) ||
 		!reflect.DeepEqual(got.Method, want.Method) {
 		t.Errorf("Build() got = %v, want %v", got, want)
+	}
+}
+
+func TestRequestBuilderWithReaderBodyAndHeader(t *testing.T) {
+	b := NewRequestBuilder()
+	ctx := context.Background()
+	method := http.MethodPost
+	url := "/reader"
+	bodyContent := "hello"
+	body := bytes.NewBufferString(bodyContent)
+	header := http.Header{"X-Test": []string{"val"}}
+
+	req, err := b.Build(ctx, method, url, body, header)
+	if err != nil {
+		t.Fatalf("Build returned error: %v", err)
+	}
+
+	gotBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		t.Fatalf("cannot read body: %v", err)
+	}
+	if string(gotBody) != bodyContent {
+		t.Fatalf("expected body %q, got %q", bodyContent, string(gotBody))
+	}
+	if req.Header.Get("X-Test") != "val" {
+		t.Fatalf("expected header set to val, got %q", req.Header.Get("X-Test"))
+	}
+}
+
+func TestRequestBuilderInvalidURL(t *testing.T) {
+	b := NewRequestBuilder()
+	_, err := b.Build(context.Background(), http.MethodGet, ":", nil, nil)
+	if err == nil {
+		t.Fatal("expected error for invalid URL")
 	}
 }

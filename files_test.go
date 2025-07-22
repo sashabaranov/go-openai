@@ -121,3 +121,20 @@ func TestFileUploadWithNonExistentPath(t *testing.T) {
 	_, err := client.CreateFile(ctx, req)
 	checks.ErrorIs(t, err, os.ErrNotExist, "CreateFile should return error if file does not exist")
 }
+func TestCreateFileRequestBuilderFailure(t *testing.T) {
+	config := DefaultConfig("")
+	config.BaseURL = ""
+	client := NewClientWithConfig(config)
+	client.requestBuilder = &failingRequestBuilder{}
+
+	client.createFormBuilder = func(io.Writer) utils.FormBuilder {
+		return &mockFormBuilder{
+			mockWriteField:     func(string, string) error { return nil },
+			mockCreateFormFile: func(string, *os.File) error { return nil },
+			mockClose:          func() error { return nil },
+		}
+	}
+
+	_, err := client.CreateFile(context.Background(), FileRequest{FilePath: "client.go"})
+	checks.ErrorIs(t, err, errTestRequestBuilderFailed, "CreateFile should return error if request builder fails")
+}

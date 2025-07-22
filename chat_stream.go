@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"io"
 	"net/http"
 )
 
@@ -78,6 +79,7 @@ type ChatCompletionStream struct {
 func (c *Client) CreateChatCompletionStream(
 	ctx context.Context,
 	request ChatCompletionRequest,
+	opts ...ChatCompletionRequestOption,
 ) (stream *ChatCompletionStream, err error) {
 	urlSuffix := chatCompletionsSuffix
 	if !checkEndpointSupportsModel(urlSuffix, request.Model) {
@@ -91,11 +93,26 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
+	ccOpts := &chatCompletionRequestOptions{}
+	for _, opt := range opts {
+		opt(ccOpts)
+	}
+
+	body := any(request)
+	if ccOpts.RequestBodySetter != nil {
+		var newBody io.Reader
+		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodySetter)
+		if err != nil {
+			return stream, err
+		}
+		body = newBody
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),
 	)
 	if err != nil {
 		return nil, err

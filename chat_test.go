@@ -52,6 +52,33 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	checks.ErrorIs(t, err, openai.ErrChatCompletionInvalidModel, msg)
 }
 
+func TestChatCompletionRequestWithRequestBodySetter(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
+
+	opt := openai.WithRequestBodySetter(func(rawBody []byte) ([]byte, error) {
+		var req map[string]any
+		if err := json.Unmarshal(rawBody, &req); err != nil {
+			return nil, err
+		}
+		req["messages"].([]any)[0].(map[string]any)["content"] = "Hello, World!"
+		return json.Marshal(req)
+	})
+
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model:               openai.O1Preview,
+		MaxCompletionTokens: 1000,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+	}, opt)
+	checks.NoError(t, err)
+}
+
 func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
 	tests := []struct {
 		name          string

@@ -1,10 +1,14 @@
 package openai
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
+	"io"
 	"net/http"
+
+	openai "github.com/meguminnnnnnnnn/go-openai/internal"
 
 	"github.com/meguminnnnnnnnn/go-openai/jsonschema"
 )
@@ -482,6 +486,7 @@ type ChatCompletionResponse struct {
 func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,
+	opts ...ChatCompletionRequestOption,
 ) (response ChatCompletionResponse, err error) {
 	if request.Stream {
 		err = ErrChatCompletionStreamNotSupported
@@ -499,11 +504,26 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
+	ccOpts := &chatCompletionRequestOptions{}
+	for _, opt := range opts {
+		opt(ccOpts)
+	}
+
+	body := any(request)
+	if ccOpts.RequestBodySetter != nil {
+		var newBody io.Reader
+		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodySetter)
+		if err != nil {
+			return response, err
+		}
+		body = newBody
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),
 	)
 	if err != nil {
 		return
@@ -511,4 +531,20 @@ func (c *Client) CreateChatCompletion(
 
 	err = c.sendRequest(req, &response)
 	return
+}
+
+func (c *Client) getNewRequestBody(request ChatCompletionRequest, setter RequestBodySetter) (io.Reader, error) {
+	marshaller := openai.JSONMarshaller{}
+
+	body, err := marshaller.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+
+	newBody, err := setter(body)
+	if err != nil {
+		return nil, err
+	}
+
+	return bytes.NewBuffer(newBody), nil
 }

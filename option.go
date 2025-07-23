@@ -1,15 +1,22 @@
 package openai
 
 type chatCompletionRequestOptions struct {
-	RequestBodySetter RequestBodySetter
+	RequestBodyModifier RequestBodyModifier
+	ExtraHeader         map[string]string
 }
 
 type ChatCompletionRequestOption func(*chatCompletionRequestOptions)
 
-type RequestBodySetter func(rawBody []byte) ([]byte, error)
+type RequestBodyModifier func(rawBody []byte) ([]byte, error)
 
-func WithRequestBodySetter(setter RequestBodySetter) ChatCompletionRequestOption {
+func WithRequestBodyModifier(modifier RequestBodyModifier) ChatCompletionRequestOption {
 	return func(opts *chatCompletionRequestOptions) {
-		opts.RequestBodySetter = setter
+		opts.RequestBodyModifier = modifier
+	}
+}
+
+func WithExtraHeader(header map[string]string) ChatCompletionRequestOption {
+	return func(opts *chatCompletionRequestOptions) {
+		opts.ExtraHeader = header
 	}
 }

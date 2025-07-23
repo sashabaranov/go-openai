@@ -98,6 +98,14 @@ func withExtraBody(extraBody map[string]any) requestOption {
 	}
 }
 
+func withExtraHeader(header map[string]string) requestOption {
+	return func(args *requestOptions) {
+		for k, v := range header {
+			args.header.Set(k, v)
+		}
+	}
+}
+
 func withContentType(contentType string) requestOption {
 	return func(args *requestOptions) {
 		args.header.Set("Content-Type", contentType)

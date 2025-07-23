@@ -52,12 +52,12 @@ func TestChatCompletionsWrongModel(t *testing.T) {
 	checks.ErrorIs(t, err, openai.ErrChatCompletionInvalidModel, msg)
 }
 
-func TestChatCompletionRequestWithRequestBodySetter(t *testing.T) {
+func TestChatCompletionRequestWithRequestBodyModifier(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/chat/completions", handleChatCompletionEndpoint)
 
-	opt := openai.WithRequestBodySetter(func(rawBody []byte) ([]byte, error) {
+	opt := openai.WithRequestBodyModifier(func(rawBody []byte) ([]byte, error) {
 		return rawBody, nil
 	})
 

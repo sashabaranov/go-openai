@@ -510,9 +510,9 @@ func (c *Client) CreateChatCompletion(
 	}
 
 	body := any(request)
-	if ccOpts.RequestBodySetter != nil {
+	if ccOpts.RequestBodyModifier != nil {
 		var newBody io.Reader
-		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodySetter)
+		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodyModifier)
 		if err != nil {
 			return response, err
 		}
@@ -524,6 +524,7 @@ func (c *Client) CreateChatCompletion(
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(body),
+		withExtraHeader(ccOpts.ExtraHeader),
 	)
 	if err != nil {
 		return
@@ -533,7 +534,7 @@ func (c *Client) CreateChatCompletion(
 	return
 }
 
-func (c *Client) getNewRequestBody(request ChatCompletionRequest, setter RequestBodySetter) (io.Reader, error) {
+func (c *Client) getNewRequestBody(request ChatCompletionRequest, modifier RequestBodyModifier) (io.Reader, error) {
 	marshaller := openai.JSONMarshaller{}
 
 	body, err := marshaller.Marshal(request)
@@ -541,7 +542,7 @@ func (c *Client) getNewRequestBody(request ChatCompletionRequest, setter Request
 		return nil, err
 	}
 
-	newBody, err := setter(body)
+	newBody, err := modifier(body)
 	if err != nil {
 		return nil, err
 	}

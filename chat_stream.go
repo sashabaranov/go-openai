@@ -99,9 +99,9 @@ func (c *Client) CreateChatCompletionStream(
 	}
 
 	body := any(request)
-	if ccOpts.RequestBodySetter != nil {
+	if ccOpts.RequestBodyModifier != nil {
 		var newBody io.Reader
-		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodySetter)
+		newBody, err = c.getNewRequestBody(request, ccOpts.RequestBodyModifier)
 		if err != nil {
 			return stream, err
 		}
@@ -113,6 +113,7 @@ func (c *Client) CreateChatCompletionStream(
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(body),
+		withExtraHeader(ccOpts.ExtraHeader),
 	)
 	if err != nil {
 		return nil, err

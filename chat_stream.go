@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -91,11 +92,28 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
+	// The body map is used to dynamically construct the request payload for the embedding API.
+	// Instead of relying on a fixed struct, the body map allows for flexible inclusion of fields
+	// based on their presence, avoiding unnecessary or empty fields in the request.
+	extraBody := request.ExtraBody
+	request.ExtraBody = nil
+
+	// Serialize baseReq to JSON
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	// Deserialize JSON to map[string]any
+	var body map[string]any
+	_ = json.Unmarshal(jsonData, &body)
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),           // Main request body.
+		withExtraBody(extraBody), // Merge ExtraBody fields.
 	)
 	if err != nil {
 		return nil, err

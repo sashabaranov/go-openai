@@ -679,7 +679,7 @@ func TestMultipartChatCompletions(t *testing.T) {
 					},
 					{
 						Type: openai.ChatMessagePartTypeFile,
-						File: &openai.ChatMessagePartFile{
+						File: &openai.ChatMessageFile{
 							FileID:   "file-123",
 							FileName: "test.txt",
 							FileData: "dGVzdCBmaWxlIGNvbnRlbnQ=", // base64 encoded "test file content"
@@ -768,11 +768,11 @@ func TestMultipartChatMessageSerialization(t *testing.T) {
 	}
 }
 
-func TestChatMessagePartFile(t *testing.T) {
+func TestChatMessageFile(t *testing.T) {
 	// Test file part with FileID
 	filePart := openai.ChatMessagePart{
 		Type: openai.ChatMessagePartTypeFile,
-		File: &openai.ChatMessagePartFile{
+		File: &openai.ChatMessageFile{
 			FileID: "file-abc123",
 		},
 	}
@@ -809,7 +809,7 @@ func TestChatMessagePartFile(t *testing.T) {
 	// Test file part with all fields
 	filePartComplete := openai.ChatMessagePart{
 		Type: openai.ChatMessagePartTypeFile,
-		File: &openai.ChatMessagePartFile{
+		File: &openai.ChatMessageFile{
 			FileID:   "file-xyz789",
 			FileName: "document.pdf",
 			FileData: "JVBERi0xLjQK", // base64 for "%PDF-1.4\n"

@@ -719,7 +719,8 @@ func TestMultipartChatMessageSerialization(t *testing.T) {
 	if parts[1].Type != "image_url" || parts[1].ImageURL.URL != "URL" || parts[1].ImageURL.Detail != "high" {
 		t.Errorf("invalid image_url part")
 	}
-	if parts[2].Type != "file" || parts[2].File.FileID != "file-123" || parts[2].File.FileName != "test.txt" || parts[2].File.FileData != "dGVzdA==" {
+	if parts[2].Type != "file" || parts[2].File.FileID != "file-123" ||
+		parts[2].File.FileName != "test.txt" || parts[2].File.FileData != "dGVzdA==" {
 		t.Errorf("invalid file part: %v", parts[2])
 	}
 

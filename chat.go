@@ -6,7 +6,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/sashabaranov/go-openai/jsonschema"
+	"github.com/incard/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.

@@ -1,14 +1,13 @@
 ---
 name: Feature request
 about: Suggest an idea for this project
-title: ''
+title: ""
 labels: enhancement
-assignees: ''
-
+assignees: ""
 ---
 
 Your issue may already be reported!
-Please search on the [issue tracker](https://github.com/sashabaranov/go-openai/issues) before creating one.
+Please search on the [issue tracker](https://github.com/incard/go-openai/issues) before creating one.
 
 **Is your feature request related to a problem? Please describe.**
 A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]

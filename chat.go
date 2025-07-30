@@ -81,7 +81,7 @@ type ChatMessageImageURL struct {
 	Detail ImageURLDetail `json:"detail,omitempty"`
 }
 
-// ChatMessagePartFile is a placeholder for file parts in chat messages.
+// ChatMessageFile is a placeholder for file parts in chat messages.
 type ChatMessageFile struct {
 	FileID   string `json:"file_id,omitempty"`
 	FileName string `json:"filename,omitempty"`

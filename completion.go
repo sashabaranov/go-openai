@@ -166,6 +166,10 @@ func checkEndpointSupportsModel(endpoint, model string) bool {
 	return !disabledModelsForEndpoints[endpoint][model]
 }
 
+func RegisterSupportsModel(endpoint, model string) {
+	disabledModelsForEndpoints[endpoint][model] = true
+}
+
 func checkPromptType(prompt any) bool {
 	_, isString := prompt.(string)
 	_, isStringSlice := prompt.([]string)

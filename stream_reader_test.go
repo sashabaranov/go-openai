@@ -81,7 +81,8 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 func TestStreamReaderParsesErrorEvents(t *testing.T) {
 	// Test case simulating Groq's error event format
 	errorEvent := `event: error
-data: {"error":{"message":"Invalid tool_call: tool \"name_unknown\" does not exist.","type":"invalid_request_error","code":"invalid_tool_call"}}
+data: {"error":{"message":"Invalid tool_call: tool \"name_unknown\" does not exist.",` +
+		`"type":"invalid_request_error","code":"invalid_tool_call"}}
 
 `
 	stream := &streamReader[ChatCompletionStreamResponse]{
@@ -98,8 +99,8 @@ data: {"error":{"message":"Invalid tool_call: tool \"name_unknown\" does not exi
 	}
 
 	// Verify it's an APIError
-	apiErr, ok := err.(*APIError)
-	if !ok {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
 		t.Fatalf("Expected APIError type but got %T: %v", err, err)
 	}
 
@@ -145,8 +146,8 @@ data: [DONE]
 	}
 
 	// Verify it's an APIError
-	apiErr, ok := err.(*APIError)
-	if !ok {
+	var apiErr *APIError
+	if !errors.As(err, &apiErr) {
 		t.Fatalf("Expected APIError type but got %T: %v", err, err)
 	}
 
@@ -175,8 +176,8 @@ data: {"error":{"message":"Second error","type":"error_type_2"}}
 	if err1 == nil {
 		t.Fatal("Expected first error but got nil")
 	}
-	apiErr1, ok := err1.(*APIError)
-	if !ok {
+	var apiErr1 *APIError
+	if !errors.As(err1, &apiErr1) {
 		t.Fatalf("Expected APIError type but got %T: %v", err1, err1)
 	}
 	if apiErr1.Message != "First error" {
@@ -188,8 +189,8 @@ data: {"error":{"message":"Second error","type":"error_type_2"}}
 	if err2 == nil {
 		t.Fatal("Expected second error but got nil")
 	}
-	apiErr2, ok := err2.(*APIError)
-	if !ok {
+	var apiErr2 *APIError
+	if !errors.As(err2, &apiErr2) {
 		t.Fatalf("Expected APIError type but got %T: %v", err2, err2)
 	}
 	if apiErr2.Message != "Second error" {

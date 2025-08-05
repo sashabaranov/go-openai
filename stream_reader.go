@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -43,9 +44,11 @@ func (stream *streamReader[T]) Recv() (response T, err error) {
 	if err != nil {
 		// If we get a JSON parsing error, it might be because we got an error event
 		// Check if we have accumulated error data
-		if _, ok := err.(*json.SyntaxError); ok && len(stream.errAccumulator.Bytes()) > 0 {
+		var syntaxErr *json.SyntaxError
+		if errors.As(err, &syntaxErr) && len(stream.errAccumulator.Bytes()) > 0 {
 			// We have error data, return a more informative error
-			return response, fmt.Errorf("failed to parse response (error event received): %s", string(stream.errAccumulator.Bytes()))
+			return response, fmt.Errorf("failed to parse response (error event received): %s",
+				string(stream.errAccumulator.Bytes()))
 		}
 		return
 	}

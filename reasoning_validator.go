@@ -41,8 +41,9 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
 	o4Series := strings.HasPrefix(request.Model, "o4")
+	gpt5Series := strings.HasPrefix(request.Model, "gpt-5")
 
-	if !o1Series && !o3Series && !o4Series {
+	if !o1Series && !o3Series && !o4Series && !gpt5Series {
 		return nil
 	}
 

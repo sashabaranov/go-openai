@@ -41,16 +41,17 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
 	o4Series := strings.HasPrefix(request.Model, "o4")
+	gpt5Series := strings.HasPrefix(request.Model, "gpt-5")
 
-	if !o1Series && !o3Series && !o4Series {
+	if !o1Series && !o3Series && !o4Series && !gpt5Series {
 		return nil
 	}
 
-	if err := v.validateReasoningModelParams(request); err != nil {
-		return err
+	if gpt5Series {
+		return v.validateGPT5Params(request)
 	}
 
-	return nil
+	return v.validateReasoningModelParams(request)
 }
 
 // validateReasoningModelParams checks reasoning model parameters.
@@ -77,5 +78,34 @@ func (v *ReasoningValidator) validateReasoningModelParams(request ChatCompletion
 		return ErrReasoningModelLimitationsOther
 	}
 
+	// For o-series, allow only low/medium/high. "minimal" is not supported on older reasoning models per docs.
+	if request.Reasoning != nil {
+		if request.Reasoning.Effort != "" &&
+			request.Reasoning.Effort != "low" &&
+			request.Reasoning.Effort != "medium" &&
+			request.Reasoning.Effort != "high" {
+			return ErrReasoningModelLimitationsOther
+		}
+	}
+
+	return nil
+}
+
+// validateGPT5Params runs lightweight validation for GPT-5 models only.
+// GPT-5 does not inherit o-series sampling restrictions; we only validate
+// new fields like verbosity and reasoning.effort.
+func (v *ReasoningValidator) validateGPT5Params(request ChatCompletionRequest) error {
+	if request.Verbosity != "" && request.Verbosity != "low" && request.Verbosity != "medium" && request.Verbosity != "high" {
+		return ErrReasoningModelLimitationsOther
+	}
+	if request.Reasoning != nil {
+		if request.Reasoning.Effort != "" &&
+			request.Reasoning.Effort != "minimal" &&
+			request.Reasoning.Effort != "low" &&
+			request.Reasoning.Effort != "medium" &&
+			request.Reasoning.Effort != "high" {
+			return ErrReasoningModelLimitationsOther
+		}
+	}
 	return nil
 }

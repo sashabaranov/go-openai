@@ -248,6 +248,14 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
+// ReasoningOptions configures reasoning behavior for reasoning-capable models.
+// Prefer this over the legacy flat field.
+type ReasoningOptions struct {
+	// Effort controls how many reasoning tokens are generated before producing a response.
+	// Valid values: "minimal", "low", "medium", "high" (default is model-specific, typically medium).
+	Effort string `json:"effort,omitempty"`
+}
+
 // ChatCompletionRequestExtensions contains third-party OpenAI API extensions
 // (e.g., vendor-specific implementations like vLLM).
 type ChatCompletionRequestExtensions struct {
@@ -307,8 +315,16 @@ type ChatCompletionRequest struct {
 	// Store can be set to true to store the output of this completion request for use in distillations and evals.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
 	Store bool `json:"store,omitempty"`
-	// Controls effort on reasoning for reasoning models. It can be set to "low", "medium", or "high".
+	// Deprecated: use Reasoning.Effort instead. Kept for backward compatibility.
+	// Controls effort on reasoning for reasoning models. It can be set to "minimal", "low", "medium", or "high".
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
+
+	// Reasoning provides nested configuration per latest API: { "reasoning": { "effort": "minimal" } }.
+	Reasoning *ReasoningOptions `json:"reasoning,omitempty"`
+	// Verbosity controls how many output tokens are generated and the level of conciseness in the response.
+	// Valid values are "low", "medium", or "high". Defaults to model-specific behavior (typically medium).
+	// This parameter is primarily introduced with GPT-5.
+	Verbosity string `json:"verbosity,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
 	// Configuration for a predicted output.
@@ -322,6 +338,17 @@ type ChatCompletionRequest struct {
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
+}
+
+// MarshalJSON ensures we don't send both the legacy flat reasoning_effort and the new nested reasoning simultaneously.
+// If Reasoning is provided, the legacy ReasoningEffort is omitted to match current API guidance.
+func (r ChatCompletionRequest) MarshalJSON() ([]byte, error) {
+	type Alias ChatCompletionRequest
+	aux := Alias(r)
+	if r.Reasoning != nil {
+		aux.ReasoningEffort = ""
+	}
+	return json.Marshal(aux)
 }
 
 type StreamOptions struct {

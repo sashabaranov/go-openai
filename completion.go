@@ -22,6 +22,9 @@ const (
 	O3Mini20250131          = "o3-mini-2025-01-31"
 	O4Mini                  = "o4-mini"
 	O4Mini20250416          = "o4-mini-2025-04-16"
+	GPT5                    = "gpt-5"
+	GPT5Mini                = "gpt-5-mini"
+	GPT5Nano                = "gpt-5-nano"
 	GPT432K0613             = "gpt-4-32k-0613"
 	GPT432K0314             = "gpt-4-32k-0314"
 	GPT432K                 = "gpt-4-32k"
@@ -97,6 +100,9 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	"/completions": {
+		GPT5:                    true,
+		GPT5Mini:                true,
+		GPT5Nano:                true,
 		O1Mini:                  true,
 		O1Mini20240912:          true,
 		O1Preview:               true,
@@ -217,6 +223,11 @@ type CompletionRequest struct {
 	User            string            `json:"user,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`
+
+	// Verbosity controls how many output tokens are generated and the level of conciseness in the response.
+	// Valid values are "low", "medium", or "high". Defaults to model-specific behavior (typically medium).
+	// This parameter is primarily introduced with GPT-5.
+	Verbosity string `json:"verbosity,omitempty"`
 }
 
 // CompletionChoice represents one of possible completions.

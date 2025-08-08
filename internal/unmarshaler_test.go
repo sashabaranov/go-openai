@@ -3,8 +3,8 @@ package openai_test
 import (
 	"testing"
 
-	openai "github.com/sashabaranov/go-openai/internal"
-	"github.com/sashabaranov/go-openai/internal/test/checks"
+	openai "github.com/azdaev/go-openai/internal"
+	"github.com/azdaev/go-openai/internal/test/checks"
 )
 
 func TestJSONUnmarshaler_Normal(t *testing.T) {

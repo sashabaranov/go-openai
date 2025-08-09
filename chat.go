@@ -328,17 +328,6 @@ type ChatCompletionRequest struct {
 	ChatCompletionRequestExtensions
 }
 
-// MarshalJSON ensures we don't send both the legacy flat reasoning_effort and the new nested reasoning simultaneously.
-// If Reasoning is provided, the legacy ReasoningEffort is omitted to match current API guidance.
-func (r ChatCompletionRequest) MarshalJSON() ([]byte, error) {
-	type Alias ChatCompletionRequest
-	aux := Alias(r)
-	if r.Reasoning != nil {
-		aux.ReasoningEffort = ""
-	}
-	return json.Marshal(aux)
-}
-
 type StreamOptions struct {
 	// If set, an additional chunk will be streamed before the data: [DONE] message.
 	// The usage field on this chunk shows the token usage statistics for the entire request,

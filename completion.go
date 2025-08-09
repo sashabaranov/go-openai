@@ -49,6 +49,10 @@ const (
 	GPT4Dot1Nano20250414    = "gpt-4.1-nano-2025-04-14"
 	GPT4Dot5Preview         = "gpt-4.5-preview"
 	GPT4Dot5Preview20250227 = "gpt-4.5-preview-2025-02-27"
+	GPT5                    = "gpt-5"
+	GPT5Mini                = "gpt-5-mini"
+	GPT5Nano                = "gpt-5-nano"
+	GPT5ChatLatest          = "gpt-5-chat-latest"
 	GPT3Dot5Turbo0125       = "gpt-3.5-turbo-0125"
 	GPT3Dot5Turbo1106       = "gpt-3.5-turbo-1106"
 	GPT3Dot5Turbo0613       = "gpt-3.5-turbo-0613"
@@ -142,6 +146,10 @@ var disabledModelsForEndpoints = map[string]map[string]bool{
 		GPT4Dot1Mini20250414:    true,
 		GPT4Dot1Nano:            true,
 		GPT4Dot1Nano20250414:    true,
+		GPT5:                    true,
+		GPT5Mini:                true,
+		GPT5Nano:                true,
+		GPT5ChatLatest:          true,
 	},
 	chatCompletionsSuffix: {
 		CodexCodeDavinci002:     true,

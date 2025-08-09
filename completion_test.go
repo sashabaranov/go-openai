@@ -300,3 +300,32 @@ func TestCompletionWithGPT4oModels(t *testing.T) {
 		})
 	}
 }
+
+// TestCompletionWithGPT5Models Tests that GPT5 models are not supported for completion endpoint.
+func TestCompletionWithGPT5Models(t *testing.T) {
+	config := openai.DefaultConfig("whatever")
+	config.BaseURL = "http://localhost/v1"
+	client := openai.NewClientWithConfig(config)
+
+	models := []string{
+		openai.GPT5,
+		openai.GPT5Mini,
+		openai.GPT5Nano,
+		openai.GPT5ChatLatest,
+	}
+
+	for _, model := range models {
+		t.Run(model, func(t *testing.T) {
+			_, err := client.CreateCompletion(
+				context.Background(),
+				openai.CompletionRequest{
+					MaxTokens: 5,
+					Model:     model,
+				},
+			)
+			if !errors.Is(err, openai.ErrCompletionUnsupportedModel) {
+				t.Fatalf("CreateCompletion should return ErrCompletionUnsupportedModel for %s model, but returned: %v", model, err)
+			}
+		})
+	}
+}

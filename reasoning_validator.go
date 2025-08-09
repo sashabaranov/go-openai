@@ -28,21 +28,22 @@ var (
 	ErrReasoningModelLimitationsOther    = errors.New("this model has beta-limitations, temperature, top_p and n are fixed at 1, while presence_penalty and frequency_penalty are fixed at 0") //nolint:lll
 )
 
-// ReasoningValidator handles validation for o-series model requests.
+// ReasoningValidator handles validation for reasoning model requests.
 type ReasoningValidator struct{}
 
-// NewReasoningValidator creates a new validator for o-series models.
+// NewReasoningValidator creates a new validator for reasoning models.
 func NewReasoningValidator() *ReasoningValidator {
 	return &ReasoningValidator{}
 }
 
-// Validate performs all validation checks for o-series models.
+// Validate performs all validation checks for reasoning models.
 func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
 	o4Series := strings.HasPrefix(request.Model, "o4")
+	gpt5Series := strings.HasPrefix(request.Model, "gpt-5")
 
-	if !o1Series && !o3Series && !o4Series {
+	if !o1Series && !o3Series && !o4Series && !gpt5Series {
 		return nil
 	}
 

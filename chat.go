@@ -248,14 +248,6 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	return nil
 }
 
-// ReasoningOptions configures reasoning behavior for reasoning-capable models.
-// Prefer this over the legacy flat field.
-type ReasoningOptions struct {
-	// Effort controls how many reasoning tokens are generated before producing a response.
-	// Valid values: "minimal", "low", "medium", "high" (default is model-specific, typically medium).
-	Effort string `json:"effort,omitempty"`
-}
-
 // ChatCompletionRequestExtensions contains third-party OpenAI API extensions
 // (e.g., vendor-specific implementations like vLLM).
 type ChatCompletionRequestExtensions struct {
@@ -315,12 +307,8 @@ type ChatCompletionRequest struct {
 	// Store can be set to true to store the output of this completion request for use in distillations and evals.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
 	Store bool `json:"store,omitempty"`
-	// Deprecated: use Reasoning.Effort instead. Kept for backward compatibility.
 	// Controls effort on reasoning for reasoning models. It can be set to "minimal", "low", "medium", or "high".
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
-
-	// Reasoning provides nested configuration per latest API: { "reasoning": { "effort": "minimal" } }.
-	Reasoning *ReasoningOptions `json:"reasoning,omitempty"`
 	// Verbosity controls how many output tokens are generated and the level of conciseness in the response.
 	// Valid values are "low", "medium", or "high". Defaults to model-specific behavior (typically medium).
 	// This parameter is primarily introduced with GPT-5.

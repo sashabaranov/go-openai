@@ -320,6 +320,10 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// Verbosity determines how many output tokens are generated.
+	// Lowering the number of tokens reduces overall latency.
+	// It can be set to "low", "medium", or "high".
+	Verbosity string `json:"verbosity,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
 }

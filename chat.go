@@ -324,6 +324,11 @@ type ChatCompletionRequest struct {
 	// Lowering the number of tokens reduces overall latency.
 	// It can be set to "low", "medium", or "high".
 	Verbosity string `json:"verbosity,omitempty"`
+	// A stable identifier used to help detect users of your application that may be violating OpenAI's usage policies.
+	// The IDs should be a string that uniquely identifies each user.
+	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.
+	// https://platform.openai.com/docs/api-reference/chat/create#chat_create-safety_identifier
+	SafetyIdentifier string `json:"safety_identifier,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
 }

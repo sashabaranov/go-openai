@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"io"
 	"net/http"
 	"reflect"
 	"testing"
@@ -57,5 +58,39 @@ func TestRequestBuilderReturnsRequestWhenRequestOfArgsIsNil(t *testing.T) {
 	got, _ := b.Build(ctx, method, url, nil, nil)
 	if !reflect.DeepEqual(got, want) {
 		t.Errorf("Build() got = %v, want %v", got, want)
+	}
+}
+
+func TestRequestBuilderWithReaderBodyAndHeader(t *testing.T) {
+	b := NewRequestBuilder()
+	ctx := context.Background()
+	method := http.MethodPost
+	url := "/reader"
+	bodyContent := "hello"
+	body := bytes.NewBufferString(bodyContent)
+	header := http.Header{"X-Test": []string{"val"}}
+
+	req, err := b.Build(ctx, method, url, body, header)
+	if err != nil {
+		t.Fatalf("Build returned error: %v", err)
+	}
+
+	gotBody, err := io.ReadAll(req.Body)
+	if err != nil {
+		t.Fatalf("cannot read body: %v", err)
+	}
+	if string(gotBody) != bodyContent {
+		t.Fatalf("expected body %q, got %q", bodyContent, string(gotBody))
+	}
+	if req.Header.Get("X-Test") != "val" {
+		t.Fatalf("expected header set to val, got %q", req.Header.Get("X-Test"))
+	}
+}
+
+func TestRequestBuilderInvalidURL(t *testing.T) {
+	b := NewRequestBuilder()
+	_, err := b.Build(context.Background(), http.MethodGet, ":", nil, nil)
+	if err == nil {
+		t.Fatal("expected error for invalid URL")
 	}
 }

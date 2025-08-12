@@ -16,7 +16,7 @@ jobs:
         go-version: '1.24'
     - name: Run vet
       run: |
-        go vet .
+        go vet -stdversion ./...
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v7
       with:

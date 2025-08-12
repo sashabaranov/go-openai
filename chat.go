@@ -320,6 +320,11 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// A stable identifier used to help detect users of your application that may be violating OpenAI's usage policies.
+	// The IDs should be a string that uniquely identifies each user.
+	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.
+	// https://platform.openai.com/docs/api-reference/chat/create#chat_create-safety_identifier
+	SafetyIdentifier string `json:"safety_identifier,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
 }

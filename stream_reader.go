@@ -16,6 +16,8 @@ var (
 	errorPrefix = regexp.MustCompile(`^data:\s*{"error":`)
 )
 
+var _ ChatStreamReader = (*streamReader[ChatCompletionStreamResponse])(nil)
+
 type streamable interface {
 	ChatCompletionStreamResponse | CompletionResponse
 }

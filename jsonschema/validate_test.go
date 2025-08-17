@@ -1,6 +1,7 @@
 package jsonschema_test
 
 import (
+	"reflect"
 	"testing"
 
 	"github.com/sashabaranov/go-openai/jsonschema"
@@ -70,6 +71,96 @@ func Test_Validate(t *testing.T) {
 		},
 			Required: []string{"string"},
 		}}, false},
+		{
+			"test schema with ref and defs", args{data: map[string]any{
+				"person": map[string]any{
+					"name":   "John",
+					"gender": "male",
+					"age":    28,
+					"profile": map[string]any{
+						"full_name": "John Doe",
+					},
+				},
+			}, schema: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"person": {Ref: "#/$defs/Person"},
+				},
+				Required: []string{"person"},
+				Defs: map[string]jsonschema.Definition{
+					"Person": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"name":    {Type: jsonschema.String},
+							"gender":  {Type: jsonschema.String, Enum: []string{"male", "female", "unknown"}},
+							"age":     {Type: jsonschema.Integer},
+							"profile": {Ref: "#/$defs/Person/$defs/Profile"},
+							"tweets":  {Type: jsonschema.Array, Items: &jsonschema.Definition{Ref: "#/$defs/Tweet"}},
+						},
+						Required: []string{"name", "gender", "age", "profile"},
+						Defs: map[string]jsonschema.Definition{
+							"Profile": {
+								Type: jsonschema.Object,
+								Properties: map[string]jsonschema.Definition{
+									"full_name": {Type: jsonschema.String},
+								},
+							},
+						},
+					},
+					"Tweet": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"text":   {Type: jsonschema.String},
+							"person": {Ref: "#/$defs/Person"},
+						},
+					},
+				},
+			}}, true},
+		{
+			"test enum invalid value", args{data: map[string]any{
+				"person": map[string]any{
+					"name":   "John",
+					"gender": "other",
+					"age":    28,
+					"profile": map[string]any{
+						"full_name": "John Doe",
+					},
+				},
+			}, schema: jsonschema.Definition{
+				Type: jsonschema.Object,
+				Properties: map[string]jsonschema.Definition{
+					"person": {Ref: "#/$defs/Person"},
+				},
+				Required: []string{"person"},
+				Defs: map[string]jsonschema.Definition{
+					"Person": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"name":    {Type: jsonschema.String},
+							"gender":  {Type: jsonschema.String, Enum: []string{"male", "female", "unknown"}},
+							"age":     {Type: jsonschema.Integer},
+							"profile": {Ref: "#/$defs/Person/$defs/Profile"},
+							"tweets":  {Type: jsonschema.Array, Items: &jsonschema.Definition{Ref: "#/$defs/Tweet"}},
+						},
+						Required: []string{"name", "gender", "age", "profile"},
+						Defs: map[string]jsonschema.Definition{
+							"Profile": {
+								Type: jsonschema.Object,
+								Properties: map[string]jsonschema.Definition{
+									"full_name": {Type: jsonschema.String},
+								},
+							},
+						},
+					},
+					"Tweet": {
+						Type: jsonschema.Object,
+						Properties: map[string]jsonschema.Definition{
+							"text":   {Type: jsonschema.String},
+							"person": {Ref: "#/$defs/Person"},
+						},
+					},
+				},
+			}}, false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -156,8 +247,100 @@ func TestUnmarshal(t *testing.T) {
 			err := jsonschema.VerifySchemaAndUnmarshal(tt.args.schema, tt.args.content, tt.args.v)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("Unmarshal() error = %v, wantErr %v", err, tt.wantErr)
-			} else if err == nil {
-				t.Logf("Unmarshal() v = %+v\n", tt.args.v)
+			}
+		})
+	}
+}
+
+func TestCollectDefs(t *testing.T) {
+	type args struct {
+		schema jsonschema.Definition
+	}
+	tests := []struct {
+		name string
+		args args
+		want map[string]jsonschema.Definition
+	}{
+		{
+			"test collect defs",
+			args{
+				schema: jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"person": {Ref: "#/$defs/Person"},
+					},
+					Required: []string{"person"},
+					Defs: map[string]jsonschema.Definition{
+						"Person": {
+							Type: jsonschema.Object,
+							Properties: map[string]jsonschema.Definition{
+								"name":    {Type: jsonschema.String},
+								"gender":  {Type: jsonschema.String, Enum: []string{"male", "female", "unknown"}},
+								"age":     {Type: jsonschema.Integer},
+								"profile": {Ref: "#/$defs/Person/$defs/Profile"},
+								"tweets":  {Type: jsonschema.Array, Items: &jsonschema.Definition{Ref: "#/$defs/Tweet"}},
+							},
+							Required: []string{"name", "gender", "age", "profile"},
+							Defs: map[string]jsonschema.Definition{
+								"Profile": {
+									Type: jsonschema.Object,
+									Properties: map[string]jsonschema.Definition{
+										"full_name": {Type: jsonschema.String},
+									},
+								},
+							},
+						},
+						"Tweet": {
+							Type: jsonschema.Object,
+							Properties: map[string]jsonschema.Definition{
+								"text":   {Type: jsonschema.String},
+								"person": {Ref: "#/$defs/Person"},
+							},
+						},
+					},
+				},
+			},
+			map[string]jsonschema.Definition{
+				"#/$defs/Person": {
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"name":    {Type: jsonschema.String},
+						"gender":  {Type: jsonschema.String, Enum: []string{"male", "female", "unknown"}},
+						"age":     {Type: jsonschema.Integer},
+						"profile": {Ref: "#/$defs/Person/$defs/Profile"},
+						"tweets":  {Type: jsonschema.Array, Items: &jsonschema.Definition{Ref: "#/$defs/Tweet"}},
+					},
+					Required: []string{"name", "gender", "age", "profile"},
+					Defs: map[string]jsonschema.Definition{
+						"Profile": {
+							Type: jsonschema.Object,
+							Properties: map[string]jsonschema.Definition{
+								"full_name": {Type: jsonschema.String},
+							},
+						},
+					},
+				},
+				"#/$defs/Person/$defs/Profile": {
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"full_name": {Type: jsonschema.String},
+					},
+				},
+				"#/$defs/Tweet": {
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"text":   {Type: jsonschema.String},
+						"person": {Ref: "#/$defs/Person"},
+					},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := jsonschema.CollectDefs(tt.args.schema)
+			if !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("CollectDefs() = %v, want %v", got, tt.want)
 			}
 		})
 	}

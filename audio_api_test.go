@@ -40,12 +40,9 @@ func TestAudio(t *testing.T) {
 
 	ctx := context.Background()
 
-	dir, cleanup := test.CreateTestDirectory(t)
-	defer cleanup()
-
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			path := filepath.Join(dir, "fake.mp3")
+			path := filepath.Join(t.TempDir(), "fake.mp3")
 			test.CreateTestFile(t, path)
 
 			req := openai.AudioRequest{
@@ -90,12 +87,9 @@ func TestAudioWithOptionalArgs(t *testing.T) {
 
 	ctx := context.Background()
 
-	dir, cleanup := test.CreateTestDirectory(t)
-	defer cleanup()
-
 	for _, tc := range testcases {
 		t.Run(tc.name, func(t *testing.T) {
-			path := filepath.Join(dir, "fake.mp3")
+			path := filepath.Join(t.TempDir(), "fake.mp3")
 			test.CreateTestFile(t, path)
 
 			req := openai.AudioRequest{

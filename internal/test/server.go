@@ -23,6 +23,18 @@ func NewTestServer() *ServerTest {
 	return &ServerTest{handlers: make(map[string]handler)}
 }
 
+// HandlerCount returns the number of registered handlers.
+func (ts *ServerTest) HandlerCount() int {
+	return len(ts.handlers)
+}
+
+// HasHandler checks if a handler was registered for the given path.
+func (ts *ServerTest) HasHandler(path string) bool {
+	path = strings.ReplaceAll(path, "*", ".*")
+	_, ok := ts.handlers[path]
+	return ok
+}
+
 func (ts *ServerTest) RegisterHandler(path string, handler handler) {
 	// to make the registered paths friendlier to a regex match in the route handler
 	// in OpenAITestServer

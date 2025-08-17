@@ -6,13 +6,14 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"regexp"
 
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
 var (
-	headerData  = []byte("data: ")
-	errorPrefix = []byte(`data: {"error":`)
+	headerData  = regexp.MustCompile(`^data:\s*`)
+	errorPrefix = regexp.MustCompile(`^data:\s*{"error":`)
 )
 
 type streamable interface {
@@ -32,17 +33,28 @@ type streamReader[T streamable] struct {
 }
 
 func (stream *streamReader[T]) Recv() (response T, err error) {
-	if stream.isFinished {
-		err = io.EOF
+	rawLine, err := stream.RecvRaw()
+	if err != nil {
 		return
 	}
 
-	response, err = stream.processLines()
-	return
+	err = stream.unmarshaler.Unmarshal(rawLine, &response)
+	if err != nil {
+		return
+	}
+	return response, nil
+}
+
+func (stream *streamReader[T]) RecvRaw() ([]byte, error) {
+	if stream.isFinished {
+		return nil, io.EOF
+	}
+
+	return stream.processLines()
 }
 
 //nolint:gocognit
-func (stream *streamReader[T]) processLines() (T, error) {
+func (stream *streamReader[T]) processLines() ([]byte, error) {
 	var (
 		emptyMessagesCount uint
 		hasErrorPrefix     bool
@@ -53,44 +65,38 @@ func (stream *streamReader[T]) processLines() (T, error) {
 		if readErr != nil || hasErrorPrefix {
 			respErr := stream.unmarshalError()
 			if respErr != nil {
-				return *new(T), fmt.Errorf("error, %w", respErr.Error)
+				return nil, fmt.Errorf("error, %w", respErr.Error)
 			}
-			return *new(T), readErr
+			return nil, readErr
 		}
 
 		noSpaceLine := bytes.TrimSpace(rawLine)
-		if bytes.HasPrefix(noSpaceLine, errorPrefix) {
+		if errorPrefix.Match(noSpaceLine) {
 			hasErrorPrefix = true
 		}
-		if !bytes.HasPrefix(noSpaceLine, headerData) || hasErrorPrefix {
+		if !headerData.Match(noSpaceLine) || hasErrorPrefix {
 			if hasErrorPrefix {
-				noSpaceLine = bytes.TrimPrefix(noSpaceLine, headerData)
+				noSpaceLine = headerData.ReplaceAll(noSpaceLine, nil)
 			}
 			writeErr := stream.errAccumulator.Write(noSpaceLine)
 			if writeErr != nil {
-				return *new(T), writeErr
+				return nil, writeErr
 			}
 			emptyMessagesCount++
 			if emptyMessagesCount > stream.emptyMessagesLimit {
-				return *new(T), ErrTooManyEmptyStreamMessages
+				return nil, ErrTooManyEmptyStreamMessages
 			}
 
 			continue
 		}
 
-		noPrefixLine := bytes.TrimPrefix(noSpaceLine, headerData)
+		noPrefixLine := headerData.ReplaceAll(noSpaceLine, nil)
 		if string(noPrefixLine) == "[DONE]" {
 			stream.isFinished = true
-			return *new(T), io.EOF
+			return nil, io.EOF
 		}
 
-		var response T
-		unmarshalErr := stream.unmarshaler.Unmarshal(noPrefixLine, &response)
-		if unmarshalErr != nil {
-			return *new(T), unmarshalErr
-		}
-
-		return response, nil
+		return noPrefixLine, nil
 	}
 }
 

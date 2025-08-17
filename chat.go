@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
+
+	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -14,6 +16,7 @@ const (
 	ChatMessageRoleAssistant = "assistant"
 	ChatMessageRoleFunction  = "function"
 	ChatMessageRoleTool      = "tool"
+	ChatMessageRoleDeveloper = "developer"
 )
 
 const chatCompletionsSuffix = "/chat/completions"
@@ -93,7 +96,7 @@ type ChatMessagePart struct {
 
 type ChatCompletionMessage struct {
 	Role         string `json:"role"`
-	Content      string `json:"content"`
+	Content      string `json:"content,omitempty"`
 	Refusal      string `json:"refusal,omitempty"`
 	MultiContent []ChatMessagePart
 
@@ -102,6 +105,12 @@ type ChatCompletionMessage struct {
 	// - https://github.com/openai/openai-python/blob/main/chatml.md
 	// - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 	Name string `json:"name,omitempty"`
+
+	// This property is used for the "reasoning" feature supported by deepseek-reasoner
+	// which is not in the official documentation.
+	// the doc from deepseek:
+	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
+	ReasoningContent string `json:"reasoning_content,omitempty"`
 
 	FunctionCall *FunctionCall `json:"function_call,omitempty"`
 
@@ -118,41 +127,44 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 	}
 	if len(m.MultiContent) > 0 {
 		msg := struct {
-			Role         string            `json:"role"`
-			Content      string            `json:"-"`
-			Refusal      string            `json:"refusal,omitempty"`
-			MultiContent []ChatMessagePart `json:"content,omitempty"`
-			Name         string            `json:"name,omitempty"`
-			FunctionCall *FunctionCall     `json:"function_call,omitempty"`
-			ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
-			ToolCallID   string            `json:"tool_call_id,omitempty"`
+			Role             string            `json:"role"`
+			Content          string            `json:"-"`
+			Refusal          string            `json:"refusal,omitempty"`
+			MultiContent     []ChatMessagePart `json:"content,omitempty"`
+			Name             string            `json:"name,omitempty"`
+			ReasoningContent string            `json:"reasoning_content,omitempty"`
+			FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
+			ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
+			ToolCallID       string            `json:"tool_call_id,omitempty"`
 		}(m)
 		return json.Marshal(msg)
 	}
 
 	msg := struct {
-		Role         string            `json:"role"`
-		Content      string            `json:"content"`
-		Refusal      string            `json:"refusal,omitempty"`
-		MultiContent []ChatMessagePart `json:"-"`
-		Name         string            `json:"name,omitempty"`
-		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID   string            `json:"tool_call_id,omitempty"`
+		Role             string            `json:"role"`
+		Content          string            `json:"content,omitempty"`
+		Refusal          string            `json:"refusal,omitempty"`
+		MultiContent     []ChatMessagePart `json:"-"`
+		Name             string            `json:"name,omitempty"`
+		ReasoningContent string            `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
+		ToolCallID       string            `json:"tool_call_id,omitempty"`
 	}(m)
 	return json.Marshal(msg)
 }
 
 func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 	msg := struct {
-		Role         string `json:"role"`
-		Content      string `json:"content"`
-		Refusal      string `json:"refusal,omitempty"`
-		MultiContent []ChatMessagePart
-		Name         string        `json:"name,omitempty"`
-		FunctionCall *FunctionCall `json:"function_call,omitempty"`
-		ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
-		ToolCallID   string        `json:"tool_call_id,omitempty"`
+		Role             string `json:"role"`
+		Content          string `json:"content"`
+		Refusal          string `json:"refusal,omitempty"`
+		MultiContent     []ChatMessagePart
+		Name             string        `json:"name,omitempty"`
+		ReasoningContent string        `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
+		ToolCallID       string        `json:"tool_call_id,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
@@ -160,14 +172,15 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		return nil
 	}
 	multiMsg := struct {
-		Role         string `json:"role"`
-		Content      string
-		Refusal      string            `json:"refusal,omitempty"`
-		MultiContent []ChatMessagePart `json:"content"`
-		Name         string            `json:"name,omitempty"`
-		FunctionCall *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls    []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID   string            `json:"tool_call_id,omitempty"`
+		Role             string `json:"role"`
+		Content          string
+		Refusal          string            `json:"refusal,omitempty"`
+		MultiContent     []ChatMessagePart `json:"content"`
+		Name             string            `json:"name,omitempty"`
+		ReasoningContent string            `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
+		ToolCallID       string            `json:"tool_call_id,omitempty"`
 	}{}
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
@@ -179,7 +192,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 type ToolCall struct {
 	// Index is not nil only in chat completion chunk object
 	Index    *int         `json:"index,omitempty"`
-	ID       string       `json:"id"`
+	ID       string       `json:"id,omitempty"`
 	Type     ToolType     `json:"type"`
 	Function FunctionCall `json:"function"`
 }
@@ -210,13 +223,49 @@ type ChatCompletionResponseFormatJSONSchema struct {
 	Strict      bool           `json:"strict"`
 }
 
+func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) error {
+	type rawJSONSchema struct {
+		Name        string          `json:"name"`
+		Description string          `json:"description,omitempty"`
+		Schema      json.RawMessage `json:"schema"`
+		Strict      bool            `json:"strict"`
+	}
+	var raw rawJSONSchema
+	if err := json.Unmarshal(data, &raw); err != nil {
+		return err
+	}
+	r.Name = raw.Name
+	r.Description = raw.Description
+	r.Strict = raw.Strict
+	if len(raw.Schema) > 0 && string(raw.Schema) != "null" {
+		var d jsonschema.Definition
+		err := json.Unmarshal(raw.Schema, &d)
+		if err != nil {
+			return err
+		}
+		r.Schema = &d
+	}
+	return nil
+}
+
+// ChatCompletionRequestExtensions contains third-party OpenAI API extensions
+// (e.g., vendor-specific implementations like vLLM).
+type ChatCompletionRequestExtensions struct {
+	// GuidedChoice is a vLLM-specific extension that restricts the model's output
+	// to one of the predefined string choices provided in this field. This feature
+	// is used to constrain the model's responses to a controlled set of options,
+	// ensuring predictable and consistent outputs in scenarios where specific
+	// choices are required.
+	GuidedChoice []string `json:"guided_choice,omitempty"`
+}
+
 // ChatCompletionRequest represents a request structure for chat completion API.
 type ChatCompletionRequest struct {
 	Model    string                  `json:"model"`
 	Messages []ChatCompletionMessage `json:"messages"`
 	// MaxTokens The maximum number of tokens that can be generated in the chat completion.
 	// This value can be used to control costs for text generated via API.
-	// This value is now deprecated in favor of max_completion_tokens, and is not compatible with o1 series models.
+	// Deprecated: use MaxCompletionTokens. Not compatible with o1-series models.
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat-create-max_tokens
 	MaxTokens int `json:"max_tokens,omitempty"`
 	// MaxCompletionTokens An upper bound for the number of tokens that can be generated for a completion,
@@ -258,8 +307,26 @@ type ChatCompletionRequest struct {
 	// Store can be set to true to store the output of this completion request for use in distillations and evals.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
 	Store bool `json:"store,omitempty"`
+	// Controls effort on reasoning for reasoning models. It can be set to "low", "medium", or "high".
+	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`
+	// Configuration for a predicted output.
+	Prediction *Prediction `json:"prediction,omitempty"`
+	// ChatTemplateKwargs provides a way to add non-standard parameters to the request body.
+	// Additional kwargs to pass to the template renderer. Will be accessible by the chat template.
+	// Such as think mode for qwen3. "chat_template_kwargs": {"enable_thinking": false}
+	// https://qwen.readthedocs.io/en/latest/deployment/vllm.html#thinking-non-thinking-modes
+	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
+	// Specifies the latency tier to use for processing the request.
+	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// A stable identifier used to help detect users of your application that may be violating OpenAI's usage policies.
+	// The IDs should be a string that uniquely identifies each user.
+	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.
+	// https://platform.openai.com/docs/api-reference/chat/create#chat_create-safety_identifier
+	SafetyIdentifier string `json:"safety_identifier,omitempty"`
+	// Embedded struct for non-OpenAI extensions
+	ChatCompletionRequestExtensions
 }
 
 type StreamOptions struct {
@@ -327,6 +394,11 @@ type LogProbs struct {
 	Content []LogProb `json:"content"`
 }
 
+type Prediction struct {
+	Content string `json:"content"`
+	Type    string `json:"type"`
+}
+
 type FinishReason string
 
 const (
@@ -336,6 +408,15 @@ const (
 	FinishReasonToolCalls     FinishReason = "tool_calls"
 	FinishReasonContentFilter FinishReason = "content_filter"
 	FinishReasonNull          FinishReason = "null"
+)
+
+type ServiceTier string
+
+const (
+	ServiceTierAuto     ServiceTier = "auto"
+	ServiceTierDefault  ServiceTier = "default"
+	ServiceTierFlex     ServiceTier = "flex"
+	ServiceTierPriority ServiceTier = "priority"
 )
 
 func (r FinishReason) MarshalJSON() ([]byte, error) {
@@ -370,6 +451,7 @@ type ChatCompletionResponse struct {
 	Usage               Usage                  `json:"usage"`
 	SystemFingerprint   string                 `json:"system_fingerprint"`
 	PromptFilterResults []PromptFilterResult   `json:"prompt_filter_results,omitempty"`
+	ServiceTier         ServiceTier            `json:"service_tier,omitempty"`
 
 	httpHeader
 }
@@ -390,7 +472,8 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
-	if err = validateRequestForO1Models(request); err != nil {
+	reasoningValidator := NewReasoningValidator()
+	if err = reasoningValidator.Validate(request); err != nil {
 		return
 	}
 

@@ -84,6 +84,20 @@ func withBody(body any) requestOption {
 	}
 }
 
+func withExtraBody(extraBody map[string]any) requestOption {
+	return func(args *requestOptions) {
+		// Assert that args.body is a map[string]any.
+		bodyMap, ok := args.body.(map[string]any)
+		if ok {
+			// If it's a map[string]any then only add extraBody
+			// fields to args.body otherwise keep only fields in request struct.
+			for key, value := range extraBody {
+				bodyMap[key] = value
+			}
+		}
+	}
+}
+
 func withContentType(contentType string) requestOption {
 	return func(args *requestOptions) {
 		args.header.Set("Content-Type", contentType)
@@ -182,13 +196,21 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 
 func (c *Client) setCommonHeaders(req *http.Request) {
 	// https://learn.microsoft.com/en-us/azure/cognitive-services/openai/reference#authentication
-	// Azure API Key authentication
-	if c.config.APIType == APITypeAzure || c.config.APIType == APITypeCloudflareAzure {
+	switch c.config.APIType {
+	case APITypeAzure, APITypeCloudflareAzure:
+		// Azure API Key authentication
 		req.Header.Set(AzureAPIKeyHeader, c.config.authToken)
-	} else if c.config.authToken != "" {
-		// OpenAI or Azure AD authentication
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+	case APITypeAnthropic:
+		// https://docs.anthropic.com/en/api/versioning
+		req.Header.Set("anthropic-version", c.config.APIVersion)
+	case APITypeOpenAI, APITypeAzureAD:
+		fallthrough
+	default:
+		if c.config.authToken != "" {
+			req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", c.config.authToken))
+		}
 	}
+
 	if c.config.OrgID != "" {
 		req.Header.Set("OpenAI-Organization", c.config.OrgID)
 	}

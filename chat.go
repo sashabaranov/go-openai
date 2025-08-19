@@ -320,6 +320,12 @@ type ChatCompletionRequest struct {
 	ChatTemplateKwargs map[string]any `json:"chat_template_kwargs,omitempty"`
 	// Specifies the latency tier to use for processing the request.
 	ServiceTier ServiceTier `json:"service_tier,omitempty"`
+	// Verbosity determines how many output tokens are generated. Lowering the number of
+	// tokens reduces overall latency. It can be set to "low", "medium", or "high".
+	// Note: This field is only confirmed to work with gpt-5, gpt-5-mini and gpt-5-nano.
+	// Also, it is not in the API reference of chat completion at the time of writing,
+	// though it is supported by the API.
+	Verbosity string `json:"verbosity,omitempty"`
 	// A stable identifier used to help detect users of your application that may be violating OpenAI's usage policies.
 	// The IDs should be a string that uniquely identifies each user.
 	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.

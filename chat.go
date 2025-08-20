@@ -88,7 +88,7 @@ const (
 	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
 )
 
-// CacheControlConfig for anthropic prompt cache control
+// CacheControlConfig for anthropic prompt cache control.
 type CacheControlConfig struct {
 	Type string `json:"type,omitempty"`
 	TTL  string `json:"ttl,omitempty"`

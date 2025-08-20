@@ -88,10 +88,17 @@ const (
 	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
 )
 
+// CacheControlConfig for anthropic prompt cache control.
+type CacheControlConfig struct {
+	Type string `json:"type,omitempty"`
+	TTL  string `json:"ttl,omitempty"`
+}
+
 type ChatMessagePart struct {
-	Type     ChatMessagePartType  `json:"type,omitempty"`
-	Text     string               `json:"text,omitempty"`
-	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+	Type         ChatMessagePartType  `json:"type,omitempty"`
+	Text         string               `json:"text,omitempty"`
+	ImageURL     *ChatMessageImageURL `json:"image_url,omitempty"`
+	CacheControl *CacheControlConfig  `json:"cache_control,omitempty"`
 }
 
 type ChatCompletionMessage struct {
@@ -344,8 +351,9 @@ const (
 )
 
 type Tool struct {
-	Type     ToolType            `json:"type"`
-	Function *FunctionDefinition `json:"function,omitempty"`
+	Type         ToolType            `json:"type"`
+	Function     *FunctionDefinition `json:"function,omitempty"`
+	CacheControl *CacheControlConfig `json:"cache_control,omitempty"`
 }
 
 type ToolChoice struct {

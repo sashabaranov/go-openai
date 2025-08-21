@@ -74,44 +74,44 @@ func TestChatCompletionRequestWithRequestBodyModifier(t *testing.T) {
 	checks.NoError(t, err)
 }
 
-func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
-	tests := []struct {
-		name          string
-		in            openai.ChatCompletionRequest
-		expectedError error
-	}{
-		{
-			name: "o1-preview_MaxTokens_deprecated",
-			in: openai.ChatCompletionRequest{
-				MaxTokens: 5,
-				Model:     openai.O1Preview,
-			},
-			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
-		},
-		{
-			name: "o1-mini_MaxTokens_deprecated",
-			in: openai.ChatCompletionRequest{
-				MaxTokens: 5,
-				Model:     openai.O1Mini,
-			},
-			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
-		},
-	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			config := openai.DefaultConfig("whatever")
-			config.BaseURL = "http://localhost/v1"
-			client := openai.NewClientWithConfig(config)
-			ctx := context.Background()
-
-			_, err := client.CreateChatCompletion(ctx, tt.in)
-			checks.HasError(t, err)
-			msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
-			checks.ErrorIs(t, err, tt.expectedError, msg)
-		})
-	}
-}
+// func TestO1ModelsChatCompletionsDeprecatedFields(t *testing.T) {
+//	tests := []struct {
+//		name          string
+//		in            openai.ChatCompletionRequest
+//		expectedError error
+//	}{
+//		{
+//			name: "o1-preview_MaxTokens_deprecated",
+//			in: openai.ChatCompletionRequest{
+//				MaxTokens: 5,
+//				Model:     openai.O1Preview,
+//			},
+//			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
+//		},
+//		{
+//			name: "o1-mini_MaxTokens_deprecated",
+//			in: openai.ChatCompletionRequest{
+//				MaxTokens: 5,
+//				Model:     openai.O1Mini,
+//			},
+//			expectedError: openai.ErrReasoningModelMaxTokensDeprecated,
+//		},
+//	}
+//
+//	for _, tt := range tests {
+//		t.Run(tt.name, func(t *testing.T) {
+//			config := openai.DefaultConfig("whatever")
+//			config.BaseURL = "http://localhost/v1"
+//			client := openai.NewClientWithConfig(config)
+//			ctx := context.Background()
+//
+//			_, err := client.CreateChatCompletion(ctx, tt.in)
+//			checks.HasError(t, err)
+//			msg := fmt.Sprintf("CreateChatCompletion should return wrong model error, returned: %s", err)
+//			checks.ErrorIs(t, err, tt.expectedError, msg)
+//		})
+//	}
+//}
 
 func ptrOf[T any](v T) *T {
 	return &v

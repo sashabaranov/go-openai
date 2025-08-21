@@ -55,9 +55,6 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 
 // validateReasoningModelParams checks reasoning model parameters.
 func (v *ReasoningValidator) validateReasoningModelParams(request ChatCompletionRequest) error {
-	if request.MaxTokens > 0 {
-		return ErrReasoningModelMaxTokensDeprecated
-	}
 	if request.LogProbs {
 		return ErrReasoningModelLimitationsLogprobs
 	}

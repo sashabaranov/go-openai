@@ -257,11 +257,6 @@ type ChatCompletionRequestExtensions struct {
 	// ensuring predictable and consistent outputs in scenarios where specific
 	// choices are required.
 	GuidedChoice []string `json:"guided_choice,omitempty"`
-	// ExtraBody provides configuration options for the generation process in Gemini API.
-	// Additional configuration parameters to control model behavior. Will be passed directly to the Gemini API.
-	// Such as thinking mode for Gemini. "extra_body": {"google": {"thinking_config": {"include_thoughts": true}}}
-	// https://ai.google.dev/gemini-api/docs/openai
-	ExtraBody map[string]any `json:"extra_body,omitempty"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.
@@ -330,6 +325,11 @@ type ChatCompletionRequest struct {
 	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat_create-safety_identifier
 	SafetyIdentifier string `json:"safety_identifier,omitempty"`
+	// ExtraBody provides configuration options for the generation process in Gemini API.
+	// Additional configuration parameters to control model behavior. Will be passed directly to the Gemini API.
+	// Such as thinking mode for Gemini. "extra_body": {"google": {"thinking_config": {"include_thoughts": true}}}
+	// https://ai.google.dev/gemini-api/docs/openai
+	ExtraBody map[string]any `json:"extra_body,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
 }

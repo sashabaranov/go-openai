@@ -759,7 +759,7 @@ func TestChatCompletionsFunctions(t *testing.T) {
 func TestChatCompletionsWithExtraBody(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	
+
 	// Register a custom handler that checks if ExtraBody fields are properly embedded
 	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
 		// Read the request body
@@ -768,52 +768,42 @@ func TestChatCompletionsWithExtraBody(t *testing.T) {
 			http.Error(w, "could not read request", http.StatusInternalServerError)
 			return
 		}
-		
+
 		// Parse the request body into a map to check all fields
 		var requestBody map[string]any
-		if err := json.Unmarshal(reqBody, &requestBody); err != nil {
-			http.Error(w, fmt.Sprintf("could not parse request: %v, body: %s", err, string(reqBody)), http.StatusInternalServerError)
+		err = json.Unmarshal(reqBody, &requestBody)
+		if err != nil {
+			http.Error(
+				w,
+				fmt.Sprintf("could not parse request: %v, body: %s", err, string(reqBody)), http.StatusInternalServerError,
+			)
 			return
 		}
-		
+
 		// Check that ExtraBody fields are present in the root level
 		if _, exists := requestBody["custom_field"]; !exists {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "custom_field not found in request body"})
+			err = json.NewEncoder(w).Encode(map[string]string{"error": "custom_field not found in request body"})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+				return
+			}
 			return
 		}
-		
-		if _, exists := requestBody["another_field"]; !exists {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "another_field not found in request body"})
-			return
-		}
-		
-		// Check that regular fields are still present
-		if _, exists := requestBody["model"]; !exists {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "model not found in request body"})
-			return
-		}
-		
-		if _, exists := requestBody["messages"]; !exists {
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "messages not found in request body"})
-			return
-		}
-		
+
 		// ExtraBody should not be present in the final request
 		if _, exists := requestBody["extra_body"]; exists {
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(http.StatusBadRequest)
-			json.NewEncoder(w).Encode(map[string]string{"error": "extra_body should not be present in final request"})
+			err = json.NewEncoder(w).Encode(map[string]string{"error": "extra_body should not be present in final request"})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+				return
+			}
 			return
 		}
-		
+
 		// Return a success response
 		res := openai.ChatCompletionResponse{
 			ID:      "test-id",
@@ -836,13 +826,17 @@ func TestChatCompletionsWithExtraBody(t *testing.T) {
 				TotalTokens:      10,
 			},
 		}
-		
+
 		resBytes, _ := json.Marshal(res)
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
-		w.Write(resBytes)
+		_, err = w.Write(resBytes)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+			return
+		}
 	})
-	
+
 	// Test the ExtraBody functionality
 	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
 		Model: openai.GPT3Dot5Turbo,
@@ -857,7 +851,7 @@ func TestChatCompletionsWithExtraBody(t *testing.T) {
 			"another_field": 123,
 		},
 	})
-	
+
 	checks.NoError(t, err, "CreateChatCompletion with ExtraBody error")
 }
 

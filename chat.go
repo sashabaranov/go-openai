@@ -487,6 +487,7 @@ func (c *Client) CreateChatCompletion(
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
 		withBody(request),
+		withExtraBody(request.ExtraBody),
 	)
 	if err != nil {
 		return

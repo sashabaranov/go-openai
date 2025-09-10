@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"reflect"
+	"strings"
 
 	"github.com/bytedance/sonic"
 )
@@ -37,7 +38,12 @@ func UnmarshalExtraFields(typ reflect.Type, data []byte) (map[string]json.RawMes
 
 		jsonTag := field.Tag.Get("json")
 		if jsonTag != "" {
-			delete(m, jsonTag)
+			labels := strings.Split(jsonTag, ",")
+			if labels[0] == "-" {
+				continue
+			}
+
+			delete(m, labels[0])
 		} else {
 			if !field.IsExported() {
 				continue

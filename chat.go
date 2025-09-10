@@ -7,6 +7,7 @@ import (
 	"errors"
 	"io"
 	"net/http"
+	"reflect"
 
 	openai "github.com/meguminnnnnnnnn/go-openai/internal"
 
@@ -136,6 +137,8 @@ type ChatCompletionMessage struct {
 
 	// For Role=tool prompts this should be set to the ID given in the assistant's prior request to call a tool.
 	ToolCallID string `json:"tool_call_id,omitempty"`
+
+	ExtraFields map[string]json.RawMessage `json:"-"`
 }
 
 func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
@@ -144,29 +147,31 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 	}
 	if len(m.MultiContent) > 0 {
 		msg := struct {
-			Role             string            `json:"role"`
-			Content          string            `json:"-"`
-			Refusal          string            `json:"refusal,omitempty"`
-			MultiContent     []ChatMessagePart `json:"content,omitempty"`
-			Name             string            `json:"name,omitempty"`
-			ReasoningContent string            `json:"reasoning_content,omitempty"`
-			FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
-			ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
-			ToolCallID       string            `json:"tool_call_id,omitempty"`
+			Role             string                     `json:"role"`
+			Content          string                     `json:"-"`
+			Refusal          string                     `json:"refusal,omitempty"`
+			MultiContent     []ChatMessagePart          `json:"content,omitempty"`
+			Name             string                     `json:"name,omitempty"`
+			ReasoningContent string                     `json:"reasoning_content,omitempty"`
+			FunctionCall     *FunctionCall              `json:"function_call,omitempty"`
+			ToolCalls        []ToolCall                 `json:"tool_calls,omitempty"`
+			ToolCallID       string                     `json:"tool_call_id,omitempty"`
+			ExtraFields      map[string]json.RawMessage `json:"-"`
 		}(m)
 		return json.Marshal(msg)
 	}
 
 	msg := struct {
-		Role             string            `json:"role"`
-		Content          string            `json:"content,omitempty"`
-		Refusal          string            `json:"refusal,omitempty"`
-		MultiContent     []ChatMessagePart `json:"-"`
-		Name             string            `json:"name,omitempty"`
-		ReasoningContent string            `json:"reasoning_content,omitempty"`
-		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID       string            `json:"tool_call_id,omitempty"`
+		Role             string                     `json:"role"`
+		Content          string                     `json:"content,omitempty"`
+		Refusal          string                     `json:"refusal,omitempty"`
+		MultiContent     []ChatMessagePart          `json:"-"`
+		Name             string                     `json:"name,omitempty"`
+		ReasoningContent string                     `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall              `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall                 `json:"tool_calls,omitempty"`
+		ToolCallID       string                     `json:"tool_call_id,omitempty"`
+		ExtraFields      map[string]json.RawMessage `json:"-"`
 	}(m)
 	return json.Marshal(msg)
 }
@@ -177,32 +182,49 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		Content          string `json:"content"`
 		Refusal          string `json:"refusal,omitempty"`
 		MultiContent     []ChatMessagePart
-		Name             string        `json:"name,omitempty"`
-		ReasoningContent string        `json:"reasoning_content,omitempty"`
-		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
-		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
-		ToolCallID       string        `json:"tool_call_id,omitempty"`
+		Name             string                     `json:"name,omitempty"`
+		ReasoningContent string                     `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall              `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall                 `json:"tool_calls,omitempty"`
+		ToolCallID       string                     `json:"tool_call_id,omitempty"`
+		ExtraFields      map[string]json.RawMessage `json:"-"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
 		*m = ChatCompletionMessage(msg)
+		var extra map[string]json.RawMessage
+		extra, err = openai.UnmarshalExtraFields(reflect.TypeOf(m), bs)
+		if err != nil {
+			return err
+		}
+
+		m.ExtraFields = extra
 		return nil
 	}
+
 	multiMsg := struct {
 		Role             string `json:"role"`
 		Content          string
-		Refusal          string            `json:"refusal,omitempty"`
-		MultiContent     []ChatMessagePart `json:"content"`
-		Name             string            `json:"name,omitempty"`
-		ReasoningContent string            `json:"reasoning_content,omitempty"`
-		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID       string            `json:"tool_call_id,omitempty"`
+		Refusal          string                     `json:"refusal,omitempty"`
+		MultiContent     []ChatMessagePart          `json:"content"`
+		Name             string                     `json:"name,omitempty"`
+		ReasoningContent string                     `json:"reasoning_content,omitempty"`
+		FunctionCall     *FunctionCall              `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall                 `json:"tool_calls,omitempty"`
+		ToolCallID       string                     `json:"tool_call_id,omitempty"`
+		ExtraFields      map[string]json.RawMessage `json:"-"`
 	}{}
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
 	}
 	*m = ChatCompletionMessage(multiMsg)
+
+	extra, err := openai.UnmarshalExtraFields(reflect.TypeOf(m), bs)
+	if err != nil {
+		return err
+	}
+
+	m.ExtraFields = extra
 	return nil
 }
 

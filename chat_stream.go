@@ -2,8 +2,12 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"io"
 	"net/http"
+	"reflect"
+
+	openai "github.com/meguminnnnnnnnn/go-openai/internal"
 )
 
 type ChatCompletionStreamChoiceDelta struct {
@@ -18,6 +22,35 @@ type ChatCompletionStreamChoiceDelta struct {
 	// the doc from deepseek:
 	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
 	ReasoningContent string `json:"reasoning_content,omitempty"`
+
+	ExtraFields map[string]json.RawMessage `json:"-"`
+}
+
+func (c *ChatCompletionStreamChoiceDelta) UnmarshalJSON(bs []byte) error {
+	msg := struct {
+		Content          string        `json:"content,omitempty"`
+		Role             string        `json:"role,omitempty"`
+		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
+		Refusal          string        `json:"refusal,omitempty"`
+		ReasoningContent string        `json:"reasoning_content,omitempty"`
+
+		ExtraFields map[string]json.RawMessage `json:"-"`
+	}{}
+	err := json.Unmarshal(bs, &msg)
+	if err != nil {
+		return err
+	}
+
+	*c = msg
+	var extra map[string]json.RawMessage
+	extra, err = openai.UnmarshalExtraFields(reflect.TypeOf(c), bs)
+	if err != nil {
+		return err
+	}
+
+	c.ExtraFields = extra
+	return nil
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {

@@ -15,6 +15,7 @@ import (
 	"github.com/meguminnnnnnnnn/go-openai"
 	"github.com/meguminnnnnnnnn/go-openai/internal/test/checks"
 	"github.com/meguminnnnnnnnn/go-openai/jsonschema"
+	"github.com/stretchr/testify/assert"
 )
 
 const (
@@ -1159,4 +1160,43 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestChatCompletionMessage_UnmarshalJSON(t *testing.T) {
+	bs := []byte(`{
+  "role": "system",
+  "content": "You are a helpful math tutor.",
+  "name": "name",
+  "multimodal_contents": [
+    {
+      "type": "text",
+      "text": "ok"
+    },
+    {
+      "type": "text",
+      "text": "Generate a picture of a Shiba Inu dog for you。"
+    },
+    {
+      "type": "inline_data",
+      "inline_data": {
+        "mime_type": "image/png",
+        "data": "iVBI"
+      }
+    }
+  ]
+}`)
+	chatMessage := &openai.ChatCompletionMessage{}
+	err := json.Unmarshal(bs, chatMessage)
+	assert.Nil(t, err)
+
+	multimodalContent := chatMessage.ExtraFields["multimodal_contents"]
+	mContents := make([]map[string]any, 0)
+	err = json.Unmarshal(multimodalContent, &mContents)
+	assert.Nil(t, err)
+
+	assert.Equal(t, mContents, []map[string]any{
+		{"type": "text", "text": "ok"},
+		{"type": "text", "text": "Generate a picture of a Shiba Inu dog for you。"},
+		{"type": "inline_data", "inline_data": map[string]any{"mime_type": "image/png", "data": "iVBI"}},
+	})
 }

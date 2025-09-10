@@ -12,6 +12,7 @@ import (
 
 	"github.com/meguminnnnnnnnn/go-openai"
 	"github.com/meguminnnnnnnnn/go-openai/internal/test/checks"
+	"github.com/stretchr/testify/assert"
 )
 
 func TestChatCompletionsStreamWrongModel(t *testing.T) {
@@ -1020,4 +1021,35 @@ func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) 
 		return false
 	}
 	return true
+}
+
+func TestChatCompletionStreamChoiceDelta_UnmarshalJSON(t *testing.T) {
+	bs := []byte(`{
+  "content": "Hello!",
+  "role": "user",
+  "multimodal_content": {
+    "type": "inline_data",
+    "inline_data": {
+      "mime_type": "image/png",
+      "data": "iVB"
+    }
+  }
+}
+`)
+
+	delta := openai.ChatCompletionStreamChoiceDelta{}
+	err := json.Unmarshal(bs, &delta)
+	assert.NoError(t, err)
+	multimodalContent, ok := delta.ExtraFields["multimodal_content"]
+	assert.True(t, ok)
+	content := map[string]any{}
+	err = json.Unmarshal(multimodalContent, &content)
+	assert.NoError(t, err)
+	assert.Equal(t, map[string]any{
+		"type": "inline_data",
+		"inline_data": map[string]interface{}{
+			"mime_type": "image/png",
+			"data":      "iVB",
+		},
+	}, content)
 }

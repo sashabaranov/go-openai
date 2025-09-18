@@ -213,6 +213,12 @@ func TestStructToSchema(t *testing.T) {
 		SnakeCase  string `json:"snake_case" required:"true" description:"SnakeCase"`
 	}
 
+	type NewTagOmitzero struct {
+		ID   uint64 `json:"id,omitzero,string"`
+		Name string `json:"name"`
+		Age  int    `json:"age,omitzero"`
+	}
+
 	tests := []struct {
 		name string
 		in   any
@@ -618,6 +624,28 @@ func TestStructToSchema(t *testing.T) {
       "additionalProperties": false
     }
   }
+}`,
+		},
+		{
+			name: "Test int to string json and omitzero",
+			in:   NewTagOmitzero{},
+			want: `{
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+	"name": {
+      "type": "string"
+    },
+	"age": {
+	  "type": "integer"
+	}
+  },
+  "required": [
+    "name"
+  ],
+  "additionalProperties": false
 }`,
 		},
 	}

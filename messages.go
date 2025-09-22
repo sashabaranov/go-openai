@@ -22,9 +22,11 @@ type Message struct {
 	AssistantID *string          `json:"assistant_id,omitempty"`
 	RunID       *string          `json:"run_id,omitempty"`
 	Metadata    map[string]any   `json:"metadata"`
-	Prefix      bool             `json:"prefix"`
 
 	httpHeader
+
+	// Messari custom fields
+	Prefix bool `json:"prefix"`
 }
 
 type MessagesList struct {

@@ -3,6 +3,7 @@ package openai
 import (
 	"net/http"
 	"regexp"
+	"strings"
 )
 
 const (
@@ -70,7 +71,11 @@ func DefaultAzureConfig(apiKey, baseURL string) ClientConfig {
 		APIType:    APITypeAzure,
 		APIVersion: "2023-05-15",
 		AzureModelMapperFunc: func(model string) string {
-			return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+			// only 3.5 models have the "." stripped in their names
+			if strings.Contains(model, "3.5") {
+				return regexp.MustCompile(`[.:]`).ReplaceAllString(model, "")
+			}
+			return strings.ReplaceAll(model, ":", "")
 		},
 
 		HTTPClient: &http.Client{},

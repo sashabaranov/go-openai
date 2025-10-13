@@ -5,6 +5,13 @@ import (
 	"net/http"
 )
 
+// reference: https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.191e7b08wdOQzD&tab=api#/api/?type=model&url=2712576
+type OutputAudio struct {
+	Transcript string `json:"transcript"` // streamed text content
+	Data       string `json:"data"`       // base64-encoded audio data
+	ExpiresAt  int    `json:"expires_at"` // the timestamp when the request was created
+}
+
 type ChatCompletionStreamChoiceDelta struct {
 	Content      string        `json:"content,omitempty"`
 	Role         string        `json:"role,omitempty"`
@@ -16,7 +23,8 @@ type ChatCompletionStreamChoiceDelta struct {
 	// which is not in the official documentation.
 	// the doc from deepseek:
 	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
-	ReasoningContent string `json:"reasoning_content,omitempty"`
+	ReasoningContent string       `json:"reasoning_content,omitempty"`
+	Audio            *OutputAudio `json:"audio,omitempty"` // Audio is used for audio responses, if supported by the model, such as "qwen-omni".
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {
@@ -95,7 +103,7 @@ func (c *Client) CreateChatCompletionStream(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(&request),
 	)
 	if err != nil {
 		return nil, err

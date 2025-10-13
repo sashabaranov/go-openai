@@ -1,6 +1,7 @@
 package openai
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -86,12 +87,34 @@ type ChatMessagePartType string
 const (
 	ChatMessagePartTypeText     ChatMessagePartType = "text"
 	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
+	ChatMessagePartTypeAudio    ChatMessagePartType = "input_audio"
+	ChatMessagePartTypeVideo    ChatMessagePartType = "video"
+	ChatMessagePartTypeVideoURL ChatMessagePartType = "video_url"
 )
 
+/* reference:
+ * 	https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.191e7b08wdOQzD&tab=api#/api/?type=model&url=2712576
+ * 	https://help.aliyun.com/zh/model-studio/qwen-omni#423736d367a7x
+ */
+type InputAudio struct {
+	Data   string `json:"data"`
+	Format string `json:"format"`
+}
+
+type CacheControl struct {
+	Type string `json:"type"` // must be "ephemeral"
+}
+
 type ChatMessagePart struct {
-	Type     ChatMessagePartType  `json:"type,omitempty"`
-	Text     string               `json:"text,omitempty"`
-	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+	Type          ChatMessagePartType  `json:"type,omitempty"`
+	Text          string               `json:"text,omitempty"`
+	ImageURL      *ChatMessageImageURL `json:"image_url,omitempty"`
+	Audio         *InputAudio          `json:"input_audio,omitempty"` // required when Type is "input_audio"
+	VideoURL      *ChatMessageImageURL `json:"video_url,omitempty"`   // required when Type is "video_url"
+	Video         []string             `json:"video,omitempty"`       // required when Type is "video", array of image URLs
+	MinPixels     int                  `json:"min_pixels,omitempty"`
+	MaxPixels     int                  `json:"max_pixels,omitempty"`
+	*CacheControl `json:"cache_control,omitempty"`
 }
 
 type ChatCompletionMessage struct {
@@ -333,6 +356,33 @@ type ChatCompletionRequest struct {
 	SafetyIdentifier string `json:"safety_identifier,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
+	// non-OpenAI extensions
+	Extensions map[string]interface{} `json:"-"`
+}
+
+type customChatCompletionRequest ChatCompletionRequest
+
+func (r *ChatCompletionRequest) MarshalJSON() ([]byte, error) {
+	if len(r.Extensions) == 0 {
+		return json.Marshal((*customChatCompletionRequest)(r))
+	}
+	buf := bytes.NewBuffer(nil)
+	encoder := json.NewEncoder(buf)
+	if err := encoder.Encode((*customChatCompletionRequest)(r)); err != nil {
+		return nil, err
+	}
+	// remove the trailing "}\n"
+	buf.Truncate(buf.Len() - 2)
+	// record the current position
+	pos := buf.Len()
+	// append extensions
+	if err := encoder.Encode(r.Extensions); err != nil {
+		return nil, err
+	}
+	data := buf.Bytes()
+	// change the leading '{' of extensions to ','
+	data[pos] = ','
+	return data, nil
 }
 
 type StreamOptions struct {

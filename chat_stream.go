@@ -5,9 +5,6 @@ import (
 	"net/http"
 )
 
-/* reference: https://bailian.console.aliyun.com/
- * ?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.191e7b08wdOQzD&tab=api#/api/?type=model&url=2712576
- */
 type OutputAudio struct {
 	Transcript string `json:"transcript"` // streamed text content
 	Data       string `json:"data"`       // base64-encoded audio data

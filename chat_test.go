@@ -1232,7 +1232,7 @@ func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
 				},
 				Extensions: map[string]interface{}{
 					"custom_field": "custom_value",
-					"number": 42,
+					"number":       42,
 				},
 			},
 			wantErr: false,
@@ -1260,30 +1260,38 @@ func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
 			if tt.wantErr {
 				return
 			}
-			
+
 			var result map[string]interface{}
 			if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
 				t.Errorf("Failed to unmarshal result: %v", unmarshalErr)
 				return
 			}
-			
-			// Check that model is present
-			if result["model"] != tt.request.Model {
-				t.Errorf("Expected model %s, got %v", tt.request.Model, result["model"])
-			}
-			
-			// Check extensions are merged properly when present
-			if len(tt.request.Extensions) > 0 {
-				for key, value := range tt.request.Extensions {
-					// Convert both to string for comparison to handle type differences
-					resultStr := fmt.Sprintf("%v", result[key])
-					valueStr := fmt.Sprintf("%v", value)
-					if resultStr != valueStr {
-						t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
-					}
-				}
-			}
+
+			validateChatCompletionRequestResult(t, tt.request, result)
 		})
+	})
+}
+
+func validateChatCompletionRequestResult(t *testing.T, request openai.ChatCompletionRequest, result map[string]interface{}) {
+	// Check that model is present
+	if result["model"] != request.Model {
+		t.Errorf("Expected model %s, got %v", request.Model, result["model"])
+	}
+
+	// Check extensions are merged properly when present
+	if len(request.Extensions) > 0 {
+		validateExtensions(t, request.Extensions, result)
+	}
+}
+
+func validateExtensions(t *testing.T, extensions map[string]interface{}, result map[string]interface{}) {
+	for key, value := range extensions {
+		// Convert both to string for comparison to handle type differences
+		resultStr := fmt.Sprintf("%v", result[key])
+		valueStr := fmt.Sprintf("%v", value)
+		if resultStr != valueStr {
+			t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
+		}
 	}
 }
 
@@ -1295,8 +1303,8 @@ func TestChatMessagePart_NewFields(t *testing.T) {
 		{
 			name: "with audio part",
 			part: openai.ChatMessagePart{
-				Type: openai.ChatMessagePartTypeAudio,
-				Video: []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
+				Type:      openai.ChatMessagePartTypeAudio,
+				Video:     []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
 				MinPixels: 100,
 				MaxPixels: 1000,
 			},

@@ -1205,3 +1205,198 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		request openai.ChatCompletionRequest
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "without extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "with extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"custom_field": "custom_value",
+					"number":      42,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "with empty extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.request)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if !tt.wantErr {
+				var result map[string]interface{}
+				if err := json.Unmarshal(data, &result); err != nil {
+					t.Errorf("Failed to unmarshal result: %v", err)
+					return
+				}
+				
+				// Check that model is present
+				if result["model"] != tt.request.Model {
+					t.Errorf("Expected model %s, got %v", tt.request.Model, result["model"])
+				}
+				
+				// Check extensions are merged properly when present
+				if len(tt.request.Extensions) > 0 {
+					for key, value := range tt.request.Extensions {
+						// Convert both to string for comparison to handle type differences
+						resultStr := fmt.Sprintf("%v", result[key])
+						valueStr := fmt.Sprintf("%v", value)
+						if resultStr != valueStr {
+							t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
+						}
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestChatMessagePart_NewFields(t *testing.T) {
+	tests := []struct {
+		name string
+		part openai.ChatMessagePart
+	}{
+		{
+			name: "with audio part",
+			part: openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeAudio,
+				Video: []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
+				MinPixels: 100,
+				MaxPixels: 1000,
+			},
+		},
+		{
+			name: "with video URL part",
+			part: openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeVideoURL,
+				VideoURL: &openai.ChatMessageImageURL{
+					URL: "https://example.com/video.mp4",
+				},
+			},
+		},
+		{
+			name: "with video part",
+			part: openai.ChatMessagePart{
+				Type:      openai.ChatMessagePartTypeVideo,
+				Video:     []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
+				MinPixels: 100,
+				MaxPixels: 1000,
+			},
+		},
+		{
+			name: "with cache control",
+			part: openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeText,
+				Text: "Hello",
+				CacheControl: &openai.CacheControl{
+					Type: "ephemeral",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test JSON marshaling
+			data, err := json.Marshal(tt.part)
+			if err != nil {
+				t.Errorf("Failed to marshal ChatMessagePart: %v", err)
+				return
+			}
+
+			// Test JSON unmarshaling
+			var result openai.ChatMessagePart
+			if err := json.Unmarshal(data, &result); err != nil {
+				t.Errorf("Failed to unmarshal ChatMessagePart: %v", err)
+				return
+			}
+
+			// Verify the type is preserved
+			if result.Type != tt.part.Type {
+				t.Errorf("Expected type %s, got %s", tt.part.Type, result.Type)
+			}
+		})
+	}
+}
+
+func TestInputAudio(t *testing.T) {
+	audio := openai.InputAudio{
+		Data:   "base64encodedaudiodata",
+		Format: "wav",
+	}
+
+	data, err := json.Marshal(audio)
+	if err != nil {
+		t.Errorf("Failed to marshal InputAudio: %v", err)
+		return
+	}
+
+	var result openai.InputAudio
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Errorf("Failed to unmarshal InputAudio: %v", err)
+		return
+	}
+
+	if result.Data != audio.Data {
+		t.Errorf("Expected data %s, got %s", audio.Data, result.Data)
+	}
+	if result.Format != audio.Format {
+		t.Errorf("Expected format %s, got %s", audio.Format, result.Format)
+	}
+}
+
+func TestCacheControl(t *testing.T) {
+	cacheControl := openai.CacheControl{
+		Type: "ephemeral",
+	}
+
+	data, err := json.Marshal(cacheControl)
+	if err != nil {
+		t.Errorf("Failed to marshal CacheControl: %v", err)
+		return
+	}
+
+	var result openai.CacheControl
+	if err := json.Unmarshal(data, &result); err != nil {
+		t.Errorf("Failed to unmarshal CacheControl: %v", err)
+		return
+	}
+
+	if result.Type != cacheControl.Type {
+		t.Errorf("Expected type %s, got %s", cacheControl.Type, result.Type)
+	}
+}

@@ -1052,7 +1052,7 @@ func TestOutputAudio(t *testing.T) {
 	}
 }
 
-// verifyAudioContent checks if the audio content matches between expected and actual.
+// verifyAudioContent checks if the audio content matches between expected and actual
 func verifyAudioContent(t *testing.T, expected, actual *openai.OutputAudio) {
 	if actual.Transcript != expected.Transcript {
 		t.Errorf("Expected audio transcript %s, got %s", expected.Transcript, actual.Transcript)
@@ -1065,7 +1065,7 @@ func verifyAudioContent(t *testing.T, expected, actual *openai.OutputAudio) {
 	}
 }
 
-// verifyAudioInDelta verifies the audio field in ChatCompletionStreamChoiceDelta.
+// verifyAudioInDelta verifies the audio field in ChatCompletionStreamChoiceDelta
 func verifyAudioInDelta(t *testing.T, expected, actual openai.ChatCompletionStreamChoiceDelta) {
 	if expected.Audio != nil {
 		if actual.Audio == nil {
@@ -1078,11 +1078,8 @@ func verifyAudioInDelta(t *testing.T, expected, actual openai.ChatCompletionStre
 	}
 }
 
-// testDeltaSerialization tests JSON marshaling and unmarshaling of a delta.
-func testDeltaSerialization(
-	t *testing.T, 
-	delta openai.ChatCompletionStreamChoiceDelta,
-) openai.ChatCompletionStreamChoiceDelta {
+// testDeltaSerialization tests JSON marshaling and unmarshaling of a delta
+func testDeltaSerialization(t *testing.T, delta openai.ChatCompletionStreamChoiceDelta) openai.ChatCompletionStreamChoiceDelta {
 	// Test JSON marshaling
 	data, err := json.Marshal(delta)
 	if err != nil {
@@ -1149,16 +1146,11 @@ func TestCreateChatCompletionStreamWithAudio(t *testing.T) {
 		// Send test responses with audio
 		dataBytes := []byte{}
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
-		data := `{"id":"1","object":"chat.completion.chunk","created":1729585728,` +
-			`"model":"qwen-omni","choices":[{"index":0,"delta":{"content":"Hello"},` +
-			`"finish_reason":null}]}`
+		data := `{"id":"1","object":"chat.completion.chunk","created":1729585728,"model":"qwen-omni","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
-		data = `{"id":"2","object":"chat.completion.chunk","created":1729585728,` +
-			`"model":"qwen-omni","choices":[{"index":0,"delta":{"audio":` +
-			`{"transcript":"Hello, world!","data":"base64encodedaudiodata",` +
-			`"expires_at":1234567890}},"finish_reason":null}]}`
+		data = `{"id":"2","object":"chat.completion.chunk","created":1729585728,"model":"qwen-omni","choices":[{"index":0,"delta":{"audio":{"transcript":"Hello, world!","data":"base64encodedaudiodata","expires_at":1234567890}},"finish_reason":null}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
 
 		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)

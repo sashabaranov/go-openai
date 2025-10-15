@@ -93,7 +93,8 @@ const (
 )
 
 /* reference:
- * 	https://bailian.console.aliyun.com/?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.191e7b08wdOQzD&tab=api#/api/?type=model&url=2712576
+ * 	https://bailian.console.aliyun.com/
+ * 		?spm=5176.29597918.J_SEsSjsNv72yRuRFS2VknO.2.191e7b08wdOQzD&tab=api#/api/?type=model&url=2712576
  * 	https://help.aliyun.com/zh/model-studio/qwen-omni#423736d367a7x
  */
 type InputAudio struct {
@@ -362,6 +363,7 @@ type ChatCompletionRequest struct {
 
 type customChatCompletionRequest ChatCompletionRequest
 
+const TrailingLen = 2 // length of "}\n"
 func (r *ChatCompletionRequest) MarshalJSON() ([]byte, error) {
 	if len(r.Extensions) == 0 {
 		return json.Marshal((*customChatCompletionRequest)(r))
@@ -372,7 +374,7 @@ func (r *ChatCompletionRequest) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	// remove the trailing "}\n"
-	buf.Truncate(buf.Len() - 2)
+	buf.Truncate(buf.Len() - TrailingLen)
 	// record the current position
 	pos := buf.Len()
 	// append extensions

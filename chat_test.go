@@ -1232,7 +1232,7 @@ func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
 				},
 				Extensions: map[string]interface{}{
 					"custom_field": "custom_value",
-					"number":      42,
+					"number": 42,
 				},
 			},
 			wantErr: false,
@@ -1257,27 +1257,29 @@ func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
 				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 				return
 			}
-			if !tt.wantErr {
-				var result map[string]interface{}
-				if err := json.Unmarshal(data, &result); err != nil {
-					t.Errorf("Failed to unmarshal result: %v", err)
-					return
-				}
-				
-				// Check that model is present
-				if result["model"] != tt.request.Model {
-					t.Errorf("Expected model %s, got %v", tt.request.Model, result["model"])
-				}
-				
-				// Check extensions are merged properly when present
-				if len(tt.request.Extensions) > 0 {
-					for key, value := range tt.request.Extensions {
-						// Convert both to string for comparison to handle type differences
-						resultStr := fmt.Sprintf("%v", result[key])
-						valueStr := fmt.Sprintf("%v", value)
-						if resultStr != valueStr {
-							t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
-						}
+			if tt.wantErr {
+				return
+			}
+			
+			var result map[string]interface{}
+			if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+				t.Errorf("Failed to unmarshal result: %v", unmarshalErr)
+				return
+			}
+			
+			// Check that model is present
+			if result["model"] != tt.request.Model {
+				t.Errorf("Expected model %s, got %v", tt.request.Model, result["model"])
+			}
+			
+			// Check extensions are merged properly when present
+			if len(tt.request.Extensions) > 0 {
+				for key, value := range tt.request.Extensions {
+					// Convert both to string for comparison to handle type differences
+					resultStr := fmt.Sprintf("%v", result[key])
+					valueStr := fmt.Sprintf("%v", value)
+					if resultStr != valueStr {
+						t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
 					}
 				}
 			}
@@ -1340,8 +1342,8 @@ func TestChatMessagePart_NewFields(t *testing.T) {
 
 			// Test JSON unmarshaling
 			var result openai.ChatMessagePart
-			if err := json.Unmarshal(data, &result); err != nil {
-				t.Errorf("Failed to unmarshal ChatMessagePart: %v", err)
+			if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+				t.Errorf("Failed to unmarshal ChatMessagePart: %v", unmarshalErr)
 				return
 			}
 
@@ -1366,8 +1368,8 @@ func TestInputAudio(t *testing.T) {
 	}
 
 	var result openai.InputAudio
-	if err := json.Unmarshal(data, &result); err != nil {
-		t.Errorf("Failed to unmarshal InputAudio: %v", err)
+	if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+		t.Errorf("Failed to unmarshal InputAudio: %v", unmarshalErr)
 		return
 	}
 
@@ -1391,8 +1393,8 @@ func TestCacheControl(t *testing.T) {
 	}
 
 	var result openai.CacheControl
-	if err := json.Unmarshal(data, &result); err != nil {
-		t.Errorf("Failed to unmarshal CacheControl: %v", err)
+	if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+		t.Errorf("Failed to unmarshal CacheControl: %v", unmarshalErr)
 		return
 	}
 

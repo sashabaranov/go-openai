@@ -1269,7 +1269,7 @@ func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
 
 			validateChatCompletionRequestResult(t, tt.request, result)
 		})
-	})
+	}
 }
 
 func validateChatCompletionRequestResult(t *testing.T, request openai.ChatCompletionRequest, result map[string]interface{}) {

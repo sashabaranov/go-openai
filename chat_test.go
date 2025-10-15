@@ -1400,3 +1400,90 @@ func TestCacheControl(t *testing.T) {
 		t.Errorf("Expected type %s, got %s", cacheControl.Type, result.Type)
 	}
 }
+
+func TestChatCompletionRequest_MarshalJSON_EdgeCases(t *testing.T) {
+	// Test with complex extension values that might cause encoding issues
+	tests := []struct {
+		name      string
+		request   openai.ChatCompletionRequest
+		expectErr bool
+	}{
+		{
+			name: "with nil value in extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"nil_value": nil,
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "with complex nested structure in extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"nested": map[string]interface{}{
+						"inner": map[string]interface{}{
+							"value": "deep",
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "with function in extensions (should cause error)",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"function": func() {}, // functions cannot be JSON encoded
+				},
+			},
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := json.Marshal(&tt.request)
+			if (err != nil) != tt.expectErr {
+				t.Errorf("MarshalJSON() error = %v, expectErr %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func TestChatCompletionRequest_MarshalJSON_InvalidRequest(t *testing.T) {
+	// Test with invalid request data that might cause encoding errors
+	// Create a request with invalid channel in messages (this should cause an encoding error)
+	invalidMsg := make(chan int)
+	request := openai.ChatCompletionRequest{
+		Model: "gpt-3.5-turbo",
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello",
+				// We can't directly add a channel to the message struct,
+				// so we'll test with extensions instead
+			},
+		},
+		Extensions: map[string]interface{}{
+			"invalid_channel": invalidMsg, // channels cannot be JSON encoded
+		},
+	}
+
+	_, err := json.Marshal(&request)
+	if err == nil {
+		t.Error("Expected marshal to fail with invalid channel in extensions")
+	}
+}

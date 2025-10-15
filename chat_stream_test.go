@@ -1036,7 +1036,7 @@ func TestOutputAudio(t *testing.T) {
 	}
 
 	var result openai.OutputAudio
-	if err := json.Unmarshal(data, &result); err != nil {
+	if err = json.Unmarshal(data, &result); err != nil {
 		t.Errorf("Failed to unmarshal OutputAudio: %v", err)
 		return
 	}
@@ -1050,6 +1050,51 @@ func TestOutputAudio(t *testing.T) {
 	if result.ExpiresAt != audio.ExpiresAt {
 		t.Errorf("Expected expires_at %d, got %d", audio.ExpiresAt, result.ExpiresAt)
 	}
+}
+
+// verifyAudioContent checks if the audio content matches between expected and actual
+func verifyAudioContent(t *testing.T, expected, actual *openai.OutputAudio) {
+	if actual.Transcript != expected.Transcript {
+		t.Errorf("Expected audio transcript %s, got %s", expected.Transcript, actual.Transcript)
+	}
+	if actual.Data != expected.Data {
+		t.Errorf("Expected audio data %s, got %s", expected.Data, actual.Data)
+	}
+	if actual.ExpiresAt != expected.ExpiresAt {
+		t.Errorf("Expected audio expires_at %d, got %d", expected.ExpiresAt, actual.ExpiresAt)
+	}
+}
+
+// verifyAudioInDelta verifies the audio field in ChatCompletionStreamChoiceDelta
+func verifyAudioInDelta(t *testing.T, expected, actual openai.ChatCompletionStreamChoiceDelta) {
+	if expected.Audio != nil {
+		if actual.Audio == nil {
+			t.Error("Expected audio to be present, but it's nil")
+			return
+		}
+		verifyAudioContent(t, expected.Audio, actual.Audio)
+	} else if actual.Audio != nil {
+		t.Error("Expected audio to be nil, but it's present")
+	}
+}
+
+// testDeltaSerialization tests JSON marshaling and unmarshaling of a delta
+func testDeltaSerialization(t *testing.T, delta openai.ChatCompletionStreamChoiceDelta) openai.ChatCompletionStreamChoiceDelta {
+	// Test JSON marshaling
+	data, err := json.Marshal(delta)
+	if err != nil {
+		t.Errorf("Failed to marshal ChatCompletionStreamChoiceDelta: %v", err)
+		return openai.ChatCompletionStreamChoiceDelta{}
+	}
+
+	// Test JSON unmarshaling
+	var result openai.ChatCompletionStreamChoiceDelta
+	if err = json.Unmarshal(data, &result); err != nil {
+		t.Errorf("Failed to unmarshal ChatCompletionStreamChoiceDelta: %v", err)
+		return openai.ChatCompletionStreamChoiceDelta{}
+	}
+
+	return result
 }
 
 func TestChatCompletionStreamChoiceDelta_Audio(t *testing.T) {
@@ -1078,19 +1123,7 @@ func TestChatCompletionStreamChoiceDelta_Audio(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			// Test JSON marshaling
-			data, err := json.Marshal(tt.delta)
-			if err != nil {
-				t.Errorf("Failed to marshal ChatCompletionStreamChoiceDelta: %v", err)
-				return
-			}
-
-			// Test JSON unmarshaling
-			var result openai.ChatCompletionStreamChoiceDelta
-			if err := json.Unmarshal(data, &result); err != nil {
-				t.Errorf("Failed to unmarshal ChatCompletionStreamChoiceDelta: %v", err)
-				return
-			}
+			result := testDeltaSerialization(t, tt.delta)
 
 			// Verify the content is preserved
 			if result.Content != tt.delta.Content {
@@ -1098,23 +1131,7 @@ func TestChatCompletionStreamChoiceDelta_Audio(t *testing.T) {
 			}
 
 			// Verify audio is preserved when present
-			if tt.delta.Audio != nil {
-				if result.Audio == nil {
-					t.Error("Expected audio to be present, but it's nil")
-					return
-				}
-				if result.Audio.Transcript != tt.delta.Audio.Transcript {
-					t.Errorf("Expected audio transcript %s, got %s", tt.delta.Audio.Transcript, result.Audio.Transcript)
-				}
-				if result.Audio.Data != tt.delta.Audio.Data {
-					t.Errorf("Expected audio data %s, got %s", tt.delta.Audio.Data, result.Audio.Data)
-				}
-				if result.Audio.ExpiresAt != tt.delta.Audio.ExpiresAt {
-					t.Errorf("Expected audio expires_at %d, got %d", tt.delta.Audio.ExpiresAt, result.Audio.ExpiresAt)
-				}
-			} else if result.Audio != nil {
-				t.Error("Expected audio to be nil, but it's present")
-			}
+			verifyAudioInDelta(t, tt.delta, result)
 		})
 	}
 }
@@ -1122,7 +1139,7 @@ func TestChatCompletionStreamChoiceDelta_Audio(t *testing.T) {
 func TestCreateChatCompletionStreamWithAudio(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
-	
+
 	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "text/event-stream")
 
@@ -1131,11 +1148,11 @@ func TestCreateChatCompletionStreamWithAudio(t *testing.T) {
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
 		data := `{"id":"1","object":"chat.completion.chunk","created":1729585728,"model":"qwen-omni","choices":[{"index":0,"delta":{"content":"Hello"},"finish_reason":null}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
-		
+
 		dataBytes = append(dataBytes, []byte("event: message\n")...)
 		data = `{"id":"2","object":"chat.completion.chunk","created":1729585728,"model":"qwen-omni","choices":[{"index":0,"delta":{"audio":{"transcript":"Hello, world!","data":"base64encodedaudiodata","expires_at":1234567890}},"finish_reason":null}]}`
 		dataBytes = append(dataBytes, []byte("data: "+data+"\n\n")...)
-		
+
 		dataBytes = append(dataBytes, []byte("data: [DONE]\n\n")...)
 		_, _ = w.Write(dataBytes)
 	})
@@ -1160,7 +1177,8 @@ func TestCreateChatCompletionStreamWithAudio(t *testing.T) {
 
 	hasAudio := false
 	for {
-		resp, err := stream.Recv()
+		var resp openai.ChatCompletionStreamResponse
+		resp, err = stream.Recv()
 		if errors.Is(err, io.EOF) {
 			break
 		}

@@ -1,0 +1,47 @@
+package main
+
+import (
+	"context"
+	"fmt"
+	"log"
+	"os"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	// Best Practice: load the API key from an environment variable.
+	apiKey := os.Getenv("OPENAI_API_KEY")
+	if apiKey == "" {
+		log.Fatalln("Missing OPENAI_API_KEY environment variable")
+	}
+
+	client := openai.NewClient(apiKey)
+	resp, err := client.CreateChatCompletion(
+		context.Background(),
+		openai.ChatCompletionRequest{
+			Model: openai.GPT3Dot5Turbo,
+			Messages: []openai.ChatCompletionMessage{
+				{
+					Role:    openai.ChatMessageRoleUser,
+					Content: "Hello, world!",
+				},
+			},
+		},
+	)
+
+	if err != nil {
+		// Using log provides timestamp and source file information, which is
+		// helpful for debugging.
+		log.Printf("ChatCompletion error: %v\n", err)
+		return
+	}
+
+	// The response may contain multiple choices, so it's good practice
+	// to check the length of the Choices array.
+	if len(resp.Choices) > 0 {
+		fmt.Println(resp.Choices[0].Message.Content)
+	} else {
+		fmt.Println("No choices returned from the API.")
+	}
+}

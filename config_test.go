@@ -21,6 +21,10 @@ func TestGetAzureDeploymentByModel(t *testing.T) {
 			Expect: "gpt-35-turbo-0301",
 		},
 		{
+			Model:  "gpt-4.1",
+			Expect: "gpt-4.1",
+		},
+		{
 			Model:  "text-embedding-ada-002",
 			Expect: "text-embedding-ada-002",
 		},

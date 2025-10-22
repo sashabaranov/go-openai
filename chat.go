@@ -81,17 +81,26 @@ type ChatMessageImageURL struct {
 	Detail ImageURLDetail `json:"detail,omitempty"`
 }
 
+// ChatMessageFile is a placeholder for file parts in chat messages.
+type ChatMessageFile struct {
+	FileID   string `json:"file_id,omitempty"`
+	FileName string `json:"filename,omitempty"`
+	FileData string `json:"file_data,omitempty"` // Base64 encoded file data
+}
+
 type ChatMessagePartType string
 
 const (
 	ChatMessagePartTypeText     ChatMessagePartType = "text"
 	ChatMessagePartTypeImageURL ChatMessagePartType = "image_url"
+	ChatMessagePartTypeFile     ChatMessagePartType = "file"
 )
 
 type ChatMessagePart struct {
 	Type     ChatMessagePartType  `json:"type,omitempty"`
 	Text     string               `json:"text,omitempty"`
 	ImageURL *ChatMessageImageURL `json:"image_url,omitempty"`
+	File     *ChatMessageFile     `json:"file,omitempty"`
 }
 
 type ChatCompletionMessage struct {

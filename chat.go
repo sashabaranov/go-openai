@@ -257,6 +257,18 @@ type ChatCompletionRequestExtensions struct {
 	// ensuring predictable and consistent outputs in scenarios where specific
 	// choices are required.
 	GuidedChoice []string `json:"guided_choice,omitempty"`
+
+	// Reasoning is a OpenRouter extension for controlling reasoning tokens.
+	Reasoning struct {
+		// Can be "high", "medium", or "low" (OpenAI-style)
+		Effort string `json:"effort,omitempty"`
+		// Specific token limit (Anthropic-style)
+		MaxTokens int `json:"max_tokens,omitempty"`
+		// Set to true to exclude reasoning tokens from response
+		Exclude bool `json:"exclude"`
+		// Default: inferred from `effort` or `max_tokens`
+		Enabled bool `json:"enabled"`
+	} `json:"reasoning,omitempty"`
 }
 
 // ChatCompletionRequest represents a request structure for chat completion API.

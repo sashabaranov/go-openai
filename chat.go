@@ -331,6 +331,11 @@ type ChatCompletionRequest struct {
 	// We recommend hashing their username or email address, in order to avoid sending us any identifying information.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat_create-safety_identifier
 	SafetyIdentifier string `json:"safety_identifier,omitempty"`
+	// ExtraBody provides configuration options for the generation process in Gemini API.
+	// Additional configuration parameters to control model behavior. Will be passed directly to the Gemini API.
+	// Such as thinking mode for Gemini. "extra_body": {"google": {"thinking_config": {"include_thoughts": true}}}
+	// https://ai.google.dev/gemini-api/docs/openai
+	ExtraBody map[string]any `json:"extra_body,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
 }
@@ -483,11 +488,28 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
+	// The body map is used to dynamically construct the request payload for the chat completion API.
+	// Instead of relying on a fixed struct, the body map allows for flexible inclusion of fields
+	// based on their presence, avoiding unnecessary or empty fields in the request.
+	extraBody := request.ExtraBody
+	request.ExtraBody = nil
+
+	// Serialize request to JSON
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	// Deserialize JSON to map[string]any
+	var body map[string]any
+	_ = json.Unmarshal(jsonData, &body)
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),           // Main request body.
+		withExtraBody(extraBody), // Merge ExtraBody fields.
 	)
 	if err != nil {
 		return

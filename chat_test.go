@@ -756,6 +756,105 @@ func TestChatCompletionsFunctions(t *testing.T) {
 	})
 }
 
+func TestChatCompletionsWithExtraBody(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	// Register a custom handler that checks if ExtraBody fields are properly embedded
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, r *http.Request) {
+		// Read the request body
+		reqBody, err := io.ReadAll(r.Body)
+		if err != nil {
+			http.Error(w, "could not read request", http.StatusInternalServerError)
+			return
+		}
+
+		// Parse the request body into a map to check all fields
+		var requestBody map[string]any
+		err = json.Unmarshal(reqBody, &requestBody)
+		if err != nil {
+			http.Error(
+				w,
+				fmt.Sprintf("could not parse request: %v, body: %s", err, string(reqBody)), http.StatusInternalServerError,
+			)
+			return
+		}
+
+		// Check that ExtraBody fields are present in the root level
+		if _, exists := requestBody["custom_field"]; !exists {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			err = json.NewEncoder(w).Encode(map[string]string{"error": "custom_field not found in request body"})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
+		// ExtraBody should not be present in the final request
+		if _, exists := requestBody["extra_body"]; exists {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusBadRequest)
+			err = json.NewEncoder(w).Encode(map[string]string{"error": "extra_body should not be present in final request"})
+			if err != nil {
+				http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+				return
+			}
+			return
+		}
+
+		// Return a success response
+		res := openai.ChatCompletionResponse{
+			ID:      "test-id",
+			Object:  "chat.completion",
+			Created: time.Now().Unix(),
+			Model:   "gpt-3.5-turbo",
+			Choices: []openai.ChatCompletionChoice{
+				{
+					Index: 0,
+					Message: openai.ChatCompletionMessage{
+						Role:    openai.ChatMessageRoleAssistant,
+						Content: "Hello!",
+					},
+					FinishReason: openai.FinishReasonStop,
+				},
+			},
+			Usage: openai.Usage{
+				PromptTokens:     5,
+				CompletionTokens: 5,
+				TotalTokens:      10,
+			},
+		}
+
+		resBytes, _ := json.Marshal(res)
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		_, err = w.Write(resBytes)
+		if err != nil {
+			http.Error(w, fmt.Sprintf("could not write response: %v", err), http.StatusInternalServerError)
+			return
+		}
+	})
+
+	// Test the ExtraBody functionality
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		Model: openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		ExtraBody: map[string]any{
+			"custom_field":  "custom_value",
+			"another_field": 123,
+		},
+	})
+
+	checks.NoError(t, err, "CreateChatCompletion with ExtraBody error")
+}
+
 func TestAzureChatCompletions(t *testing.T) {
 	client, server, teardown := setupAzureTestServer()
 	defer teardown()

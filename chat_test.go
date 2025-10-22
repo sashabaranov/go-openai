@@ -1205,3 +1205,295 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestChatCompletionRequest_MarshalJSON(t *testing.T) {
+	tests := []struct {
+		name    string
+		request openai.ChatCompletionRequest
+		want    string
+		wantErr bool
+	}{
+		{
+			name: "without extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "with extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"custom_field": "custom_value",
+					"number":       42,
+				},
+			},
+			wantErr: false,
+		},
+		{
+			name: "with empty extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{},
+			},
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			data, err := json.Marshal(&tt.request)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("MarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+			if tt.wantErr {
+				return
+			}
+
+			var result map[string]interface{}
+			if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+				t.Errorf("Failed to unmarshal result: %v", unmarshalErr)
+				return
+			}
+
+			validateChatCompletionRequestResult(t, tt.request, result)
+		})
+	}
+}
+
+func validateChatCompletionRequestResult(t *testing.T, request openai.ChatCompletionRequest, result map[string]interface{}) {
+	// Check that model is present
+	if result["model"] != request.Model {
+		t.Errorf("Expected model %s, got %v", request.Model, result["model"])
+	}
+
+	// Check extensions are merged properly when present
+	if len(request.Extensions) > 0 {
+		validateExtensions(t, request.Extensions, result)
+	}
+}
+
+func validateExtensions(t *testing.T, extensions map[string]interface{}, result map[string]interface{}) {
+	for key, value := range extensions {
+		// Convert both to string for comparison to handle type differences
+		resultStr := fmt.Sprintf("%v", result[key])
+		valueStr := fmt.Sprintf("%v", value)
+		if resultStr != valueStr {
+			t.Errorf("Expected extension %s = %v (%s), got %v (%s)", key, value, valueStr, result[key], resultStr)
+		}
+	}
+}
+
+func TestChatMessagePart_NewFields(t *testing.T) {
+	tests := []struct {
+		name string
+		part openai.ChatMessagePart
+	}{
+		{
+			name: "with audio part",
+			part: openai.ChatMessagePart{
+				Type:      openai.ChatMessagePartTypeAudio,
+				Video:     []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
+				MinPixels: 100,
+				MaxPixels: 1000,
+			},
+		},
+		{
+			name: "with video URL part",
+			part: openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeVideoURL,
+				VideoURL: &openai.ChatMessageImageURL{
+					URL: "https://example.com/video.mp4",
+				},
+			},
+		},
+		{
+			name: "with video part",
+			part: openai.ChatMessagePart{
+				Type:      openai.ChatMessagePartTypeVideo,
+				Video:     []string{"https://example.com/frame1.jpg", "https://example.com/frame2.jpg"},
+				MinPixels: 100,
+				MaxPixels: 1000,
+			},
+		},
+		{
+			name: "with cache control",
+			part: openai.ChatMessagePart{
+				Type: openai.ChatMessagePartTypeText,
+				Text: "Hello",
+				CacheControl: &openai.CacheControl{
+					Type: "ephemeral",
+				},
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			// Test JSON marshaling
+			data, err := json.Marshal(tt.part)
+			if err != nil {
+				t.Errorf("Failed to marshal ChatMessagePart: %v", err)
+				return
+			}
+
+			// Test JSON unmarshaling
+			var result openai.ChatMessagePart
+			if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+				t.Errorf("Failed to unmarshal ChatMessagePart: %v", unmarshalErr)
+				return
+			}
+
+			// Verify the type is preserved
+			if result.Type != tt.part.Type {
+				t.Errorf("Expected type %s, got %s", tt.part.Type, result.Type)
+			}
+		})
+	}
+}
+
+func TestInputAudio(t *testing.T) {
+	audio := openai.InputAudio{
+		Data:   "base64encodedaudiodata",
+		Format: "wav",
+	}
+
+	data, err := json.Marshal(audio)
+	if err != nil {
+		t.Errorf("Failed to marshal InputAudio: %v", err)
+		return
+	}
+
+	var result openai.InputAudio
+	if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+		t.Errorf("Failed to unmarshal InputAudio: %v", unmarshalErr)
+		return
+	}
+
+	if result.Data != audio.Data {
+		t.Errorf("Expected data %s, got %s", audio.Data, result.Data)
+	}
+	if result.Format != audio.Format {
+		t.Errorf("Expected format %s, got %s", audio.Format, result.Format)
+	}
+}
+
+func TestCacheControl(t *testing.T) {
+	cacheControl := openai.CacheControl{
+		Type: "ephemeral",
+	}
+
+	data, err := json.Marshal(cacheControl)
+	if err != nil {
+		t.Errorf("Failed to marshal CacheControl: %v", err)
+		return
+	}
+
+	var result openai.CacheControl
+	if unmarshalErr := json.Unmarshal(data, &result); unmarshalErr != nil {
+		t.Errorf("Failed to unmarshal CacheControl: %v", unmarshalErr)
+		return
+	}
+
+	if result.Type != cacheControl.Type {
+		t.Errorf("Expected type %s, got %s", cacheControl.Type, result.Type)
+	}
+}
+
+func TestChatCompletionRequest_MarshalJSON_EdgeCases(t *testing.T) {
+	// Test with complex extension values that might cause encoding issues
+	tests := []struct {
+		name      string
+		request   openai.ChatCompletionRequest
+		expectErr bool
+	}{
+		{
+			name: "with nil value in extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"nil_value": nil,
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "with complex nested structure in extensions",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"nested": map[string]interface{}{
+						"inner": map[string]interface{}{
+							"value": "deep",
+						},
+					},
+				},
+			},
+			expectErr: false,
+		},
+		{
+			name: "with function in extensions (should cause error)",
+			request: openai.ChatCompletionRequest{
+				Model: "gpt-3.5-turbo",
+				Messages: []openai.ChatCompletionMessage{
+					{Role: openai.ChatMessageRoleUser, Content: "Hello"},
+				},
+				Extensions: map[string]interface{}{
+					"function": func() {}, // functions cannot be JSON encoded
+				},
+			},
+			expectErr: true,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			_, err := json.Marshal(&tt.request)
+			if (err != nil) != tt.expectErr {
+				t.Errorf("MarshalJSON() error = %v, expectErr %v", err, tt.expectErr)
+			}
+		})
+	}
+}
+
+func TestChatCompletionRequest_MarshalJSON_InvalidRequest(t *testing.T) {
+	// Test with invalid request data that might cause encoding errors
+	// Create a request with invalid channel in messages (this should cause an encoding error)
+	invalidMsg := make(chan int)
+	request := openai.ChatCompletionRequest{
+		Model: "gpt-3.5-turbo",
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello",
+				// We can't directly add a channel to the message struct,
+				// so we'll test with extensions instead
+			},
+		},
+		Extensions: map[string]interface{}{
+			"invalid_channel": invalidMsg, // channels cannot be JSON encoded
+		},
+	}
+
+	_, err := json.Marshal(&request)
+	if err == nil {
+		t.Error("Expected marshal to fail with invalid channel in extensions")
+	}
+}

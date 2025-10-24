@@ -118,6 +118,36 @@ func TestAdminInvite(t *testing.T) {
 		}
 	})
 
+	t.Run("ListAdminInvitesWithOnlyLimit", func(t *testing.T) {
+		limit := 5
+
+		adminInvites, err := client.ListAdminInvites(ctx, &limit, nil)
+		checks.NoError(t, err, "ListAdminInvites error")
+
+		if len(adminInvites.AdminInvites) != 1 {
+			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
+		}
+
+		if adminInvites.AdminInvites[0].ID != adminInviteID {
+			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
+		}
+	})
+
+	t.Run("ListAdminInvitesWithOnlyAfter", func(t *testing.T) {
+		after := "after-token"
+
+		adminInvites, err := client.ListAdminInvites(ctx, nil, &after)
+		checks.NoError(t, err, "ListAdminInvites error")
+
+		if len(adminInvites.AdminInvites) != 1 {
+			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
+		}
+
+		if adminInvites.AdminInvites[0].ID != adminInviteID {
+			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
+		}
+	})
+
 	t.Run("ListAdminInvitesFilter", func(t *testing.T) {
 		limit := 10
 		after := "after-id"
@@ -140,6 +170,33 @@ func TestAdminInvite(t *testing.T) {
 
 		if adminInvite.ID != adminInviteID {
 			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
+		}
+	})
+
+	t.Run("CreateAdminInviteWithoutProjects", func(t *testing.T) {
+		adminInvite, err := client.CreateAdminInvite(ctx, adminInviteEmail, adminInviteRole, nil)
+		checks.NoError(t, err, "CreateAdminInvite error")
+
+		if adminInvite.ID != adminInviteID {
+			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
+		}
+	})
+
+	t.Run("CreateAdminInviteWithMemberRole", func(t *testing.T) {
+		memberRole := "member"
+		adminInvite, err := client.CreateAdminInvite(ctx, adminInviteEmail, memberRole, &adminInviteProjects)
+		checks.NoError(t, err, "CreateAdminInvite error")
+
+		if adminInvite.ID != adminInviteID {
+			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
+		}
+	})
+
+	t.Run("CreateAdminInviteInvalidRole", func(t *testing.T) {
+		invalidRole := "invalid-role"
+		_, err := client.CreateAdminInvite(ctx, adminInviteEmail, invalidRole, &adminInviteProjects)
+		if err == nil {
+			t.Fatal("expected error for invalid role, got nil")
 		}
 	})
 

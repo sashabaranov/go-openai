@@ -8,213 +8,243 @@ import (
 	"testing"
 
 	"github.com/sashabaranov/go-openai"
+	"github.com/sashabaranov/go-openai/internal/test"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
-func TestAdminInvite(t *testing.T) {
-	adminInviteObject := "organization.invite"
-	adminInviteID := "invite-abc-123"
-	adminInviteEmail := "invite@openai.com"
-	adminInviteRole := "owner"
-	adminInviteStatus := "pending"
+type adminInviteFixture struct {
+	object     string
+	inviteID   string
+	email      string
+	role       string
+	memberRole string
+	status     string
+	invitedAt  int64
+	expiresAt  int64
+	acceptedAt int64
+	projects   []openai.AdminInviteProject
+}
 
-	adminInviteInvitedAt := int64(1711471533)
-	adminInviteExpiresAt := int64(1711471533)
-	adminInviteAcceptedAt := int64(1711471533)
-	adminInviteProjects := []openai.AdminInviteProject{
-		{
-			ID:   "project-id",
-			Role: "owner",
+func newAdminInviteFixture() *adminInviteFixture {
+	return &adminInviteFixture{
+		object:     "organization.invite",
+		inviteID:   "invite-abc-123",
+		email:      "invite@openai.com",
+		role:       "owner",
+		memberRole: "member",
+		status:     "pending",
+		invitedAt:  1711471533,
+		expiresAt:  1711471533,
+		acceptedAt: 1711471533,
+		projects: []openai.AdminInviteProject{
+			{
+				ID:   "project-id",
+				Role: "owner",
+			},
 		},
 	}
+}
+
+func (f *adminInviteFixture) newInvite() openai.AdminInvite {
+	return openai.AdminInvite{
+		Object:     f.object,
+		ID:         f.inviteID,
+		Email:      f.email,
+		Role:       f.role,
+		Status:     f.status,
+		InvitedAt:  f.invitedAt,
+		ExpiresAt:  f.expiresAt,
+		AcceptedAt: f.acceptedAt,
+		Projects:   f.projects,
+	}
+}
+
+func (f *adminInviteFixture) listResponse() openai.AdminInviteList {
+	return openai.AdminInviteList{
+		Object:       "list",
+		AdminInvites: []openai.AdminInvite{f.newInvite()},
+		FirstID:      "first_id",
+		LastID:       "last_id",
+		HasMore:      false,
+	}
+}
+
+func (f *adminInviteFixture) deleteResponse() openai.AdminInviteDeleteResponse {
+	return openai.AdminInviteDeleteResponse{
+		ID:      f.inviteID,
+		Object:  f.object,
+		Deleted: true,
+	}
+}
+
+func (f *adminInviteFixture) projectsPointer() *[]openai.AdminInviteProject {
+	return &f.projects
+}
+
+type adminInviteTestEnv struct {
+	ctx     context.Context
+	client  *openai.Client
+	fixture *adminInviteFixture
+}
+
+func newAdminInviteTestEnv(t *testing.T) *adminInviteTestEnv {
+	t.Helper()
 
 	client, server, teardown := setupOpenAITestServer()
-	defer teardown()
+	t.Cleanup(teardown)
 
+	fixture := newAdminInviteFixture()
+	registerAdminInviteHandlers(server, fixture)
+
+	return &adminInviteTestEnv{
+		ctx:     context.Background(),
+		client:  client,
+		fixture: fixture,
+	}
+}
+
+func registerAdminInviteHandlers(server *test.ServerTest, fixture *adminInviteFixture) {
 	server.RegisterHandler(
 		"/v1/organization/invites",
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodGet:
-				resBytes, _ := json.Marshal(openai.AdminInviteList{
-					Object: "list",
-					AdminInvites: []openai.AdminInvite{
-						{
-							Object:     adminInviteObject,
-							ID:         adminInviteID,
-							Email:      adminInviteEmail,
-							Role:       adminInviteRole,
-							Status:     adminInviteStatus,
-							InvitedAt:  adminInviteInvitedAt,
-							ExpiresAt:  adminInviteExpiresAt,
-							AcceptedAt: adminInviteAcceptedAt,
-							Projects:   adminInviteProjects,
-						},
-					},
-					FirstID: "first_id",
-					LastID:  "last_id",
-					HasMore: false,
-				})
-				fmt.Fprintln(w, string(resBytes))
-
+				respondWithJSON(w, fixture.listResponse())
 			case http.MethodPost:
-				resBytes, _ := json.Marshal(openai.AdminInvite{
-					Object:     adminInviteObject,
-					ID:         adminInviteID,
-					Email:      adminInviteEmail,
-					Role:       adminInviteRole,
-					Status:     adminInviteStatus,
-					InvitedAt:  adminInviteInvitedAt,
-					ExpiresAt:  adminInviteExpiresAt,
-					AcceptedAt: adminInviteAcceptedAt,
-					Projects:   adminInviteProjects,
-				})
-				fmt.Fprintln(w, string(resBytes))
+				respondWithJSON(w, fixture.newInvite())
 			}
 		},
 	)
 
 	server.RegisterHandler(
-		"/v1/organization/invites/"+adminInviteID,
+		"/v1/organization/invites/"+fixture.inviteID,
 		func(w http.ResponseWriter, r *http.Request) {
 			switch r.Method {
 			case http.MethodDelete:
-				resBytes, _ := json.Marshal(openai.AdminInviteDeleteResponse{
-					ID:      adminInviteID,
-					Object:  adminInviteObject,
-					Deleted: true,
-				})
-				fmt.Fprintln(w, string(resBytes))
-
+				respondWithJSON(w, fixture.deleteResponse())
 			case http.MethodGet:
-				resBytes, _ := json.Marshal(openai.AdminInvite{
-					Object:     adminInviteObject,
-					ID:         adminInviteID,
-					Email:      adminInviteEmail,
-					Role:       adminInviteRole,
-					Status:     adminInviteStatus,
-					InvitedAt:  adminInviteInvitedAt,
-					ExpiresAt:  adminInviteExpiresAt,
-					AcceptedAt: adminInviteAcceptedAt,
-					Projects:   adminInviteProjects,
-				})
-				fmt.Fprintln(w, string(resBytes))
+				respondWithJSON(w, fixture.newInvite())
 			}
 		},
 	)
+}
 
-	ctx := context.Background()
+func respondWithJSON(w http.ResponseWriter, payload interface{}) {
+	resBytes, _ := json.Marshal(payload)
+	fmt.Fprintln(w, string(resBytes))
+}
 
-	t.Run("ListAdminInvites", func(t *testing.T) {
-		adminInvites, err := client.ListAdminInvites(ctx, nil, nil)
-		checks.NoError(t, err, "ListAdminInvites error")
+func (e *adminInviteTestEnv) assertInviteID(t *testing.T, got string) {
+	t.Helper()
 
-		if len(adminInvites.AdminInvites) != 1 {
-			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
-		}
+	if got != e.fixture.inviteID {
+		t.Errorf("expected admin invite ID %s, got %s", e.fixture.inviteID, got)
+	}
+}
 
-		if adminInvites.AdminInvites[0].ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
-		}
+func (e *adminInviteTestEnv) assertSingleInviteResponse(t *testing.T, resp openai.AdminInviteList) {
+	t.Helper()
+
+	if len(resp.AdminInvites) != 1 {
+		t.Fatalf("expected 1 admin invite, got %d", len(resp.AdminInvites))
+	}
+
+	e.assertInviteID(t, resp.AdminInvites[0].ID)
+}
+
+func (e *adminInviteTestEnv) runListAdminInvites(t *testing.T, limit *int, after *string) {
+	t.Helper()
+
+	adminInvites, err := e.client.ListAdminInvites(e.ctx, limit, after)
+	checks.NoError(t, err, "ListAdminInvites error")
+	e.assertSingleInviteResponse(t, adminInvites)
+}
+
+func TestAdminInvite_List(t *testing.T) {
+	env := newAdminInviteTestEnv(t)
+
+	t.Run("WithoutFilters", func(t *testing.T) {
+		env.runListAdminInvites(t, nil, nil)
 	})
 
-	t.Run("ListAdminInvitesWithOnlyLimit", func(t *testing.T) {
+	t.Run("WithOnlyLimit", func(t *testing.T) {
 		limit := 5
-
-		adminInvites, err := client.ListAdminInvites(ctx, &limit, nil)
-		checks.NoError(t, err, "ListAdminInvites error")
-
-		if len(adminInvites.AdminInvites) != 1 {
-			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
-		}
-
-		if adminInvites.AdminInvites[0].ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
-		}
+		env.runListAdminInvites(t, &limit, nil)
 	})
 
-	t.Run("ListAdminInvitesWithOnlyAfter", func(t *testing.T) {
+	t.Run("WithOnlyAfter", func(t *testing.T) {
 		after := "after-token"
-
-		adminInvites, err := client.ListAdminInvites(ctx, nil, &after)
-		checks.NoError(t, err, "ListAdminInvites error")
-
-		if len(adminInvites.AdminInvites) != 1 {
-			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
-		}
-
-		if adminInvites.AdminInvites[0].ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
-		}
+		env.runListAdminInvites(t, nil, &after)
 	})
 
-	t.Run("ListAdminInvitesFilter", func(t *testing.T) {
+	t.Run("WithLimitAndAfter", func(t *testing.T) {
 		limit := 10
 		after := "after-id"
-
-		adminInvites, err := client.ListAdminInvites(ctx, &limit, &after)
-		checks.NoError(t, err, "ListAdminInvites error")
-
-		if len(adminInvites.AdminInvites) != 1 {
-			t.Fatalf("expected 1 admin invite, got %d", len(adminInvites.AdminInvites))
-		}
-
-		if adminInvites.AdminInvites[0].ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvites.AdminInvites[0].ID)
-		}
+		env.runListAdminInvites(t, &limit, &after)
 	})
+}
 
-	t.Run("CreateAdminInvite", func(t *testing.T) {
-		adminInvite, err := client.CreateAdminInvite(ctx, adminInviteEmail, adminInviteRole, &adminInviteProjects)
+func TestAdminInvite_Create(t *testing.T) {
+	env := newAdminInviteTestEnv(t)
+
+	t.Run("WithProjects", func(t *testing.T) {
+		adminInvite, err := env.client.CreateAdminInvite(env.ctx,
+			env.fixture.email,
+			env.fixture.role,
+			env.fixture.projectsPointer(),
+		)
 		checks.NoError(t, err, "CreateAdminInvite error")
-
-		if adminInvite.ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
-		}
+		env.assertInviteID(t, adminInvite.ID)
 	})
 
-	t.Run("CreateAdminInviteWithoutProjects", func(t *testing.T) {
-		adminInvite, err := client.CreateAdminInvite(ctx, adminInviteEmail, adminInviteRole, nil)
+	t.Run("WithoutProjects", func(t *testing.T) {
+		adminInvite, err := env.client.CreateAdminInvite(env.ctx,
+			env.fixture.email,
+			env.fixture.role,
+			nil,
+		)
 		checks.NoError(t, err, "CreateAdminInvite error")
-
-		if adminInvite.ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
-		}
+		env.assertInviteID(t, adminInvite.ID)
 	})
 
-	t.Run("CreateAdminInviteWithMemberRole", func(t *testing.T) {
-		memberRole := "member"
-		adminInvite, err := client.CreateAdminInvite(ctx, adminInviteEmail, memberRole, &adminInviteProjects)
+	t.Run("WithMemberRole", func(t *testing.T) {
+		adminInvite, err := env.client.CreateAdminInvite(env.ctx,
+			env.fixture.email,
+			env.fixture.memberRole,
+			env.fixture.projectsPointer(),
+		)
 		checks.NoError(t, err, "CreateAdminInvite error")
-
-		if adminInvite.ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
-		}
+		env.assertInviteID(t, adminInvite.ID)
 	})
 
-	t.Run("CreateAdminInviteInvalidRole", func(t *testing.T) {
+	t.Run("InvalidRole", func(t *testing.T) {
 		invalidRole := "invalid-role"
-		_, err := client.CreateAdminInvite(ctx, adminInviteEmail, invalidRole, &adminInviteProjects)
+		_, err := env.client.CreateAdminInvite(env.ctx,
+			env.fixture.email,
+			invalidRole,
+			env.fixture.projectsPointer(),
+		)
 		if err == nil {
 			t.Fatal("expected error for invalid role, got nil")
 		}
 	})
+}
 
-	t.Run("RetrieveAdminInvite", func(t *testing.T) {
-		adminInvite, err := client.RetrieveAdminInvite(ctx, adminInviteID)
-		checks.NoError(t, err, "RetrieveAdminInvite error")
+func TestAdminInvite_Retrieve(t *testing.T) {
+	env := newAdminInviteTestEnv(t)
 
-		if adminInvite.ID != adminInviteID {
-			t.Errorf("expected admin invite ID %s, got %s", adminInviteID, adminInvite.ID)
-		}
-	})
+	adminInvite, err := env.client.RetrieveAdminInvite(env.ctx, env.fixture.inviteID)
+	checks.NoError(t, err, "RetrieveAdminInvite error")
+	env.assertInviteID(t, adminInvite.ID)
+}
 
-	t.Run("DeleteAdminInvite", func(t *testing.T) {
-		adminInviteDeleteResponse, err := client.DeleteAdminInvite(ctx, adminInviteID)
-		checks.NoError(t, err, "DeleteAdminInvite error")
+func TestAdminInvite_Delete(t *testing.T) {
+	env := newAdminInviteTestEnv(t)
 
-		if !adminInviteDeleteResponse.Deleted {
-			t.Errorf("expected admin invite to be deleted, got not deleted")
-		}
-	})
+	adminInviteDeleteResponse, err := env.client.DeleteAdminInvite(env.ctx, env.fixture.inviteID)
+	checks.NoError(t, err, "DeleteAdminInvite error")
+
+	if !adminInviteDeleteResponse.Deleted {
+		t.Errorf("expected admin invite to be deleted, got not deleted")
+	}
 }

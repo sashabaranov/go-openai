@@ -35,6 +35,7 @@ func handleResponseEndpoint(w http.ResponseWriter, r *http.Request) {
 
 	if r.Method != "POST" {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
 
 	var responseReq openai.CreateResponseRequest

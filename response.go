@@ -10,10 +10,10 @@ const (
 )
 
 type CreateResponseRequest struct {
-	Model              string  `json:"model"`
-	Input              any     `json:"input"`
-	Tools              []Tool  `json:"tools,omitempty"`
-	PreviousResponseID string  `json:"previous_response_id,omitempty"`
+	Model              string `json:"model"`
+	Input              any    `json:"input"`
+	Tools              []Tool `json:"tools,omitempty"`
+	PreviousResponseID string `json:"previous_response_id,omitempty"`
 }
 
 type CreateResponseResponse struct {

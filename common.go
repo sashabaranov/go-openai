@@ -23,4 +23,6 @@ type CompletionTokensDetails struct {
 type PromptTokensDetails struct {
 	AudioTokens  int `json:"audio_tokens"`
 	CachedTokens int `json:"cached_tokens"`
+	TextTokens   int `json:"text_tokens,omitempty"`
+	ImageTokens  int `json:"image_tokens,omitempty"`
 }

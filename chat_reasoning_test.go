@@ -26,9 +26,10 @@ func TestChatCompletionStreamChoiceDelta_ReasoningFieldSupport(t *testing.T) {
 			expected: "This is my reasoning",
 		},
 		{
-			name:     "Both fields present - reasoning_content takes priority",
-			jsonData: `{"role":"assistant","content":"Hello","reasoning_content":"Priority reasoning","reasoning":"Fallback reasoning"}`,
-			expected: "Priority reasoning",
+			name: "Both fields present - reasoning_content takes priority",
+			jsonData: `{"role":"assistant","content":"Hello",` +
+				`"reasoning_content":"Priority","reasoning":"Fallback"}`,
+			expected: "Priority",
 		},
 		{
 			name:     "Only reasoning field",
@@ -76,9 +77,10 @@ func TestChatCompletionMessage_ReasoningFieldSupport(t *testing.T) {
 			expected: "This is my reasoning",
 		},
 		{
-			name:     "Both fields present - reasoning_content takes priority",
-			jsonData: `{"role":"assistant","content":"Hello","reasoning_content":"Priority reasoning","reasoning":"Fallback reasoning"}`,
-			expected: "Priority reasoning",
+			name: "Both fields present - reasoning_content takes priority",
+			jsonData: `{"role":"assistant","content":"Hello",` +
+				`"reasoning_content":"Priority","reasoning":"Fallback"}`,
+			expected: "Priority",
 		},
 		{
 			name:     "Only reasoning field",

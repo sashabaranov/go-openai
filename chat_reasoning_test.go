@@ -46,6 +46,12 @@ func TestChatCompletionStreamChoiceDelta_ReasoningFieldSupport(t *testing.T) {
 			jsonData: `{"role":"assistant","reasoning_content":"","reasoning":"Fallback value"}`,
 			expected: "Fallback value",
 		},
+		{
+			name: "Non-empty reasoning_content, empty reasoning",
+			jsonData: `{"role":"assistant","content":"Hello",` +
+				`"reasoning_content":"Primary","reasoning":""}`,
+			expected: "Primary",
+		},
 	}
 
 	for _, tt := range tests {
@@ -70,6 +76,41 @@ func TestChatCompletionStreamChoiceDelta_UnmarshalError(t *testing.T) {
 	err := json.Unmarshal([]byte(invalidJSON), &delta)
 	if err == nil {
 		t.Error("Expected error when unmarshaling invalid JSON, got nil")
+	}
+}
+
+// TestChatCompletionStreamChoiceDelta_AllFields tests unmarshaling with all fields.
+func TestChatCompletionStreamChoiceDelta_AllFields(t *testing.T) {
+	jsonData := `{
+		"role":"assistant",
+		"content":"test content",
+		"refusal":"test refusal",
+		"reasoning":"test reasoning",
+		"function_call":{"name":"test_func","arguments":"{}"},
+		"tool_calls":[{"id":"call_123","type":"function","function":{"name":"test","arguments":"{}"}}]
+	}`
+	var delta openai.ChatCompletionStreamChoiceDelta
+	err := json.Unmarshal([]byte(jsonData), &delta)
+	if err != nil {
+		t.Fatalf("Failed to unmarshal JSON: %v", err)
+	}
+	if delta.Role != "assistant" {
+		t.Errorf("Expected Role to be 'assistant', got %q", delta.Role)
+	}
+	if delta.Content != "test content" {
+		t.Errorf("Expected Content to be 'test content', got %q", delta.Content)
+	}
+	if delta.Refusal != "test refusal" {
+		t.Errorf("Expected Refusal to be 'test refusal', got %q", delta.Refusal)
+	}
+	if delta.ReasoningContent != "test reasoning" {
+		t.Errorf("Expected ReasoningContent to be 'test reasoning', got %q", delta.ReasoningContent)
+	}
+	if delta.FunctionCall == nil || delta.FunctionCall.Name != "test_func" {
+		t.Error("Expected FunctionCall to be set")
+	}
+	if len(delta.ToolCalls) != 1 || delta.ToolCalls[0].ID != "call_123" {
+		t.Error("Expected ToolCalls to be set")
 	}
 }
 
@@ -111,6 +152,12 @@ func TestChatCompletionMessage_ReasoningFieldSupport(t *testing.T) {
 			name:     "Empty reasoning_content with reasoning value",
 			jsonData: `{"role":"assistant","reasoning_content":"","reasoning":"Fallback value"}`,
 			expected: "Fallback value",
+		},
+		{
+			name: "Non-empty reasoning_content, empty reasoning",
+			jsonData: `{"role":"assistant","content":"Hello",` +
+				`"reasoning_content":"Primary","reasoning":""}`,
+			expected: "Primary",
 		},
 	}
 

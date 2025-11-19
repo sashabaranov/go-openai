@@ -202,6 +202,7 @@ type ToolCall struct {
 	ID       string       `json:"id,omitempty"`
 	Type     ToolType     `json:"type"`
 	Function FunctionCall `json:"function"`
+	Name     string       `json:"name,omitempty"`
 }
 
 type FunctionCall struct {

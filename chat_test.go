@@ -804,7 +804,6 @@ func TestMultipartChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateAzureChatCompletion error")
 }
 
-// TestChatMessageImageURLMIMEType tests the MIMEType field in ChatMessageImageURL
 func TestChatMessageImageURLMIMEType(t *testing.T) {
 	client, server, teardown := setupAzureTestServer()
 	defer teardown()

@@ -48,6 +48,8 @@ type Definition struct {
 	AdditionalProperties any `json:"additionalProperties,omitempty"`
 	// Whether the schema is nullable or not.
 	Nullable bool `json:"nullable,omitempty"`
+	// MaxLength specifies the maximum length of a string.
+	MaxLength int `json:"maxLength,omitempty"`
 
 	// Ref Reference to a definition in $defs or external schema.
 	Ref string `json:"$ref,omitempty"`

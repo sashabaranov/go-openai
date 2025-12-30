@@ -157,6 +157,17 @@ func TestDefinition_MarshalJSON(t *testing.T) {
 				}
 			}`,
 		},
+		{
+			name: "Test with MaxLength",
+			def: jsonschema.Definition{
+				Type:      jsonschema.String,
+				MaxLength: 100,
+			},
+			want: `{
+				"type":"string",
+				"maxLength":100
+			}`,
+		},
 	}
 
 	for _, tt := range tests {

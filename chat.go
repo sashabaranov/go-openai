@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-
-	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -238,12 +236,18 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	r.Description = raw.Description
 	r.Strict = raw.Strict
 	if len(raw.Schema) > 0 && string(raw.Schema) != "null" {
-		var d jsonschema.Definition
-		err := json.Unmarshal(raw.Schema, &d)
-		if err != nil {
-			return err
+		// Validate that the schema is a JSON object (must start with '{')
+		// JSON Schema definitions must be objects
+		trimmed := raw.Schema
+		for len(trimmed) > 0 && (trimmed[0] == ' ' || trimmed[0] == '\t' || trimmed[0] == '\n' || trimmed[0] == '\r') {
+			trimmed = trimmed[1:]
 		}
-		r.Schema = &d
+		if len(trimmed) == 0 || trimmed[0] != '{' {
+			return errors.New("schema must be a JSON object")
+		}
+		// Use json.RawMessage directly to preserve all JSON Schema features
+		// (anyOf, oneOf, allOf, const, title, etc.) that jsonschema.Definition doesn't support
+		r.Schema = raw.Schema
 	}
 	return nil
 }

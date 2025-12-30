@@ -1205,3 +1205,132 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestChatCompletionResponseFormatJSONSchema_PreservesAllSchemaFeatures(t *testing.T) {
+	tests := []struct {
+		name           string
+		inputSchema    string
+		expectedInJSON string
+	}{
+		{
+			name: "preserves anyOf",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"type": "object",
+					"properties": {
+						"value": {
+							"anyOf": [
+								{"type": "string"},
+								{"type": "null"}
+							]
+						}
+					}
+				}
+			}`,
+			expectedInJSON: "anyOf",
+		},
+		{
+			name: "preserves oneOf",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"oneOf": [
+						{"type": "string"},
+						{"type": "number"}
+					]
+				}
+			}`,
+			expectedInJSON: "oneOf",
+		},
+		{
+			name: "preserves allOf",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"allOf": [
+						{"type": "object"},
+						{"properties": {"name": {"type": "string"}}}
+					]
+				}
+			}`,
+			expectedInJSON: "allOf",
+		},
+		{
+			name: "preserves const",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"type": "object",
+					"properties": {
+						"status": {"const": "active"}
+					}
+				}
+			}`,
+			expectedInJSON: "const",
+		},
+		{
+			name: "preserves title",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"type": "object",
+					"title": "MySchema",
+					"properties": {
+						"name": {"type": "string"}
+					}
+				}
+			}`,
+			expectedInJSON: "title",
+		},
+		{
+			name: "preserves $defs and $ref",
+			inputSchema: `{
+				"name": "test",
+				"strict": true,
+				"schema": {
+					"type": "object",
+					"$defs": {
+						"Item": {
+							"type": "object",
+							"properties": {
+								"name": {"type": "string"}
+							}
+						}
+					},
+					"properties": {
+						"items": {
+							"type": "array",
+							"items": {"$ref": "#/$defs/Item"}
+						}
+					}
+				}
+			}`,
+			expectedInJSON: "$defs",
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var schema openai.ChatCompletionResponseFormatJSONSchema
+			err := json.Unmarshal([]byte(tt.inputSchema), &schema)
+			if err != nil {
+				t.Fatalf("Failed to unmarshal: %v", err)
+			}
+
+			marshaled, err := json.Marshal(schema)
+			if err != nil {
+				t.Fatalf("Failed to marshal: %v", err)
+			}
+
+			if !strings.Contains(string(marshaled), tt.expectedInJSON) {
+				t.Errorf("Expected %q to be preserved in marshaled output, got: %s", tt.expectedInJSON, string(marshaled))
+			}
+		})
+	}
+}

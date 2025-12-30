@@ -74,7 +74,8 @@ func TestCompletionWithStream(t *testing.T) {
 	client := openai.NewClientWithConfig(config)
 
 	ctx := context.Background()
-	req := openai.CompletionRequest{Stream: true}
+	streamTrue := true
+	req := openai.CompletionRequest{Stream: &streamTrue}
 	_, err := client.CreateCompletion(ctx, req)
 	if !errors.Is(err, openai.ErrCompletionStreamNotSupported) {
 		t.Fatalf("CreateCompletion didn't return ErrCompletionStreamNotSupported")

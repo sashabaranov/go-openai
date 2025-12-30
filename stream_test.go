@@ -60,7 +60,7 @@ func TestCreateCompletionStream(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -133,7 +133,7 @@ func TestCreateCompletionStreamError(t *testing.T) {
 		MaxTokens: 5,
 		Model:     openai.GPT3TextDavinci003,
 		Prompt:    "Hello!",
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -171,7 +171,7 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 		MaxTokens: 5,
 		Model:     openai.GPT3Babbage002,
 		Prompt:    "Hello!",
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	if !errors.As(err, &apiErr) {
 		t.Errorf("TestCreateCompletionStreamRateLimitError did not return APIError")
@@ -213,7 +213,7 @@ func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -248,7 +248,7 @@ func TestCreateCompletionStreamUnexpectedTerminatedError(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -289,7 +289,7 @@ func TestCreateCompletionStreamBrokenJSONError(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -316,7 +316,7 @@ func TestCreateCompletionStreamReturnTimeoutError(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     "text-davinci-002",
 		MaxTokens: 10,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	if err == nil {
 		t.Fatal("Did not return error")

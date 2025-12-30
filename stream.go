@@ -33,7 +33,7 @@ func (c *Client) CreateCompletionStream(
 		return
 	}
 
-	request.Stream = true
+	request.Stream = TruePtr()
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

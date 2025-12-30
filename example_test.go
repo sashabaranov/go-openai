@@ -50,7 +50,7 @@ func ExampleClient_CreateChatCompletionStream() {
 					Content: "Lorem ipsum",
 				},
 			},
-			Stream: true,
+			Stream: openai.TruePtr(),
 		},
 	)
 	if err != nil {
@@ -102,7 +102,7 @@ func ExampleClient_CreateCompletionStream() {
 			Model:     openai.GPT3Babbage002,
 			MaxTokens: 5,
 			Prompt:    "Lorem ipsum",
-			Stream:    true,
+			Stream:    openai.TruePtr(),
 		},
 	)
 	if err != nil {

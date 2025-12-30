@@ -70,7 +70,7 @@ func TestCreateChatCompletionStream(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -167,7 +167,7 @@ func TestCreateChatCompletionStreamError(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -207,7 +207,7 @@ func TestCreateChatCompletionStreamWithHeaders(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -250,7 +250,7 @@ func TestCreateChatCompletionStreamWithRatelimitHeaders(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -287,7 +287,7 @@ func TestCreateChatCompletionStreamErrorWithDataPrefix(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -328,7 +328,7 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	var apiErr *openai.APIError
 	if !errors.As(err, &apiErr) {
@@ -376,7 +376,7 @@ func TestCreateChatCompletionStreamWithRefusal(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -497,7 +497,7 @@ func TestCreateChatCompletionStreamWithLogprobs(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -632,7 +632,7 @@ func TestAzureCreateChatCompletionStreamRateLimitError(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	if !errors.As(err, &apiErr) {
 		t.Errorf("Did not return APIError: %+v\n", apiErr)
@@ -689,7 +689,7 @@ func TestCreateChatCompletionStreamStreamOptions(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 		StreamOptions: &openai.StreamOptions{
 			IncludeUsage: true,
 		},
@@ -835,7 +835,7 @@ func TestCreateChatCompletionStreamWithReasoningModel(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()
@@ -946,7 +946,7 @@ func TestCreateChatCompletionStreamReasoningValidatorFails(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 
 	if stream != nil {
@@ -971,7 +971,7 @@ func TestCreateChatCompletionStreamO3ReasoningValidatorFails(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 
 	if stream != nil {
@@ -996,7 +996,7 @@ func TestCreateChatCompletionStreamO4MiniReasoningValidatorFails(t *testing.T) {
 				Content: "Hello!",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	})
 
 	if stream != nil {

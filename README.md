@@ -96,7 +96,7 @@ func main() {
 				Content: "Lorem ipsum",
 			},
 		},
-		Stream: true,
+		Stream: openai.TruePtr(),
 	}
 	stream, err := c.CreateChatCompletionStream(ctx, req)
 	if err != nil {
@@ -177,7 +177,7 @@ func main() {
 		Model:     openai.GPT3Babbage002,
 		MaxTokens: 5,
 		Prompt:    "Lorem ipsum",
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	}
 	stream, err := c.CreateCompletionStream(ctx, req)
 	if err != nil {

@@ -123,7 +123,7 @@ func TestCompletionStream(t *testing.T) {
 		Prompt:    "Ex falso quodlibet",
 		Model:     openai.GPT3Babbage002,
 		MaxTokens: 5,
-		Stream:    true,
+		Stream:    openai.TruePtr(),
 	})
 	checks.NoError(t, err, "CreateCompletionStream returned error")
 	defer stream.Close()

@@ -465,14 +465,53 @@ func TestChatRequestOmitEmpty(t *testing.T) {
 	}
 }
 
+func TestChatRequestStreamFalseExplicit(t *testing.T) {
+	// Test that stream=false is explicitly included when set using FalsePtr()
+	data, err := json.Marshal(openai.ChatCompletionRequest{
+		Model:  "gpt-4",
+		Stream: openai.FalsePtr(),
+	})
+	checks.NoError(t, err)
+
+	if !strings.Contains(string(data), `"stream":false`) {
+		t.Errorf("expected stream:false to be present in JSON, but got: %v", string(data))
+	}
+}
+
+func TestChatRequestStreamTrueExplicit(t *testing.T) {
+	// Test that stream=true is explicitly included when set using TruePtr()
+	data, err := json.Marshal(openai.ChatCompletionRequest{
+		Model:  "gpt-4",
+		Stream: openai.TruePtr(),
+	})
+	checks.NoError(t, err)
+
+	if !strings.Contains(string(data), `"stream":true`) {
+		t.Errorf("expected stream:true to be present in JSON, but got: %v", string(data))
+	}
+}
+
+func TestChatRequestStreamNilOmitted(t *testing.T) {
+	// Test that stream is omitted when nil (not set)
+	data, err := json.Marshal(openai.ChatCompletionRequest{
+		Model: "gpt-4",
+	})
+	checks.NoError(t, err)
+
+	if strings.Contains(string(data), `"stream"`) {
+		t.Errorf("expected stream to be omitted from JSON when nil, but got: %v", string(data))
+	}
+}
+
 func TestChatCompletionsWithStream(t *testing.T) {
 	config := openai.DefaultConfig("whatever")
 	config.BaseURL = "http://localhost/v1"
 	client := openai.NewClientWithConfig(config)
 	ctx := context.Background()
 
+	streamTrue := true
 	req := openai.ChatCompletionRequest{
-		Stream: true,
+		Stream: &streamTrue,
 	}
 	_, err := client.CreateChatCompletion(ctx, req)
 	checks.ErrorIs(t, err, openai.ErrChatCompletionStreamNotSupported, "unexpected error")

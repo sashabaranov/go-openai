@@ -9,6 +9,20 @@ import (
 	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
+// TruePtr returns a pointer to a true boolean value.
+// This is useful for setting the Stream field in requests.
+func TruePtr() *bool {
+	t := true
+	return &t
+}
+
+// FalsePtr returns a pointer to a false boolean value.
+// This is useful for explicitly setting Stream to false in requests.
+func FalsePtr() *bool {
+	f := false
+	return &f
+}
+
 // Chat message role defined by the OpenAI API.
 const (
 	ChatMessageRoleSystem    = "system"
@@ -274,7 +288,7 @@ type ChatCompletionRequest struct {
 	Temperature         float32                       `json:"temperature,omitempty"`
 	TopP                float32                       `json:"top_p,omitempty"`
 	N                   int                           `json:"n,omitempty"`
-	Stream              bool                          `json:"stream,omitempty"`
+	Stream              *bool                         `json:"stream,omitempty"`
 	Stop                []string                      `json:"stop,omitempty"`
 	PresencePenalty     float32                       `json:"presence_penalty,omitempty"`
 	ResponseFormat      *ChatCompletionResponseFormat `json:"response_format,omitempty"`
@@ -467,7 +481,7 @@ func (c *Client) CreateChatCompletion(
 	ctx context.Context,
 	request ChatCompletionRequest,
 ) (response ChatCompletionResponse, err error) {
-	if request.Stream {
+	if request.Stream != nil && *request.Stream {
 		err = ErrChatCompletionStreamNotSupported
 		return
 	}

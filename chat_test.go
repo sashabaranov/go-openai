@@ -1334,3 +1334,119 @@ func TestChatCompletionResponseFormatJSONSchema_PreservesAllSchemaFeatures(t *te
 		})
 	}
 }
+
+func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON_Validation(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		wantErr     bool
+		errContains string
+	}{
+		{
+			name: "valid schema with leading whitespace",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema":   {
+					"type": "object"
+				}
+			}`,
+			wantErr: false,
+		},
+		{
+			name: "invalid schema - array instead of object",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema": ["not", "an", "object"]
+			}`,
+			wantErr:     true,
+			errContains: "schema must be a JSON object",
+		},
+		{
+			name: "invalid schema - string instead of object",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema": "not an object"
+			}`,
+			wantErr:     true,
+			errContains: "schema must be a JSON object",
+		},
+		{
+			name: "invalid schema - number instead of object",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema": 123
+			}`,
+			wantErr:     true,
+			errContains: "schema must be a JSON object",
+		},
+		{
+			name: "invalid schema - boolean instead of object",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema": true
+			}`,
+			wantErr:     true,
+			errContains: "schema must be a JSON object",
+		},
+		{
+			name: "null schema is allowed",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema": null
+			}`,
+			wantErr: false,
+		},
+		{
+			name: "no schema field is allowed",
+			input: `{
+				"name": "test",
+				"strict": true
+			}`,
+			wantErr: false,
+		},
+		{
+			name: "schema with newline before object",
+			input: `{
+				"name": "test",
+				"strict": true,
+				"schema":
+				{
+					"type": "object"
+				}
+			}`,
+			wantErr: false,
+		},
+		{
+			name: "schema with tabs before object",
+			input: "{\"name\": \"test\", \"strict\": true, \"schema\": \t\t{\"type\": \"object\"}}",
+			wantErr: false,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			var schema openai.ChatCompletionResponseFormatJSONSchema
+			err := json.Unmarshal([]byte(tt.input), &schema)
+
+			if tt.wantErr {
+				if err == nil {
+					t.Errorf("Expected error but got nil")
+					return
+				}
+				if tt.errContains != "" && !strings.Contains(err.Error(), tt.errContains) {
+					t.Errorf("Expected error containing %q, got: %v", tt.errContains, err)
+				}
+			} else {
+				if err != nil {
+					t.Errorf("Unexpected error: %v", err)
+				}
+			}
+		})
+	}
+}

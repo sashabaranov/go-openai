@@ -30,6 +30,9 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 			TranscriptionTimestampGranularitySegment,
 			TranscriptionTimestampGranularityWord,
 		},
+		ChunkingStrategy: &TranscriptionChunkingStrategy{
+			Type: AudioChunkingStrategyAuto,
+		},
 	}
 
 	mockFailedErr := fmt.Errorf("mock form builder fail")
@@ -53,7 +56,10 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		return nil
 	}
 
-	failOn := []string{"model", "prompt", "temperature", "language", "response_format", "timestamp_granularities[]"}
+	failOn := []string{
+		"model", "prompt", "temperature", "language",
+		"response_format", "timestamp_granularities[]", "chunking_strategy",
+	}
 	for _, failingField := range failOn {
 		failForField = failingField
 		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)
@@ -232,6 +238,65 @@ func TestCallAudioAPISendRequestErrorText(t *testing.T) {
 	// Use a non-JSON response format to exercise the text path.
 	req := AudioRequest{FilePath: path, Model: Whisper1, Format: AudioResponseFormatText}
 	_, err := client.callAudioAPI(context.Background(), req, "translations")
+	if err == nil {
+		t.Fatal("expected error but got none")
+	}
+	if !errors.Is(err, errHTTP) {
+		t.Errorf("expected error %v, got %v", errHTTP, err)
+	}
+}
+
+func TestCreateDiarizedTranscriptionMultipartFormError(t *testing.T) {
+	client := NewClient("test-token")
+	errForm := errors.New("mock create form file failure")
+	client.createFormBuilder = func(_ io.Writer) utils.FormBuilder {
+		return &failingFormBuilder{err: errForm}
+	}
+
+	req := AudioRequest{FilePath: "fake.mp3", Reader: bytes.NewBuffer([]byte("dummy")), Model: "gpt-4o-transcribe-diarize"}
+	_, err := client.CreateDiarizedTranscription(context.Background(), req)
+	if err == nil {
+		t.Fatal("expected error but got none")
+	}
+	if !errors.Is(err, errForm) {
+		t.Errorf("expected error %v, got %v", errForm, err)
+	}
+}
+
+func TestCreateDiarizedTranscriptionNewRequestError(t *testing.T) {
+	client := NewClient("test-token")
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "file.mp3")
+	if err := os.WriteFile(path, []byte("content"), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	errBuild := errors.New("mock build failure")
+	client.requestBuilder = &failingAudioRequestBuilder{err: errBuild}
+
+	req := AudioRequest{FilePath: path, Model: "gpt-4o-transcribe-diarize"}
+	_, err := client.CreateDiarizedTranscription(context.Background(), req)
+	if err == nil {
+		t.Fatal("expected error but got none")
+	}
+	if !errors.Is(err, errBuild) {
+		t.Errorf("expected error %v, got %v", errBuild, err)
+	}
+}
+
+func TestCreateDiarizedTranscriptionSendRequestError(t *testing.T) {
+	client := NewClient("test-token")
+	tmp := t.TempDir()
+	path := filepath.Join(tmp, "file.mp3")
+	if err := os.WriteFile(path, []byte("content"), 0644); err != nil {
+		t.Fatalf("failed to write temp file: %v", err)
+	}
+
+	errHTTP := errors.New("mock HTTPClient failure")
+	client.config.HTTPClient = &errorHTTPClient{err: errHTTP}
+
+	req := AudioRequest{FilePath: path, Model: "gpt-4o-transcribe-diarize"}
+	_, err := client.CreateDiarizedTranscription(context.Background(), req)
 	if err == nil {
 		t.Fatal("expected error but got none")
 	}

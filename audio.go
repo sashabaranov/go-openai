@@ -3,6 +3,7 @@ package openai
 import (
 	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
@@ -20,11 +21,12 @@ const (
 type AudioResponseFormat string
 
 const (
-	AudioResponseFormatJSON        AudioResponseFormat = "json"
-	AudioResponseFormatText        AudioResponseFormat = "text"
-	AudioResponseFormatSRT         AudioResponseFormat = "srt"
-	AudioResponseFormatVerboseJSON AudioResponseFormat = "verbose_json"
-	AudioResponseFormatVTT         AudioResponseFormat = "vtt"
+	AudioResponseFormatJSON         AudioResponseFormat = "json"
+	AudioResponseFormatText         AudioResponseFormat = "text"
+	AudioResponseFormatSRT          AudioResponseFormat = "srt"
+	AudioResponseFormatVerboseJSON  AudioResponseFormat = "verbose_json"
+	AudioResponseFormatVTT          AudioResponseFormat = "vtt"
+	AudioResponseFormatDiarizedJSON AudioResponseFormat = "diarized_json"
 )
 
 type TranscriptionTimestampGranularity string
@@ -33,6 +35,40 @@ const (
 	TranscriptionTimestampGranularityWord    TranscriptionTimestampGranularity = "word"
 	TranscriptionTimestampGranularitySegment TranscriptionTimestampGranularity = "segment"
 )
+
+// AudioChunkingStrategyType defines the chunking strategy for audio transcription.
+type AudioChunkingStrategyType string
+
+// Chunking strategy types for audio transcription.
+const (
+	AudioChunkingStrategyAuto      AudioChunkingStrategyType = "auto"       // Server normalizes loudness and uses VAD
+	AudioChunkingStrategyServerVAD AudioChunkingStrategyType = "server_vad" // Custom VAD parameters
+)
+
+// TranscriptionChunkingStrategy controls how audio is cut into chunks.
+// When Type is ChunkingStrategyAuto ("auto"), the form field contains the literal string "auto".
+// When Type is ChunkingStrategyServerVAD ("server_vad"), the form field contains a JSON object with VAD parameters.
+// Required for gpt-4o-transcribe-diarize model on audio longer than 30 seconds.
+type TranscriptionChunkingStrategy struct {
+	// Type is AudioChunkingStrategyAuto or AudioChunkingStrategyServerVAD.
+	Type AudioChunkingStrategyType `json:"type"`
+	// PrefixPaddingMs is padding before detected speech (ms).
+	PrefixPaddingMs int `json:"prefix_padding_ms,omitempty"`
+	// SilenceDurationMs is silence threshold for chunk boundaries (ms).
+	SilenceDurationMs int `json:"silence_duration_ms,omitempty"`
+	// Threshold is VAD detection sensitivity (0.0-1.0).
+	Threshold float32 `json:"threshold,omitempty"`
+}
+
+// toFormValue returns the string representation for multipart form submission.
+// "auto" is sent as literal string; "server_vad" is sent as JSON object.
+func (s TranscriptionChunkingStrategy) toFormValue() string {
+	if s.Type == AudioChunkingStrategyAuto {
+		return string(AudioChunkingStrategyAuto)
+	}
+	data, _ := json.Marshal(s)
+	return string(data)
+}
 
 // AudioRequest represents a request structure for audio API.
 type AudioRequest struct {
@@ -49,6 +85,8 @@ type AudioRequest struct {
 	Language               string // Only for transcription.
 	Format                 AudioResponseFormat
 	TimestampGranularities []TranscriptionTimestampGranularity // Only for transcription.
+	// ChunkingStrategy controls audio chunking. Required for diarization models on audio >30s.
+	ChunkingStrategy *TranscriptionChunkingStrategy
 }
 
 // AudioResponse represents a response structure for audio API.
@@ -79,6 +117,34 @@ type AudioResponse struct {
 	httpHeader
 }
 
+// AudioUsage represents usage statistics for audio API calls.
+type AudioUsage struct {
+	Type    string `json:"type"`              // "duration" or "tokens"
+	Seconds int    `json:"seconds,omitempty"` // Duration in seconds (for duration-based billing)
+}
+
+// DiarizedSegment represents a speaker-annotated segment from diarized transcription.
+type DiarizedSegment struct {
+	Type    string  `json:"type"`    // "transcript.text.segment"
+	ID      string  `json:"id"`      // Segment identifier (e.g., "seg_001")
+	Start   float64 `json:"start"`   // Start time in seconds
+	End     float64 `json:"end"`     // End time in seconds
+	Text    string  `json:"text"`    // Transcript text for this segment
+	Speaker string  `json:"speaker"` // Speaker label (e.g., "agent", "A")
+}
+
+// DiarizedAudioResponse represents a diarized transcription response.
+// Returned when using gpt-4o-transcribe-diarize model with diarized_json format.
+type DiarizedAudioResponse struct {
+	Task     string            `json:"task"`     // "transcribe"
+	Duration float64           `json:"duration"` // Audio duration in seconds
+	Text     string            `json:"text"`     // Full transcript with speaker prefixes
+	Segments []DiarizedSegment `json:"segments"` // Speaker-annotated segments
+	Usage    *AudioUsage       `json:"usage,omitempty"`
+
+	httpHeader
+}
+
 type audioTextResponse struct {
 	Text string `json:"text"`
 
@@ -98,6 +164,39 @@ func (c *Client) CreateTranscription(
 	request AudioRequest,
 ) (response AudioResponse, err error) {
 	return c.callAudioAPI(ctx, request, "transcriptions")
+}
+
+// CreateDiarizedTranscription transcribes audio with speaker diarization.
+// Use with gpt-4o-transcribe-diarize model and AudioResponseFormatDiarizedJSON format.
+// Requires ChunkingStrategy for audio longer than 30 seconds.
+func (c *Client) CreateDiarizedTranscription(
+	ctx context.Context,
+	request AudioRequest,
+) (response DiarizedAudioResponse, err error) {
+	var formBody bytes.Buffer
+	builder := c.createFormBuilder(&formBody)
+
+	if err = audioMultipartForm(request, builder); err != nil {
+		return DiarizedAudioResponse{}, err
+	}
+
+	urlSuffix := "/audio/transcriptions"
+	req, err := c.newRequest(
+		ctx,
+		http.MethodPost,
+		c.fullURL(urlSuffix, withModel(request.Model)),
+		withBody(&formBody),
+		withContentType(builder.FormDataContentType()),
+	)
+	if err != nil {
+		return DiarizedAudioResponse{}, err
+	}
+
+	err = c.sendRequest(req, &response)
+	if err != nil {
+		return DiarizedAudioResponse{}, err
+	}
+	return
 }
 
 // CreateTranslation — API call to translate audio into English.
@@ -148,7 +247,8 @@ func (c *Client) callAudioAPI(
 
 // HasJSONResponse returns true if the response format is JSON.
 func (r AudioRequest) HasJSONResponse() bool {
-	return r.Format == "" || r.Format == AudioResponseFormatJSON || r.Format == AudioResponseFormatVerboseJSON
+	return r.Format == "" || r.Format == AudioResponseFormatJSON ||
+		r.Format == AudioResponseFormatVerboseJSON || r.Format == AudioResponseFormatDiarizedJSON
 }
 
 // audioMultipartForm creates a form with audio file contents and the name of the model to use for
@@ -196,17 +296,37 @@ func audioMultipartForm(request AudioRequest, b utils.FormBuilder) error {
 		}
 	}
 
-	if len(request.TimestampGranularities) > 0 {
-		for _, tg := range request.TimestampGranularities {
-			err = b.WriteField("timestamp_granularities[]", string(tg))
-			if err != nil {
-				return fmt.Errorf("writing timestamp_granularities[]: %w", err)
-			}
-		}
+	if err = writeTimestampGranularities(request.TimestampGranularities, b); err != nil {
+		return err
+	}
+
+	if err = writeChunkingStrategy(request.ChunkingStrategy, b); err != nil {
+		return err
 	}
 
 	// Close the multipart writer
 	return b.Close()
+}
+
+// writeTimestampGranularities writes the timestamp_granularities[] fields if provided.
+func writeTimestampGranularities(granularities []TranscriptionTimestampGranularity, b utils.FormBuilder) error {
+	for _, tg := range granularities {
+		if err := b.WriteField("timestamp_granularities[]", string(tg)); err != nil {
+			return fmt.Errorf("writing timestamp_granularities[]: %w", err)
+		}
+	}
+	return nil
+}
+
+// writeChunkingStrategy writes the chunking_strategy field if provided.
+func writeChunkingStrategy(cs *TranscriptionChunkingStrategy, b utils.FormBuilder) error {
+	if cs == nil {
+		return nil
+	}
+	if err := b.WriteField("chunking_strategy", cs.toFormValue()); err != nil {
+		return fmt.Errorf("writing chunking_strategy: %w", err)
+	}
+	return nil
 }
 
 // createFileField creates the "file" form field from either an existing file or by using the reader.

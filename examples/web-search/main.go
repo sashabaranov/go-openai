@@ -19,16 +19,27 @@ func main() {
 
 	ctx := context.Background()
 
-	req := openai.CreateResponseRequest{
-		Model: "gpt-5",
+	req := openai.ResponsesAPIRequest{
+		Model: openai.GPT5,
 		Input: "what was a positive news story from today?",
-		Tools: []openai.Tool{{Type: openai.ToolTypeWebSearch}},
+		Tools: []openai.Tool{{
+			Type: openai.ToolTypeWebSearch,
+			Filters: map[openai.FilterKey]any{
+				openai.AllowedDomains: []string{
+					"pubmed.ncbi.nlm.nih.gov",
+					"clinicaltrials.gov",
+					"www.who.int",
+					"www.cdc.gov",
+					"www.fda.gov",
+				},
+			},
+		}},
 	}
 
 	fmt.Println("Sending request to /v1/responses with web_search tool...")
-	resp, err := client.CreateResponse(ctx, req)
+	resp, err := client.CreateResponsesAPI(ctx, req)
 	if err != nil {
-		fmt.Printf("CreateResponse error: %v\n", err)
+		fmt.Printf("CreateResponsesAPI error: %v\n", err)
 		return
 	}
 	// Extract and print positive news stories from the response

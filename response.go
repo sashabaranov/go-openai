@@ -10,7 +10,7 @@ const (
 )
 
 // CreateResponseRequest represents a request structure for the Responses API.
-type CreateResponseRequest struct {
+type ResponsesAPIRequest struct {
 	Model              string `json:"model"`
 	Input              any    `json:"input"`
 	Tools              []Tool `json:"tools,omitempty"`
@@ -18,7 +18,7 @@ type CreateResponseRequest struct {
 }
 
 // CreateResponseResponse represents a response structure for the Responses API.
-type CreateResponseResponse struct {
+type ResponsesAPIResponse struct {
 	ID      string `json:"id"`
 	Created int64  `json:"created_at"`
 	Error   any    `json:"error,omitempty"`
@@ -29,10 +29,10 @@ type CreateResponseResponse struct {
 }
 
 // CreateResponse — API call to create a response using the OpenAI Responses API.
-func (c *Client) CreateResponse(
+func (c *Client) CreateResponsesAPI(
 	ctx context.Context,
-	request CreateResponseRequest,
-) (response CreateResponseResponse, err error) {
+	request ResponsesAPIRequest,
+) (response ResponsesAPIResponse, err error) {
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

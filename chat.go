@@ -350,9 +350,16 @@ const (
 	ToolTypeWebSearch ToolType = "web_search"
 )
 
+type FilterKey string
+
+const (
+	AllowedDomains FilterKey = "allowed_domains"
+)
+
 type Tool struct {
 	Type     ToolType            `json:"type"`
 	Function *FunctionDefinition `json:"function,omitempty"`
+	Filters  map[FilterKey]any   `json:"filters,omitempty"`
 }
 
 type ToolChoice struct {

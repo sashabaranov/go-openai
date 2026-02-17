@@ -13,11 +13,11 @@ import (
 	"github.com/sashabaranov/go-openai/internal/test/checks"
 )
 
-func TestCreateResponse(t *testing.T) {
+func TestCreateResponsesAPI(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 	server.RegisterHandler("/v1/responses", handleResponseEndpoint)
-	_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+	_, err := client.CreateResponsesAPI(context.Background(), openai.ResponsesAPIRequest{
 		Model: openai.GPT4o,
 		Input: "What's the latest news about AI?",
 		Tools: []openai.Tool{
@@ -26,29 +26,29 @@ func TestCreateResponse(t *testing.T) {
 			},
 		},
 	})
-	checks.NoError(t, err, "CreateResponse error")
+	checks.NoError(t, err, "CreateResponsesAPI error")
 }
 
-func TestCreateResponseError(t *testing.T) {
+func TestCreateResponsesAPIError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()
 
 	// Test newRequest error: Invalid body
-	_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+	_, err := client.CreateResponsesAPI(context.Background(), openai.ResponsesAPIRequest{
 		Model: openai.GPT4o,
 		Input: make(chan int), // Invalid type for JSON marshalling
 	})
-	checks.HasError(t, err, "CreateResponse error expected (newRequest)")
+	checks.HasError(t, err, "CreateResponsesAPI error expected (newRequest)")
 
 	// Test sendRequest error: Server error
 	server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	})
-	_, err = client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+	_, err = client.CreateResponsesAPI(context.Background(), openai.ResponsesAPIRequest{
 		Model: openai.GPT4o,
 		Input: "Hello",
 	})
-	checks.HasError(t, err, "CreateResponse error expected (sendRequest)")
+	checks.HasError(t, err, "CreateResponsesAPI error expected (sendRequest)")
 }
 
 func handleResponseEndpoint(w http.ResponseWriter, r *http.Request) {
@@ -60,13 +60,13 @@ func handleResponseEndpoint(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	var responseReq openai.CreateResponseRequest
+	var responseReq openai.ResponsesAPIRequest
 	if err = json.NewDecoder(r.Body).Decode(&responseReq); err != nil {
 		http.Error(w, "could not read request", http.StatusInternalServerError)
 		return
 	}
 
-	res := openai.CreateResponseResponse{
+	res := openai.ResponsesAPIResponse{
 		ID:      "resp_" + strconv.Itoa(int(time.Now().Unix())),
 		Created: time.Now().Unix(),
 		Model:   responseReq.Model,

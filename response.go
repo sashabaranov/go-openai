@@ -9,6 +9,7 @@ const (
 	responsesSuffix = "/responses"
 )
 
+// CreateResponseRequest represents a request structure for the Responses API.
 type CreateResponseRequest struct {
 	Model              string `json:"model"`
 	Input              any    `json:"input"`
@@ -16,6 +17,7 @@ type CreateResponseRequest struct {
 	PreviousResponseID string `json:"previous_response_id,omitempty"`
 }
 
+// CreateResponseResponse represents a response structure for the Responses API.
 type CreateResponseResponse struct {
 	ID      string `json:"id"`
 	Created int64  `json:"created_at"`
@@ -26,6 +28,7 @@ type CreateResponseResponse struct {
 	httpHeader
 }
 
+// CreateResponse — API call to create a response using the OpenAI Responses API.
 func (c *Client) CreateResponse(
 	ctx context.Context,
 	request CreateResponseRequest,

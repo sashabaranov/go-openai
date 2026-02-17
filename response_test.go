@@ -18,15 +18,37 @@ func TestCreateResponse(t *testing.T) {
 	defer teardown()
 	server.RegisterHandler("/v1/responses", handleResponseEndpoint)
 	_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
-		Model: "gpt-4o",
+		Model: openai.GPT4o,
 		Input: "What's the latest news about AI?",
 		Tools: []openai.Tool{
 			{
-				Type: "web_search",
+				Type: openai.ToolTypeWebSearch,
 			},
 		},
 	})
 	checks.NoError(t, err, "CreateResponse error")
+}
+
+func TestCreateResponseError(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	// Test newRequest error: Invalid body
+	_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: make(chan int), // Invalid type for JSON marshalling
+	})
+	checks.HasError(t, err, "CreateResponse error expected (newRequest)")
+
+	// Test sendRequest error: Server error
+	server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, r *http.Request) {
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+	})
+	_, err = client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: "Hello",
+	})
+	checks.HasError(t, err, "CreateResponse error expected (sendRequest)")
 }
 
 func handleResponseEndpoint(w http.ResponseWriter, r *http.Request) {

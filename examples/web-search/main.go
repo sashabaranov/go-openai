@@ -19,39 +19,68 @@ func main() {
 
 	ctx := context.Background()
 
-	// ChatCompletionRequest with web_search tool
-	req := openai.ChatCompletionRequest{
-		Model: openai.GPT4o,
-		Messages: []openai.ChatCompletionMessage{
-			{
-				Role:    openai.ChatMessageRoleUser,
-				Content: "What is the latest news about OpenAI?",
-			},
-		},
-		Tools: []openai.Tool{
-			{
-				Type: openai.ToolTypeWebSearch,
-			},
-		},
+	req := openai.CreateResponseRequest{
+		Model: "gpt-5",
+		Input: "what was a positive news story from today?",
+		Tools: []openai.Tool{{Type: openai.ToolTypeWebSearch}},
 	}
 
-	fmt.Println("Sending request with web_search tool...")
-	resp, err := client.CreateChatCompletion(ctx, req)
+	fmt.Println("Sending request to /v1/responses with web_search tool...")
+	resp, err := client.CreateResponse(ctx, req)
 	if err != nil {
-		fmt.Printf("ChatCompletion error: %v\n", err)
+		fmt.Printf("CreateResponse error: %v\n", err)
 		return
 	}
-
-	msg := resp.Choices[0].Message
-	if msg.Content != "" {
-		fmt.Printf("Response: %s\n", msg.Content)
+	// Extract and print positive news stories from the response
+	if len(resp.Output) == 0 {
+		fmt.Println("No results found.")
+		return
 	}
-
-	// If the model decides to use the tool, it will return ToolCalls
-	for _, toolCall := range msg.ToolCalls {
-		fmt.Printf("Tool Call: ID=%s, Type=%s\n", toolCall.ID, toolCall.Type)
-		if toolCall.Type == openai.ToolTypeWebSearch {
-			fmt.Printf("Web Search Query: %s\n", toolCall.Function.Arguments)
+	fmt.Println("Positive News Stories:")
+	for _, item := range resp.Output {
+		m, ok := item.(map[string]any)
+		if !ok {
+			continue
+		}
+		content, hasContent := m["content"]
+		if !hasContent {
+			continue
+		}
+		contentList, ok := content.([]any)
+		if !ok {
+			continue
+		}
+		for _, c := range contentList {
+			cmap, ok := c.(map[string]any)
+			if !ok {
+				continue
+			}
+			text, _ := cmap["text"].(string)
+			annotations, _ := cmap["annotations"].([]any)
+			url := ""
+			title := ""
+			for _, a := range annotations {
+				aMap, ok := a.(map[string]any)
+				if !ok {
+					continue
+				}
+				if t, ok := aMap["title"].(string); ok {
+					title = t
+				}
+				if u, ok := aMap["url"].(string); ok {
+					url = u
+				}
+			}
+			fmt.Println("---")
+			if title != "" {
+				fmt.Printf("Title: %s\n", title)
+			}
+			if text != "" {
+				fmt.Printf("Summary: %s\n", text)
+			}
+			if url != "" {
+				fmt.Printf("Source: %s\n", url)
+			}
 		}
 	}
 }

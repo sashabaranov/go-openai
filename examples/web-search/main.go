@@ -8,6 +8,12 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
+type NewsItem struct {
+	Title   string
+	Summary string
+	Source  string
+}
+
 func main() {
 	apiKey := os.Getenv("OPENAI_API_KEY")
 	if apiKey == "" {
@@ -42,56 +48,82 @@ func main() {
 		fmt.Printf("CreateResponsesAPI error: %v\n", err)
 		return
 	}
-	// Extract and print positive news stories from the response
-	if len(resp.Output) == 0 {
-		fmt.Println("No results found.")
-		return
-	}
-	fmt.Println("Positive News Stories:")
+	printPositiveNews(resp)
+}
+
+// printPositiveNews extracts and prints positive news stories from the ResponsesAPIResponse.
+func printPositiveNews(resp openai.ResponsesAPIResponse) {
+	items := extractNewsItems(resp)
+	printNewsItems(items)
+}
+
+func extractNewsItems(resp openai.ResponsesAPIResponse) []NewsItem {
+	var items []NewsItem
 	for _, item := range resp.Output {
-		m, ok := item.(map[string]any)
-		if !ok {
+		m, ok1 := item.(map[string]any)
+		if !ok1 {
 			continue
 		}
 		content, hasContent := m["content"]
 		if !hasContent {
 			continue
 		}
-		contentList, ok := content.([]any)
-		if !ok {
+		contentList, ok2 := content.([]any)
+		if !ok2 {
 			continue
 		}
 		for _, c := range contentList {
-			cmap, ok := c.(map[string]any)
-			if !ok {
+			cmap, ok3 := c.(map[string]any)
+			if !ok3 {
 				continue
 			}
 			text, _ := cmap["text"].(string)
 			annotations, _ := cmap["annotations"].([]any)
-			url := ""
-			title := ""
-			for _, a := range annotations {
-				aMap, ok := a.(map[string]any)
-				if !ok {
-					continue
-				}
-				if t, ok := aMap["title"].(string); ok {
-					title = t
-				}
-				if u, ok := aMap["url"].(string); ok {
-					url = u
-				}
-			}
-			fmt.Println("---")
-			if title != "" {
-				fmt.Printf("Title: %s\n", title)
-			}
-			if text != "" {
-				fmt.Printf("Summary: %s\n", text)
-			}
-			if url != "" {
-				fmt.Printf("Source: %s\n", url)
-			}
+			title, url := extractTitleAndURL(annotations)
+			items = append(items, NewsItem{
+				Title:   title,
+				Summary: text,
+				Source:  url,
+			})
 		}
 	}
+	return items
+}
+
+func printNewsItems(items []NewsItem) {
+	if len(items) == 0 {
+		fmt.Println("No results found.")
+		return
+	}
+	fmt.Println("Positive News Stories:")
+	for _, n := range items {
+		fmt.Println("---")
+		if n.Title != "" {
+			fmt.Printf("Title: %s\n", n.Title)
+		}
+		if n.Summary != "" {
+			fmt.Printf("Summary: %s\n", n.Summary)
+		}
+		if n.Source != "" {
+			fmt.Printf("Source: %s\n", n.Source)
+		}
+	}
+}
+
+func extractTitleAndURL(annotations []any) (string, string) {
+	title := ""
+	url := ""
+	for _, ann := range annotations {
+		aMap, okAnn := ann.(map[string]any)
+		if !okAnn {
+			continue
+		}
+		if t, okTitle := aMap["title"].(string); okTitle {
+			title = t
+		}
+		if u, okURL := aMap["url"].(string); okURL {
+			url = u
+		}
+	}
+	return title, url
 }

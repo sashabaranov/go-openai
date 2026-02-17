@@ -41,7 +41,7 @@ func TestCreateResponseError(t *testing.T) {
 	checks.HasError(t, err, "CreateResponse error expected (newRequest)")
 
 	// Test sendRequest error: Server error
-	server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, r *http.Request) {
+	server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, _ *http.Request) {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 	})
 	_, err = client.CreateResponse(context.Background(), openai.CreateResponseRequest{

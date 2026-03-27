@@ -3,6 +3,7 @@ package openai
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"strconv"
@@ -158,7 +159,7 @@ func (f file) ContentType() string {
 
 // ImageEditRequest represents the request structure for the image API.
 // Use WrapReader to wrap an io.Reader with filename and Content-type.
-// To send multiple images, populate Images instead of Image.
+// Populate Images (not Image) to send multiple images; the two fields are mutually exclusive.
 type ImageEditRequest struct {
 	Image          io.Reader   `json:"image,omitempty"`
 	Images         []io.Reader `json:"images,omitempty"`
@@ -178,7 +179,11 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	builder := c.createFormBuilder(body)
 
 	if len(request.Images) > 0 {
-		for _, img := range request.Images {
+		for i, img := range request.Images {
+			if img == nil {
+				err = fmt.Errorf("images[%d] is nil", i)
+				return
+			}
 			err = builder.CreateFormFileReader("image[]", img, "")
 			if err != nil {
 				return

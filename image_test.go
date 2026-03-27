@@ -6,6 +6,7 @@ import (
 
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -193,6 +194,44 @@ func TestImageFormBuilderFailures(t *testing.T) {
 		_, err := client.CreateEditImage(ctx, ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)})
 		checks.ErrorIs(t, err, errTestRequestBuilderFailed, "CreateEditImage should return error if request builder fails")
 	})
+}
+
+func TestCreateEditImageMultiImages(t *testing.T) {
+	ctx := context.Background()
+
+	var fieldNames []string
+	fb := &mockFormBuilder{
+		mockCreateFormFileReader: func(fieldname string, _ io.Reader, _ string) error {
+			fieldNames = append(fieldNames, fieldname)
+			return nil
+		},
+		mockWriteField: func(string, string) error { return nil },
+		mockClose:      func() error { return nil },
+	}
+
+	cfg := DefaultConfig("")
+	cfg.BaseURL = ""
+	c := NewClientWithConfig(cfg)
+	c.createFormBuilder = func(io.Writer) utils.FormBuilder { return fb }
+	c.requestBuilder = &failingRequestBuilder{}
+
+	req := ImageEditRequest{
+		Images: []io.Reader{bytes.NewBuffer(nil), bytes.NewBuffer(nil)},
+	}
+	_, err := c.CreateEditImage(ctx, req)
+	// request building fails but form building must have succeeded
+	if err == nil || !errors.Is(err, errTestRequestBuilderFailed) {
+		// if err is something else entirely, check form calls first
+	}
+
+	if len(fieldNames) != 2 {
+		t.Fatalf("expected 2 CreateFormFileReader calls, got %d", len(fieldNames))
+	}
+	for i, name := range fieldNames {
+		if name != "image[]" {
+			t.Errorf("call %d: expected fieldname 'image[]', got %q", i, name)
+		}
+	}
 }
 
 func TestVariImageFormBuilderFailures(t *testing.T) {

@@ -144,6 +144,31 @@ func TestImageFormBuilderFailures(t *testing.T) {
 			},
 			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
 		},
+		{
+			name: "images[0] fails",
+			setup: func(fb *mockFormBuilder) {
+				fb.mockCreateFormFileReader = func(string, io.Reader, string) error { return mockFailedErr }
+				fb.mockWriteField = func(string, string) error { return nil }
+				fb.mockClose = func() error { return nil }
+			},
+			req: ImageEditRequest{Images: []io.Reader{bytes.NewBuffer(nil), bytes.NewBuffer(nil)}},
+		},
+		{
+			name: "images[1] fails",
+			setup: func(fb *mockFormBuilder) {
+				callCount := 0
+				fb.mockCreateFormFileReader = func(string, io.Reader, string) error {
+					callCount++
+					if callCount > 1 {
+						return mockFailedErr
+					}
+					return nil
+				}
+				fb.mockWriteField = func(string, string) error { return nil }
+				fb.mockClose = func() error { return nil }
+			},
+			req: ImageEditRequest{Images: []io.Reader{bytes.NewBuffer(nil), bytes.NewBuffer(nil)}},
+		},
 	}
 
 	for _, tc := range tests {

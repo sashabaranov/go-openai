@@ -221,7 +221,7 @@ func TestCreateEditImageMultiImages(t *testing.T) {
 	_, err := c.CreateEditImage(ctx, req)
 	// request building fails but form building must have succeeded
 	if err == nil || !errors.Is(err, errTestRequestBuilderFailed) {
-		// if err is something else entirely, check form calls first
+		t.Fatalf("expected errTestRequestBuilderFailed, got %v", err)
 	}
 
 	if len(fieldNames) != 2 {

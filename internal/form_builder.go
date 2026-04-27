@@ -3,6 +3,7 @@ package openai
 import (
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/textproto"
 	"os"
@@ -50,6 +51,12 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 	if f, ok := r.(interface{ ContentType() string }); ok {
 		contentType = f.ContentType()
 	}
+	// Fall back to detecting content type from the file extension when the
+	// reader does not implement ContentType(). Some API endpoints (e.g.
+	// gpt-image-1 image edits) require Content-Type to be set explicitly.
+	if contentType == "" && filename != "" {
+		contentType = mime.TypeByExtension(filepath.Ext(filename))
+	}
 
 	h := make(textproto.MIMEHeader)
 	h.Set(
@@ -60,7 +67,6 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 			escapeQuotes(filepath.Base(filename)),
 		),
 	)
-	// content type is optional, but it can be set
 	if contentType != "" {
 		h.Set("Content-Type", contentType)
 	}

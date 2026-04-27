@@ -188,3 +188,17 @@ func TestCreateFormFileSuccess(t *testing.T) {
 		t.Fatalf("expected filename header, got %q", buf.String())
 	}
 }
+
+func TestCreateFormFileReaderDetectsMimeFromExtension(t *testing.T) {
+	buf := &bytes.Buffer{}
+	builder := NewFormBuilder(buf)
+
+	// Plain reader (no ContentType interface), but filename has .png extension.
+	// The builder should detect image/png from the extension.
+	err := builder.CreateFormFileReader("image", bytes.NewBufferString("fake-png"), "test.png")
+	checks.NoError(t, err, "CreateFormFileReader should succeed")
+
+	if !strings.Contains(buf.String(), "Content-Type: image/png") {
+		t.Fatalf("expected Content-Type header with image/png, got %q", buf.String())
+	}
+}

@@ -218,7 +218,7 @@ type CompletionRequest struct {
 	PresencePenalty float32           `json:"presence_penalty,omitempty"`
 	Seed            *int              `json:"seed,omitempty"`
 	Stop            []string          `json:"stop,omitempty"`
-	Stream          bool              `json:"stream,omitempty"`
+	Stream          bool              `json:"stream"`
 	Suffix          string            `json:"suffix,omitempty"`
 	Temperature     float32           `json:"temperature,omitempty"`
 	TopP            float32           `json:"top_p,omitempty"`

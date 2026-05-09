@@ -10,15 +10,24 @@ const (
 )
 
 // CreateResponseRequest represents a request structure for the Responses API.
-type ResponsesAPIRequest struct {
-	Model              string `json:"model"`
-	Input              any    `json:"input"`
-	Tools              []Tool `json:"tools,omitempty"`
-	PreviousResponseID string `json:"previous_response_id,omitempty"`
+type CreateResponseRequest struct {
+	Model              string             `json:"model"`
+	Input              any                `json:"input"`
+	Tools              []Tool             `json:"tools,omitempty"`
+	PreviousResponseID string             `json:"previous_response_id,omitempty"`
+	Reasoning          *ResponseReasoning `json:"reasoning,omitempty"`
+	ServiceTier        string             `json:"service_tier,omitempty"`
+}
+
+// ResponseReasoning represents reasoning configuration for the Responses API
+type ResponseReasoning struct {
+	Effort          string `json:"effort,omitempty"`
+	GenerateSummary string `json:"generate_summary,omitempty"`
+	Summary         string `json:"summary,omitempty"`
 }
 
 // CreateResponseResponse represents a response structure for the Responses API.
-type ResponsesAPIResponse struct {
+type CreateResponseResponse struct {
 	ID      string `json:"id"`
 	Created int64  `json:"created_at"`
 	Error   any    `json:"error,omitempty"`
@@ -28,11 +37,8 @@ type ResponsesAPIResponse struct {
 	httpHeader
 }
 
-// CreateResponse — API call to create a response using the OpenAI Responses API.
-func (c *Client) CreateResponsesAPI(
-	ctx context.Context,
-	request ResponsesAPIRequest,
-) (response ResponsesAPIResponse, err error) {
+// CreateResponse creates a response using the Responses API.
+func (c *Client) CreateResponse(ctx context.Context, request CreateResponseRequest) (response CreateResponseResponse, err error) {
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

@@ -25,39 +25,41 @@ func main() {
 
 	ctx := context.Background()
 
-	req := openai.ResponsesAPIRequest{
+	req := openai.CreateResponseRequest{
 		Model: openai.GPT5,
 		Input: "what was a positive news story from today?",
 		Tools: []openai.Tool{{
 			Type: openai.ToolTypeWebSearch,
-			Filters: map[openai.FilterKey]any{
-				openai.AllowedDomains: []string{
-					"pubmed.ncbi.nlm.nih.gov",
-					"clinicaltrials.gov",
-					"www.who.int",
-					"www.cdc.gov",
-					"www.fda.gov",
+			Parameters: map[string]any{
+				"filters": map[string]any{
+					"allowed_domains": []string{
+						"pubmed.ncbi.nlm.nih.gov",
+						"clinicaltrials.gov",
+						"www.who.int",
+						"www.cdc.gov",
+						"www.fda.gov",
+					},
 				},
 			},
 		}},
 	}
 
 	fmt.Println("Sending request to /v1/responses with web_search tool...")
-	resp, err := client.CreateResponsesAPI(ctx, req)
+	resp, err := client.CreateResponse(ctx, req)
 	if err != nil {
-		fmt.Printf("CreateResponsesAPI error: %v\n", err)
+		fmt.Printf("CreateResponse error: %v\n", err)
 		return
 	}
 	printPositiveNews(resp)
 }
 
 // printPositiveNews extracts and prints positive news stories from the ResponsesAPIResponse.
-func printPositiveNews(resp openai.ResponsesAPIResponse) {
+func printPositiveNews(resp openai.CreateResponseResponse) {
 	items := extractNewsItems(resp)
 	printNewsItems(items)
 }
 
-func extractNewsItems(resp openai.ResponsesAPIResponse) []NewsItem {
+func extractNewsItems(resp openai.CreateResponseResponse) []NewsItem {
 	var items []NewsItem
 	for _, item := range resp.Output {
 		m, ok1 := item.(map[string]any)

@@ -350,16 +350,10 @@ const (
 	ToolTypeWebSearch ToolType = "web_search"
 )
 
-type FilterKey string
-
-const (
-	AllowedDomains FilterKey = "allowed_domains"
-)
-
 type Tool struct {
-	Type     ToolType            `json:"type"`
-	Function *FunctionDefinition `json:"function,omitempty"`
-	Filters  map[FilterKey]any   `json:"filters,omitempty"`
+	Type       ToolType            `json:"type"`
+	Function   *FunctionDefinition `json:"function,omitempty"`
+	Parameters map[string]any      `json:"-"`
 }
 
 type ToolChoice struct {
@@ -468,6 +462,22 @@ type ChatCompletionResponse struct {
 	ServiceTier         ServiceTier            `json:"service_tier,omitempty"`
 
 	httpHeader
+}
+
+func (t *Tool) MarshalJSON() ([]byte, error) {
+	m := map[string]any{
+		"type": t.Type,
+	}
+
+	if t.Function != nil {
+		m["function"] = t.Function
+	}
+
+	for k, v := range t.Parameters {
+		m[k] = v
+	}
+
+	return json.Marshal(m)
 }
 
 // CreateChatCompletion — API call to Create a completion for the chat message.

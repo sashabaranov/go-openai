@@ -19,7 +19,7 @@ type CreateResponseRequest struct {
 	ServiceTier        string             `json:"service_tier,omitempty"`
 }
 
-// ResponseReasoning represents reasoning configuration for the Responses API
+// ResponseReasoning represents reasoning configuration for the Responses API.
 type ResponseReasoning struct {
 	Effort          string `json:"effort,omitempty"`
 	GenerateSummary string `json:"generate_summary,omitempty"`
@@ -38,7 +38,10 @@ type CreateResponseResponse struct {
 }
 
 // CreateResponse creates a response using the Responses API.
-func (c *Client) CreateResponse(ctx context.Context, request CreateResponseRequest) (response CreateResponseResponse, err error) {
+func (c *Client) CreateResponse(
+	ctx context.Context,
+	request CreateResponseRequest,
+) (response CreateResponseResponse, err error) {
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,

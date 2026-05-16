@@ -188,3 +188,30 @@ func TestCreateFormFileSuccess(t *testing.T) {
 		t.Fatalf("expected filename header, got %q", buf.String())
 	}
 }
+
+// Regression for #1010. CreateFormFileReader used to omit Content-Type
+// entirely when the reader didn't supply one, which made the OpenAI
+// audio endpoints reject the file. Derive a type from the filename
+// extension and fall back to application/octet-stream so the part
+// always has a Content-Type, matching the stdlib's CreateFormFile.
+func TestCreateFormFileReaderSetsContentType(t *testing.T) {
+	t.Run("derived from extension", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		builder := NewFormBuilder(buf)
+		err := builder.CreateFormFileReader("file", bytes.NewBufferString("RIFF"), "clip.mp3")
+		checks.NoError(t, err, "CreateFormFileReader should succeed")
+		if !strings.Contains(buf.String(), "Content-Type: audio/mpeg") {
+			t.Fatalf("expected audio/mpeg content type, got %q", buf.String())
+		}
+	})
+
+	t.Run("fallback when unknown", func(t *testing.T) {
+		buf := &bytes.Buffer{}
+		builder := NewFormBuilder(buf)
+		err := builder.CreateFormFileReader("file", bytes.NewBufferString("data"), "unknown-ext.xyzqq")
+		checks.NoError(t, err, "CreateFormFileReader should succeed")
+		if !strings.Contains(buf.String(), "Content-Type: application/octet-stream") {
+			t.Fatalf("expected application/octet-stream fallback, got %q", buf.String())
+		}
+	})
+}

@@ -64,7 +64,13 @@ func (stream *streamReader[T]) processLines() ([]byte, error) {
 		rawLine, readErr := stream.reader.ReadBytes('\n')
 		if readErr != nil || hasErrorPrefix {
 			respErr := stream.unmarshalError()
-			if respErr != nil {
+			// respErr.Error can be nil even when respErr itself isn't:
+			// any payload that round-trips through unmarshaler.Unmarshal
+			// (an empty object, an aborted partial frame after context
+			// cancellation, etc.) ends up as a non-nil *ErrorResponse with
+			// a nil Error field. Wrapping that produced the famously
+			// useless "error, <nil>" message in #1060.
+			if respErr != nil && respErr.Error != nil {
 				return nil, fmt.Errorf("error, %w", respErr.Error)
 			}
 			return nil, readErr

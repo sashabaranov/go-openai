@@ -1205,3 +1205,49 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 		})
 	}
 }
+
+func TestToolMarshalJSON(t *testing.T) {
+	t.Run("type only", func(t *testing.T) {
+		tool := openai.Tool{Type: openai.ToolTypeWebSearch}
+		b, err := json.Marshal(&tool)
+		checks.NoError(t, err, "marshal tool")
+		var m map[string]any
+		checks.NoError(t, json.Unmarshal(b, &m), "unmarshal result")
+		if m["type"] != "web_search" {
+			t.Errorf("expected type=web_search, got %v", m["type"])
+		}
+		if _, ok := m["function"]; ok {
+			t.Error("expected no function key")
+		}
+	})
+
+	t.Run("with function", func(t *testing.T) {
+		tool := openai.Tool{
+			Type: openai.ToolTypeFunction,
+			Function: &openai.FunctionDefinition{
+				Name: "my_func",
+			},
+		}
+		b, err := json.Marshal(&tool)
+		checks.NoError(t, err, "marshal tool with function")
+		var m map[string]any
+		checks.NoError(t, json.Unmarshal(b, &m), "unmarshal result")
+		if _, ok := m["function"]; !ok {
+			t.Error("expected function key to be present")
+		}
+	})
+
+	t.Run("with extra parameters", func(t *testing.T) {
+		tool := openai.Tool{
+			Type:       openai.ToolTypeWebSearch,
+			Parameters: map[string]any{"search_context_size": "low"},
+		}
+		b, err := json.Marshal(&tool)
+		checks.NoError(t, err, "marshal tool with parameters")
+		var m map[string]any
+		checks.NoError(t, json.Unmarshal(b, &m), "unmarshal result")
+		if m["search_context_size"] != "low" {
+			t.Errorf("expected search_context_size=low, got %v", m["search_context_size"])
+		}
+	})
+}

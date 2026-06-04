@@ -440,6 +440,23 @@ See also: https://pkg.go.dev/github.com/sashabaranov/go-openai#ClientConfig
 </details>
 
 <details>
+<summary>Configuring an OpenAI-compatible endpoint</summary>
+
+```go
+config := openai.DefaultConfig(os.Getenv("OPENAI_API_KEY"))
+if baseURL := os.Getenv("OPENAI_BASE_URL"); baseURL != "" {
+	config.BaseURL = baseURL
+}
+
+c := openai.NewClientWithConfig(config)
+```
+
+This keeps the default OpenAI endpoint when `OPENAI_BASE_URL` is unset, while
+allowing local inference servers, private gateways, or other OpenAI-compatible
+endpoints to be configured by environment.
+</details>
+
+<details>
 <summary>ChatGPT support context</summary>
 
 ```go

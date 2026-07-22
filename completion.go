@@ -203,7 +203,7 @@ type CompletionRequest struct {
 	BestOf           int     `json:"best_of,omitempty"`
 	Echo             bool    `json:"echo,omitempty"`
 	FrequencyPenalty float32 `json:"frequency_penalty,omitempty"`
-	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
+	// LogitBias must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/completions/create#completions/create-logit_bias
 	LogitBias map[string]int `json:"logit_bias,omitempty"`

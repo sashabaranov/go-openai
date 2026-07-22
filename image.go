@@ -170,7 +170,7 @@ type ImageEditRequest struct {
 	User           string    `json:"user,omitempty"`
 }
 
-// CreateEditImage - API call to create an image. This is the main endpoint of the DALL-E API.
+// CreateEditImage - API call to create an edited image from an original image and a prompt.
 func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) (response ImageResponse, err error) {
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)

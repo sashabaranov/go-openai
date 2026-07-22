@@ -280,7 +280,7 @@ type ChatCompletionRequest struct {
 	ResponseFormat      *ChatCompletionResponseFormat `json:"response_format,omitempty"`
 	Seed                *int                          `json:"seed,omitempty"`
 	FrequencyPenalty    float32                       `json:"frequency_penalty,omitempty"`
-	// LogitBias is must be a token id string (specified by their token ID in the tokenizer), not a word string.
+	// LogitBias must be a token id string (specified by their token ID in the tokenizer), not a word string.
 	// incorrect: `"logit_bias":{"You": 6}`, correct: `"logit_bias":{"1639": 6}`
 	// refs: https://platform.openai.com/docs/api-reference/chat/create#chat/create-logit_bias
 	LogitBias map[string]int `json:"logit_bias,omitempty"`
@@ -298,7 +298,7 @@ type ChatCompletionRequest struct {
 	// Deprecated: use ToolChoice instead.
 	FunctionCall any    `json:"function_call,omitempty"`
 	Tools        []Tool `json:"tools,omitempty"`
-	// This can be either a string or an ToolChoice object.
+	// This can be either a string or a ToolChoice object.
 	ToolChoice any `json:"tool_choice,omitempty"`
 	// Options for streaming response. Only set this when you set stream: true.
 	StreamOptions *StreamOptions `json:"stream_options,omitempty"`

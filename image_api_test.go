@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 	"time"
 
@@ -129,6 +130,41 @@ func TestImageEditWithoutMask(t *testing.T) {
 		ResponseFormat: openai.CreateImageResponseFormatURL,
 	})
 	checks.NoError(t, err, "CreateImage error")
+}
+
+func TestImageEditSendsOptionalFields(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+
+	server.RegisterHandler("/v1/images/edits", func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(1 << 20); err != nil {
+			t.Errorf("ParseMultipartForm error: %v", err)
+			http.Error(w, "could not parse multipart form", http.StatusBadRequest)
+			return
+		}
+
+		for field, want := range map[string]string{
+			"model":   openai.CreateImageModelGptImage1,
+			"quality": openai.CreateImageQualityHigh,
+			"user":    "test-user",
+		} {
+			if got := r.FormValue(field); got != want {
+				t.Errorf("%s = %q, want %q", field, got, want)
+			}
+		}
+
+		_, err := fmt.Fprintln(w, `{}`)
+		checks.NoError(t, err, "Write response error")
+	})
+
+	_, err := client.CreateEditImage(context.Background(), openai.ImageEditRequest{
+		Image:   openai.WrapReader(strings.NewReader("image"), "image.png", "image/png"),
+		Prompt:  "There is a turtle in the pool",
+		Model:   openai.CreateImageModelGptImage1,
+		Quality: openai.CreateImageQualityHigh,
+		User:    "test-user",
+	})
+	checks.NoError(t, err, "CreateEditImage error")
 }
 
 // handleEditImageEndpoint Handles the images endpoint by the test server.

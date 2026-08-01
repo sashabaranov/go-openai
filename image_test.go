@@ -94,6 +94,48 @@ func TestImageFormBuilderFailures(t *testing.T) {
 			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
 		},
 		{
+			name: "model",
+			setup: func(fb *mockFormBuilder) {
+				fb.mockCreateFormFileReader = func(string, io.Reader, string) error { return nil }
+				fb.mockWriteField = func(field, _ string) error {
+					if field == "model" {
+						return mockFailedErr
+					}
+					return nil
+				}
+				fb.mockClose = func() error { return nil }
+			},
+			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Model: CreateImageModelGptImage1},
+		},
+		{
+			name: "quality",
+			setup: func(fb *mockFormBuilder) {
+				fb.mockCreateFormFileReader = func(string, io.Reader, string) error { return nil }
+				fb.mockWriteField = func(field, _ string) error {
+					if field == "quality" {
+						return mockFailedErr
+					}
+					return nil
+				}
+				fb.mockClose = func() error { return nil }
+			},
+			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Quality: CreateImageQualityHigh},
+		},
+		{
+			name: "user",
+			setup: func(fb *mockFormBuilder) {
+				fb.mockCreateFormFileReader = func(string, io.Reader, string) error { return nil }
+				fb.mockWriteField = func(field, _ string) error {
+					if field == "user" {
+						return mockFailedErr
+					}
+					return nil
+				}
+				fb.mockClose = func() error { return nil }
+			},
+			req: ImageEditRequest{Image: bytes.NewBuffer(nil), User: "test-user"},
+		},
+		{
 			name: "n",
 			setup: func(fb *mockFormBuilder) {
 				fb.mockCreateFormFileReader = func(string, io.Reader, string) error { return nil }

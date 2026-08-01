@@ -70,6 +70,35 @@ func main() {
 ### Other examples:
 
 <details>
+<summary>Responses API</summary>
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func main() {
+	client := openai.NewClient("your token")
+	response, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: "Explain why the sky is blue in one sentence.",
+	})
+	if err != nil {
+		fmt.Printf("CreateResponse error: %v\n", err)
+		return
+	}
+
+	fmt.Println(response.GetOutputText())
+}
+```
+</details>
+
+<details>
 <summary>ChatGPT streaming completion</summary>
 
 ```go

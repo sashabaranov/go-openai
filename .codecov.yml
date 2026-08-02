@@ -2,3 +2,11 @@ coverage:
   ignore:
     - "examples/**"
     - "internal/test/**"
+  status:
+    project:
+      default:
+        target: auto
+        threshold: 2%
+    patch:
+      default:
+        target: 80%

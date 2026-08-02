@@ -102,13 +102,14 @@ func validateObject(schema Definition, data any, defs map[string]Definition) boo
 		return false
 	}
 	for _, field := range schema.Required {
-		if _, exists := dataMap[field]; !exists {
+		if value, exists := dataMap[field]; !exists || value == nil {
 			return false
 		}
 	}
 	for key, valueSchema := range schema.Properties {
 		value, exists := dataMap[key]
-		if exists && !Validate(valueSchema, value, WithDefs(defs)) {
+		// if value is required and not exists or nil, should return false before
+		if exists && value != nil && !Validate(valueSchema, value, WithDefs(defs)) {
 			return false
 		} else if !exists && contains(schema.Required, key) {
 			return false

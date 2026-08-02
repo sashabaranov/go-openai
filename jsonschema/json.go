@@ -174,8 +174,18 @@ func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definitio
 			continue
 		case jsonTag == "":
 			jsonTag = field.Name
-		case strings.HasSuffix(jsonTag, ",omitempty"):
-			jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+		// case strings.HasSuffix(jsonTag, ",omitempty"):
+		// 	jsonTag = strings.TrimSuffix(jsonTag, ",omitempty")
+		// 	required = false
+		// omitempty may not be the end of tag
+		case strings.Contains(jsonTag, ",omitempty"):
+			// remove ,omitempty
+			jsonTag = strings.ReplaceAll(jsonTag, ",omitempty", "")
+			required = false
+		// and also omitzero
+		case strings.Contains(jsonTag, ",omitzero"):
+			// remove ,omitzero
+			jsonTag = strings.ReplaceAll(jsonTag, ",omitzero", "")
 			required = false
 		}
 
@@ -195,6 +205,11 @@ func reflectSchemaObject(t reflect.Type, defs map[string]Definition) (*Definitio
 		if n := field.Tag.Get("nullable"); n != "" {
 			nullable, _ := strconv.ParseBool(n)
 			item.Nullable = nullable
+		}
+
+		if strings.HasSuffix(jsonTag, ",string") {
+			jsonTag = strings.TrimSuffix(jsonTag, ",string")
+			item.Type = String
 		}
 
 		properties[jsonTag] = *item

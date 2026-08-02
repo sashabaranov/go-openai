@@ -161,6 +161,55 @@ func Test_Validate(t *testing.T) {
 					},
 				},
 			}}, false},
+		{
+			"test not required nil filed",
+			args{
+				data: map[string]any{
+					"name":  "John",
+					"age":   28,
+					"email": nil,
+				},
+				schema: jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"name":  {Type: jsonschema.String},
+						"age":   {Type: jsonschema.Integer},
+						"email": {Type: jsonschema.String},
+					},
+					Required: []string{"name", "age"},
+				},
+			},
+			true,
+		},
+		{
+			"test not required nil object",
+			args{
+				data: map[string]any{
+					"name":    "John",
+					"age":     28,
+					"address": nil,
+				},
+				schema: jsonschema.Definition{
+					Type: jsonschema.Object,
+					Properties: map[string]jsonschema.Definition{
+						"name": {Type: jsonschema.String},
+						"age":  {Type: jsonschema.Integer},
+						"address": {
+							Type: jsonschema.Object,
+							Properties: map[string]jsonschema.Definition{
+								"street": {Type: jsonschema.String},
+								"city":   {Type: jsonschema.String},
+								"state":  {Type: jsonschema.String},
+								"zip":    {Type: jsonschema.String},
+							},
+							Required: []string{"street", "city", "state", "zip"},
+						},
+					},
+					Required: []string{"name", "age"},
+				},
+			},
+			true,
+		},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

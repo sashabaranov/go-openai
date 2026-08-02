@@ -458,8 +458,8 @@ func TestChatRequestOmitEmpty(t *testing.T) {
 	})
 	checks.NoError(t, err)
 
-	// messages is also required so isn't omitted
-	const expected = `{"model":"gpt-4","messages":null}`
+	// messages is also required so isn't omitted; stream is always present
+	const expected = `{"model":"gpt-4","messages":null,"stream":false}`
 	if string(data) != expected {
 		t.Errorf("expected JSON with all empty fields to be %v but was %v", expected, string(data))
 	}
@@ -1203,5 +1203,29 @@ func TestChatCompletionRequest_UnmarshalJSON(t *testing.T) {
 				t.Errorf("UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+func TestChatCompletionRequest_StreamFalsePresent(t *testing.T) {
+	req := openai.ChatCompletionRequest{
+		Model: openai.GPT4,
+		Messages: []openai.ChatCompletionMessage{
+			{Role: openai.ChatMessageRoleUser, Content: "hello"},
+		},
+		Stream: false,
+	}
+	b, err := json.Marshal(req)
+	checks.NoError(t, err, "marshal error")
+
+	var raw map[string]interface{}
+	err = json.Unmarshal(b, &raw)
+	checks.NoError(t, err, "unmarshal error")
+
+	val, exists := raw["stream"]
+	if !exists {
+		t.Fatal("expected \"stream\" field to be present in JSON, but it was omitted")
+	}
+	if val != false {
+		t.Fatalf("expected \"stream\" to be false, got %v", val)
 	}
 }

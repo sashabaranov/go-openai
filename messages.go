@@ -24,6 +24,9 @@ type Message struct {
 	Metadata    map[string]any   `json:"metadata"`
 
 	httpHeader
+
+	// Messari custom fields
+	Prefix bool `json:"prefix,omitempty"`
 }
 
 type MessagesList struct {

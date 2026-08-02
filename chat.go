@@ -106,10 +106,9 @@ type ChatCompletionMessage struct {
 	// - https://github.com/openai/openai-cookbook/blob/main/examples/How_to_count_tokens_with_tiktoken.ipynb
 	Name string `json:"name,omitempty"`
 
-	// This property is used for the "reasoning" feature supported by deepseek-reasoner
-	// which is not in the official documentation.
-	// the doc from deepseek:
-	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
+	// This property is used for the "reasoning" feature supported by reasoning models.
+	// Supports both reasoning_content (DeepSeek style) and reasoning (OpenAI style) fields.
+	// DeepSeek doc: https://api-docs.deepseek.com/api/create-chat-completion#responses
 	ReasoningContent string `json:"reasoning_content,omitempty"`
 
 	FunctionCall *FunctionCall `json:"function_call,omitempty"`
@@ -162,13 +161,28 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		MultiContent     []ChatMessagePart
 		Name             string        `json:"name,omitempty"`
 		ReasoningContent string        `json:"reasoning_content,omitempty"`
+		Reasoning        string        `json:"reasoning,omitempty"`
 		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
 		ToolCallID       string        `json:"tool_call_id,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
-		*m = ChatCompletionMessage(msg)
+		*m = ChatCompletionMessage{
+			Role:             msg.Role,
+			Content:          msg.Content,
+			Refusal:          msg.Refusal,
+			MultiContent:     msg.MultiContent,
+			Name:             msg.Name,
+			ReasoningContent: msg.ReasoningContent,
+			FunctionCall:     msg.FunctionCall,
+			ToolCalls:        msg.ToolCalls,
+			ToolCallID:       msg.ToolCallID,
+		}
+		// Fallback to reasoning field if reasoning_content is empty
+		if m.ReasoningContent == "" && msg.Reasoning != "" {
+			m.ReasoningContent = msg.Reasoning
+		}
 		return nil
 	}
 	multiMsg := struct {
@@ -178,6 +192,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		MultiContent     []ChatMessagePart `json:"content"`
 		Name             string            `json:"name,omitempty"`
 		ReasoningContent string            `json:"reasoning_content,omitempty"`
+		Reasoning        string            `json:"reasoning,omitempty"`
 		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
 		ToolCallID       string            `json:"tool_call_id,omitempty"`
@@ -185,7 +200,21 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
 	}
-	*m = ChatCompletionMessage(multiMsg)
+	*m = ChatCompletionMessage{
+		Role:             multiMsg.Role,
+		Content:          multiMsg.Content,
+		Refusal:          multiMsg.Refusal,
+		MultiContent:     multiMsg.MultiContent,
+		Name:             multiMsg.Name,
+		ReasoningContent: multiMsg.ReasoningContent,
+		FunctionCall:     multiMsg.FunctionCall,
+		ToolCalls:        multiMsg.ToolCalls,
+		ToolCallID:       multiMsg.ToolCallID,
+	}
+	// Fallback to reasoning field if reasoning_content is empty
+	if m.ReasoningContent == "" && multiMsg.Reasoning != "" {
+		m.ReasoningContent = multiMsg.Reasoning
+	}
 	return nil
 }
 

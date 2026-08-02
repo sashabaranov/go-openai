@@ -17,7 +17,7 @@ func main() {
 
 	model := os.Getenv("OPENAI_MODEL")
 	if model == "" {
-		model = openai.GPT5
+		model = openai.GPT5Dot6Sol
 	}
 
 	ctx := context.Background()

@@ -11,9 +11,13 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
-// Whisper Defines the models provided by OpenAI to use when processing audio with OpenAI.
+// Audio transcription models provided by OpenAI.
 const (
-	Whisper1 = "whisper-1"
+	Whisper1               = "whisper-1"
+	GPT4oTranscribe        = "gpt-4o-transcribe"
+	GPT4oMiniTranscribe    = "gpt-4o-mini-transcribe"
+	GPT4oTranscribeDiarize = "gpt-4o-transcribe-diarize"
+	GPTTranscribe          = "gpt-transcribe"
 )
 
 // Response formats; Whisper uses AudioResponseFormatJSON by default.

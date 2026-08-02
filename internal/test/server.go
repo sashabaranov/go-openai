@@ -45,6 +45,7 @@ func (ts *ServerTest) RegisterHandler(path string, handler handler) {
 // OpenAITestServer Creates a mocked OpenAI server which can pretend to handle requests during testing.
 func (ts *ServerTest) OpenAITestServer() *httptest.Server {
 	return httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// #nosec G706 -- %q safely escapes the untrusted request path in this test log.
 		log.Printf("received a %s request at path %q\n", r.Method, r.URL.Path)
 
 		// check auth

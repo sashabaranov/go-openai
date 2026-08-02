@@ -140,7 +140,7 @@ func reflectSchema(t reflect.Type, defs map[string]Definition) (*Definition, err
 			return nil, err
 		}
 		d = *object
-	case reflect.Ptr:
+	case reflect.Pointer:
 		definition, err := reflectSchema(t.Elem(), defs)
 		if err != nil {
 			return nil, err

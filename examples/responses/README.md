@@ -8,4 +8,4 @@ export OPENAI_API_KEY="<your key here>"
 go run ./examples/responses
 ```
 
-Set `OPENAI_MODEL` to use a model other than `gpt-5`.
+Set `OPENAI_MODEL` to use a model other than `gpt-5.6-sol`.

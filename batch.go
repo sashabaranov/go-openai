@@ -159,7 +159,7 @@ func (r *UploadBatchFileRequest) AddChatCompletion(customerID string, body ChatC
 	r.Lines = append(r.Lines, BatchChatCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
-		Method:   "POST",
+		Method:   http.MethodPost,
 		URL:      BatchEndpointChatCompletions,
 	})
 }
@@ -168,7 +168,7 @@ func (r *UploadBatchFileRequest) AddCompletion(customerID string, body Completio
 	r.Lines = append(r.Lines, BatchCompletionRequest{
 		CustomID: customerID,
 		Body:     body,
-		Method:   "POST",
+		Method:   http.MethodPost,
 		URL:      BatchEndpointCompletions,
 	})
 }
@@ -177,7 +177,7 @@ func (r *UploadBatchFileRequest) AddEmbedding(customerID string, body EmbeddingR
 	r.Lines = append(r.Lines, BatchEmbeddingRequest{
 		CustomID: customerID,
 		Body:     body,
-		Method:   "POST",
+		Method:   http.MethodPost,
 		URL:      BatchEndpointEmbeddings,
 	})
 }
@@ -186,7 +186,7 @@ func (r *UploadBatchFileRequest) AddResponse(customerID string, body CreateRespo
 	r.Lines = append(r.Lines, BatchResponseRequest{
 		CustomID: customerID,
 		Body:     body,
-		Method:   "POST",
+		Method:   http.MethodPost,
 		URL:      BatchEndpointResponses,
 	})
 }

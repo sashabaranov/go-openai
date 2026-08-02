@@ -804,6 +804,37 @@ func TestMultipartChatCompletions(t *testing.T) {
 	checks.NoError(t, err, "CreateAzureChatCompletion error")
 }
 
+func TestChatMessageImageURLMIMEType(t *testing.T) {
+	client, server, teardown := setupAzureTestServer()
+	defer teardown()
+	server.RegisterHandler("/openai/deployments/*", handleChatCompletionEndpoint)
+
+	_, err := client.CreateChatCompletion(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role: openai.ChatMessageRoleUser,
+				MultiContent: []openai.ChatMessagePart{
+					{
+						Type: openai.ChatMessagePartTypeText,
+						Text: "Hello!",
+					},
+					{
+						Type: openai.ChatMessagePartTypeImageURL,
+						ImageURL: &openai.ChatMessageImageURL{
+							URL:      "URL",
+							Detail:   openai.ImageURLDetailLow,
+							MIMEType: "image/png",
+						},
+					},
+				},
+			},
+		},
+	})
+	checks.NoError(t, err, "CreateAzureChatCompletion error")
+}
+
 func TestMultipartChatMessageSerialization(t *testing.T) {
 	jsonText := `[{"role":"system","content":"system-message"},` +
 		`{"role":"user","content":[{"type":"text","text":"nice-text"},` +

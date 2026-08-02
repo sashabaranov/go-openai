@@ -17,6 +17,7 @@ const (
 	BatchEndpointChatCompletions BatchEndpoint = "/v1/chat/completions"
 	BatchEndpointCompletions     BatchEndpoint = "/v1/completions"
 	BatchEndpointEmbeddings      BatchEndpoint = "/v1/embeddings"
+	BatchEndpointResponses       BatchEndpoint = "/v1/responses"
 )
 
 type BatchLineItem interface {
@@ -52,6 +53,18 @@ type BatchEmbeddingRequest struct {
 	Body     EmbeddingRequest `json:"body"`
 	Method   string           `json:"method"`
 	URL      BatchEndpoint    `json:"url"`
+}
+
+type BatchResponseRequest struct {
+	CustomID string                `json:"custom_id"`
+	Body     CreateResponseRequest `json:"body"`
+	Method   string                `json:"method"`
+	URL      BatchEndpoint         `json:"url"`
+}
+
+func (r BatchResponseRequest) MarshalBatchLineItem() []byte {
+	marshal, _ := json.Marshal(r)
+	return marshal
 }
 
 func (r BatchEmbeddingRequest) MarshalBatchLineItem() []byte {
@@ -166,6 +179,15 @@ func (r *UploadBatchFileRequest) AddEmbedding(customerID string, body EmbeddingR
 		Body:     body,
 		Method:   "POST",
 		URL:      BatchEndpointEmbeddings,
+	})
+}
+
+func (r *UploadBatchFileRequest) AddResponse(customerID string, body CreateResponseRequest) {
+	r.Lines = append(r.Lines, BatchResponseRequest{
+		CustomID: customerID,
+		Body:     body,
+		Method:   "POST",
+		URL:      BatchEndpointResponses,
 	})
 }
 

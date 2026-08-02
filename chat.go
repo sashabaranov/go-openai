@@ -346,12 +346,45 @@ type StreamOptions struct {
 type ToolType string
 
 const (
-	ToolTypeFunction ToolType = "function"
+	ToolTypeFunction           ToolType = "function"
+	ToolTypeWebSearch          ToolType = "web_search"
+	ToolTypeWebSearchPreview   ToolType = "web_search_preview"
+	ToolTypeFileSearch         ToolType = "file_search"
+	ToolTypeComputer           ToolType = "computer"
+	ToolTypeComputerUsePreview ToolType = "computer_use_preview"
+	ToolTypeComputerUse        ToolType = "computer_use"
+	ToolTypeCodeInterpreter    ToolType = "code_interpreter"
+	ToolTypeImageGeneration    ToolType = "image_generation"
+	ToolTypeMCP                ToolType = "mcp"
+	ToolTypeCustom             ToolType = "custom"
+	ToolTypeLocalShell         ToolType = "local_shell"
+	ToolTypeShell              ToolType = "shell"
+	ToolTypeApplyPatch         ToolType = "apply_patch"
+	ToolTypeToolSearch         ToolType = "tool_search"
 )
 
 type Tool struct {
 	Type     ToolType            `json:"type"`
 	Function *FunctionDefinition `json:"function,omitempty"`
+	// Parameters contains Responses API tool properties that are serialized next to type.
+	// For example: {"search_context_size": "low"} for a web search tool.
+	Parameters map[string]any `json:"-"`
+}
+
+// MarshalJSON preserves the nested Chat Completions function format while also
+// supporting the inline properties used by built-in and function tools in the Responses API.
+func (t Tool) MarshalJSON() ([]byte, error) {
+	tool := map[string]any{"type": t.Type}
+	if t.Function != nil {
+		tool["function"] = t.Function
+	}
+	for key, value := range t.Parameters {
+		if key == "type" || key == "function" {
+			return nil, errors.New("tool parameters cannot override type or function")
+		}
+		tool[key] = value
+	}
+	return json.Marshal(tool)
 }
 
 type ToolChoice struct {

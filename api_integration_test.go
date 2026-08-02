@@ -8,7 +8,9 @@ import (
 	"errors"
 	"io"
 	"os"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test/checks"
@@ -142,6 +144,142 @@ func TestCompletionStream(t *testing.T) {
 	}
 	if counter == 0 {
 		t.Error("Stream did not return any responses")
+	}
+}
+
+func TestResponsesAPI(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	client := openai.NewClient(apiToken)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	store := true
+	responseIDs := make([]string, 0, 2)
+	defer func() {
+		for i := len(responseIDs) - 1; i >= 0; i-- {
+			deleted, err := client.DeleteResponse(ctx, responseIDs[i])
+			if err != nil {
+				t.Errorf("DeleteResponse(%q) error: %v", responseIDs[i], err)
+				continue
+			}
+			if !deleted.Deleted {
+				t.Errorf("DeleteResponse(%q) returned deleted=false", responseIDs[i])
+			}
+		}
+	}()
+
+	first, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
+		Model:     openai.GPT5Nano,
+		Input:     "Remember the code word ORCHID for the next turn. Reply only with READY.",
+		Reasoning: &openai.ResponseReasoning{Effort: "minimal"},
+		Store:     &store,
+	})
+	checks.NoError(t, err, "CreateResponse returned error")
+	if err != nil {
+		return
+	}
+	if first.ID == "" {
+		t.Fatal("CreateResponse returned an empty response ID")
+	}
+	responseIDs = append(responseIDs, first.ID)
+	if first.Status != openai.ResponseStatusCompleted {
+		t.Fatalf("CreateResponse returned status %q", first.Status)
+	}
+	if !strings.Contains(strings.ToUpper(first.GetOutputText()), "READY") {
+		t.Errorf("CreateResponse returned unexpected output %q", first.GetOutputText())
+	}
+
+	second, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
+		Model:              openai.GPT5Nano,
+		Input:              "What code word did I ask you to remember? Reply only with the code word.",
+		PreviousResponseID: first.ID,
+		Reasoning:          &openai.ResponseReasoning{Effort: "minimal"},
+		Store:              &store,
+	})
+	checks.NoError(t, err, "CreateResponse follow-up returned error")
+	if err != nil {
+		return
+	}
+	if second.ID == "" {
+		t.Fatal("CreateResponse follow-up returned an empty response ID")
+	}
+	responseIDs = append(responseIDs, second.ID)
+	if second.Status != openai.ResponseStatusCompleted {
+		t.Fatalf("CreateResponse follow-up returned status %q", second.Status)
+	}
+	if !strings.Contains(strings.ToUpper(second.GetOutputText()), "ORCHID") {
+		t.Errorf("CreateResponse follow-up did not retain context: %q", second.GetOutputText())
+	}
+
+	retrieved, err := client.RetrieveResponse(ctx, second.ID)
+	checks.NoError(t, err, "RetrieveResponse returned error")
+	if err == nil && retrieved.ID != second.ID {
+		t.Errorf("RetrieveResponse returned ID %q, want %q", retrieved.ID, second.ID)
+	}
+}
+
+func TestResponsesAPIStream(t *testing.T) {
+	apiToken := os.Getenv("OPENAI_TOKEN")
+	if apiToken == "" {
+		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
+	}
+
+	client := openai.NewClient(apiToken)
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+	store := false
+
+	stream, err := client.CreateResponseStream(ctx, openai.CreateResponseRequest{
+		Model:     openai.GPT5Nano,
+		Input:     "Reply only with STREAM_OK.",
+		Reasoning: &openai.ResponseReasoning{Effort: "minimal"},
+		Store:     &store,
+	})
+	checks.NoError(t, err, "CreateResponseStream returned error")
+	if err != nil {
+		return
+	}
+	defer stream.Close()
+
+	var output strings.Builder
+	var sawCreated, sawCompleted bool
+	for {
+		event, streamErr := stream.Recv()
+		if errors.Is(streamErr, io.EOF) {
+			break
+		}
+		if streamErr != nil {
+			t.Fatalf("CreateResponseStream receive error: %v", streamErr)
+		}
+
+		if event.Type == openai.ResponseStreamEventCreated {
+			sawCreated = true
+		}
+		if event.Type == openai.ResponseStreamEventOutputTextDelta {
+			output.WriteString(event.Delta)
+		}
+		if event.Type == openai.ResponseStreamEventCompleted {
+			sawCompleted = true
+		}
+		if event.Type == openai.ResponseStreamEventFailed ||
+			event.Type == openai.ResponseStreamEventIncomplete ||
+			event.Type == openai.ResponseStreamEventError {
+			t.Fatalf("CreateResponseStream returned terminal event %q: %s", event.Type, event.Message)
+		}
+	}
+
+	if !sawCreated {
+		t.Error("CreateResponseStream did not emit response.created")
+	}
+	if !sawCompleted {
+		t.Error("CreateResponseStream did not emit response.completed")
+	}
+	if !strings.Contains(strings.ToUpper(output.String()), "STREAM_OK") {
+		t.Errorf("CreateResponseStream returned unexpected output %q", output.String())
 	}
 }
 

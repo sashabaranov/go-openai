@@ -199,6 +199,27 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
+	if request.Model != "" {
+		err = builder.WriteField("model", request.Model)
+		if err != nil {
+			return
+		}
+	}
+
+	if request.Quality != "" {
+		err = builder.WriteField("quality", request.Quality)
+		if err != nil {
+			return
+		}
+	}
+
+	if request.User != "" {
+		err = builder.WriteField("user", request.User)
+		if err != nil {
+			return
+		}
+	}
+
 	err = builder.WriteField("n", strconv.Itoa(request.N))
 	if err != nil {
 		return

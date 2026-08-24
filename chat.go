@@ -119,6 +119,9 @@ type ChatCompletionMessage struct {
 
 	// For Role=tool prompts this should be set to the ID given in the assistant's prior request to call a tool.
 	ToolCallID string `json:"tool_call_id,omitempty"`
+
+	// Messari custom fields
+	Prefix bool `json:"prefix,omitempty"`
 }
 
 func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
@@ -136,6 +139,7 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 			FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
 			ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
 			ToolCallID       string            `json:"tool_call_id,omitempty"`
+			Prefix           bool              `json:"prefix,omitempty"`
 		}(m)
 		return json.Marshal(msg)
 	}
@@ -150,6 +154,7 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
 		ToolCallID       string            `json:"tool_call_id,omitempty"`
+		Prefix           bool              `json:"prefix,omitempty"`
 	}(m)
 	return json.Marshal(msg)
 }
@@ -165,6 +170,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
 		ToolCallID       string        `json:"tool_call_id,omitempty"`
+		Prefix           bool          `json:"prefix,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
@@ -181,6 +187,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
 		ToolCallID       string            `json:"tool_call_id,omitempty"`
+		Prefix           bool              `json:"prefix,omitempty"`
 	}{}
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
@@ -195,6 +202,7 @@ type ToolCall struct {
 	ID       string       `json:"id,omitempty"`
 	Type     ToolType     `json:"type"`
 	Function FunctionCall `json:"function"`
+	Name     string       `json:"name,omitempty"`
 }
 
 type FunctionCall struct {

@@ -92,7 +92,7 @@ func TestAPIErrorUnmarshalJSON(t *testing.T) {
 			checkFunc: func(t *testing.T, apiErr openai.APIError) {
 				assertAPIErrorInnerError(t, apiErr, &openai.InnerError{
 					Code: "ResponsibleAIPolicyViolation",
-					ContentFilterResults: openai.ContentFilterResults{
+					ContentFilterResults: &openai.ContentFilterResults{
 						Hate: openai.Hate{
 							Filtered: false,
 							Severity: "safe",

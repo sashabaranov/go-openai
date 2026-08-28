@@ -18,7 +18,7 @@ const (
 	CreateImageSize1792x1024 = "1792x1024"
 	CreateImageSize1024x1792 = "1024x1792"
 
-	// gpt-image-1 supported only.
+	// GPT Image models only.
 	CreateImageSize1536x1024 = "1536x1024" // Landscape
 	CreateImageSize1024x1536 = "1024x1536" // Portrait
 )
@@ -30,16 +30,20 @@ const (
 )
 
 const (
-	CreateImageModelDallE2    = "dall-e-2"
-	CreateImageModelDallE3    = "dall-e-3"
-	CreateImageModelGptImage1 = "gpt-image-1"
+	CreateImageModelDallE2             = "dall-e-2"
+	CreateImageModelDallE3             = "dall-e-3"
+	CreateImageModelGptImage1          = "gpt-image-1"
+	CreateImageModelGptImage1Mini      = "gpt-image-1-mini"
+	CreateImageModelGptImage1Dot5      = "gpt-image-1.5"
+	CreateImageModelGptImage2          = "gpt-image-2"
+	CreateImageModelChatGPTImageLatest = "chatgpt-image-latest"
 )
 
 const (
 	CreateImageQualityHD       = "hd"
 	CreateImageQualityStandard = "standard"
 
-	// gpt-image-1 only.
+	// GPT Image models only.
 	CreateImageQualityHigh   = "high"
 	CreateImageQualityMedium = "medium"
 	CreateImageQualityLow    = "low"
@@ -52,18 +56,18 @@ const (
 )
 
 const (
-	// gpt-image-1 only.
+	// GPT Image models only.
 	CreateImageBackgroundTransparent = "transparent"
 	CreateImageBackgroundOpaque      = "opaque"
 )
 
 const (
-	// gpt-image-1 only.
+	// GPT Image models only.
 	CreateImageModerationLow = "low"
 )
 
 const (
-	// gpt-image-1 only.
+	// GPT Image models only.
 	CreateImageOutputFormatPNG  = "png"
 	CreateImageOutputFormatJPEG = "jpeg"
 	CreateImageOutputFormatWEBP = "webp"
@@ -193,6 +197,27 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 	err = builder.WriteField("prompt", request.Prompt)
 	if err != nil {
 		return
+	}
+
+	if request.Model != "" {
+		err = builder.WriteField("model", request.Model)
+		if err != nil {
+			return
+		}
+	}
+
+	if request.Quality != "" {
+		err = builder.WriteField("quality", request.Quality)
+		if err != nil {
+			return
+		}
+	}
+
+	if request.User != "" {
+		err = builder.WriteField("user", request.User)
+		if err != nil {
+			return
+		}
 	}
 
 	err = builder.WriteField("n", strconv.Itoa(request.N))

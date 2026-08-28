@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"bytes"
 	"errors"
+	"io"
 	"testing"
 
 	utils "github.com/sashabaranov/go-openai/internal"
@@ -75,4 +76,25 @@ func TestStreamReaderRecvRaw(t *testing.T) {
 	if !bytes.Equal(rawLine, []byte("{\"key\": \"value\"}")) {
 		t.Fatalf("Did not return raw line: %v", string(rawLine))
 	}
+}
+
+// Regression for #1060. When the read aborts (context cancel, network
+// reset, etc) and whatever was buffered in errAccumulator happens to
+// parse as an ErrorResponse with a nil Error field, the stream used to
+// surface a useless "error, <nil>" instead of the real read error.
+func TestStreamReaderPropagatesReadErrorWhenErrorResponseIsEmpty(t *testing.T) {
+	stream := &streamReader[ChatCompletionStreamResponse]{
+		reader:         bufio.NewReader(bytes.NewReader([]byte(""))),
+		errAccumulator: utils.NewErrorAccumulator(),
+		unmarshaler:    &utils.JSONUnmarshaler{},
+	}
+	// Prime the accumulator with a payload that unmarshals successfully
+	// into ErrorResponse{} but leaves the Error pointer nil. This mirrors
+	// what we end up with after a partial SSE frame plus EOF.
+	if err := stream.errAccumulator.Write([]byte("{}")); err != nil {
+		t.Fatalf("write to accumulator: %v", err)
+	}
+
+	_, err := stream.Recv()
+	checks.ErrorIs(t, err, io.EOF, "expected the underlying io.EOF to propagate")
 }

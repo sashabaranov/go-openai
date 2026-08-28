@@ -3,6 +3,7 @@ package openai
 import (
 	"fmt"
 	"io"
+	"mime"
 	"mime/multipart"
 	"net/textproto"
 	"os"
@@ -50,6 +51,19 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 	if f, ok := r.(interface{ ContentType() string }); ok {
 		contentType = f.ContentType()
 	}
+	// The OpenAI API rejects the file part when Content-Type is
+	// missing, so when the reader doesn't supply one and we can't
+	// derive it from the filename extension, fall back to the same
+	// default the stdlib's multipart.Writer.CreateFormFile uses.
+	// See #1010.
+	if contentType == "" {
+		if ext := filepath.Ext(filename); ext != "" {
+			contentType = mime.TypeByExtension(ext)
+		}
+		if contentType == "" {
+			contentType = "application/octet-stream"
+		}
+	}
 
 	h := make(textproto.MIMEHeader)
 	h.Set(
@@ -60,10 +74,7 @@ func (fb *DefaultFormBuilder) CreateFormFileReader(fieldname string, r io.Reader
 			escapeQuotes(filepath.Base(filename)),
 		),
 	)
-	// content type is optional, but it can be set
-	if contentType != "" {
-		h.Set("Content-Type", contentType)
-	}
+	h.Set("Content-Type", contentType)
 
 	fieldWriter, err := fb.writer.CreatePart(h)
 	if err != nil {

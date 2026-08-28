@@ -257,9 +257,9 @@ func withModel(model string) fullURLOption {
 }
 
 var azureDeploymentsEndpoints = []string{
-	"/completions",
+	completionsSuffix,
 	"/embeddings",
-	"/chat/completions",
+	chatCompletionsSuffix,
 	"/audio/transcriptions",
 	"/audio/translations",
 	"/audio/speech",

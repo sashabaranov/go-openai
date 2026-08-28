@@ -30,6 +30,7 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 			TranscriptionTimestampGranularitySegment,
 			TranscriptionTimestampGranularityWord,
 		},
+		ChunkingStrategy: "auto",
 	}
 
 	mockFailedErr := fmt.Errorf("mock form builder fail")
@@ -53,7 +54,10 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		return nil
 	}
 
-	failOn := []string{"model", "prompt", "temperature", "language", "response_format", "timestamp_granularities[]"}
+	failOn := []string{
+		"model", "prompt", "temperature", "language",
+		"response_format", "timestamp_granularities[]", "chunking_strategy",
+	}
 	for _, failingField := range failOn {
 		failForField = failingField
 		mockFailedErr = fmt.Errorf("mock form builder fail on field %s", failingField)
@@ -61,6 +65,72 @@ func TestAudioWithFailingFormBuilder(t *testing.T) {
 		err = audioMultipartForm(req, mockBuilder)
 		checks.ErrorIs(t, err, mockFailedErr, "audioMultipartForm should return error if form builder fails")
 	}
+}
+
+// captureChunkingStrategy runs audioMultipartForm and returns the value written for the
+// chunking_strategy field, or ("", false) if the field was never written.
+func captureChunkingStrategy(t *testing.T, path string, strategy any) (string, bool) {
+	t.Helper()
+
+	var got string
+	seen := false
+	mockBuilder := &mockFormBuilder{
+		mockCreateFormFile: func(string, *os.File) error { return nil },
+		mockWriteField: func(field, value string) error {
+			if field == "chunking_strategy" {
+				seen = true
+				got = value
+			}
+			return nil
+		},
+		mockClose: func() error { return nil },
+	}
+
+	req := AudioRequest{FilePath: path, Model: GPT4oTranscribeDiarize, ChunkingStrategy: strategy}
+	if err := audioMultipartForm(req, mockBuilder); err != nil {
+		t.Fatalf("audioMultipartForm returned error: %v", err)
+	}
+	return got, seen
+}
+
+func TestAudioChunkingStrategyField(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "fake.mp3")
+	test.CreateTestFile(t, path)
+
+	vadStrategy := TranscriptionChunkingStrategy{
+		Type:              "server_vad",
+		PrefixPaddingMs:   300,
+		SilenceDurationMs: 200,
+		Threshold:         0.5,
+	}
+	vadJSON := `{"type":"server_vad","prefix_padding_ms":300,"silence_duration_ms":200,"threshold":0.5}`
+
+	tests := []struct {
+		name     string
+		strategy any
+		want     string
+	}{
+		{name: "auto string", strategy: "auto", want: "auto"},
+		{name: "server_vad struct", strategy: vadStrategy, want: vadJSON},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got, seen := captureChunkingStrategy(t, path, tt.strategy)
+			if !seen {
+				t.Fatalf("chunking_strategy field was not written")
+			}
+			if got != tt.want {
+				t.Fatalf("chunking_strategy = %q, want %q", got, tt.want)
+			}
+		})
+	}
+
+	t.Run("unset", func(t *testing.T) {
+		if _, seen := captureChunkingStrategy(t, path, nil); seen {
+			t.Fatalf("chunking_strategy should not be written when unset")
+		}
+	})
 }
 
 func TestCreateFileField(t *testing.T) {

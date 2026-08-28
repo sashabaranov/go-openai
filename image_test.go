@@ -170,6 +170,43 @@ func TestImageFormBuilderFailures(t *testing.T) {
 	})
 }
 
+func TestImageEditOptionalFieldWriteFailures(t *testing.T) {
+	ctx := context.Background()
+	mockFailedErr := fmt.Errorf("mock form builder fail")
+
+	tests := []struct {
+		name string
+		req  ImageEditRequest
+	}{
+		{name: "model", req: ImageEditRequest{Image: bytes.NewBuffer(nil), Model: CreateImageModelGptImage1}},
+		{name: "quality", req: ImageEditRequest{Image: bytes.NewBuffer(nil), Quality: CreateImageQualityHigh}},
+		{name: "user", req: ImageEditRequest{Image: bytes.NewBuffer(nil), User: "test-user"}},
+	}
+
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			cfg := DefaultConfig("")
+			cfg.BaseURL = ""
+			client := NewClientWithConfig(cfg)
+			client.createFormBuilder = func(io.Writer) utils.FormBuilder {
+				return &mockFormBuilder{
+					mockCreateFormFileReader: func(string, io.Reader, string) error { return nil },
+					mockWriteField: func(field, _ string) error {
+						if field == tc.name {
+							return mockFailedErr
+						}
+						return nil
+					},
+					mockClose: func() error { return nil },
+				}
+			}
+
+			_, err := client.CreateEditImage(ctx, tc.req)
+			checks.ErrorIs(t, err, mockFailedErr, "CreateEditImage should return error if form builder fails")
+		})
+	}
+}
+
 func TestVariImageFormBuilderFailures(t *testing.T) {
 	ctx := context.Background()
 	mockFailedErr := fmt.Errorf("mock form builder fail")

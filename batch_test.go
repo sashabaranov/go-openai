@@ -2,6 +2,7 @@ package openai_test
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"reflect"
@@ -29,6 +30,27 @@ func TestUploadBatchFile(t *testing.T) {
 	})
 	_, err := client.UploadBatchFile(context.Background(), req)
 	checks.NoError(t, err, "UploadBatchFile error")
+}
+
+func TestUploadBatchFileRequestAddResponse(t *testing.T) {
+	request := &openai.UploadBatchFileRequest{}
+	request.AddResponse("req-1", openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: "Hello!",
+	})
+
+	var line map[string]any
+	checks.NoError(t, json.Unmarshal(request.MarshalJSONL(), &line), "unmarshal response batch line")
+	if line["custom_id"] != "req-1" || line["method"] != http.MethodPost {
+		t.Errorf("unexpected response batch line: %#v", line)
+	}
+	if line["url"] != string(openai.BatchEndpointResponses) {
+		t.Errorf("unexpected response batch endpoint: %v", line["url"])
+	}
+	body, ok := line["body"].(map[string]any)
+	if !ok || body["input"] != "Hello!" || body["model"] != string(openai.GPT4o) {
+		t.Errorf("unexpected response batch body: %#v", line["body"])
+	}
 }
 
 func TestCreateBatch(t *testing.T) {
@@ -129,7 +151,7 @@ func TestUploadBatchFileRequest_AddChatCompletion(t *testing.T) {
 					},
 				},
 			},
-		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}")}, //nolint:lll
+		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5,\"stream\":false},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"messages\":[{\"role\":\"user\",\"content\":\"Hello!\"}],\"max_tokens\":5,\"stream\":false},\"method\":\"POST\",\"url\":\"/v1/chat/completions\"}")}, //nolint:lll
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -170,7 +192,7 @@ func TestUploadBatchFileRequest_AddCompletion(t *testing.T) {
 					User:  "Hello",
 				},
 			},
-		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}")}, //nolint:lll
+		}, []byte("{\"custom_id\":\"req-1\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"stream\":false,\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}\n{\"custom_id\":\"req-2\",\"body\":{\"model\":\"gpt-3.5-turbo\",\"stream\":false,\"user\":\"Hello\"},\"method\":\"POST\",\"url\":\"/v1/completions\"}")}, //nolint:lll
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

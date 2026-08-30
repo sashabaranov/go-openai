@@ -65,10 +65,21 @@ type ChatCompletionStreamResponse struct {
 	Usage *Usage `json:"usage,omitempty"`
 }
 
+// ChatStreamReader is an interface for reading chat completion streams.
+type ChatStreamReader interface {
+	Recv() (ChatCompletionStreamResponse, error)
+	Close() error
+}
+
 // ChatCompletionStream
 // Note: Perhaps it is more elegant to abstract Stream using generics.
 type ChatCompletionStream struct {
-	*streamReader[ChatCompletionStreamResponse]
+	reader ChatStreamReader
+}
+
+// NewChatCompletionStream allows injecting a custom ChatStreamReader (for testing).
+func NewChatCompletionStream(reader ChatStreamReader) *ChatCompletionStream {
+	return &ChatCompletionStream{reader: reader}
 }
 
 // CreateChatCompletionStream — API call to create a chat completion w/ streaming
@@ -106,7 +117,37 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 	stream = &ChatCompletionStream{
-		streamReader: resp,
+		reader: resp,
 	}
 	return
+}
+
+func (s *ChatCompletionStream) Recv() (ChatCompletionStreamResponse, error) {
+	return s.reader.Recv()
+}
+
+func (s *ChatCompletionStream) Close() error {
+	return s.reader.Close()
+}
+
+func (s *ChatCompletionStream) Header() http.Header {
+	if h, ok := s.reader.(interface{ Header() http.Header }); ok {
+		return h.Header()
+	}
+	return http.Header{}
+}
+
+func (s *ChatCompletionStream) GetRateLimitHeaders() map[string]interface{} {
+	if h, ok := s.reader.(interface{ GetRateLimitHeaders() RateLimitHeaders }); ok {
+		headers := h.GetRateLimitHeaders()
+		return map[string]interface{}{
+			"x-ratelimit-limit-requests":     headers.LimitRequests,
+			"x-ratelimit-limit-tokens":       headers.LimitTokens,
+			"x-ratelimit-remaining-requests": headers.RemainingRequests,
+			"x-ratelimit-remaining-tokens":   headers.RemainingTokens,
+			"x-ratelimit-reset-requests":     headers.ResetRequests.String(),
+			"x-ratelimit-reset-tokens":       headers.ResetTokens.String(),
+		}
+	}
+	return map[string]interface{}{}
 }

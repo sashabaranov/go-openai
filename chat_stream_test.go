@@ -337,6 +337,64 @@ func TestCreateChatCompletionStreamRateLimitError(t *testing.T) {
 	t.Logf("%+v\n", apiErr)
 }
 
+func TestCreateChatCompletionStreamRateLimitErrorHeaders(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/chat/completions", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Retry-After", "30")
+		for k, v := range rateLimitHeaders {
+			switch val := v.(type) {
+			case int:
+				w.Header().Set(k, strconv.Itoa(val))
+			default:
+				w.Header().Set(k, fmt.Sprintf("%s", v))
+			}
+		}
+		w.WriteHeader(http.StatusTooManyRequests)
+
+		// Send test responses
+		dataBytes := []byte(`{"error":{` +
+			`"message": "You are sending requests too quickly.",` +
+			`"type":"rate_limit_reached",` +
+			`"param":null,` +
+			`"code":"rate_limit_reached"}}`)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+	var apiErr *openai.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("TestCreateChatCompletionStreamRateLimitErrorHeaders did not return APIError")
+	}
+	if stream == nil {
+		t.Fatal("CreateChatCompletionStream should still return a stream on error so its headers are reachable")
+	}
+	defer stream.Close()
+
+	if got := stream.Header().Get("Retry-After"); got != "30" {
+		t.Errorf("expected Retry-After header to be 30, got %s", got)
+	}
+
+	headers := stream.GetRateLimitHeaders()
+	bs1, _ := json.Marshal(headers)
+	bs2, _ := json.Marshal(rateLimitHeaders)
+	if string(bs1) != string(bs2) {
+		t.Errorf("expected rate limit header %s to be %s", bs2, bs1)
+	}
+}
+
 func TestCreateChatCompletionStreamWithRefusal(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

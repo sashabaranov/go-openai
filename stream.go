@@ -45,9 +45,6 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	resp, err := sendRequestStream[CompletionResponse](c, req)
-	if err != nil {
-		return
-	}
 	stream = &CompletionStream{
 		streamReader: resp,
 	}

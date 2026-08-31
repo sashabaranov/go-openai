@@ -124,8 +124,5 @@ func (c *Client) CreateResponseStream(
 	}
 
 	reader, err := sendRequestStream[ResponseStreamEvent](c, req)
-	if err != nil {
-		return nil, err
-	}
-	return &ResponseStream{streamReader: reader}, nil
+	return &ResponseStream{streamReader: reader}, err
 }

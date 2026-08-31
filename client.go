@@ -182,7 +182,10 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 		return new(streamReader[T]), err
 	}
 	if isFailureStatusCode(resp) {
-		return new(streamReader[T]), client.handleErrorResp(resp)
+		return &streamReader[T]{
+			response:   resp,
+			httpHeader: httpHeader(resp.Header),
+		}, client.handleErrorResp(resp)
 	}
 	return &streamReader[T]{
 		emptyMessagesLimit: client.config.EmptyMessagesLimit,

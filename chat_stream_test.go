@@ -393,6 +393,32 @@ func TestCreateChatCompletionStreamRateLimitErrorHeaders(t *testing.T) {
 	if string(bs1) != string(bs2) {
 		t.Errorf("expected rate limit header %s to be %s", bs2, bs1)
 	}
+
+	if _, err := stream.Recv(); !errors.Is(err, io.EOF) {
+		t.Errorf("expected Recv on an HTTP-error stream to return io.EOF, got %v", err)
+	}
+}
+
+func TestCreateChatCompletionStreamTransportError(t *testing.T) {
+	client := setupUnreachableClient()
+
+	stream, err := client.CreateChatCompletionStream(context.Background(), openai.ChatCompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Dot5Turbo,
+		Messages: []openai.ChatCompletionMessage{
+			{
+				Role:    openai.ChatMessageRoleUser,
+				Content: "Hello!",
+			},
+		},
+		Stream: true,
+	})
+	if err == nil {
+		t.Fatal("expected an error when the transport itself fails")
+	}
+	if stream != nil {
+		t.Error("expected a nil stream when the transport itself fails, got a non-nil stream")
+	}
 }
 
 func TestCreateChatCompletionStreamWithRefusal(t *testing.T) {

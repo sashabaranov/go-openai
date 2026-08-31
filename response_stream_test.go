@@ -115,6 +115,24 @@ func TestCreateResponseStreamHTTPError(t *testing.T) {
 	if !errors.As(err, &apiError) {
 		t.Fatalf("expected APIError, got %T: %v", err, err)
 	}
+
+	_, err = stream.Recv()
+	checks.ErrorIs(t, err, io.EOF, "expected Recv on an HTTP-error stream to return io.EOF")
+}
+
+func TestCreateResponseStreamTransportError(t *testing.T) {
+	client := setupUnreachableClient()
+
+	stream, err := client.CreateResponseStream(context.Background(), openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: "Hello",
+	})
+	if err == nil {
+		t.Fatal("expected an error when the transport itself fails")
+	}
+	if stream != nil {
+		t.Error("expected a nil stream when the transport itself fails, got a non-nil stream")
+	}
 }
 
 func TestCreateResponseStreamMalformedEvent(t *testing.T) {

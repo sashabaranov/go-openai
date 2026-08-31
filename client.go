@@ -179,7 +179,10 @@ func sendRequestStream[T streamable](client *Client, req *http.Request) (*stream
 
 	resp, err := client.config.HTTPClient.Do(req) //nolint:bodyclose // body is closed in stream.Close()
 	if err != nil {
-		return new(streamReader[T]), err
+		// Do() failed before a response was ever received (e.g. connection
+		// refused, DNS failure): there is no response to attach, so return
+		// no stream at all rather than a half-built zero-value one.
+		return nil, err
 	}
 	if isFailureStatusCode(resp) {
 		return &streamReader[T]{

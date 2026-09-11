@@ -25,14 +25,14 @@ jobs:
     - name: Setup Go
       uses: actions/setup-go@v7
       with:
-        go-version: stable
+        go-version: 1.27.x
     - name: Check Go version compatibility
       run: |
         go vet -stdversion ./...
     - name: Run golangci-lint
       uses: golangci/golangci-lint-action@v9
       with:
-        version: v2.12.2
+        version: v2.13.2
     - name: Run tests
       run: go test -race -covermode=atomic -coverprofile=coverage.out -v ./...
     - name: Upload coverage reports to Codecov
@@ -40,3 +40,16 @@ jobs:
       uses: codecov/codecov-action@v7
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
+
+  compatibility:
+    name: Go 1.18 compatibility
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+    - uses: actions/checkout@v7
+    - name: Setup Go
+      uses: actions/setup-go@v7
+      with:
+        go-version: 1.18.x
+    - name: Run tests
+      run: go test ./...

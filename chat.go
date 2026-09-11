@@ -335,6 +335,8 @@ type ChatCompletionRequest struct {
 	SafetyIdentifier string `json:"safety_identifier,omitempty"`
 	// Embedded struct for non-OpenAI extensions
 	ChatCompletionRequestExtensions
+	// support qwen,deepseek、doubao api extra params
+	ExtraBody map[string]any `json:"extra_body,omitempty"`
 }
 
 type StreamOptions struct {
@@ -518,11 +520,28 @@ func (c *Client) CreateChatCompletion(
 		return
 	}
 
+	extraBody := request.ExtraBody
+	request.ExtraBody = nil
+
+	// Serialize request to JSON
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	// Deserialize JSON to map[string]any
+	var body map[string]any
+	err = json.Unmarshal(jsonData, &body)
+	if err != nil {
+		return
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),           // Main request body.
+		withExtraBody(extraBody), // Merge ExtraBody fields.
 	)
 	if err != nil {
 		return

@@ -160,13 +160,27 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		MultiContent     []ChatMessagePart
 		Name             string        `json:"name,omitempty"`
 		ReasoningContent string        `json:"reasoning_content,omitempty"`
+		Reasoning        string        `json:"reasoning,omitempty"`
 		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
 		ToolCallID       string        `json:"tool_call_id,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
-		*m = ChatCompletionMessage(msg)
+		if msg.ReasoningContent == "" {
+			msg.ReasoningContent = msg.Reasoning
+		}
+		*m = ChatCompletionMessage{
+			Role:             msg.Role,
+			Content:          msg.Content,
+			Refusal:          msg.Refusal,
+			MultiContent:     msg.MultiContent,
+			Name:             msg.Name,
+			ReasoningContent: msg.ReasoningContent,
+			FunctionCall:     msg.FunctionCall,
+			ToolCalls:        msg.ToolCalls,
+			ToolCallID:       msg.ToolCallID,
+		}
 		return nil
 	}
 	multiMsg := struct {
@@ -176,6 +190,7 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 		MultiContent     []ChatMessagePart `json:"content"`
 		Name             string            `json:"name,omitempty"`
 		ReasoningContent string            `json:"reasoning_content,omitempty"`
+		Reasoning        string            `json:"reasoning,omitempty"`
 		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
 		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
 		ToolCallID       string            `json:"tool_call_id,omitempty"`
@@ -183,7 +198,20 @@ func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
 	}
-	*m = ChatCompletionMessage(multiMsg)
+	if multiMsg.ReasoningContent == "" {
+		multiMsg.ReasoningContent = multiMsg.Reasoning
+	}
+	*m = ChatCompletionMessage{
+		Role:             multiMsg.Role,
+		Content:          multiMsg.Content,
+		Refusal:          multiMsg.Refusal,
+		MultiContent:     multiMsg.MultiContent,
+		Name:             multiMsg.Name,
+		ReasoningContent: multiMsg.ReasoningContent,
+		FunctionCall:     multiMsg.FunctionCall,
+		ToolCalls:        multiMsg.ToolCalls,
+		ToolCallID:       multiMsg.ToolCallID,
+	}
 	return nil
 }
 

@@ -1016,8 +1016,26 @@ func compareChatStreamResponseChoices(c1, c2 openai.ChatCompletionStreamChoice) 
 	if c1.Delta.Content != c2.Delta.Content {
 		return false
 	}
+	if c1.Delta.ReasoningContent != c2.Delta.ReasoningContent {
+		return false
+	}
 	if c1.FinishReason != c2.FinishReason {
 		return false
 	}
 	return true
+}
+
+func TestChatCompletionStreamChoiceDeltaUnmarshalReasoningAlias(t *testing.T) {
+	payload := []byte(`{"content":"final","reasoning":"step 1"}`)
+
+	var delta openai.ChatCompletionStreamChoiceDelta
+	err := json.Unmarshal(payload, &delta)
+	checks.NoError(t, err, "unmarshal should accept reasoning alias")
+
+	if delta.ReasoningContent != "step 1" {
+		t.Fatalf("expected reasoning alias to populate ReasoningContent, got %q", delta.ReasoningContent)
+	}
+	if delta.Content != "final" {
+		t.Fatalf("expected content to remain populated, got %q", delta.Content)
+	}
 }

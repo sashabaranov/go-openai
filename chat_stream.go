@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -17,6 +18,33 @@ type ChatCompletionStreamChoiceDelta struct {
 	// the doc from deepseek:
 	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
 	ReasoningContent string `json:"reasoning_content,omitempty"`
+}
+
+func (d *ChatCompletionStreamChoiceDelta) UnmarshalJSON(bs []byte) error {
+	aux := struct {
+		Content          string        `json:"content,omitempty"`
+		Role             string        `json:"role,omitempty"`
+		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
+		Refusal          string        `json:"refusal,omitempty"`
+		ReasoningContent string        `json:"reasoning_content,omitempty"`
+		Reasoning        string        `json:"reasoning,omitempty"`
+	}{}
+	if err := json.Unmarshal(bs, &aux); err != nil {
+		return err
+	}
+	if aux.ReasoningContent == "" {
+		aux.ReasoningContent = aux.Reasoning
+	}
+	*d = ChatCompletionStreamChoiceDelta{
+		Content:          aux.Content,
+		Role:             aux.Role,
+		FunctionCall:     aux.FunctionCall,
+		ToolCalls:        aux.ToolCalls,
+		Refusal:          aux.Refusal,
+		ReasoningContent: aux.ReasoningContent,
+	}
+	return nil
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {

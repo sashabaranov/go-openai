@@ -1068,6 +1068,21 @@ func TestFinishReason(t *testing.T) {
 	}
 }
 
+func TestChatCompletionMessageUnmarshalReasoningAlias(t *testing.T) {
+	payload := []byte(`{"role":"assistant","content":"final","reasoning":"hidden chain"}`)
+
+	var msg openai.ChatCompletionMessage
+	err := json.Unmarshal(payload, &msg)
+	checks.NoError(t, err, "unmarshal should accept reasoning alias")
+
+	if msg.ReasoningContent != "hidden chain" {
+		t.Fatalf("expected reasoning alias to populate ReasoningContent, got %q", msg.ReasoningContent)
+	}
+	if msg.Content != "final" {
+		t.Fatalf("expected content to remain populated, got %q", msg.Content)
+	}
+}
+
 func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
 	type args struct {
 		data []byte

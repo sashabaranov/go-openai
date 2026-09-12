@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -12,11 +13,44 @@ type ChatCompletionStreamChoiceDelta struct {
 	ToolCalls    []ToolCall    `json:"tool_calls,omitempty"`
 	Refusal      string        `json:"refusal,omitempty"`
 
-	// This property is used for the "reasoning" feature supported by deepseek-reasoner
-	// which is not in the official documentation.
-	// the doc from deepseek:
-	// - https://api-docs.deepseek.com/api/create-chat-completion#responses
+	// This property is used for the "reasoning" feature supported by reasoning models.
+	// Supports both reasoning_content (DeepSeek style) and reasoning (OpenAI style) fields.
+	// DeepSeek doc: https://api-docs.deepseek.com/api/create-chat-completion#responses
 	ReasoningContent string `json:"reasoning_content,omitempty"`
+}
+
+// UnmarshalJSON custom unmarshaler to support both reasoning_content and reasoning fields.
+func (d *ChatCompletionStreamChoiceDelta) UnmarshalJSON(data []byte) error {
+	type deltaAlias struct {
+		Content          string        `json:"content,omitempty"`
+		Role             string        `json:"role,omitempty"`
+		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
+		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
+		Refusal          string        `json:"refusal,omitempty"`
+		ReasoningContent string        `json:"reasoning_content,omitempty"`
+		Reasoning        string        `json:"reasoning,omitempty"`
+	}
+
+	var aux deltaAlias
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	*d = ChatCompletionStreamChoiceDelta{
+		Content:          aux.Content,
+		Role:             aux.Role,
+		FunctionCall:     aux.FunctionCall,
+		ToolCalls:        aux.ToolCalls,
+		Refusal:          aux.Refusal,
+		ReasoningContent: aux.ReasoningContent,
+	}
+
+	// Fallback to reasoning field if reasoning_content is empty
+	if d.ReasoningContent == "" {
+		d.ReasoningContent = aux.Reasoning
+	}
+
+	return nil
 }
 
 type ChatCompletionStreamChoiceLogprobs struct {

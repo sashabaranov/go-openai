@@ -18,6 +18,11 @@ type CompletionStream struct {
 // support. It sets whether to stream back partial progress. If set, tokens will be
 // sent as data-only server-sent events as they become available, with the
 // stream terminated by a data: [DONE] message.
+//
+// On an HTTP-status error the returned stream is non-nil so its response headers
+// (e.g. Retry-After, x-ratelimit-*) remain reachable via Header() and
+// GetRateLimitHeaders(); Recv() on that stream returns io.EOF. On a transport-level
+// failure (the request never reached the server) the returned stream is nil.
 func (c *Client) CreateCompletionStream(
 	ctx context.Context,
 	request CompletionRequest,
@@ -45,11 +50,10 @@ func (c *Client) CreateCompletionStream(
 	}
 
 	resp, err := sendRequestStream[CompletionResponse](c, req)
-	if err != nil {
-		return
-	}
-	stream = &CompletionStream{
-		streamReader: resp,
+	if resp != nil {
+		stream = &CompletionStream{
+			streamReader: resp,
+		}
 	}
 	return
 }

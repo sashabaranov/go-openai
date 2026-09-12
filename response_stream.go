@@ -108,6 +108,11 @@ type ResponseStream struct {
 }
 
 // CreateResponseStream creates a response and streams its generation events.
+//
+// On an HTTP-status error the returned stream is non-nil so its response headers
+// (e.g. Retry-After, x-ratelimit-*) remain reachable via Header() and
+// GetRateLimitHeaders(); Recv() on that stream returns io.EOF. On a transport-level
+// failure (the request never reached the server) the returned stream is nil.
 func (c *Client) CreateResponseStream(
 	ctx context.Context,
 	request CreateResponseRequest,
@@ -124,8 +129,8 @@ func (c *Client) CreateResponseStream(
 	}
 
 	reader, err := sendRequestStream[ResponseStreamEvent](c, req)
-	if err != nil {
+	if reader == nil {
 		return nil, err
 	}
-	return &ResponseStream{streamReader: reader}, nil
+	return &ResponseStream{streamReader: reader}, err
 }

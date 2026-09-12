@@ -92,6 +92,7 @@ func TestCreateResponseStreamHTTPError(t *testing.T) {
 	defer teardown()
 
 	server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Retry-After", "30")
 		w.WriteHeader(http.StatusBadRequest)
 		_, err := w.Write([]byte(`{"error":{"message":"bad request","type":"invalid_request_error"}}`))
 		checks.NoError(t, err, "write error response")
@@ -101,12 +102,36 @@ func TestCreateResponseStreamHTTPError(t *testing.T) {
 		Model: openai.GPT4o,
 		Input: "Hello",
 	})
-	if stream != nil {
-		t.Errorf("expected nil stream on HTTP error")
+	if stream == nil {
+		t.Fatal("expected a non-nil stream on HTTP error so its headers are reachable")
 	}
+	defer stream.Close()
+
+	if got := stream.Header().Get("Retry-After"); got != "30" {
+		t.Errorf("expected Retry-After header to be 30, got %s", got)
+	}
+
 	var apiError *openai.APIError
 	if !errors.As(err, &apiError) {
 		t.Fatalf("expected APIError, got %T: %v", err, err)
+	}
+
+	_, err = stream.Recv()
+	checks.ErrorIs(t, err, io.EOF, "expected Recv on an HTTP-error stream to return io.EOF")
+}
+
+func TestCreateResponseStreamTransportError(t *testing.T) {
+	client := setupUnreachableClient()
+
+	stream, err := client.CreateResponseStream(context.Background(), openai.CreateResponseRequest{
+		Model: openai.GPT4o,
+		Input: "Hello",
+	})
+	if err == nil {
+		t.Fatal("expected an error when the transport itself fails")
+	}
+	if stream != nil {
+		t.Error("expected a nil stream when the transport itself fails, got a non-nil stream")
 	}
 }
 

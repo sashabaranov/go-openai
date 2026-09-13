@@ -278,7 +278,9 @@ func (c *Client) fullURL(suffix string, setters ...fullURLOption) string {
 		baseURL = c.baseURLWithAzureDeployment(baseURL, suffix, args.model)
 	}
 
-	if c.config.APIVersion != "" {
+	// api-version is an Azure query param; Anthropic reuses APIVersion only for
+	// the anthropic-version header, so it must not leak into the URL.
+	if c.config.APIVersion != "" && c.config.APIType != APITypeAnthropic {
 		suffix = c.suffixWithAPIVersion(suffix)
 	}
 	return fmt.Sprintf("%s%s", baseURL, suffix)

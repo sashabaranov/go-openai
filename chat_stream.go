@@ -2,6 +2,7 @@ package openai
 
 import (
 	"context"
+	"encoding/json"
 	"net/http"
 )
 
@@ -91,11 +92,28 @@ func (c *Client) CreateChatCompletionStream(
 		return
 	}
 
+	extraBody := request.ExtraBody
+	request.ExtraBody = nil
+
+	// Serialize request to JSON
+	jsonData, err := json.Marshal(request)
+	if err != nil {
+		return
+	}
+
+	// Deserialize JSON to map[string]any
+	var body map[string]any
+	err = json.Unmarshal(jsonData, &body)
+	if err != nil {
+		return
+	}
+
 	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(urlSuffix, withModel(request.Model)),
-		withBody(request),
+		withBody(body),           // Main request body.
+		withExtraBody(extraBody), // Merge ExtraBody fields.
 	)
 	if err != nil {
 		return nil, err

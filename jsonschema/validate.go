@@ -57,6 +57,10 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 	if len(opts) == 0 {
 		args.Defs = CollectDefs(schema)
 	}
+	// anyOf is satisfied when the data matches at least one of the subschemas.
+	if len(schema.AnyOf) > 0 {
+		return validateAnyOf(schema.AnyOf, data, args.Defs)
+	}
 	switch schema.Type {
 	case Object:
 		return validateObject(schema, data, args.Defs)
@@ -94,6 +98,15 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 		}
 		return false
 	}
+}
+
+func validateAnyOf(subschemas []Definition, data any, defs map[string]Definition) bool {
+	for _, sub := range subschemas {
+		if Validate(sub, data, WithDefs(defs)) {
+			return true
+		}
+	}
+	return false
 }
 
 func validateObject(schema Definition, data any, defs map[string]Definition) bool {

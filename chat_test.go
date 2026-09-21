@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"reflect"
 	"strconv"
 	"strings"
 	"testing"
@@ -1144,6 +1145,36 @@ func TestChatCompletionResponseFormatJSONSchema_UnmarshalJSON(t *testing.T) {
 				t.Errorf("UnmarshalJSON() error = %v, wantErr %v", err, tt.wantErr)
 			}
 		})
+	}
+}
+
+// Keywords the typed jsonschema.Definition doesn't model (anyOf, title, $defs,
+// $ref, ...) must survive an unmarshal → marshal round-trip instead of being
+// silently dropped.
+func TestChatCompletionResponseFormatJSONSchema_UnmarshalPreservesSchema(t *testing.T) {
+	schema := `{"type":"object","title":"Root",` +
+		`"properties":{"summary":{"anyOf":[{"type":"string"},{"type":"null"}],"title":"Summary"}},` +
+		`"required":["summary"],"additionalProperties":false}`
+	data := []byte(`{"name":"s","strict":true,"schema":` + schema + `}`)
+
+	var r openai.ChatCompletionResponseFormatJSONSchema
+	if err := r.UnmarshalJSON(data); err != nil {
+		t.Fatalf("UnmarshalJSON() error = %v", err)
+	}
+
+	got, err := json.Marshal(r.Schema)
+	if err != nil {
+		t.Fatalf("Marshal(schema) error = %v", err)
+	}
+	var gotMap, wantMap map[string]any
+	if err = json.Unmarshal(got, &gotMap); err != nil {
+		t.Fatalf("unmarshal got = %v", err)
+	}
+	if err = json.Unmarshal([]byte(schema), &wantMap); err != nil {
+		t.Fatalf("unmarshal want = %v", err)
+	}
+	if !reflect.DeepEqual(gotMap, wantMap) {
+		t.Errorf("schema not preserved:\n got  %s\n want %s", got, schema)
 	}
 }
 

@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"net/http"
-
-	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
 // Chat message role defined by the OpenAI API.
@@ -237,13 +235,16 @@ func (r *ChatCompletionResponseFormatJSONSchema) UnmarshalJSON(data []byte) erro
 	r.Name = raw.Name
 	r.Description = raw.Description
 	r.Strict = raw.Strict
+	r.Schema = nil
 	if len(raw.Schema) > 0 && string(raw.Schema) != "null" {
-		var d jsonschema.Definition
-		err := json.Unmarshal(raw.Schema, &d)
-		if err != nil {
+		// Keep the schema verbatim. Decoding into jsonschema.Definition silently
+		// drops any keyword it doesn't model (anyOf, title, $schema, ...), which
+		// corrupts the schema on round-trip. RawMessage still implements Marshaler.
+		var obj map[string]json.RawMessage
+		if err := json.Unmarshal(raw.Schema, &obj); err != nil {
 			return err
 		}
-		r.Schema = &d
+		r.Schema = raw.Schema
 	}
 	return nil
 }

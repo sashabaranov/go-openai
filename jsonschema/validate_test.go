@@ -161,6 +161,24 @@ func Test_Validate(t *testing.T) {
 					},
 				},
 			}}, false},
+		// anyOf: nullable string union
+		{"", args{data: "abc", schema: jsonschema.Definition{AnyOf: []jsonschema.Definition{
+			{Type: jsonschema.String}, {Type: jsonschema.Null},
+		}}}, true},
+		{"", args{data: nil, schema: jsonschema.Definition{AnyOf: []jsonschema.Definition{
+			{Type: jsonschema.String}, {Type: jsonschema.Null},
+		}}}, true},
+		{"", args{data: 123, schema: jsonschema.Definition{AnyOf: []jsonschema.Definition{
+			{Type: jsonschema.String}, {Type: jsonschema.Null},
+		}}}, false},
+		// anyOf nested in an object property
+		{"", args{data: map[string]any{"summary": nil}, schema: jsonschema.Definition{
+			Type: jsonschema.Object,
+			Properties: map[string]jsonschema.Definition{
+				"summary": {AnyOf: []jsonschema.Definition{{Type: jsonschema.String}, {Type: jsonschema.Null}}},
+			},
+			Required: []string{"summary"},
+		}}, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {

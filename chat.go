@@ -155,65 +155,36 @@ func (m ChatCompletionMessage) MarshalJSON() ([]byte, error) {
 }
 
 func (m *ChatCompletionMessage) UnmarshalJSON(bs []byte) error {
+	type message ChatCompletionMessage
+
 	msg := struct {
-		Role             string `json:"role"`
-		Content          string `json:"content"`
-		Refusal          string `json:"refusal,omitempty"`
-		MultiContent     []ChatMessagePart
-		Name             string        `json:"name,omitempty"`
-		ReasoningContent string        `json:"reasoning_content,omitempty"`
-		Reasoning        string        `json:"reasoning,omitempty"`
-		FunctionCall     *FunctionCall `json:"function_call,omitempty"`
-		ToolCalls        []ToolCall    `json:"tool_calls,omitempty"`
-		ToolCallID       string        `json:"tool_call_id,omitempty"`
+		message
+		Reasoning string `json:"reasoning,omitempty"`
 	}{}
 
 	if err := json.Unmarshal(bs, &msg); err == nil {
 		if msg.ReasoningContent == "" {
 			msg.ReasoningContent = msg.Reasoning
 		}
-		*m = ChatCompletionMessage{
-			Role:             msg.Role,
-			Content:          msg.Content,
-			Refusal:          msg.Refusal,
-			MultiContent:     msg.MultiContent,
-			Name:             msg.Name,
-			ReasoningContent: msg.ReasoningContent,
-			FunctionCall:     msg.FunctionCall,
-			ToolCalls:        msg.ToolCalls,
-			ToolCallID:       msg.ToolCallID,
-		}
+		*m = ChatCompletionMessage(msg.message)
 		return nil
 	}
+
 	multiMsg := struct {
-		Role             string `json:"role"`
-		Content          string
-		Refusal          string            `json:"refusal,omitempty"`
-		MultiContent     []ChatMessagePart `json:"content"`
-		Name             string            `json:"name,omitempty"`
-		ReasoningContent string            `json:"reasoning_content,omitempty"`
-		Reasoning        string            `json:"reasoning,omitempty"`
-		FunctionCall     *FunctionCall     `json:"function_call,omitempty"`
-		ToolCalls        []ToolCall        `json:"tool_calls,omitempty"`
-		ToolCallID       string            `json:"tool_call_id,omitempty"`
+		message
+		MultiContent []ChatMessagePart `json:"content"`
+		Reasoning    string            `json:"reasoning,omitempty"`
 	}{}
+
 	if err := json.Unmarshal(bs, &multiMsg); err != nil {
 		return err
 	}
 	if multiMsg.ReasoningContent == "" {
 		multiMsg.ReasoningContent = multiMsg.Reasoning
 	}
-	*m = ChatCompletionMessage{
-		Role:             multiMsg.Role,
-		Content:          multiMsg.Content,
-		Refusal:          multiMsg.Refusal,
-		MultiContent:     multiMsg.MultiContent,
-		Name:             multiMsg.Name,
-		ReasoningContent: multiMsg.ReasoningContent,
-		FunctionCall:     multiMsg.FunctionCall,
-		ToolCalls:        multiMsg.ToolCalls,
-		ToolCallID:       multiMsg.ToolCallID,
-	}
+
+	multiMsg.message.MultiContent = multiMsg.MultiContent
+	*m = ChatCompletionMessage(multiMsg.message)
 	return nil
 }
 

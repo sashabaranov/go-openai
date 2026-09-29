@@ -458,9 +458,6 @@ const (
 	ServiceTierDefault  ServiceTier = "default"
 	ServiceTierFlex     ServiceTier = "flex"
 	ServiceTierPriority ServiceTier = "priority"
-	ServiceTierFast     ServiceTier = "fast"
-	// ServiceTierUltrafast is available with supported models in the Responses API.
-	ServiceTierUltrafast ServiceTier = "ultrafast"
 )
 
 func (r FinishReason) MarshalJSON() ([]byte, error) {

@@ -13,9 +13,6 @@ import (
 
 const responsesSuffix = "/responses"
 
-// ResponseBetaMultiAgent enables the Responses Multi-agent beta protocol.
-const ResponseBetaMultiAgent = "responses_multi_agent=v1"
-
 var ErrResponseStreamNotSupported = errors.New(
 	"streaming is not supported with this method, please use CreateResponseStream",
 )
@@ -75,34 +72,6 @@ func NewResponseFunctionTool(function FunctionDefinition) ResponseTool {
 	return ResponseTool{Type: ToolTypeFunction, Parameters: parameters}
 }
 
-// NewResponseAsyncFunctionTool lets the model continue working while the application
-// executes the function. Return the result later using the original call_id.
-func NewResponseAsyncFunctionTool(function FunctionDefinition) ResponseTool {
-	tool := NewResponseFunctionTool(function)
-	tool.Parameters["async"] = true
-	return tool
-}
-
-// ResponseMultiAgent enables hosted subagent orchestration (beta).
-// Set Betas to include ResponseBetaMultiAgent on each request in the conversation.
-type ResponseMultiAgent struct {
-	Enabled                bool `json:"enabled"`
-	MaxConcurrentSubagents int  `json:"max_concurrent_subagents,omitempty"`
-}
-
-// ResponseAgent identifies the agent associated with an output item or stream event.
-type ResponseAgent struct {
-	AgentName string `json:"agent_name"`
-}
-
-// ResponseConfigurationUpdate changes reasoning effort for subsequent turns without
-// changing the request-level reasoning configuration. Type must be "configuration_update".
-// Supported only in standard single-agent mode, without automatic compaction or truncation.
-type ResponseConfigurationUpdate struct {
-	Type      string            `json:"type"`
-	Reasoning ResponseReasoning `json:"reasoning"`
-}
-
 // ResponseReasoning represents reasoning configuration for the Responses API.
 type ResponseReasoning struct {
 	Effort          string `json:"effort,omitempty"`
@@ -153,9 +122,6 @@ type ResponsePromptCacheBreakpoint struct {
 // CreateResponseRequest represents a request to the Responses API. Input may be
 // a string or a slice of response input items.
 type CreateResponseRequest struct {
-	// Betas are sent in OpenAI-Beta, not in the JSON body.
-	Betas                []string                    `json:"-"`
-	MultiAgent           *ResponseMultiAgent         `json:"multi_agent,omitempty"`
 	Background           bool                        `json:"background,omitempty"`
 	ContextManagement    []any                       `json:"context_management,omitempty"`
 	Conversation         any                         `json:"conversation,omitempty"`
@@ -309,14 +275,13 @@ type ResponseLogprob struct {
 	TopLogprobs []ResponseLogprob `json:"top_logprobs,omitempty"`
 }
 
-// ResponseOutputContent is a text, refusal, or encrypted content part in an output message.
+// ResponseOutputContent is a text or refusal content part in an output message.
 type ResponseOutputContent struct {
-	EncryptedContent string               `json:"encrypted_content,omitempty"`
-	Type             string               `json:"type"`
-	Text             string               `json:"text,omitempty"`
-	Refusal          string               `json:"refusal,omitempty"`
-	Annotations      []ResponseAnnotation `json:"annotations,omitempty"`
-	Logprobs         []ResponseLogprob    `json:"logprobs,omitempty"`
+	Type        string               `json:"type"`
+	Text        string               `json:"text,omitempty"`
+	Refusal     string               `json:"refusal,omitempty"`
+	Annotations []ResponseAnnotation `json:"annotations,omitempty"`
+	Logprobs    []ResponseLogprob    `json:"logprobs,omitempty"`
 }
 
 // ResponseSummaryPart is a reasoning summary content part.
@@ -328,29 +293,22 @@ type ResponseSummaryPart struct {
 // ResponseOutputItem contains the common fields shared by response output item variants.
 // The top-level Output field remains []any so new variants can be consumed without a library release.
 type ResponseOutputItem struct {
-	Agent            *ResponseAgent          `json:"agent,omitempty"`
-	Phase            string                  `json:"phase,omitempty"`
-	Async            bool                    `json:"async,omitempty"`
-	EncryptedContent string                  `json:"encrypted_content,omitempty"`
-	Author           string                  `json:"author,omitempty"`
-	Recipient        string                  `json:"recipient,omitempty"`
-	ID               string                  `json:"id,omitempty"`
-	Type             string                  `json:"type"`
-	Status           string                  `json:"status,omitempty"`
-	Role             string                  `json:"role,omitempty"`
-	Content          []ResponseOutputContent `json:"content,omitempty"`
-	CallID           string                  `json:"call_id,omitempty"`
-	Name             string                  `json:"name,omitempty"`
-	Arguments        string                  `json:"arguments,omitempty"`
-	Summary          []ResponseSummaryPart   `json:"summary,omitempty"`
-	Action           any                     `json:"action,omitempty"`
-	Results          any                     `json:"results,omitempty"`
-	Output           any                     `json:"output,omitempty"`
+	ID        string                  `json:"id,omitempty"`
+	Type      string                  `json:"type"`
+	Status    string                  `json:"status,omitempty"`
+	Role      string                  `json:"role,omitempty"`
+	Content   []ResponseOutputContent `json:"content,omitempty"`
+	CallID    string                  `json:"call_id,omitempty"`
+	Name      string                  `json:"name,omitempty"`
+	Arguments string                  `json:"arguments,omitempty"`
+	Summary   []ResponseSummaryPart   `json:"summary,omitempty"`
+	Action    any                     `json:"action,omitempty"`
+	Results   any                     `json:"results,omitempty"`
+	Output    any                     `json:"output,omitempty"`
 }
 
 // CreateResponseResponse represents a response returned by the Responses API.
 type CreateResponseResponse struct {
-	MultiAgent           *ResponseMultiAgent         `json:"multi_agent,omitempty"`
 	ID                   string                      `json:"id"`
 	Object               string                      `json:"object"`
 	Created              int64                       `json:"created_at"`
@@ -417,36 +375,8 @@ func (r CreateResponseResponse) GetOutputText() string {
 	return output.String()
 }
 
-// GetFinalOutputText returns only root-agent final-answer message text. Unlike
-// GetOutputText, it excludes commentary and subagent messages. Messages without
-// phase or agent metadata are treated as ordinary single-agent final answers.
-func (r CreateResponseResponse) GetFinalOutputText() string {
-	var output strings.Builder
-	for _, rawItem := range r.Output {
-		data, err := json.Marshal(rawItem)
-		if err != nil {
-			continue
-		}
-		var item ResponseOutputItem
-		if err = json.Unmarshal(data, &item); err != nil {
-			continue
-		}
-		if item.Type != "message" || (item.Agent != nil && item.Agent.AgentName != "/root") ||
-			(item.Phase != "" && item.Phase != "final_answer") {
-			continue
-		}
-		for _, content := range item.Content {
-			if content.Type == "output_text" {
-				output.WriteString(content.Text)
-			}
-		}
-	}
-	return output.String()
-}
-
 // RetrieveResponseOptions controls optional data returned by RetrieveResponse.
 type RetrieveResponseOptions struct {
-	Betas              []string
 	Include            []ResponseInclude
 	IncludeObfuscation *bool
 	StartingAfter      *int
@@ -454,7 +384,6 @@ type RetrieveResponseOptions struct {
 
 // ResponseInputItemsListOptions controls pagination for ListResponseInputItems.
 type ResponseInputItemsListOptions struct {
-	Betas   []string
 	After   string
 	Include []ResponseInclude
 	Limit   int
@@ -518,8 +447,7 @@ func (c *Client) CreateResponse(
 		return response, ErrResponseStreamNotSupported
 	}
 
-	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(responsesSuffix),
-		withBody(request), withResponseBetas(request.Betas))
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(responsesSuffix), withBody(request))
 	if err != nil {
 		return response, err
 	}
@@ -534,9 +462,7 @@ func (c *Client) RetrieveResponse(
 	options ...RetrieveResponseOptions,
 ) (response CreateResponseResponse, err error) {
 	values := url.Values{}
-	var betas []string
 	if len(options) > 0 {
-		betas = options[0].Betas
 		for _, include := range options[0].Include {
 			values.Add("include", string(include))
 		}
@@ -549,7 +475,7 @@ func (c *Client) RetrieveResponse(
 	}
 
 	urlSuffix := responseResourceSuffix(responseID, "", values)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withResponseBetas(betas))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return response, err
 	}
@@ -595,9 +521,7 @@ func (c *Client) ListResponseInputItems(
 	options ...ResponseInputItemsListOptions,
 ) (response ResponseInputItemsList, err error) {
 	values := url.Values{}
-	var betas []string
 	if len(options) > 0 {
-		betas = options[0].Betas
 		if options[0].After != "" {
 			values.Set("after", options[0].After)
 		}
@@ -613,7 +537,7 @@ func (c *Client) ListResponseInputItems(
 	}
 
 	urlSuffix := responseResourceSuffix(responseID, "input_items", values)
-	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix), withResponseBetas(betas))
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix))
 	if err != nil {
 		return response, err
 	}
@@ -633,7 +557,6 @@ func (c *Client) CountResponseInputTokens(
 		http.MethodPost,
 		c.fullURL(responsesSuffix+"/input_tokens"),
 		withBody(request),
-		withResponseBetas(request.Betas),
 	)
 	if err != nil {
 		return response, err
@@ -654,21 +577,12 @@ func (c *Client) CompactResponse(
 		http.MethodPost,
 		c.fullURL(responsesSuffix+"/compact"),
 		withBody(request),
-		withResponseBetas(request.Betas),
 	)
 	if err != nil {
 		return response, err
 	}
 	err = c.sendRequest(req, &response)
 	return response, err
-}
-
-func withResponseBetas(betas []string) requestOption {
-	return func(options *requestOptions) {
-		if len(betas) > 0 {
-			options.header.Set("OpenAI-Beta", strings.Join(betas, ","))
-		}
-	}
 }
 
 func responseResourceSuffix(responseID, action string, values url.Values) string {

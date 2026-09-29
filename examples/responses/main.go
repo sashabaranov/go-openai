@@ -17,7 +17,7 @@ func main() {
 
 	model := os.Getenv("OPENAI_MODEL")
 	if model == "" {
-		model = openai.GPT6Dot1Sol
+		model = openai.GPT5Dot6Sol
 	}
 
 	ctx := context.Background()
@@ -25,10 +25,9 @@ func main() {
 	store := true
 
 	response, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
-		Model:     model,
-		Reasoning: &openai.ResponseReasoning{Effort: openai.ReasoningEffortLow},
-		Input:     "Explain the Responses API in one sentence.",
-		Store:     &store,
+		Model: model,
+		Input: "Explain the Responses API in one sentence.",
+		Store: &store,
 	})
 	if err != nil {
 		log.Fatal(err)
@@ -38,7 +37,6 @@ func main() {
 	// Continue the conversation without resending its earlier messages.
 	response, err = client.CreateResponse(ctx, openai.CreateResponseRequest{
 		Model:              model,
-		Reasoning:          &openai.ResponseReasoning{Effort: openai.ReasoningEffortLow},
 		Input:              "Now give me a concrete use case.",
 		PreviousResponseID: response.ID,
 		Store:              &store,

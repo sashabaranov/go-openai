@@ -71,11 +71,10 @@ func TestGPT6ChatCompatibility(t *testing.T) { //nolint:gocognit
 	}
 }
 
-func TestModernModelsRejectLegacyCompletions(t *testing.T) {
+func TestGPT6ModelsRejectLegacyCompletions(t *testing.T) {
 	client := openai.NewClient("test")
 	for _, model := range []string{
 		openai.GPT6Dot1Sol, openai.GPT6Astra, openai.GPT6Sol, openai.GPT6Luna,
-		openai.GPT5Dot6, openai.GPT5Dot6Sol, openai.GPT5Dot6Terra, openai.GPT5Dot6Luna,
 	} {
 		t.Run(model, func(t *testing.T) {
 			request := openai.CompletionRequest{Model: model, Prompt: "Hello"}
@@ -104,16 +103,15 @@ func TestGPT6ValidationAppliesToBothChatMethods(t *testing.T) {
 	}
 }
 
-func TestNewerAndCustomModelsAvoidLegacyValidation(t *testing.T) {
+func TestUnknownGPT6ModelValidationPassThrough(t *testing.T) {
 	for _, model := range []string{
-		"my-gpt-6-deployment", "gpt-6-future", openai.GPT5Dot6,
-		openai.GPT5Dot6Sol, openai.GPT5Dot6Terra, openai.GPT5Dot6Luna,
+		"my-gpt-6-deployment", "gpt-6-future",
 	} {
 		err := openai.NewReasoningValidator().Validate(openai.ChatCompletionRequest{
 			Model: model, Temperature: 0.7, ReasoningEffort: openai.ReasoningEffortNone,
 		})
 		if err != nil {
-			t.Errorf("model %q should not inherit original GPT-5 restrictions: %v", model, err)
+			t.Errorf("unknown model %q should be validated by the server: %v", model, err)
 		}
 	}
 }

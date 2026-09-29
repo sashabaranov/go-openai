@@ -67,9 +67,7 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
 	o4Series := strings.HasPrefix(request.Model, "o4")
-	// Original GPT-5 restrictions must not be applied to newer dotted versions
-	// (for example GPT-5.6, which supports non-reasoning operation).
-	gpt5Series := request.Model == GPT5 || strings.HasPrefix(request.Model, "gpt-5-")
+	gpt5Series := strings.HasPrefix(request.Model, "gpt-5")
 
 	if !o1Series && !o3Series && !o4Series && !gpt5Series {
 		return nil

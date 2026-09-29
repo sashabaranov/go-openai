@@ -7,8 +7,7 @@ import (
 
 const completionsSuffix = "/completions"
 
-// Model identifiers for the Responses, Chat Completions, and legacy Completions APIs.
-// Endpoint and parameter support varies by model; see the OpenAI model documentation.
+// Text generation and reasoning models provided by OpenAI.
 const (
 	GPT6Dot1Sol             = "gpt-6.1-sol"
 	GPT6Astra               = "gpt-6-astra"

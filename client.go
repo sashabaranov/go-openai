@@ -13,7 +13,7 @@ import (
 	utils "github.com/sashabaranov/go-openai/internal"
 )
 
-// Client is an OpenAI API client.
+// Client is OpenAI GPT-3 API client.
 type Client struct {
 	config ClientConfig
 

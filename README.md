@@ -12,10 +12,6 @@ Chat Completions remains available for existing integrations.
 The client also covers embeddings, images, audio, moderation, files, fine-tuning,
 batches, vector stores, and legacy Assistants API surfaces.
 
-Supports GPT-6.1 Sol, GPT-6 Astra, GPT-6 Sol, GPT-6 Luna, and GPT Image 2.5.
-The Assistants API shut down on August 26, 2026; consult
-[OpenAI's deprecations](https://developers.openai.com/api/docs/deprecations) when migrating older integrations.
-
 **Building agents?** Try [Unreal Agent](https://github.com/unreallabsai/unreal-agent) - Go-based, fully async harness that drives 40% cost savings compared to Codex!
 
 ## Installation
@@ -49,15 +45,10 @@ import (
 )
 
 func main() {
-	key := os.Getenv("OPENAI_API_KEY")
-	if key == "" {
-		log.Fatal("OPENAI_API_KEY is required")
-	}
-	client := openai.NewClient(key)
+	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
 
 	response, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
-		Model:        openai.GPT6Dot1Sol,
-		Reasoning:    &openai.ResponseReasoning{Effort: openai.ReasoningEffortLow},
+		Model:        openai.GPT5Dot6Sol,
 		Instructions: "You are a concise technical explainer.",
 		Input:        "Why is the sky blue?",
 	})
@@ -71,8 +62,7 @@ func main() {
 
 `Input` can be a string or a slice of typed input items. For reasoning, tools,
 multimodal output, or custom processing, inspect `response.Output` instead of
-using the `GetOutputText` convenience method. Use `GetFinalOutputText` to exclude
-commentary and subagent messages when displaying a final answer.
+using the `GetOutputText` convenience method.
 
 ### Continue a conversation
 
@@ -83,7 +73,7 @@ Resend `Instructions` on each call when they should continue to apply.
 store := true
 
 first, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
-	Model:        openai.GPT6Dot1Sol,
+	Model:        openai.GPT5Dot6Sol,
 	Instructions: "Answer as a travel guide.",
 	Input:        "What should I see in Lisbon?",
 	Store:        &store,
@@ -93,7 +83,7 @@ if err != nil {
 }
 
 second, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
-	Model:              openai.GPT6Dot1Sol,
+	Model:              openai.GPT5Dot6Sol,
 	Instructions:       "Answer as a travel guide.",
 	Input:              "Which one is best on a rainy day?",
 	PreviousResponseID: first.ID,
@@ -110,7 +100,7 @@ fmt.Println(second.GetOutputText())
 
 ```go
 stream, err := client.CreateResponseStream(ctx, openai.CreateResponseRequest{
-	Model: openai.GPT6Dot1Sol,
+	Model: openai.GPT5Dot6Sol,
 	Input: "Write a short story about a curious gopher.",
 })
 if err != nil {
@@ -208,11 +198,9 @@ if errors.As(err, &apiError) {
 Runnable examples live in [`examples/`](examples):
 
 - [Responses API with multi-turn state](examples/responses)
-- [Responses streaming with terminal-state checks](examples/responses-streaming)
-- [Responses Multi-agent beta](examples/responses-multi-agent)
 - [Chat Completions](examples/completion)
 - [Chat Completions with a function tool](examples/completion-with-tool)
-- [GPT Image 2.5 generation](examples/images)
+- [Image generation](examples/images)
 - [Speech to text](examples/voice-to-text)
 
 To run one:

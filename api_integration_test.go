@@ -112,38 +112,40 @@ func TestAPI(t *testing.T) {
 	checks.NoError(t, err, "CreateChatCompletion (with functions) returned error")
 }
 
-func TestCompletionStream(t *testing.T) {
+func TestChatCompletionStream(t *testing.T) {
 	apiToken := os.Getenv("OPENAI_TOKEN")
 	if apiToken == "" {
 		t.Skip("Skipping testing against production OpenAI API. Set OPENAI_TOKEN environment variable to enable it.")
 	}
 
 	c := openai.NewClient(apiToken)
-	ctx := context.Background()
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
 
-	stream, err := c.CreateCompletionStream(ctx, openai.CompletionRequest{
-		Prompt:    "Ex falso quodlibet",
-		Model:     openai.GPT3Babbage002,
-		MaxTokens: 5,
-		Stream:    true,
+	stream, err := c.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
+		Model:               openai.GPT4oMini,
+		MaxCompletionTokens: 16,
+		Messages: []openai.ChatCompletionMessage{{
+			Role:    openai.ChatMessageRoleUser,
+			Content: "Reply only with STREAM_OK.",
+		}},
 	})
-	checks.NoError(t, err, "CreateCompletionStream returned error")
+	checks.NoErrorF(t, err, "CreateChatCompletionStream returned error")
 	defer stream.Close()
 
-	counter := 0
+	var output strings.Builder
 	for {
-		_, err = stream.Recv()
-		if err != nil {
-			if errors.Is(err, io.EOF) {
-				break
-			}
-			t.Errorf("Stream error: %v", err)
-		} else {
-			counter++
+		response, streamErr := stream.Recv()
+		if errors.Is(streamErr, io.EOF) {
+			break
+		}
+		checks.NoErrorF(t, streamErr, "CreateChatCompletionStream receive error")
+		for _, choice := range response.Choices {
+			output.WriteString(choice.Delta.Content)
 		}
 	}
-	if counter == 0 {
-		t.Error("Stream did not return any responses")
+	if !strings.Contains(strings.ToUpper(output.String()), "STREAM_OK") {
+		t.Errorf("CreateChatCompletionStream returned unexpected output %q", output.String())
 	}
 }
 

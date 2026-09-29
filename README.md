@@ -13,8 +13,6 @@ The client also covers embeddings, images, audio, moderation, files, fine-tuning
 batches, vector stores, and legacy Assistants API surfaces.
 
 Supports GPT-6.1 Sol, GPT-6 Astra, GPT-6 Sol, GPT-6 Luna, and GPT Image 2.5.
-See the [September 2026 guide](docs/modern-openai.md) for async tools, reasoning
-configuration updates, Multi-agent beta, caching, and Fast/Ultrafast service tiers.
 The Assistants API shut down on August 26, 2026; consult
 [OpenAI's deprecations](https://developers.openai.com/api/docs/deprecations) when migrating older integrations.
 

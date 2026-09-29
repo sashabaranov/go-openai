@@ -24,5 +24,3 @@ go run ./examples/responses-multi-agent
 
 The Multi-agent example explicitly sends the beta header and displays only the
 root agent's final answer. It may use more tokens than a single-agent request.
-See the [September 2026 guide](../../docs/modern-openai.md) for compatibility and
-examples of async tools, reasoning updates, and service tiers.

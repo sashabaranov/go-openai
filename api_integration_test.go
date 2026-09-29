@@ -123,7 +123,8 @@ func TestChatCompletionStream(t *testing.T) {
 	defer cancel()
 
 	stream, err := c.CreateChatCompletionStream(ctx, openai.ChatCompletionRequest{
-		Model:               openai.GPT4oMini,
+		Model:               openai.GPT6Luna,
+		ReasoningEffort:     openai.ReasoningEffortNone,
 		MaxCompletionTokens: 16,
 		Messages: []openai.ChatCompletionMessage{{
 			Role:    openai.ChatMessageRoleUser,

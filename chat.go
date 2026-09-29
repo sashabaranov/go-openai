@@ -309,7 +309,7 @@ type ChatCompletionRequest struct {
 	// Store can be set to true to store the output of this completion request for use in distillations and evals.
 	// https://platform.openai.com/docs/api-reference/chat/create#chat-create-store
 	Store bool `json:"store,omitempty"`
-	// Controls effort on reasoning for reasoning models. It can be set to "low", "medium", or "high".
+	// Controls reasoning effort. Supported values depend on the model; see ReasoningEffort* constants.
 	ReasoningEffort string `json:"reasoning_effort,omitempty"`
 	// Metadata to store with the completion.
 	Metadata map[string]string `json:"metadata,omitempty"`

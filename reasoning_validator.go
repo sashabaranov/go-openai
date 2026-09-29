@@ -2,7 +2,25 @@ package openai
 
 import (
 	"errors"
+	"fmt"
 	"strings"
+)
+
+// Reasoning effort values. Availability depends on the model and endpoint.
+const (
+	ReasoningEffortNone    = "none"
+	ReasoningEffortMinimal = "minimal"
+	ReasoningEffortLow     = "low"
+	ReasoningEffortMedium  = "medium"
+	ReasoningEffortHigh    = "high"
+	ReasoningEffortXHigh   = "xhigh"
+	ReasoningEffortMax     = "max"
+)
+
+var (
+	ErrReasoningEffortUnsupported     = errors.New("reasoning effort is not supported by this model")
+	ErrReasoningToolsRequireResponses = errors.New("tool calling with this model and reasoning effort requires the Responses API")       //nolint:lll
+	ErrReasoningSamplingUnsupported   = errors.New("temperature, top_p and log probabilities must be omitted when reasoning is enabled") //nolint:lll
 )
 
 var (
@@ -38,6 +56,14 @@ func NewReasoningValidator() *ReasoningValidator {
 
 // Validate performs all validation checks for reasoning models.
 func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
+	// Match published GPT-6 model IDs explicitly. Unknown models and third-party
+	// deployment names remain available without speculative capability checks.
+	switch request.Model {
+	case GPT6Astra, GPT6Dot1Sol:
+		return validateGPT6ChatParams(request, false)
+	case GPT6Sol, GPT6Luna:
+		return validateGPT6ChatParams(request, true)
+	}
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
 	o4Series := strings.HasPrefix(request.Model, "o4")
@@ -51,6 +77,32 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 		return err
 	}
 
+	return nil
+}
+
+func validateGPT6ChatParams(request ChatCompletionRequest, supportsNone bool) error {
+	if request.MaxTokens > 0 {
+		return ErrReasoningModelMaxTokensDeprecated
+	}
+	switch request.ReasoningEffort {
+	case "", ReasoningEffortLow, ReasoningEffortMedium, ReasoningEffortHigh, ReasoningEffortXHigh, ReasoningEffortMax:
+	case ReasoningEffortNone:
+		if !supportsNone {
+			return fmt.Errorf("%w: %s for %s", ErrReasoningEffortUnsupported, request.ReasoningEffort, request.Model)
+		}
+	default:
+		return fmt.Errorf("%w: %s for %s", ErrReasoningEffortUnsupported, request.ReasoningEffort, request.Model)
+	}
+
+	reasoning := request.ReasoningEffort != ReasoningEffortNone
+	if reasoning && (len(request.Tools) > 0 || len(request.Functions) > 0 ||
+		(request.ToolChoice != nil && request.ToolChoice != "none") ||
+		(request.FunctionCall != nil && request.FunctionCall != "none")) {
+		return ErrReasoningToolsRequireResponses
+	}
+	if reasoning && (request.Temperature != 0 || request.TopP != 0 || request.LogProbs || request.TopLogProbs != 0) {
+		return ErrReasoningSamplingUnsupported
+	}
 	return nil
 }
 

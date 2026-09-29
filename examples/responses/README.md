@@ -1,11 +1,28 @@
-# Responses API example
+# Responses API examples
 
-This example shows how to create a response, read its text, and continue the
-conversation with `previous_response_id`.
+Create a GPT-6.1 Sol response and continue with `previous_response_id`:
 
 ```sh
 export OPENAI_API_KEY="<your key here>"
 go run ./examples/responses
 ```
 
-Set `OPENAI_MODEL` to use a model other than `gpt-5.6-sol`.
+Set `OPENAI_MODEL` to override `gpt-6.1-sol`. The example explicitly uses `low`
+reasoning; choose a model supporting that effort.
+
+Stream response text with terminal-state checks:
+
+```sh
+go run ./examples/responses-streaming
+```
+
+Try hosted Multi-agent orchestration with GPT-6.1 Sol (beta):
+
+```sh
+go run ./examples/responses-multi-agent
+```
+
+The Multi-agent example explicitly sends the beta header and displays only the
+root agent's final answer. It may use more tokens than a single-agent request.
+See the [September 2026 guide](../../docs/modern-openai.md) for compatibility and
+examples of async tools, reasoning updates, and service tiers.

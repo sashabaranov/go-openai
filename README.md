@@ -12,6 +12,12 @@ Chat Completions remains available for existing integrations.
 The client also covers embeddings, images, audio, moderation, files, fine-tuning,
 batches, vector stores, and legacy Assistants API surfaces.
 
+Supports GPT-6.1 Sol, GPT-6 Astra, GPT-6 Sol, GPT-6 Luna, and GPT Image 2.5.
+See the [September 2026 guide](docs/modern-openai.md) for async tools, reasoning
+configuration updates, Multi-agent beta, caching, and Fast/Ultrafast service tiers.
+The Assistants API shut down on August 26, 2026; consult
+[OpenAI's deprecations](https://developers.openai.com/api/docs/deprecations) when migrating older integrations.
+
 **Building agents?** Try [Unreal Agent](https://github.com/unreallabsai/unreal-agent) - Go-based, fully async harness that drives 40% cost savings compared to Codex!
 
 ## Installation
@@ -45,10 +51,15 @@ import (
 )
 
 func main() {
-	client := openai.NewClient(os.Getenv("OPENAI_API_KEY"))
+	key := os.Getenv("OPENAI_API_KEY")
+	if key == "" {
+		log.Fatal("OPENAI_API_KEY is required")
+	}
+	client := openai.NewClient(key)
 
 	response, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
-		Model:        openai.GPT5Dot6Sol,
+		Model:        openai.GPT6Dot1Sol,
+		Reasoning:    &openai.ResponseReasoning{Effort: openai.ReasoningEffortLow},
 		Instructions: "You are a concise technical explainer.",
 		Input:        "Why is the sky blue?",
 	})
@@ -62,7 +73,8 @@ func main() {
 
 `Input` can be a string or a slice of typed input items. For reasoning, tools,
 multimodal output, or custom processing, inspect `response.Output` instead of
-using the `GetOutputText` convenience method.
+using the `GetOutputText` convenience method. Use `GetFinalOutputText` to exclude
+commentary and subagent messages when displaying a final answer.
 
 ### Continue a conversation
 
@@ -73,7 +85,7 @@ Resend `Instructions` on each call when they should continue to apply.
 store := true
 
 first, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
-	Model:        openai.GPT5Dot6Sol,
+	Model:        openai.GPT6Dot1Sol,
 	Instructions: "Answer as a travel guide.",
 	Input:        "What should I see in Lisbon?",
 	Store:        &store,
@@ -83,7 +95,7 @@ if err != nil {
 }
 
 second, err := client.CreateResponse(ctx, openai.CreateResponseRequest{
-	Model:              openai.GPT5Dot6Sol,
+	Model:              openai.GPT6Dot1Sol,
 	Instructions:       "Answer as a travel guide.",
 	Input:              "Which one is best on a rainy day?",
 	PreviousResponseID: first.ID,
@@ -100,7 +112,7 @@ fmt.Println(second.GetOutputText())
 
 ```go
 stream, err := client.CreateResponseStream(ctx, openai.CreateResponseRequest{
-	Model: openai.GPT5Dot6Sol,
+	Model: openai.GPT6Dot1Sol,
 	Input: "Write a short story about a curious gopher.",
 })
 if err != nil {
@@ -124,16 +136,20 @@ for {
 
 ## Choosing a model
 
-The current GPT-5.6 family exposes separate capability, balance, and efficiency
-tiers. Pick the tier that matches the workload instead of using the flagship for
-every request.
+Choose a model based on the workload's reasoning, latency, and cost requirements.
 
 | Constant | Model ID | Typical use |
 | --- | --- | --- |
-| `GPT5Dot6Sol` | `gpt-5.6-sol` | Complex reasoning and coding |
-| `GPT5Dot6Terra` | `gpt-5.6-terra` | Balance of intelligence and cost |
-| `GPT5Dot6Luna` | `gpt-5.6-luna` | Cost-sensitive, high-volume work |
-| `GPT5Dot6` | `gpt-5.6` | Family alias that currently routes to Sol |
+| `GPT6Dot1Sol` | `gpt-6.1-sol` | Complex coding and professional work |
+| `GPT6Astra` | `gpt-6-astra` | Most demanding reasoning and coding |
+| `GPT6Sol` | `gpt-6-sol` | Previous Sol model |
+| `GPT6Luna` | `gpt-6-luna` | Focused, high-volume work |
+
+GPT-5.6 and earlier model constants remain available. GPT-6.1 Sol and Astra support
+`low`, `medium` (default), `high`, `xhigh`, and `max` reasoning; they do not support
+`none` or `minimal`. GPT-6 Sol and Luna also support `none`. Use Responses for tool
+calling with GPT-6.1 Sol or Astra, or when combining GPT-6 reasoning with tools.
+See [GPT-6 guidance](https://developers.openai.com/api/docs/guides/latest-model).
 
 See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) for
 capabilities and availability. Model IDs are accepted as strings, so you can use
@@ -194,9 +210,11 @@ if errors.As(err, &apiError) {
 Runnable examples live in [`examples/`](examples):
 
 - [Responses API with multi-turn state](examples/responses)
+- [Responses streaming with terminal-state checks](examples/responses-streaming)
+- [Responses Multi-agent beta](examples/responses-multi-agent)
 - [Chat Completions](examples/completion)
 - [Chat Completions with a function tool](examples/completion-with-tool)
-- [Image generation](examples/images)
+- [GPT Image 2.5 generation](examples/images)
 - [Speech to text](examples/voice-to-text)
 
 To run one:

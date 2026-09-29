@@ -67,6 +67,7 @@ const (
 
 // ResponseStreamEvent contains the common fields across Responses API SSE event variants.
 type ResponseStreamEvent struct {
+	Agent             *ResponseAgent          `json:"agent,omitempty"`
 	Type              ResponseStreamEventType `json:"type"`
 	SequenceNumber    int                     `json:"sequence_number,omitempty"`
 	Response          *CreateResponseResponse `json:"response,omitempty"`
@@ -118,6 +119,7 @@ func (c *Client) CreateResponseStream(
 		http.MethodPost,
 		c.fullURL(responsesSuffix),
 		withBody(request),
+		withResponseBetas(request.Betas),
 	)
 	if err != nil {
 		return nil, err

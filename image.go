@@ -18,9 +18,10 @@ const (
 	CreateImageSize1792x1024 = "1792x1024"
 	CreateImageSize1024x1792 = "1024x1792"
 
-	// GPT Image models only.
+	// GPT Image models.
 	CreateImageSize1536x1024 = "1536x1024" // Landscape
 	CreateImageSize1024x1536 = "1024x1536" // Portrait
+	CreateImageSizeAuto      = "auto"
 )
 
 const (
@@ -30,23 +31,29 @@ const (
 )
 
 const (
-	CreateImageModelDallE2             = "dall-e-2"
-	CreateImageModelDallE3             = "dall-e-3"
-	CreateImageModelGptImage1          = "gpt-image-1"
-	CreateImageModelGptImage1Mini      = "gpt-image-1-mini"
-	CreateImageModelGptImage1Dot5      = "gpt-image-1.5"
-	CreateImageModelGptImage2          = "gpt-image-2"
-	CreateImageModelChatGPTImageLatest = "chatgpt-image-latest"
+	CreateImageModelDallE2                = "dall-e-2"
+	CreateImageModelDallE3                = "dall-e-3"
+	CreateImageModelGptImage1Mini         = "gpt-image-1-mini"
+	CreateImageModelGptImage1Dot5         = "gpt-image-1.5"
+	CreateImageModelChatGPTImageLatest    = "chatgpt-image-latest"
+	CreateImageModelGptImage1             = "gpt-image-1"
+	CreateImageModelGptImage2             = "gpt-image-2"
+	CreateImageModelGptImage2Dot5Sunburst = "gpt-image-2.5-sunburst"
+	CreateImageModelGptImage2Dot5Flare    = "gpt-image-2.5-flare"
 )
 
 const (
 	CreateImageQualityHD       = "hd"
 	CreateImageQualityStandard = "standard"
 
-	// GPT Image models only.
+	// GPT Image models.
 	CreateImageQualityHigh   = "high"
 	CreateImageQualityMedium = "medium"
 	CreateImageQualityLow    = "low"
+	CreateImageQualityAuto   = "auto"
+	// GPT Image 2.5 models.
+	CreateImageQualityXHigh = "xhigh"
+	CreateImageQualityMax   = "max"
 )
 
 const (
@@ -56,18 +63,20 @@ const (
 )
 
 const (
-	// GPT Image models only.
+	// GPT Image models; transparent output requires PNG or WebP.
 	CreateImageBackgroundTransparent = "transparent"
 	CreateImageBackgroundOpaque      = "opaque"
+	CreateImageBackgroundAuto        = "auto"
 )
 
 const (
-	// GPT Image models only.
-	CreateImageModerationLow = "low"
+	// GPT Image models.
+	CreateImageModerationLow  = "low"
+	CreateImageModerationAuto = "auto"
 )
 
 const (
-	// GPT Image models only.
+	// GPT Image models.
 	CreateImageOutputFormatPNG  = "png"
 	CreateImageOutputFormatJPEG = "jpeg"
 	CreateImageOutputFormatWEBP = "webp"
@@ -172,9 +181,13 @@ type ImageEditRequest struct {
 	ResponseFormat string    `json:"response_format,omitempty"`
 	Quality        string    `json:"quality,omitempty"`
 	User           string    `json:"user,omitempty"`
+	Background     string    `json:"background,omitempty"`
+	OutputFormat   string    `json:"output_format,omitempty"`
+	// OutputCompression is a pointer so an explicit zero can be sent for JPEG or WebP.
+	OutputCompression *int `json:"output_compression,omitempty"`
 }
 
-// CreateEditImage - API call to create an image. This is the main endpoint of the DALL-E API.
+// CreateEditImage edits an image using the Images API.
 func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) (response ImageResponse, err error) {
 	body := &bytes.Buffer{}
 	builder := c.createFormBuilder(body)
@@ -199,40 +212,27 @@ func (c *Client) CreateEditImage(ctx context.Context, request ImageEditRequest) 
 		return
 	}
 
-	if request.Model != "" {
-		err = builder.WriteField("model", request.Model)
-		if err != nil {
-			return
+	fields := []struct{ name, value string }{
+		{"model", request.Model},
+		{"quality", request.Quality},
+		{"size", request.Size},
+		{"response_format", request.ResponseFormat},
+		{"user", request.User},
+		{"background", request.Background},
+		{"output_format", request.OutputFormat},
+	}
+	if request.N != 0 {
+		fields = append(fields, struct{ name, value string }{"n", strconv.Itoa(request.N)})
+	}
+	if request.OutputCompression != nil {
+		fields = append(fields, struct{ name, value string }{"output_compression", strconv.Itoa(*request.OutputCompression)})
+	}
+	for _, field := range fields {
+		if field.value != "" {
+			if err = builder.WriteField(field.name, field.value); err != nil {
+				return
+			}
 		}
-	}
-
-	if request.Quality != "" {
-		err = builder.WriteField("quality", request.Quality)
-		if err != nil {
-			return
-		}
-	}
-
-	if request.User != "" {
-		err = builder.WriteField("user", request.User)
-		if err != nil {
-			return
-		}
-	}
-
-	err = builder.WriteField("n", strconv.Itoa(request.N))
-	if err != nil {
-		return
-	}
-
-	err = builder.WriteField("size", request.Size)
-	if err != nil {
-		return
-	}
-
-	err = builder.WriteField("response_format", request.ResponseFormat)
-	if err != nil {
-		return
 	}
 
 	err = builder.Close()

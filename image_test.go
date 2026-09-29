@@ -63,7 +63,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				fb.mockWriteField = func(string, string) error { return nil }
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "mask",
@@ -77,7 +80,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				fb.mockWriteField = func(string, string) error { return nil }
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "prompt",
@@ -91,7 +97,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				}
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "n",
@@ -105,7 +114,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				}
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "size",
@@ -119,7 +131,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				}
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "response_format",
@@ -133,7 +148,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				}
 				fb.mockClose = func() error { return nil }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 		{
 			name: "close",
@@ -142,7 +160,10 @@ func TestImageFormBuilderFailures(t *testing.T) {
 				fb.mockWriteField = func(string, string) error { return nil }
 				fb.mockClose = func() error { return mockFailedErr }
 			},
-			req: ImageEditRequest{Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil)},
+			req: ImageEditRequest{
+				Image: bytes.NewBuffer(nil), Mask: bytes.NewBuffer(nil),
+				N: 1, Size: CreateImageSize1024x1024, ResponseFormat: CreateImageResponseFormatURL,
+			},
 		},
 	}
 

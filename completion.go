@@ -7,8 +7,13 @@ import (
 
 const completionsSuffix = "/completions"
 
-// Text generation and reasoning models provided by OpenAI.
+// Model identifiers for the Responses, Chat Completions, and legacy Completions APIs.
+// Endpoint and parameter support varies by model; see the OpenAI model documentation.
 const (
+	GPT6Dot1Sol             = "gpt-6.1-sol"
+	GPT6Astra               = "gpt-6-astra"
+	GPT6Sol                 = "gpt-6-sol"
+	GPT6Luna                = "gpt-6-luna"
 	O1Mini                  = "o1-mini"
 	O1Mini20240912          = "o1-mini-2024-09-12"
 	O1Preview               = "o1-preview"
@@ -126,6 +131,10 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	completionsSuffix: {
+		GPT6Dot1Sol:             true,
+		GPT6Astra:               true,
+		GPT6Sol:                 true,
+		GPT6Luna:                true,
 		O1Mini:                  true,
 		O1Mini20240912:          true,
 		O1Preview:               true,

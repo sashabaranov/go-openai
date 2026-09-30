@@ -179,6 +179,65 @@ func TestCreateCompletionStreamRateLimitError(t *testing.T) {
 	t.Logf("%+v\n", apiErr)
 }
 
+func TestCreateCompletionStreamRateLimitErrorHeaders(t *testing.T) {
+	client, server, teardown := setupOpenAITestServer()
+	defer teardown()
+	server.RegisterHandler("/v1/completions", func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.Header().Set("Retry-After", "30")
+		w.WriteHeader(http.StatusTooManyRequests)
+
+		// Send test responses
+		dataBytes := []byte(`{"error":{` +
+			`"message": "You are sending requests too quickly.",` +
+			`"type":"rate_limit_reached",` +
+			`"param":null,` +
+			`"code":"rate_limit_reached"}}`)
+
+		_, err := w.Write(dataBytes)
+		checks.NoError(t, err, "Write error")
+	})
+	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Babbage002,
+		Prompt:    "Hello!",
+		Stream:    true,
+	})
+	var apiErr *openai.APIError
+	if !errors.As(err, &apiErr) {
+		t.Fatalf("TestCreateCompletionStreamRateLimitErrorHeaders did not return APIError")
+	}
+	if stream == nil {
+		t.Fatal("CreateCompletionStream should still return a stream on error so its headers are reachable")
+	}
+	defer stream.Close()
+
+	if got := stream.Header().Get("Retry-After"); got != "30" {
+		t.Errorf("expected Retry-After header to be 30, got %s", got)
+	}
+
+	if _, err := stream.Recv(); !errors.Is(err, io.EOF) {
+		t.Errorf("expected Recv on an HTTP-error stream to return io.EOF, got %v", err)
+	}
+}
+
+func TestCreateCompletionStreamTransportError(t *testing.T) {
+	client := setupUnreachableClient()
+
+	stream, err := client.CreateCompletionStream(context.Background(), openai.CompletionRequest{
+		MaxTokens: 5,
+		Model:     openai.GPT3Babbage002,
+		Prompt:    "Hello!",
+		Stream:    true,
+	})
+	if err == nil {
+		t.Fatal("expected an error when the transport itself fails")
+	}
+	if stream != nil {
+		t.Error("expected a nil stream when the transport itself fails, got a non-nil stream")
+	}
+}
+
 func TestCreateCompletionStreamTooManyEmptyStreamMessagesError(t *testing.T) {
 	client, server, teardown := setupOpenAITestServer()
 	defer teardown()

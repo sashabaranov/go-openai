@@ -36,6 +36,15 @@ func TestOpenAIFullURL(t *testing.T) {
 	}
 }
 
+func TestAnthropicFullURL(t *testing.T) {
+	cli := NewClientWithConfig(DefaultAnthropicConfig("dummy", ""))
+	// APIVersion is set for the anthropic-version header; it must not be
+	// appended as an api-version query param the way Azure requires.
+	if actual := cli.fullURL("/chat/completions"); actual != "https://api.anthropic.com/v1/chat/completions" {
+		t.Errorf("Expected https://api.anthropic.com/v1/chat/completions, got %s", actual)
+	}
+}
+
 func TestRequestAuthHeader(t *testing.T) {
 	cases := []struct {
 		Name      string

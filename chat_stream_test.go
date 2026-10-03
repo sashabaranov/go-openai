@@ -767,6 +767,34 @@ func TestCreateChatCompletionStreamStreamOptions(t *testing.T) {
 	}
 }
 
+type mockStream struct {
+	calls int
+}
+
+// Implement ChatStreamReader.
+func (m *mockStream) Recv() (openai.ChatCompletionStreamResponse, error) {
+	m.calls++
+	if m.calls == 1 {
+		return openai.ChatCompletionStreamResponse{ID: "mock1"}, nil
+	}
+	return openai.ChatCompletionStreamResponse{}, io.EOF
+}
+func (m *mockStream) Close() error { return nil }
+
+func TestChatCompletionStream_MockInjection(t *testing.T) {
+	mock := &mockStream{}
+	stream := openai.NewChatCompletionStream(mock)
+
+	resp, err := stream.Recv()
+	if err != nil || resp.ID != "mock1" {
+		t.Errorf("expected mock1, got %v, err %v", resp.ID, err)
+	}
+	_, err = stream.Recv()
+	if !errors.Is(err, io.EOF) {
+		t.Errorf("expected EOF, got %v", err)
+	}
+}
+
 // Helper funcs.
 func compareChatResponses(r1, r2 openai.ChatCompletionStreamResponse) bool {
 	if r1.ID != r2.ID || r1.Object != r2.Object || r1.Created != r2.Created || r1.Model != r2.Model {

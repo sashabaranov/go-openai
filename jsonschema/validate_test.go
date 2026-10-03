@@ -7,6 +7,128 @@ import (
 	"github.com/sashabaranov/go-openai/jsonschema"
 )
 
+func TestValidateAdditionalProperties(t *testing.T) {
+	properties := map[string]jsonschema.Definition{"name": {Type: jsonschema.String}}
+	valid := map[string]any{"name": "test"}
+	extra := map[string]any{"name": "test", "extra": true}
+	invalid := map[string]any{"name": false}
+	tests := []struct {
+		name                 string
+		properties           map[string]jsonschema.Definition
+		additionalProperties any
+		data                 map[string]any
+		want                 bool
+	}{
+		{"false allows declared properties", properties, false, valid, true},
+		{"false rejects extra properties", properties, false, extra, false},
+		{"true allows extra properties", properties, true, extra, true},
+		{"unset allows extra properties", properties, nil, extra, true},
+		{"empty properties allows empty object", map[string]jsonschema.Definition{}, false, map[string]any{}, true},
+		{"empty properties rejects extra properties", map[string]jsonschema.Definition{}, false, extra, false},
+		{"nil properties allows empty object", nil, false, map[string]any{}, true},
+		{"nil properties rejects extra properties", nil, false, extra, false},
+		{"true still validates declared properties", properties, true, invalid, false},
+		{"unset still validates declared properties", properties, nil, invalid, false},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			schema := jsonschema.Definition{
+				Type:                 jsonschema.Object,
+				Properties:           tt.properties,
+				AdditionalProperties: tt.additionalProperties,
+			}
+			if got := jsonschema.Validate(schema, tt.data); got != tt.want {
+				t.Errorf("Validate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestValidateAdditionalPropertiesRecursive(t *testing.T) {
+	closed := jsonschema.Definition{
+		Type:                 jsonschema.Object,
+		Properties:           map[string]jsonschema.Definition{"name": {Type: jsonschema.String}},
+		Required:             []string{"name"},
+		AdditionalProperties: false,
+	}
+	nested := jsonschema.Definition{
+		Type:       jsonschema.Object,
+		Properties: map[string]jsonschema.Definition{"child": closed},
+	}
+	array := jsonschema.Definition{Type: jsonschema.Array, Items: &closed}
+	ref := jsonschema.Definition{
+		Ref:  "#/$defs/Closed",
+		Defs: map[string]jsonschema.Definition{"Closed": closed},
+	}
+	union := jsonschema.Definition{AnyOf: []jsonschema.Definition{closed, {Type: jsonschema.String}}}
+	valid := map[string]any{"name": "test"}
+	extra := map[string]any{"name": "test", "extra": true}
+	tests := []struct {
+		name   string
+		schema jsonschema.Definition
+		data   any
+		want   bool
+	}{
+		{"required property still required", closed, map[string]any{}, false},
+		{"nested valid object", nested, map[string]any{"child": valid}, true},
+		{"nested extra property", nested, map[string]any{"child": extra}, false},
+		{"outer extra property still allowed", nested, map[string]any{"child": valid, "extra": true}, true},
+		{"array valid objects", array, []any{valid, valid}, true},
+		{"array extra property", array, []any{valid, extra}, false},
+		{"ref valid object", ref, valid, true},
+		{"ref extra property", ref, extra, false},
+		{"anyOf valid object", union, valid, true},
+		{"anyOf other type", union, "test", true},
+		{"anyOf extra property", union, extra, false},
+		{"anyOf another object allows extras", jsonschema.Definition{
+			AnyOf: []jsonschema.Definition{closed, {Type: jsonschema.Object}},
+		}, extra, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := jsonschema.Validate(tt.schema, tt.data); got != tt.want {
+				t.Errorf("Validate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestGeneratedSchemaRejectsAdditionalProperties(t *testing.T) {
+	type result struct {
+		Name string `json:"name"`
+	}
+	schema, schemaErr := jsonschema.GenerateSchemaForType(result{})
+	if schemaErr != nil {
+		t.Fatal(schemaErr)
+	}
+	unmarshalers := []struct {
+		name      string
+		unmarshal func(string, any) error
+	}{
+		{"Definition.Unmarshal", schema.Unmarshal},
+		{"VerifySchemaAndUnmarshal", func(content string, v any) error {
+			return jsonschema.VerifySchemaAndUnmarshal(*schema, []byte(content), v)
+		}},
+	}
+	for _, unmarshal := range unmarshalers {
+		t.Run(unmarshal.name, func(t *testing.T) {
+			got := result{Name: "original"}
+			if err := unmarshal.unmarshal(`{"name":"test","extra":true}`, &got); err == nil {
+				t.Fatal("expected validation error for extra property")
+			}
+			if got.Name != "original" {
+				t.Errorf("rejected data changed destination to %+v", got)
+			}
+			if err := unmarshal.unmarshal(`{"name":"test"}`, &got); err != nil {
+				t.Fatal(err)
+			}
+			if got.Name != "test" {
+				t.Errorf("Name = %q, want test", got.Name)
+			}
+		})
+	}
+}
+
 func Test_Validate(t *testing.T) {
 	type args struct {
 		data   any

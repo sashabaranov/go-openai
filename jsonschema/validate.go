@@ -114,6 +114,13 @@ func validateObject(schema Definition, data any, defs map[string]Definition) boo
 	if !ok {
 		return false
 	}
+	if allowAdditional, isBool := schema.AdditionalProperties.(bool); isBool && !allowAdditional {
+		for key := range dataMap {
+			if _, exists := schema.Properties[key]; !exists {
+				return false
+			}
+		}
+	}
 	for _, field := range schema.Required {
 		if _, exists := dataMap[field]; !exists {
 			return false

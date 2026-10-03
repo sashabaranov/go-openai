@@ -97,9 +97,9 @@ func TestGeneratedSchemaRejectsAdditionalProperties(t *testing.T) {
 	type result struct {
 		Name string `json:"name"`
 	}
-	schema, err := jsonschema.GenerateSchemaForType(result{})
-	if err != nil {
-		t.Fatal(err)
+	schema, schemaErr := jsonschema.GenerateSchemaForType(result{})
+	if schemaErr != nil {
+		t.Fatal(schemaErr)
 	}
 	unmarshalers := []struct {
 		name      string

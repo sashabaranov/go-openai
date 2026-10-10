@@ -131,10 +131,11 @@ func (r *EmbeddingResponseBase64) ToEmbeddingResponse() (EmbeddingResponse, erro
 	}
 
 	return EmbeddingResponse{
-		Object: r.Object,
-		Model:  r.Model,
-		Data:   data,
-		Usage:  r.Usage,
+		Object:     r.Object,
+		Model:      r.Model,
+		Data:       data,
+		Usage:      r.Usage,
+		httpHeader: r.httpHeader,
 	}, nil
 }
 

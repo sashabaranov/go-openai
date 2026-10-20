@@ -3,6 +3,7 @@ package jsonschema
 import (
 	"encoding/json"
 	"errors"
+	"math"
 )
 
 func CollectDefs(def Definition) map[string]Definition {
@@ -84,7 +85,7 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 	case Integer:
 		// Golang unmarshals all numbers as float64, so we need to check if the float64 is an integer
 		if num, ok := data.(float64); ok {
-			return num == float64(int64(num))
+			return math.Mod(num, 1) == 0
 		}
 		_, ok := data.(int)
 		return ok

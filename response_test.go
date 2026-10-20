@@ -114,6 +114,81 @@ func TestCreateResponse(t *testing.T) { //nolint:gocognit
 	}
 }
 
+func TestCreateResponseExtraBodyPreservesSchemaNumbers(t *testing.T) {
+	for _, tc := range []struct {
+		name  string
+		extra map[string]any
+	}{
+		{name: "nil"},
+		{name: "empty", extra: map[string]any{}},
+		{name: "nonempty", extra: map[string]any{"service_tier": "auto"}},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			client, server, teardown := setupOpenAITestServer()
+			defer teardown()
+
+			server.RegisterHandler("/v1/responses", func(w http.ResponseWriter, r *http.Request) {
+				var request struct {
+					Tools []struct {
+						Parameters struct {
+							Properties map[string]struct {
+								Enum []json.Number `json:"enum"`
+							} `json:"properties"`
+						} `json:"parameters"`
+					} `json:"tools"`
+				}
+				checks.NoError(t, json.NewDecoder(r.Body).Decode(&request), "decode request")
+				if len(request.Tools) != 1 {
+					t.Errorf("expected one function tool, got %d", len(request.Tools))
+				} else {
+					for name, want := range map[string][]json.Number{
+						"id":       {"9007199254740993", "9223372036854775807", "-9223372036854775808"},
+						"unsigned": {"18446744073709551615"},
+						"ratio":    {"0.1234567890123456789"},
+					} {
+						if got := request.Tools[0].Parameters.Properties[name].Enum; !reflect.DeepEqual(got, want) {
+							t.Errorf("%s enum = %v, want %v", name, got, want)
+						}
+					}
+				}
+				w.Header().Set("Content-Type", "application/json")
+				_, err := w.Write([]byte(`{"id":"resp_test","status":"completed"}`))
+				checks.NoError(t, err, "write response")
+			})
+
+			_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
+				Model: openai.GPT4o,
+				Input: "Look up the record",
+				Tools: []openai.ResponseTool{openai.NewResponseFunctionTool(openai.FunctionDefinition{
+					Name:   "lookup",
+					Strict: true,
+					Parameters: map[string]any{
+						"type":                 "object",
+						"additionalProperties": false,
+						"required":             []string{"id", "unsigned", "ratio"},
+						"properties": map[string]any{
+							"id": map[string]any{
+								"type": "integer",
+								"enum": []int64{9007199254740993, 9223372036854775807, -9223372036854775808},
+							},
+							"unsigned": map[string]any{
+								"type": "integer",
+								"enum": []uint64{18446744073709551615},
+							},
+							"ratio": map[string]any{
+								"type": "number",
+								"enum": []json.Number{"0.1234567890123456789"},
+							},
+						},
+					},
+				})},
+				ExtraBody: tc.extra,
+			})
+			checks.NoError(t, err, "CreateResponse returned error")
+		})
+	}
+}
+
 func TestCreateResponseUsesOutputTextConvenienceField(t *testing.T) {
 	response := openai.CreateResponseResponse{
 		OutputText: "convenience text",
@@ -137,10 +212,17 @@ func TestCreateResponseRejectsStreaming(t *testing.T) {
 
 func TestCreateResponseRequestMarshalError(t *testing.T) {
 	client := openai.NewClient("test")
-	_, err := client.CreateResponse(context.Background(), openai.CreateResponseRequest{
-		Input: make(chan int),
-	})
-	checks.HasError(t, err, "expected JSON marshal error")
+	for _, request := range []openai.CreateResponseRequest{
+		{Input: make(chan int)},
+		{Input: make(chan int), ExtraBody: map[string]any{"input": "override"}},
+		{Input: "Hello", ExtraBody: map[string]any{"invalid": make(chan int)}},
+	} {
+		_, err := client.CreateResponse(context.Background(), request)
+		var unsupported *json.UnsupportedTypeError
+		if !errors.As(err, &unsupported) {
+			t.Errorf("expected JSON unsupported type error, got %v", err)
+		}
+	}
 }
 
 func TestCreateResponseError(t *testing.T) {

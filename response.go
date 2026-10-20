@@ -165,12 +165,16 @@ func (r CreateResponseRequest) MarshalJSON() ([]byte, error) {
 		return base, err
 	}
 
-	var body map[string]any
+	var body map[string]json.RawMessage
 	if err = json.Unmarshal(base, &body); err != nil {
 		return nil, err
 	}
 	for key, value := range r.ExtraBody {
-		body[key] = value
+		encoded, marshalErr := json.Marshal(value)
+		if marshalErr != nil {
+			return nil, marshalErr
+		}
+		body[key] = encoded
 	}
 	return json.Marshal(body)
 }

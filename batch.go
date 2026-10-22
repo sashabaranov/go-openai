@@ -72,6 +72,33 @@ func (r BatchEmbeddingRequest) MarshalBatchLineItem() []byte {
 	return marshal
 }
 
+// BatchRequestOutput represents one request result in a batch output or error JSONL file.
+// Use CustomID to match the result to its input request. Results can arrive out of order.
+// T is the endpoint response type, or json.RawMessage to decode the body after checking StatusCode.
+// BatchResponse describes the batch itself, rather than an individual request result.
+type BatchRequestOutput[T any] struct {
+	ID       string                         `json:"id"`
+	CustomID string                         `json:"custom_id"`
+	Response *BatchRequestOutputResponse[T] `json:"response"`
+	Error    *BatchRequestOutputError       `json:"error"`
+}
+
+// BatchRequestOutputResponse contains the HTTP response for a request in a batch.
+// Body can be a successful endpoint response or an ErrorResponse for an API error.
+// Use json.RawMessage for T when a file can contain both kinds of body.
+type BatchRequestOutputResponse[T any] struct {
+	StatusCode int    `json:"status_code"`
+	RequestID  string `json:"request_id"`
+	Body       T      `json:"body"`
+}
+
+// BatchRequestOutputError describes a batch error, such as an expired request.
+// These errors have a null response and are separate from API errors in Response.Body.
+type BatchRequestOutputError struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
 type Batch struct {
 	ID       string        `json:"id"`
 	Object   string        `json:"object"`

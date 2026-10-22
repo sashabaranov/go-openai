@@ -167,6 +167,77 @@ fmt.Println(response.Choices[0].Message.Content)
 For a new integration, prefer Responses unless you specifically need the Chat
 Completions request or response shape.
 
+## Read batch output
+
+Use `BatchRequestOutput[T]` to decode each line from a batch output or error file.
+For example, `BatchRequestOutput[ChatCompletionResponse]` gives a typed chat body.
+Use `CompletionResponse`, `EmbeddingResponse`, or `CreateResponseResponse` for the
+other batch endpoints. `BatchResponse` still describes the whole batch.
+
+A response body can also contain an API error. Use `json.RawMessage` when you need
+to inspect `status_code` before decoding the body. A batch error, such as an expired
+request, has a null `response` and a separate `error` with a code and message.
+
+This example reads a chat batch file from `GetFileContent`. Pass the batch's
+`OutputFileID` or `ErrorFileID` when available. Match results to inputs with
+`CustomID`, because the [output order can differ from the input order](https://developers.openai.com/api/docs/guides/batch).
+
+```go
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"errors"
+	"fmt"
+	"io"
+	"net/http"
+
+	openai "github.com/sashabaranov/go-openai"
+)
+
+func printBatchOutput(ctx context.Context, client *openai.Client, fileID string) error {
+	content, err := client.GetFileContent(ctx, fileID)
+	if err != nil {
+		return err
+	}
+	defer content.Close()
+
+	decoder := json.NewDecoder(content)
+	for {
+		var output openai.BatchRequestOutput[json.RawMessage]
+		if err := decoder.Decode(&output); errors.Is(err, io.EOF) {
+			return nil
+		} else if err != nil {
+			return err
+		}
+		if output.Error != nil {
+			fmt.Printf("%s: %s: %s\n", output.CustomID, output.Error.Code, output.Error.Message)
+			continue
+		}
+		if output.Response == nil {
+			return fmt.Errorf("missing response for %s", output.CustomID)
+		}
+		response := output.Response
+		if response.StatusCode < http.StatusOK || response.StatusCode >= http.StatusMultipleChoices {
+			var body openai.ErrorResponse
+			if err := json.Unmarshal(response.Body, &body); err != nil {
+				return err
+			}
+			fmt.Printf("%s: HTTP %d: %v\n", output.CustomID, response.StatusCode, body.Error)
+			continue
+		}
+		var body openai.ChatCompletionResponse
+		if err := json.Unmarshal(response.Body, &body); err != nil {
+			return err
+		}
+		for _, choice := range body.Choices {
+			fmt.Printf("%s: %s\n", output.CustomID, choice.Message.Content)
+		}
+	}
+}
+```
+
 ## Configuration
 
 Use `DefaultConfig` to customize the HTTP client, base URL, organization, or

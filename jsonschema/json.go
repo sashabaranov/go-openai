@@ -34,6 +34,9 @@ type Definition struct {
 	// Enum is used to restrict a value to a fixed set of values. It must be an array with at least
 	// one element, where each element is unique. You will probably only use this with strings.
 	Enum []string `json:"enum,omitempty"`
+	// MaxLength limits a string to this many Unicode code points. It must be non-negative.
+	// A nil value omits the constraint; a pointer to zero permits only an empty string.
+	MaxLength *int `json:"maxLength,omitempty"`
 	// Properties describes the properties of an object, if the schema type is Object.
 	Properties map[string]Definition `json:"properties,omitempty"`
 	// Required specifies which properties are required, if the schema type is Object.

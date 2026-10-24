@@ -135,6 +135,9 @@ func validateArray(schema Definition, data any, defs map[string]Definition) bool
 	if !ok {
 		return false
 	}
+	if schema.Items == nil {
+		return true
+	}
 	for _, item := range dataArray {
 		if !Validate(*schema.Items, item, WithDefs(defs)) {
 			return false

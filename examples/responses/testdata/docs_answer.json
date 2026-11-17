@@ -1,0 +1,16 @@
+{
+  "id": "resp_docs_answer",
+  "object": "response",
+  "status": "completed",
+  "output": [{
+    "id": "msg_docs",
+    "type": "message",
+    "status": "completed",
+    "role": "assistant",
+    "content": [{
+      "type": "output_text",
+      "text": "Defer cancel to release resources held by the derived context when the operation finishes. [Go documentation](https://go.dev/doc/database/cancel-operations)",
+      "annotations": []
+    }]
+  }]
+}

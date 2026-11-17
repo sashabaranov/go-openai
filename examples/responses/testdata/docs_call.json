@@ -1,0 +1,16 @@
+{
+  "id": "resp_docs_call",
+  "object": "response",
+  "status": "completed",
+  "output": [
+    {"id": "rs_docs", "type": "reasoning", "summary": []},
+    {
+      "id": "fc_item_not_call_id",
+      "type": "function_call",
+      "status": "completed",
+      "call_id": "call_docs_42",
+      "name": "find_go_docs",
+      "arguments": "{\"query\":\"Why defer cancel after context.WithTimeout?\"}"
+    }
+  ]
+}

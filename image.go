@@ -30,12 +30,22 @@ const (
 )
 
 const (
-	CreateImageModelDallE2             = "dall-e-2"
-	CreateImageModelDallE3             = "dall-e-3"
-	CreateImageModelGptImage1          = "gpt-image-1"
-	CreateImageModelGptImage1Mini      = "gpt-image-1-mini"
-	CreateImageModelGptImage1Dot5      = "gpt-image-1.5"
-	CreateImageModelGptImage2          = "gpt-image-2"
+	CreateImageModelDallE2    = "dall-e-2"
+	CreateImageModelDallE3    = "dall-e-3"
+	CreateImageModelGptImage1 = "gpt-image-1"
+	// Deprecated: OpenAI is retiring gpt-image-1-mini on December 1, 2026.
+	// Use CreateImageModelGptImage2Dot6Sunburst or CreateImageModelGptImage2Dot6Flare.
+	CreateImageModelGptImage1Mini = "gpt-image-1-mini"
+
+	// Deprecated: OpenAI is retiring gpt-image-1.5 on December 1, 2026.
+	// Use CreateImageModelGptImage2Dot6Sunburst or CreateImageModelGptImage2Dot6Flare.
+	CreateImageModelGptImage1Dot5         = "gpt-image-1.5"
+	CreateImageModelGptImage2             = "gpt-image-2"
+	CreateImageModelGptImage2Dot6Sunburst = "gpt-image-2.6-sunburst"
+	CreateImageModelGptImage2Dot6Flare    = "gpt-image-2.6-flare"
+
+	// Deprecated: OpenAI is retiring chatgpt-image-latest on December 1, 2026.
+	// Use CreateImageModelGptImage2Dot6Sunburst or CreateImageModelGptImage2Dot6Flare.
 	CreateImageModelChatGPTImageLatest = "chatgpt-image-latest"
 )
 

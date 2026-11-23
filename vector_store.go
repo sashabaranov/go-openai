@@ -107,13 +107,17 @@ type VectorStoreFileBatchRequest struct {
 
 // CreateVectorStore creates a new vector store.
 func (c *Client) CreateVectorStore(ctx context.Context, request VectorStoreRequest) (response VectorStore, err error) {
-	req, _ := c.newRequest(
+	req, err := c.newRequest(
 		ctx,
 		http.MethodPost,
 		c.fullURL(vectorStoresSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion),
 	)
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -125,8 +129,12 @@ func (c *Client) RetrieveVectorStore(
 	vectorStoreID string,
 ) (response VectorStore, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", vectorStoresSuffix, vectorStoreID)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -139,8 +147,12 @@ func (c *Client) ModifyVectorStore(
 	request VectorStoreRequest,
 ) (response VectorStore, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", vectorStoresSuffix, vectorStoreID)
-	req, _ := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix), withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -152,8 +164,12 @@ func (c *Client) DeleteVectorStore(
 	vectorStoreID string,
 ) (response VectorStoreDeleteResponse, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s", vectorStoresSuffix, vectorStoreID)
-	req, _ := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -185,8 +201,12 @@ func (c *Client) ListVectorStores(
 	}
 
 	urlSuffix := fmt.Sprintf("%s%s", vectorStoresSuffix, encodedValues)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -199,9 +219,13 @@ func (c *Client) CreateVectorStoreFile(
 	request VectorStoreFileRequest,
 ) (response VectorStoreFile, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s", vectorStoresSuffix, vectorStoreID, vectorStoresFilesSuffix)
-	req, _ := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -214,8 +238,12 @@ func (c *Client) RetrieveVectorStoreFile(
 	fileID string,
 ) (response VectorStoreFile, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s", vectorStoresSuffix, vectorStoreID, vectorStoresFilesSuffix, fileID)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -228,8 +256,12 @@ func (c *Client) DeleteVectorStoreFile(
 	fileID string,
 ) (err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s", vectorStoresSuffix, vectorStoreID, vectorStoresFilesSuffix, fileID)
-	req, _ := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodDelete, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, nil)
 	return
@@ -261,8 +293,12 @@ func (c *Client) ListVectorStoreFiles(
 	}
 
 	urlSuffix := fmt.Sprintf("%s/%s%s%s", vectorStoresSuffix, vectorStoreID, vectorStoresFilesSuffix, encodedValues)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -275,9 +311,13 @@ func (c *Client) CreateVectorStoreFileBatch(
 	request VectorStoreFileBatchRequest,
 ) (response VectorStoreFileBatch, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s", vectorStoresSuffix, vectorStoreID, vectorStoresFileBatchesSuffix)
-	req, _ := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBody(request),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -290,8 +330,12 @@ func (c *Client) RetrieveVectorStoreFileBatch(
 	batchID string,
 ) (response VectorStoreFileBatch, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s", vectorStoresSuffix, vectorStoreID, vectorStoresFileBatchesSuffix, batchID)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -305,8 +349,12 @@ func (c *Client) CancelVectorStoreFileBatch(
 ) (response VectorStoreFileBatch, err error) {
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s%s", vectorStoresSuffix,
 		vectorStoreID, vectorStoresFileBatchesSuffix, batchID, "/cancel")
-	req, _ := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodPost, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return
@@ -340,8 +388,12 @@ func (c *Client) ListVectorStoreFilesInBatch(
 
 	urlSuffix := fmt.Sprintf("%s/%s%s/%s%s%s", vectorStoresSuffix,
 		vectorStoreID, vectorStoresFileBatchesSuffix, batchID, "/files", encodedValues)
-	req, _ := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
+	req, err := c.newRequest(ctx, http.MethodGet, c.fullURL(urlSuffix),
 		withBetaAssistantVersion(c.config.AssistantVersion))
+
+	if err != nil {
+		return
+	}
 
 	err = c.sendRequest(req, &response)
 	return

@@ -59,10 +59,12 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	// Match published GPT-6 model IDs explicitly. Unknown models and third-party
 	// deployment names remain available without speculative capability checks.
 	switch request.Model {
-	case GPT6Astra, GPT6Dot1Sol:
-		return validateGPT6ChatParams(request, false)
+	case GPT6Dot2Astra, GPT6Dot2Sol, GPT6Astra, GPT6Dot1Sol:
+		return validateGPT6ChatParams(request, false, false)
+	case GPT6Dot1Terra:
+		return validateGPT6ChatParams(request, true, false)
 	case GPT6Sol, GPT6Luna:
-		return validateGPT6ChatParams(request, true)
+		return validateGPT6ChatParams(request, true, true)
 	}
 	o1Series := strings.HasPrefix(request.Model, "o1")
 	o3Series := strings.HasPrefix(request.Model, "o3")
@@ -80,7 +82,7 @@ func (v *ReasoningValidator) Validate(request ChatCompletionRequest) error {
 	return nil
 }
 
-func validateGPT6ChatParams(request ChatCompletionRequest, supportsNone bool) error {
+func validateGPT6ChatParams(request ChatCompletionRequest, supportsNone, supportsToolsWithoutReasoning bool) error {
 	if request.MaxTokens > 0 {
 		return ErrReasoningModelMaxTokensDeprecated
 	}
@@ -95,7 +97,7 @@ func validateGPT6ChatParams(request ChatCompletionRequest, supportsNone bool) er
 	}
 
 	reasoning := request.ReasoningEffort != ReasoningEffortNone
-	if reasoning && (len(request.Tools) > 0 || len(request.Functions) > 0 ||
+	if (reasoning || !supportsToolsWithoutReasoning) && (len(request.Tools) > 0 || len(request.Functions) > 0 ||
 		(request.ToolChoice != nil && request.ToolChoice != "none") ||
 		(request.FunctionCall != nil && request.FunctionCall != "none")) {
 		return ErrReasoningToolsRequireResponses

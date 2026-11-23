@@ -9,7 +9,10 @@ const completionsSuffix = "/completions"
 
 // Text generation and reasoning models provided by OpenAI.
 const (
+	GPT6Dot2Astra           = "gpt-6.2-astra"
+	GPT6Dot2Sol             = "gpt-6.2-sol"
 	GPT6Dot1Sol             = "gpt-6.1-sol"
+	GPT6Dot1Terra           = "gpt-6.1-terra"
 	GPT6Astra               = "gpt-6-astra"
 	GPT6Sol                 = "gpt-6-sol"
 	GPT6Luna                = "gpt-6-luna"
@@ -130,7 +133,10 @@ const (
 
 var disabledModelsForEndpoints = map[string]map[string]bool{
 	completionsSuffix: {
+		GPT6Dot2Astra:           true,
+		GPT6Dot2Sol:             true,
 		GPT6Dot1Sol:             true,
+		GPT6Dot1Terra:           true,
 		GPT6Astra:               true,
 		GPT6Sol:                 true,
 		GPT6Luna:                true,

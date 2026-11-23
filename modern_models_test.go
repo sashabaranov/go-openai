@@ -10,11 +10,17 @@ import (
 
 func TestGPT6ChatCompatibility(t *testing.T) { //nolint:gocognit
 	models := []struct {
-		name string
-		none bool
+		name                  string
+		none                  bool
+		toolsWithoutReasoning bool
 	}{
-		{openai.GPT6Dot1Sol, false}, {openai.GPT6Astra, false},
-		{openai.GPT6Sol, true}, {openai.GPT6Luna, true},
+		{name: openai.GPT6Dot2Astra},
+		{name: openai.GPT6Dot2Sol},
+		{name: openai.GPT6Dot1Sol},
+		{name: openai.GPT6Dot1Terra, none: true},
+		{name: openai.GPT6Astra},
+		{name: openai.GPT6Sol, none: true, toolsWithoutReasoning: true},
+		{name: openai.GPT6Luna, none: true, toolsWithoutReasoning: true},
 	}
 	for _, model := range models {
 		t.Run(model.name, func(t *testing.T) {
@@ -54,18 +60,27 @@ func TestGPT6ChatCompatibility(t *testing.T) { //nolint:gocognit
 			}
 			request := openai.ChatCompletionRequest{
 				Model: model.name, ReasoningEffort: "none", Temperature: 0.7, TopP: 0.9,
-				LogProbs: true, TopLogProbs: 2, Tools: []openai.Tool{{Type: openai.ToolTypeFunction}},
+				LogProbs: true, TopLogProbs: 2,
 			}
 			if err := validator.Validate(openai.ChatCompletionRequest{
 				Model: model.name, ToolChoice: "none", FunctionCall: "none", ParallelToolCalls: false,
 			}); err != nil {
 				t.Errorf("explicitly disabling tools should not count as tool calling: %v", err)
 			}
-			err := validator.Validate(request)
-			if model.none && err != nil {
-				t.Errorf("non-reasoning request should be supported: %v", err)
-			} else if !model.none && !errors.Is(err, openai.ErrReasoningEffortUnsupported) {
-				t.Errorf("got %v, want unsupported reasoning effort", err)
+			var wantErr error
+			if !model.none {
+				wantErr = openai.ErrReasoningEffortUnsupported
+			}
+			if err := validator.Validate(request); !errors.Is(err, wantErr) {
+				t.Errorf("reasoning effort none: got %v, want %v", err, wantErr)
+			}
+
+			request.Tools = []openai.Tool{{Type: openai.ToolTypeFunction}}
+			if model.none && !model.toolsWithoutReasoning {
+				wantErr = openai.ErrReasoningToolsRequireResponses
+			}
+			if err := validator.Validate(request); !errors.Is(err, wantErr) {
+				t.Errorf("tool calling with reasoning disabled: got %v, want %v", err, wantErr)
 			}
 		})
 	}
@@ -74,6 +89,7 @@ func TestGPT6ChatCompatibility(t *testing.T) { //nolint:gocognit
 func TestGPT6ModelsRejectLegacyCompletions(t *testing.T) {
 	client := openai.NewClient("test")
 	for _, model := range []string{
+		openai.GPT6Dot2Astra, openai.GPT6Dot2Sol, openai.GPT6Dot1Terra,
 		openai.GPT6Dot1Sol, openai.GPT6Astra, openai.GPT6Sol, openai.GPT6Luna,
 	} {
 		t.Run(model, func(t *testing.T) {

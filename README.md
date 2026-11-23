@@ -128,15 +128,19 @@ Choose a model based on the workload's reasoning, latency, and cost requirements
 
 | Constant | Model ID | Typical use |
 | --- | --- | --- |
+| `GPT6Dot2Astra` | `gpt-6.2-astra` | Demanding reasoning and coding |
+| `GPT6Dot2Sol` | `gpt-6.2-sol` | Everyday coding and agent workflows |
+| `GPT6Dot1Terra` | `gpt-6.1-terra` | Visual reasoning, computer use, and writing |
 | `GPT6Dot1Sol` | `gpt-6.1-sol` | Complex coding and professional work |
 | `GPT6Astra` | `gpt-6-astra` | Most demanding reasoning and coding |
 | `GPT6Sol` | `gpt-6-sol` | Previous Sol model |
 | `GPT6Luna` | `gpt-6-luna` | Focused, high-volume work |
 
-GPT-5.6 and earlier model constants remain available. GPT-6.1 Sol and Astra support
-`low`, `medium` (default), `high`, `xhigh`, and `max` reasoning; they do not support
-`none` or `minimal`. GPT-6 Sol and Luna also support `none`. Use Responses for tool
-calling with GPT-6.1 Sol or Astra, or when combining GPT-6 reasoning with tools.
+GPT-6 models in the table support `low`, `medium` (default), `high`, `xhigh`, and
+`max` reasoning. GPT-6.1 Terra, GPT-6 Sol, and GPT-6 Luna also support `none`.
+Use Responses for tool calling with GPT-6.2 Astra, GPT-6.2 Sol, GPT-6.1 Terra,
+GPT-6.1 Sol, and GPT-6 Astra. GPT-6 Sol and GPT-6 Luna support Chat Completions
+function calling with `reasoning_effort` set to `none`.
 See [GPT-6 guidance](https://developers.openai.com/api/docs/guides/latest-model).
 
 See the [OpenAI model catalog](https://developers.openai.com/api/docs/models) for

@@ -156,12 +156,13 @@ func (c *Client) sendRequest(req *http.Request, v Response) error {
 }
 
 func (c *Client) sendRequestRaw(req *http.Request) (response RawResponse, err error) {
-	resp, err := c.config.HTTPClient.Do(req) //nolint:bodyclose // body should be closed by outer function
+	resp, err := c.config.HTTPClient.Do(req)
 	if err != nil {
 		return
 	}
 
 	if isFailureStatusCode(resp) {
+		defer resp.Body.Close()
 		err = c.handleErrorResp(resp)
 		return
 	}

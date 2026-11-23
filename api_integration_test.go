@@ -53,7 +53,8 @@ func TestAPI(t *testing.T) {
 	_, err = c.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model:           openai.GPT6Luna,
+			ReasoningEffort: openai.ReasoningEffortNone,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -68,7 +69,8 @@ func TestAPI(t *testing.T) {
 	_, err = c.CreateChatCompletion(
 		ctx,
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model:           openai.GPT6Luna,
+			ReasoningEffort: openai.ReasoningEffortNone,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,
@@ -83,7 +85,8 @@ func TestAPI(t *testing.T) {
 	_, err = c.CreateChatCompletion(
 		context.Background(),
 		openai.ChatCompletionRequest{
-			Model: openai.GPT3Dot5Turbo,
+			Model:           openai.GPT6Luna,
+			ReasoningEffort: openai.ReasoningEffortNone,
 			Messages: []openai.ChatCompletionMessage{
 				{
 					Role:    openai.ChatMessageRoleUser,

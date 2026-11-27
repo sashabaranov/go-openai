@@ -170,8 +170,14 @@ func TestRun(t *testing.T) {
 
 	ctx := context.Background()
 
+	// create run with tool resources testing
 	_, err := client.CreateRun(ctx, threadID, openai.RunRequest{
 		AssistantID: assistantID,
+		ToolResources: openai.ToolResources{
+			FileSearch: &openai.FileSearchToolResources{
+				VectorStoreIDs: []string{},
+			},
+		},
 	})
 	checks.NoError(t, err, "CreateRun error")
 

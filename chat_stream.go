@@ -42,12 +42,12 @@ type ChatCompletionStreamChoice struct {
 	Delta                ChatCompletionStreamChoiceDelta     `json:"delta"`
 	Logprobs             *ChatCompletionStreamChoiceLogprobs `json:"logprobs,omitempty"`
 	FinishReason         FinishReason                        `json:"finish_reason"`
-	ContentFilterResults ContentFilterResults                `json:"content_filter_results,omitempty"`
+	ContentFilterResults *ContentFilterResults               `json:"content_filter_results,omitempty"`
 }
 
 type PromptFilterResult struct {
-	Index                int                  `json:"index"`
-	ContentFilterResults ContentFilterResults `json:"content_filter_results,omitempty"`
+	Index                int                   `json:"index"`
+	ContentFilterResults *ContentFilterResults `json:"content_filter_results,omitempty"`
 }
 
 type ChatCompletionStreamResponse struct {

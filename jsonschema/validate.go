@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"math"
+	"strconv"
 )
 
 func CollectDefs(def Definition) map[string]Definition {
@@ -22,7 +23,10 @@ func collectDefsRecursive(def Definition, result map[string]Definition, prefix s
 		collectDefsRecursive(sub, result, prefix+"/properties/"+k)
 	}
 	if def.Items != nil {
-		collectDefsRecursive(*def.Items, result, prefix)
+		collectDefsRecursive(*def.Items, result, prefix+"/items")
+	}
+	for i, sub := range def.AnyOf {
+		collectDefsRecursive(sub, result, prefix+"/anyOf/"+strconv.Itoa(i))
 	}
 }
 

@@ -1,6 +1,7 @@
 package jsonschema_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -481,6 +482,38 @@ func TestCollectDefs(t *testing.T) {
 			got := jsonschema.CollectDefs(tt.args.schema)
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Errorf("CollectDefs() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestNestedDefinitionsInArrayAndUnion(t *testing.T) {
+	tests := []struct {
+		name, schema, valid, invalid string
+	}{
+		{
+			"array items",
+			`{"type":"array","items":{"$defs":{"value":{"type":"string"}},"$ref":"#/items/$defs/value"}}`,
+			`["complete"]`, `[12]`,
+		},
+		{
+			"union branch",
+			`{"anyOf":[{"type":"null"},{"$defs":{"value":{"type":"integer"}},"$ref":"#/anyOf/1/$defs/value"}]}`,
+			`12`, `"complete"`,
+		},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			var schema jsonschema.Definition
+			if err := json.Unmarshal([]byte(tc.schema), &schema); err != nil {
+				t.Fatal(err)
+			}
+			var output any
+			if err := schema.Unmarshal(tc.valid, &output); err != nil {
+				t.Fatalf("valid response %s: %v", tc.valid, err)
+			}
+			if err := schema.Unmarshal(tc.invalid, &output); err == nil {
+				t.Errorf("accepted invalid response %s", tc.invalid)
 			}
 		})
 	}

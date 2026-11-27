@@ -1,3 +1,8 @@
+# Github Forked Branch Rules
+`master` - kept in sync with main repository. Do not merge anything into this branch other than sync code.
+`develop` - default branch of this forked repository. Merge all PRs into this branch.
+`release` - only release from this branch. Merge the `develop` into `release` branch before doing a tagged release.
+
 # Go OpenAI
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/sashabaranov/go-openai.svg)](https://pkg.go.dev/github.com/sashabaranov/go-openai)

@@ -49,6 +49,12 @@ func (stream *streamReader[T]) RecvRaw() ([]byte, error) {
 	if stream.isFinished {
 		return nil, io.EOF
 	}
+	if stream.reader == nil {
+		// This streamReader was returned alongside an HTTP-status error
+		// (see sendRequestStream) so its headers are reachable; it was
+		// never wired up to a response body, so there is nothing to read.
+		return nil, io.EOF
+	}
 
 	return stream.processLines()
 }

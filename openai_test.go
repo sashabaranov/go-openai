@@ -1,6 +1,8 @@
 package openai_test
 
 import (
+	"net"
+
 	"github.com/sashabaranov/go-openai"
 	"github.com/sashabaranov/go-openai/internal/test"
 )
@@ -23,6 +25,23 @@ func setupAzureTestServer() (client *openai.Client, server *test.ServerTest, tea
 	teardown = ts.Close
 	config := openai.DefaultAzureConfig(test.GetTestToken(), "https://dummylab.openai.azure.com/")
 	config.BaseURL = ts.URL
+	client = openai.NewClientWithConfig(config)
+	return
+}
+
+// setupUnreachableClient returns a client whose BaseURL has no listener, so
+// any request fails at the transport level (e.g. "connection refused")
+// instead of receiving an HTTP response.
+func setupUnreachableClient() (client *openai.Client) {
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		panic(err)
+	}
+	addr := ln.Addr().String()
+	ln.Close()
+
+	config := openai.DefaultConfig(test.GetTestToken())
+	config.BaseURL = "http://" + addr + "/v1"
 	client = openai.NewClientWithConfig(config)
 	return
 }

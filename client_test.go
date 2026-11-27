@@ -52,6 +52,9 @@ func TestSetCommonHeadersAnthropic(t *testing.T) {
 	if got := req.Header.Get("anthropic-version"); got != AnthropicAPIVersion {
 		t.Errorf("Expected anthropic-version header to be %q, got %q", AnthropicAPIVersion, got)
 	}
+	if got := req.Header.Get("Authorization"); got != "Bearer mock-token" {
+		t.Errorf("Expected Authorization header to be %q, got %q", "Bearer mock-token", got)
+	}
 }
 
 func TestDecodeResponse(t *testing.T) {

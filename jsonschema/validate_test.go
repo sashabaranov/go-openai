@@ -1,6 +1,7 @@
 package jsonschema_test
 
 import (
+	"encoding/json"
 	"reflect"
 	"testing"
 
@@ -483,5 +484,53 @@ func TestCollectDefs(t *testing.T) {
 				t.Errorf("CollectDefs() = %v, want %v", got, tt.want)
 			}
 		})
+	}
+}
+
+func TestSchemaValuedAdditionalProperties(t *testing.T) {
+	text := jsonschema.Definition{Type: jsonschema.String}
+	schema := jsonschema.Definition{
+		Type: jsonschema.Object, Properties: map[string]jsonschema.Definition{"count": {Type: jsonschema.Integer}},
+		AdditionalProperties: text,
+	}
+	var decoded jsonschema.Definition
+	raw, err := json.Marshal(&schema)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err = json.Unmarshal(raw, &decoded); err != nil {
+		t.Fatal(err)
+	}
+	for _, additional := range []any{text, &text, decoded.AdditionalProperties} {
+		schema.AdditionalProperties = additional
+		for _, tc := range []struct {
+			content string
+			valid   bool
+		}{
+			{`{"count":2,"city":"Lima"}`, true},
+			{`{"count":2,"city":3}`, false},
+			{`{"count":"two"}`, false},
+			{`{}`, true},
+		} {
+			var value map[string]any
+			if err = schema.Unmarshal(tc.content, &value); (err == nil) != tc.valid {
+				t.Errorf("%T: Unmarshal(%s) error = %v, want valid = %t", additional, tc.content, err, tc.valid)
+			}
+		}
+	}
+}
+
+func TestAdditionalPropertySchemaReferences(t *testing.T) {
+	schema := jsonschema.Definition{Type: jsonschema.Object, AdditionalProperties: jsonschema.Definition{
+		Ref:  "#/additionalProperties/$defs/quantity",
+		Defs: map[string]jsonschema.Definition{"quantity": {Type: jsonschema.Integer}},
+	}}
+	valid := jsonschema.Validate(schema, map[string]any{"count": 4})
+	if !valid || jsonschema.Validate(schema, map[string]any{"count": "four"}) {
+		t.Fatal("expected additional values to satisfy the referenced integer schema")
+	}
+	schema.AdditionalProperties = map[string]any{}
+	if !jsonschema.Validate(schema, map[string]any{"mixed": []any{true, 3}}) {
+		t.Fatal("empty additional property schema should allow any value")
 	}
 }

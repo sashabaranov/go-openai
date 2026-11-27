@@ -204,6 +204,7 @@ func (c *Client) setCommonHeaders(req *http.Request) {
 	case APITypeAnthropic:
 		// https://docs.anthropic.com/en/api/versioning
 		req.Header.Set("anthropic-version", c.config.APIVersion)
+		fallthrough
 	case APITypeOpenAI, APITypeAzureAD:
 		fallthrough
 	default:

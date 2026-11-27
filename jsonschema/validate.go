@@ -21,6 +21,9 @@ func collectDefsRecursive(def Definition, result map[string]Definition, prefix s
 	for k, sub := range def.Properties {
 		collectDefsRecursive(sub, result, prefix+"/properties/"+k)
 	}
+	if additional, _ := additionalPropertySchema(def.AdditionalProperties); additional != nil {
+		collectDefsRecursive(*additional, result, prefix+"/additionalProperties")
+	}
 	if def.Items != nil {
 		collectDefsRecursive(*def.Items, result, prefix)
 	}
@@ -115,11 +118,14 @@ func validateObject(schema Definition, data any, defs map[string]Definition) boo
 	if !ok {
 		return false
 	}
-	if allowAdditional, isBool := schema.AdditionalProperties.(bool); isBool && !allowAdditional {
-		for key := range dataMap {
-			if _, exists := schema.Properties[key]; !exists {
-				return false
-			}
+	additional, allowed := additionalPropertySchema(schema.AdditionalProperties)
+	constrained := additional != nil && (additional.Type != "" || additional.Ref != "" || len(additional.AnyOf) > 0)
+	for key, value := range dataMap {
+		if _, declared := schema.Properties[key]; declared {
+			continue
+		}
+		if !allowed || (constrained && !Validate(*additional, value, WithDefs(defs))) {
+			return false
 		}
 	}
 	for _, field := range schema.Required {
@@ -136,6 +142,30 @@ func validateObject(schema Definition, data any, defs map[string]Definition) boo
 		}
 	}
 	return true
+}
+
+// additionalPropertySchema accepts both the documented Go form and the object
+// representation produced by encoding/json when decoding into an interface.
+func additionalPropertySchema(value any) (*Definition, bool) {
+	var rule *Definition
+	switch v := value.(type) {
+	case bool:
+		return nil, v
+	case Definition:
+		rule = &v
+	case *Definition:
+		rule = v
+	case map[string]any:
+		data, err := json.Marshal(v)
+		if err != nil {
+			return nil, false
+		}
+		rule = new(Definition)
+		if err = json.Unmarshal(data, rule); err != nil {
+			return nil, false
+		}
+	}
+	return rule, true
 }
 
 func validateArray(schema Definition, data any, defs map[string]Definition) bool {

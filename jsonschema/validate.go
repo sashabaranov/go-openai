@@ -60,13 +60,22 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 	}
 	// anyOf is satisfied when the data matches at least one of the subschemas.
 	if len(schema.AnyOf) > 0 {
-		return validateAnyOf(schema.AnyOf, data, args.Defs)
+		if !validateAnyOf(schema.AnyOf, data, args.Defs) {
+			return false
+		}
+		if schema.Type == "" && schema.Ref == "" {
+			return true
+		}
 	}
+	return validateType(schema, data, args.Defs)
+}
+
+func validateType(schema Definition, data any, defs map[string]Definition) bool {
 	switch schema.Type {
 	case Object:
-		return validateObject(schema, data, args.Defs)
+		return validateObject(schema, data, defs)
 	case Array:
-		return validateArray(schema, data, args.Defs)
+		return validateArray(schema, data, defs)
 	case String:
 		v, ok := data.(string)
 		if ok && len(schema.Enum) > 0 {
@@ -92,9 +101,9 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 	case Null:
 		return data == nil
 	default:
-		if schema.Ref != "" && args.Defs != nil {
-			if v, ok := args.Defs[schema.Ref]; ok {
-				return Validate(v, data, WithDefs(args.Defs))
+		if schema.Ref != "" && defs != nil {
+			if v, ok := defs[schema.Ref]; ok {
+				return Validate(v, data, WithDefs(defs))
 			}
 		}
 		return false

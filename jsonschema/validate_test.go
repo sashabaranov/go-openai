@@ -485,3 +485,36 @@ func TestCollectDefs(t *testing.T) {
 		})
 	}
 }
+
+func TestAnyOfWithSiblingConstraints(t *testing.T) {
+	schema := jsonschema.Definition{
+		Type:     jsonschema.Object,
+		Required: []string{"name"},
+		AnyOf:    []jsonschema.Definition{{Type: jsonschema.String}, {Type: jsonschema.Object}},
+	}
+	for _, tc := range []struct {
+		content string
+		valid   bool
+	}{
+		{`{"name":"Ada"}`, true},
+		{`{}`, false},
+		{`"Ada"`, false},
+		{`[]`, false},
+	} {
+		var result any
+		if err := schema.Unmarshal(tc.content, &result); (err == nil) != tc.valid {
+			t.Errorf("Unmarshal(%s) error = %v, want valid = %t", tc.content, err, tc.valid)
+		}
+	}
+}
+
+func TestAnyOfWithSiblingRef(t *testing.T) {
+	schema := jsonschema.Definition{
+		Ref:   "#/$defs/label",
+		Defs:  map[string]jsonschema.Definition{"label": {Type: jsonschema.String, Enum: []string{"ok"}}},
+		AnyOf: []jsonschema.Definition{{Type: jsonschema.String}},
+	}
+	if !jsonschema.Validate(schema, "ok") || jsonschema.Validate(schema, "other") {
+		t.Fatal("expected a string to satisfy both anyOf and the referenced enum")
+	}
+}

@@ -485,3 +485,47 @@ func TestCollectDefs(t *testing.T) {
 		})
 	}
 }
+
+func TestValidateNullable(t *testing.T) {
+	tests := []struct {
+		name   string
+		schema jsonschema.Definition
+		data   any
+		want   bool
+	}{
+		{"nullable string accepts null", jsonschema.Definition{Type: jsonschema.String, Nullable: true}, nil, true},
+		{"nullable string accepts string", jsonschema.Definition{Type: jsonschema.String, Nullable: true}, "a", true},
+		{"nullable string rejects number", jsonschema.Definition{Type: jsonschema.String, Nullable: true}, 1.0, false},
+		{"non-nullable string rejects null", jsonschema.Definition{Type: jsonschema.String}, nil, false},
+		{"nullable integer accepts null", jsonschema.Definition{Type: jsonschema.Integer, Nullable: true}, nil, true},
+		{"nullable object accepts null", jsonschema.Definition{Type: jsonschema.Object, Nullable: true}, nil, true},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := jsonschema.Validate(tt.schema, tt.data); got != tt.want {
+				t.Errorf("Validate() = %v, want %v", got, tt.want)
+			}
+		})
+	}
+}
+
+func TestUnmarshalNullableFieldFromGeneratedSchema(t *testing.T) {
+	type Person struct {
+		Name     string  `json:"name"`
+		Nickname *string `json:"nickname" nullable:"true"`
+	}
+	schema, err := jsonschema.GenerateSchemaForType(Person{})
+	if err != nil {
+		t.Fatalf("GenerateSchemaForType() error = %v", err)
+	}
+	var p Person
+	if err = schema.Unmarshal(`{"name":"Ada","nickname":null}`, &p); err != nil {
+		t.Fatalf("Unmarshal() error = %v", err)
+	}
+	if p.Name != "Ada" || p.Nickname != nil {
+		t.Errorf("Unmarshal() = %+v, want name Ada and nil nickname", p)
+	}
+	if err = schema.Unmarshal(`{"name":null,"nickname":null}`, &p); err == nil {
+		t.Error("Unmarshal() accepted null for a field that is not nullable")
+	}
+}

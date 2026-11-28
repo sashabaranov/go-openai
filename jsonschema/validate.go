@@ -58,6 +58,10 @@ func Validate(schema Definition, data any, opts ...ValidateOption) bool {
 	if len(opts) == 0 {
 		args.Defs = CollectDefs(schema)
 	}
+	// A nullable schema also accepts null, whatever its type.
+	if schema.Nullable && data == nil {
+		return true
+	}
 	// anyOf is satisfied when the data matches at least one of the subschemas.
 	if len(schema.AnyOf) > 0 {
 		return validateAnyOf(schema.AnyOf, data, args.Defs)

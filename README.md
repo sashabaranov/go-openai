@@ -111,16 +111,26 @@ defer stream.Close()
 for {
 	event, err := stream.Recv()
 	if errors.Is(err, io.EOF) {
-		break
+		return io.ErrUnexpectedEOF
 	}
 	if err != nil {
 		return err
 	}
-	if event.Type == openai.ResponseStreamEventOutputTextDelta {
+	switch event.Type {
+	case openai.ResponseStreamEventOutputTextDelta:
 		fmt.Print(event.Delta)
+	case openai.ResponseStreamEventCompleted:
+		return nil
+	case openai.ResponseStreamEventFailed, openai.ResponseStreamEventIncomplete:
+		return fmt.Errorf("response stream ended with %s", event.Type)
+	case openai.ResponseStreamEventError:
+		return fmt.Errorf("response stream error: %s", event.Message)
 	}
 }
 ```
+
+Wait for `response.completed` before treating the streamed output as complete.
+A response can fail or be incomplete after it has already sent text deltas.
 
 ## Choosing a model
 
